@@ -238,7 +238,10 @@ impl Parser {
             // failures with confusing "Call(CellRef(A1), …)" nodes.
             if !matches!(
                 callee,
-                Expr::FuncCall { .. } | Expr::Name(_) | Expr::Call(_, _)
+                Expr::FuncCall { .. }
+                    | Expr::Name(_)
+                    | Expr::SheetName { .. }
+                    | Expr::Call(_, _)
             ) {
                 return Some(callee);
             }

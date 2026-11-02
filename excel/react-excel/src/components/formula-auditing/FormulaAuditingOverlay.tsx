@@ -50,7 +50,16 @@ export function FormulaAuditingOverlay(): JSX.Element | null {
 
   const rangeRect = (range: CellRange) => {
     const frame = selectionEdgeGeometry(range, metrics, sizeOverrides, freeze)
-    if (frame.width <= 0 || frame.height <= 0) return null
+    if (
+      !Number.isFinite(frame.left) ||
+      !Number.isFinite(frame.top) ||
+      !Number.isFinite(frame.width) ||
+      !Number.isFinite(frame.height) ||
+      frame.width <= 0 ||
+      frame.height <= 0
+    ) {
+      return null
+    }
     return {
       left: frame.left + gutter,
       top: frame.top + heading,

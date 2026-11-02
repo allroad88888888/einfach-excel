@@ -37,7 +37,8 @@ pub fn map_addrs(expr: &Expr, f: &dyn Fn(CellAddress) -> CellAddress) -> Expr {
         Expr::SheetRef { .. }
         | Expr::SheetRange { .. }
         | Expr::Sheet3DRef { .. }
-        | Expr::Sheet3DRange { .. } => expr.clone(),
+        | Expr::Sheet3DRange { .. }
+        | Expr::SheetName { .. } => expr.clone(),
         Expr::SpillRef(anchor) => Expr::SpillRef(Box::new(map_addrs(anchor, f))),
         Expr::DynamicRange { start, end } => Expr::DynamicRange {
             start: Box::new(map_addrs(start, f)),

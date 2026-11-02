@@ -276,6 +276,10 @@ msgstr "Add rule"
 msgid "Add table row"
 msgstr "Add table row"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Add Watch"
+msgstr "Add Watch"
+
 #: src/i18n/feedback-messages.ts
 msgid "Add worksheet"
 msgstr "Add worksheet"
@@ -696,6 +700,10 @@ msgstr "Case sensitive"
 msgid "Category"
 msgstr "Category"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Cell"
+msgstr "Cell"
+
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Cell {address}. Click to select; Ctrl/⌘+click to open the link."
 msgstr "Cell {address}. Click to select; Ctrl/⌘+click to open the link."
@@ -723,6 +731,10 @@ msgstr "Cell has a note"
 #: src/workbook/grid/viewport/CellRenderer.tsx
 msgid "Cell has comments"
 msgstr "Cell has comments"
+
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Cell or Sheet!A1 (blank = selection)"
+msgstr "Cell or Sheet!A1 (blank = selection)"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Cell value"
@@ -966,6 +978,8 @@ msgstr "Clipboard status"
 msgid "Clipboard write is unavailable. Use the browser copy shortcut."
 msgstr "Clipboard write is unavailable. Use the browser copy shortcut."
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+#: src/components/formula-auditing/WatchWindowPanel.tsx
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 #: src/workbook/chrome/ribbon/SpillTools.tsx
@@ -1657,6 +1671,10 @@ msgstr "Delete sheet"
 msgid "Delete table"
 msgstr "Delete table"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Delete Watch"
+msgstr "Delete Watch"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
 msgid "Delete worksheet"
@@ -1870,6 +1888,12 @@ msgstr "Edit"
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Edit {0}"
 msgstr "Edit {0}"
+
+#. placeholder {0}: entry.name
+#. placeholder {1}: scopeSheet.name
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Edit {0} ({1})"
+msgstr "Edit {0} ({1})"
 
 #: src/i18n/feedback-messages.ts
 msgid "Edit cell"
@@ -2142,6 +2166,15 @@ msgstr "Error message"
 msgid "Error title"
 msgstr "Error title"
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Evaluate"
+msgstr "Evaluate"
+
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+#: src/components/formula-auditing/FormulaAuditingToolbar.tsx
+msgid "Evaluate Formula"
+msgstr "Evaluate Formula"
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Exact text"
 msgstr "Exact text"
@@ -2370,6 +2403,10 @@ msgstr "filters"
 msgid "Filters the worksheet’s used rows, not just the selection. Row 1 stays visible."
 msgstr "Filters the worksheet’s used rows, not just the selection. Row 1 stays visible."
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Final result"
+msgstr "Final result"
+
 #: src/i18n/feedback-messages.ts
 msgid "Financial"
 msgstr "Financial"
@@ -2573,6 +2610,7 @@ msgstr "Formatting exceeds 100,000 addressed cells. Choose a smaller selection."
 msgid "Formatting only"
 msgstr "Formatting only"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Formula"
@@ -3037,6 +3075,10 @@ msgstr "Invalid input"
 msgid "Invalid input requires an explicit Continue or Cancel choice."
 msgstr "Invalid input requires an explicit Continue or Cancel choice."
 
+#: src/i18n/next-version-feedback.ts
+msgid "Invalid iterative calculation configuration."
+msgstr "Invalid iterative calculation configuration."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Invalid note projection request."
 msgstr "Invalid note projection request."
@@ -3066,9 +3108,29 @@ msgstr "Items"
 msgid "Items, one per line"
 msgstr "Items, one per line"
 
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Iterative"
+msgstr "Iterative"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Iterative calculation"
+msgstr "Iterative calculation"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Iterative calculation disabled."
+msgstr "Iterative calculation disabled."
+
+#: src/i18n/translate-feedback.ts
+msgid "Iterative calculation enabled (max {maxIterations} iterations, delta {maxChange})."
+msgstr "Iterative calculation enabled (max {maxIterations} iterations, delta {maxChange})."
+
 #: src/i18n/feedback-messages.ts
 msgid "Joins several text strings into one."
 msgstr "Joins several text strings into one."
+
+#: src/components/formula-auditing/FormulaAuditingOverlay.tsx
+msgid "Jump to {label}"
+msgstr "Jump to {label}"
 
 #: src/i18n/feedback-messages.ts
 msgid "Keep at least one worksheet visible."
@@ -3291,6 +3353,14 @@ msgstr "Math & statistics"
 msgid "Max"
 msgstr "Max"
 
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Max change"
+msgstr "Max change"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Max iterations"
+msgstr "Max iterations"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
@@ -3464,6 +3534,7 @@ msgstr "Multi-line values stay intact. Use Choose values to change them."
 msgid "Multiply"
 msgstr "Multiply"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Name"
 msgstr "Name"
@@ -3558,6 +3629,10 @@ msgstr "Next page"
 msgid "Next sheet"
 msgstr "Next sheet"
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Next step result"
+msgstr "Next step result"
+
 #: src/i18n/feedback-messages.ts
 msgid "No adjacent continuous data to fill."
 msgstr "No adjacent continuous data to fill."
@@ -3637,6 +3712,10 @@ msgstr "No tables yet. Choose a range below."
 #: src/i18n/select-special-feedback.ts
 msgid "No visible cells in the selection."
 msgstr "No visible cells in the selection."
+
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "No watched cells yet. Select a cell and click Add Watch."
+msgstr "No watched cells yet. Select a cell and click Add Watch."
 
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Nonbreaking space"
@@ -4133,6 +4212,7 @@ msgstr "Redo"
 msgid "Redo (Ctrl/⌘+Shift+Z or Ctrl+Y)"
 msgstr "Redo (Ctrl/⌘+Shift+Z or Ctrl+Y)"
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
 #: src/workbook/chrome/ribbon/GoToTools.tsx
 msgid "Reference"
 msgstr "Reference"
@@ -4168,6 +4248,10 @@ msgstr "Remove"
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Remove "
 msgstr "Remove "
+
+#: src/components/formula-auditing/FormulaAuditingToolbar.tsx
+msgid "Remove Arrows"
+msgstr "Remove Arrows"
 
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
@@ -4430,9 +4514,17 @@ msgstr "Resolved"
 msgid "Resolved this discussion"
 msgstr "Resolved this discussion"
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Restart"
+msgstr "Restart"
+
 #: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
 msgid "Restore defaults"
 msgstr "Restore defaults"
+
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Result"
+msgstr "Result"
 
 #. placeholder {0}: page.offset + 1
 #. placeholder {1}: page.offset + page.matches.length
@@ -4582,6 +4674,10 @@ msgstr "Rust drag move is unavailable."
 msgid "Rust hyperlink editing is unavailable."
 msgstr "Rust hyperlink editing is unavailable."
 
+#: src/i18n/next-version-feedback.ts
+msgid "Rust iterative calculation is unavailable."
+msgstr "Rust iterative calculation is unavailable."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust note editing is unavailable."
 msgstr "Rust note editing is unavailable."
@@ -4621,6 +4717,10 @@ msgstr "Rust returned an invalid comment thread."
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust returned an invalid custom formula directory."
 msgstr "Rust returned an invalid custom formula directory."
+
+#: src/i18n/next-version-feedback.ts
+msgid "Rust returned an invalid iterative calculation result."
+msgstr "Rust returned an invalid iterative calculation result."
 
 #: src/i18n/next-version-feedback.ts
 msgid "Rust returned incomplete search matches. The selection was not changed."
@@ -4727,6 +4827,10 @@ msgstr "Scale colors"
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Scientific"
 msgstr "Scientific"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Scope"
+msgstr "Scope"
 
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Search"
@@ -5002,6 +5106,10 @@ msgstr "Set table total function"
 msgid "Settings start from the active cell. Apply changes only the number format of the selection."
 msgstr "Settings start from the active cell. Apply changes only the number format of the selection."
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Sheet"
+msgstr "Sheet"
+
 #: src/workbook/chrome/ribbon/FindResults.tsx
 msgid "Sheet / cell"
 msgstr "Sheet / cell"
@@ -5242,6 +5350,18 @@ msgstr "Statistic copy status"
 #: src/workbook/chrome/footer/SelectionStatus.tsx
 msgid "Statistics unavailable"
 msgstr "Statistics unavailable"
+
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Step In"
+msgstr "Step In"
+
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Step Out"
+msgstr "Step Out"
+
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Stepped In"
+msgstr "Stepped In"
 
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Stop"
@@ -6009,6 +6129,14 @@ msgstr "Totals row failed: the row below the table is occupied. Clear it and try
 msgid "Totals use SUBTOTAL and exclude filtered and manually hidden rows."
 msgstr "Totals use SUBTOTAL and exclude filtered and manually hidden rows."
 
+#: src/components/formula-auditing/FormulaAuditingToolbar.tsx
+msgid "Trace Dependents"
+msgstr "Trace Dependents"
+
+#: src/components/formula-auditing/FormulaAuditingToolbar.tsx
+msgid "Trace Precedents"
+msgstr "Trace Precedents"
+
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Transpose"
 msgstr "Transpose"
@@ -6364,6 +6492,7 @@ msgstr "Validation titles allow 32 characters and messages allow 255 characters.
 msgid "Validation warning"
 msgstr "Validation warning"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
@@ -6430,6 +6559,15 @@ msgstr "Waiting for the table list…"
 msgid "Warning"
 msgstr "Warning"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Watch cell reference"
+msgstr "Watch cell reference"
+
+#: src/components/formula-auditing/FormulaAuditingToolbar.tsx
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Watch Window"
+msgstr "Watch Window"
+
 #: src/i18n/feedback-messages.ts
 msgid "Weekday names"
 msgstr "Weekday names"
@@ -6448,6 +6586,7 @@ msgstr "Within"
 
 #: src/workbook/chrome/header/WorkbookHeader.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Workbook"
 msgstr "Workbook"
 

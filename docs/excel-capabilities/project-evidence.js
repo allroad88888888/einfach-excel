@@ -1,10 +1,10 @@
 // Generated/updated project capability evidence
 window.PROJECT_EVIDENCE = {
   "checkedAt": "2026-11-02",
-  "revision": "0b16b59e",
+  "revision": "8001a858 + P1 formula integration candidate",
   "scope": "本项目维护主线：React → spreadsheet-ui-core → Rust Worker/WASM。旧 Solid/Vue/TS 实现不自动计入；当前未发布能力与已发布版本分开理解。",
-  "method": "本次静态核对界面入口、命令接线、Rust 实现及 E2E 登记；未重新运行产品完整回归。已实现仅指本条说明内的对应能力，不代表 Office 全兼容。关联测试是现有登记，不是本次通过报告。",
-  "featureBindings": 1090,
+  "method": "本次核对界面入口、命令接线、Rust 实现及 E2E 登记，并运行完整浏览器回归：2784/2786 通过。XLSX 导入用例的旧预期已修正，定向 6/6 通过；AFORM-002 异步撤销首次失败，单独重跑 3 次通过，尚未确认稳定。P1 公式功能主验收均通过。已实现仅指本条说明内的对应能力，不代表 Office 全兼容；登记表不等于全产品交互覆盖率。",
+  "featureBindings": 1108,
   "functionCountFull": 502,
   "functionCountLite": 499,
   "sources": {
@@ -29,16 +29,16 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/react-excel/docs/current-capabilities.md",
       "url": "../excel/react-excel/docs/current-capabilities.md",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/docs/current-capabilities.md",
-      "sha256": "92a45dd238d98c4f542f3c1e1892b1f85831fa32799b9882548c0439dc8a4c13",
-      "bytes": 42181
+      "sha256": "0f2b1bdad5e5b44d2c83b6c0087800636c30d57660a9adea83b0c3dcc0cadf9a",
+      "bytes": 43193
     },
     "excel/react-excel/FEATURE_PROGRESS.md": {
       "label": "excel/react-excel/FEATURE_PROGRESS.md",
       "path": "excel/react-excel/FEATURE_PROGRESS.md",
       "url": "../excel/react-excel/FEATURE_PROGRESS.md",
-      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/FEATURE_PROGRESS.md",
-      "sha256": "fd005fa4aa2edc8a5381653995346ed1d5901f2996ef838f516f59f1c396f435",
-      "bytes": 7140
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/react-excel/FEATURE_PROGRESS.md",
+      "sha256": "3c82a8b55cd27fe5198f5af8786defa9bb839d1bb0567fc9f5f948e22b2a946a",
+      "bytes": 7210
     },
     "excel/react-excel/src/workbook/xlsx/xlsx-converter.ts": {
       "label": "excel/react-excel/src/workbook/xlsx/xlsx-converter.ts",
@@ -109,8 +109,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/rust/xlsx/src/lib.rs",
       "url": "../excel/rust/xlsx/src/lib.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/xlsx/src/lib.rs",
-      "sha256": "eab21d505448e5f030b8f317b6d21bdf47f24ef23bc6c64a25568453b28ab295",
-      "bytes": 3635
+      "sha256": "3507dbf723a46762be0533476f1bc42593368a64d93e1b52975204d6839f3041",
+      "bytes": 4935
     },
     "excel/react-excel/src/workbook/chrome/ribbon/ClipboardTools.tsx": {
       "label": "excel/react-excel/src/workbook/chrome/ribbon/ClipboardTools.tsx",
@@ -165,8 +165,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/rust/excel-core/src/workbook_sheet_duplicate.rs",
       "url": "../excel/rust/excel-core/src/workbook_sheet_duplicate.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/workbook_sheet_duplicate.rs",
-      "sha256": "3d8bd1d4bc4f97a4a167828e880f26f685b8bca001f288f5eac05e83e1e3abcd",
-      "bytes": 9766
+      "sha256": "6c063c3845ef51d3ca9406faaf8aba2690dca001f6c67f73ca58e91abe6ebcf3",
+      "bytes": 11269
     },
     "excel/react-excel/src/workbook/sheet-management/tab-colors.ts": {
       "label": "excel/react-excel/src/workbook/sheet-management/tab-colors.ts",
@@ -365,8 +365,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/rust/excel-core/src/eval_fn_reference_resolution.rs",
       "url": "../excel/rust/excel-core/src/eval_fn_reference_resolution.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/eval_fn_reference_resolution.rs",
-      "sha256": "9e726825e3c6b002e5c3c68c9db0333af2bce4805775676abc6433d67bc6face",
-      "bytes": 8589
+      "sha256": "ffcbb13af166f5e6aae972f7a8c1f3a125b851cfc90da9cd7e9960e3660b2e48",
+      "bytes": 8732
     },
     "excel/rust/excel-core/src/sheet_scan.rs": {
       "label": "excel/rust/excel-core/src/sheet_scan.rs",
@@ -693,8 +693,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/react-excel/src/workbook/chrome/ribbon/WorkbookRibbon.tsx",
       "url": "../excel/react-excel/src/workbook/chrome/ribbon/WorkbookRibbon.tsx",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/src/workbook/chrome/ribbon/WorkbookRibbon.tsx",
-      "sha256": "0d978da608aba8166b99ad1f74712bc7f7e13b02e6addd3f92e4e99d18c2899e",
-      "bytes": 10083
+      "sha256": "146c18707350e5bf437fc9a9581d216392ed3d8d357a3420feae202bf7b798a7",
+      "bytes": 10200
     },
     "excel/spreadsheet-ui-core/src/rust-workbook/format-io.ts": {
       "label": "excel/spreadsheet-ui-core/src/rust-workbook/format-io.ts",
@@ -797,16 +797,16 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/rust/excel-core/src/formula/operators.rs",
       "url": "../excel/rust/excel-core/src/formula/operators.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/formula/operators.rs",
-      "sha256": "e28577df415f2ac20d93a106242f236bc1ed4ff11b381d2a5af80829f1bb33dd",
-      "bytes": 10660
+      "sha256": "b088058a317941a3f3cb193ee6bae7f66391515b3c8accfbd9f99739d673d25a",
+      "bytes": 10745
     },
     "excel/rust/excel-core/src/eval_core_expression.rs": {
       "label": "excel/rust/excel-core/src/eval_core_expression.rs",
       "path": "excel/rust/excel-core/src/eval_core_expression.rs",
       "url": "../excel/rust/excel-core/src/eval_core_expression.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/eval_core_expression.rs",
-      "sha256": "c5909a369c345ba67b577754bc5d4293272d5008ae4eeadb36dc9ad814b47449",
-      "bytes": 9406
+      "sha256": "b36ad2652afb42f67264cf349ee0f7bf2eda43bfd9efd2840849c56d992ad40e",
+      "bytes": 11751
     },
     "excel/react-excel/src/workbook/formula/FormulaAssist.tsx": {
       "label": "excel/react-excel/src/workbook/formula/FormulaAssist.tsx",
@@ -821,48 +821,48 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/spreadsheet-ui-core/src/formula-reference/index.ts",
       "url": "../excel/spreadsheet-ui-core/src/formula-reference/index.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/formula-reference/index.ts",
-      "sha256": "cb06b80d2bb462b10fed21d27c5a008f64d2f087c71f2e9787973d35904ab11f",
-      "bytes": 9848
+      "sha256": "efc1e0d2ae3bd46b3965446c7bbad2ede4adc807d23f8dc46e20910f47667958",
+      "bytes": 9914
     },
     "excel/rust/excel-core/src/shift.rs": {
       "label": "excel/rust/excel-core/src/shift.rs",
       "path": "excel/rust/excel-core/src/shift.rs",
       "url": "../excel/rust/excel-core/src/shift.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/shift.rs",
-      "sha256": "fb6d1cb9f8b926090ff89ca2a7a9a5d4fe1d33a52dc94113b3cdd1b1dc859ede",
-      "bytes": 2934
+      "sha256": "5716741e2c0a3093e1677ee22c268e15cbe67aa947b7205fe7d20dcb7d26c957",
+      "bytes": 2967
     },
     "excel/react-excel/src/workbook/chrome/ribbon/NamedRangeTools.tsx": {
       "label": "excel/react-excel/src/workbook/chrome/ribbon/NamedRangeTools.tsx",
       "path": "excel/react-excel/src/workbook/chrome/ribbon/NamedRangeTools.tsx",
       "url": "../excel/react-excel/src/workbook/chrome/ribbon/NamedRangeTools.tsx",
-      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/src/workbook/chrome/ribbon/NamedRangeTools.tsx",
-      "sha256": "5769a107e881139b84dd3f1872016b6a99e58e0e0ff0c3ca8ca8c9ffef97b797",
-      "bytes": 5708
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/react-excel/src/workbook/chrome/ribbon/NamedRangeTools.tsx",
+      "sha256": "edf3e8875a808c0b43f393197613a52986123f0b6d7e16a1098cb1bb3b8ae24e",
+      "bytes": 6891
     },
     "excel/spreadsheet-ui-core/src/rust-workbook/named-range-commands.ts": {
       "label": "excel/spreadsheet-ui-core/src/rust-workbook/named-range-commands.ts",
       "path": "excel/spreadsheet-ui-core/src/rust-workbook/named-range-commands.ts",
       "url": "../excel/spreadsheet-ui-core/src/rust-workbook/named-range-commands.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/rust-workbook/named-range-commands.ts",
-      "sha256": "6f7e071d92c083ba12fabbb351559d0bba81eeb8f3ad961b5bba6c895352cbca",
-      "bytes": 3091
+      "sha256": "ce481701b5f77c738c16911ea2bb1bd575e8e5c1c515504bb676b317b0e90c0c",
+      "bytes": 4226
     },
     "excel/rust/excel-core/src/workbook_named_ranges.rs": {
       "label": "excel/rust/excel-core/src/workbook_named_ranges.rs",
       "path": "excel/rust/excel-core/src/workbook_named_ranges.rs",
       "url": "../excel/rust/excel-core/src/workbook_named_ranges.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/workbook_named_ranges.rs",
-      "sha256": "83a8dc40730ed14e6d79ff24fb976f94bece15783f9ec58c782bc113d88a1f62",
-      "bytes": 4113
+      "sha256": "05a728760504425805a5de2cf58a812d3dca9664ff4a7b265049afa760386034",
+      "bytes": 10271
     },
     "excel/rust/excel-core/src/workbook_names.rs": {
       "label": "excel/rust/excel-core/src/workbook_names.rs",
       "path": "excel/rust/excel-core/src/workbook_names.rs",
       "url": "../excel/rust/excel-core/src/workbook_names.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/workbook_names.rs",
-      "sha256": "795a928b28994a870c2d8c5c2ee71ee89e9fb0f1781911049a623e13928936fa",
-      "bytes": 5537
+      "sha256": "677fade665933116f5b3325b773d062602dcd48e5377d3c6c9065926aab69133",
+      "bytes": 7805
     },
     "excel/spreadsheet-ui-core/src/formula-functions/index.ts": {
       "label": "excel/spreadsheet-ui-core/src/formula-functions/index.ts",
@@ -900,17 +900,17 @@ window.PROJECT_EVIDENCE = {
       "label": "excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
       "path": "excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
       "url": "../excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
-      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
-      "sha256": "7f969c58a20766fb12a9ed9c2cbabe514d27d52b76ae4e5f1085e70e61280a1a",
-      "bytes": 2450
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
+      "sha256": "e93cc9f2fa7f4ec286befdb2b76e4b495cf9e8a60c45e28c4ea76862a57db49a",
+      "bytes": 4025
     },
     "excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts": {
       "label": "excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts",
       "path": "excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts",
       "url": "../excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts",
-      "sha256": "230918d3230721cdfbbe39768f0153c6b6037f04f5c7f120e48f2a0dc74421e9",
-      "bytes": 3591
+      "sha256": "08c50c7d9ae7b16fe26afa84321a3e3483afd1ba88120347c726734790274ded",
+      "bytes": 5215
     },
     "excel/react-excel/src/workbook/custom-formulas/CustomFormulaTools.tsx": {
       "label": "excel/react-excel/src/workbook/custom-formulas/CustomFormulaTools.tsx",
@@ -941,8 +941,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/rust/excel-core/src/eval_core_lambda_scope.rs",
       "url": "../excel/rust/excel-core/src/eval_core_lambda_scope.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/eval_core_lambda_scope.rs",
-      "sha256": "c81931fc9edd2ebafdb75b5b36308dadf697583c012007b8268aeffb0a0314c3",
-      "bytes": 8683
+      "sha256": "42e65b32ccc92cb467a73cfb9df57eeafa9d1efbdf35a107cdb16213e8465bcf",
+      "bytes": 10373
     },
     "excel/rust/excel-core/src/eval_tests/names_defined.rs": {
       "label": "excel/rust/excel-core/src/eval_tests/names_defined.rs",
@@ -957,8 +957,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/rust/excel-core/src/eval_core_dispatch.rs",
       "url": "../excel/rust/excel-core/src/eval_core_dispatch.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/eval_core_dispatch.rs",
-      "sha256": "f124a9a1aeabe89de1bedcc17491ccbec199f4fe92eb59de8cd61d2dd2547116",
-      "bytes": 18227
+      "sha256": "35c30b3c4e04653f7a86f45ea56aa128bd24307135fa2152f95d11e4666f133c",
+      "bytes": 18474
     },
     "excel/rust/excel-core/src/eval_fn_aggregate_core.rs": {
       "label": "excel/rust/excel-core/src/eval_fn_aggregate_core.rs",
@@ -1069,8 +1069,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/rust/excel-core/src/eval_fn_information_classification.rs",
       "url": "../excel/rust/excel-core/src/eval_fn_information_classification.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/eval_fn_information_classification.rs",
-      "sha256": "a63356c83c69a7aee609c530a4ecf5d74d09284db31013fa4e6fdb5bf28eb568",
-      "bytes": 6551
+      "sha256": "85c18d4ad6ede21b844667f4e892528ab4f39f9fd72666d22e61a81c2a303450",
+      "bytes": 6901
     },
     "excel/rust/excel-core/src/eval_fn_information_workbook.rs": {
       "label": "excel/rust/excel-core/src/eval_fn_information_workbook.rs",
@@ -1197,8 +1197,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/rust/excel-core/src/eval_fn_reference_position.rs",
       "url": "../excel/rust/excel-core/src/eval_fn_reference_position.rs",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/rust/excel-core/src/eval_fn_reference_position.rs",
-      "sha256": "0d5b3f41e30dd6af12245f950571da692cc7d3033d8b8e04da5066ba1996c47d",
-      "bytes": 5359
+      "sha256": "7301d6fce313b4f756b28c97675a58547ecbf6a4305800eae6d67826ac049709",
+      "bytes": 5445
     },
     "excel/rust/excel-core/src/eval_fn_linked_content.rs": {
       "label": "excel/rust/excel-core/src/eval_fn_linked_content.rs",
@@ -1573,8 +1573,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/react-excel/src/workbook/grid/viewport/WorkbookGrid.tsx",
       "url": "../excel/react-excel/src/workbook/grid/viewport/WorkbookGrid.tsx",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/src/workbook/grid/viewport/WorkbookGrid.tsx",
-      "sha256": "8f10ff6e71f029b9fd75ed262fc4dd4e7d9bb51f8517e34d75090a82e41776dd",
-      "bytes": 9808
+      "sha256": "31eaffd9a1e6be67aac27903c3a2efc9b90939ba8cbb22f2fcfce46e633f5a13",
+      "bytes": 9923
     },
     "excel/spreadsheet-ui-core/src/viewport/index.ts": {
       "label": "excel/spreadsheet-ui-core/src/viewport/index.ts",
@@ -1717,16 +1717,16 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/react-excel/e2e/FEATURES.md",
       "url": "../excel/react-excel/e2e/FEATURES.md",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/e2e/FEATURES.md",
-      "sha256": "f919b75925e4dd7cb7b153f6f161d9fccd90c39944891b3fbd786564662bea9c",
-      "bytes": 171518
+      "sha256": "43285498263e4bad64d0e4bd82ce7deca44242b5325e185aff18b412ee5077d6",
+      "bytes": 174319
     },
     "excel/spreadsheet-ui-core/src/toolbar/index.ts": {
       "label": "excel/spreadsheet-ui-core/src/toolbar/index.ts",
       "path": "excel/spreadsheet-ui-core/src/toolbar/index.ts",
       "url": "../excel/spreadsheet-ui-core/src/toolbar/index.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/toolbar/index.ts",
-      "sha256": "5f14c67c09da24f24072627e88ff294e8c2ab14dd4d8bcfd143932daa8013b8f",
-      "bytes": 1016
+      "sha256": "ede09095b016a949cfe54be23be2994bba99af6fcaf8387218cc4a95a1d54bd1",
+      "bytes": 1052
     },
     "excel/spreadsheet-ui-core/src/sheet-management/grouping.ts": {
       "label": "excel/spreadsheet-ui-core/src/sheet-management/grouping.ts",
@@ -1757,1331 +1757,1625 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/spreadsheet-ui-core/src/formula-reference/parser.ts",
       "url": "../excel/spreadsheet-ui-core/src/formula-reference/parser.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/spreadsheet-ui-core/src/formula-reference/parser.ts",
-      "sha256": "971886f9ac5ebc01a0cf768606577f9c8513f2d46e4b3a550d8a3dceef9bccfa",
-      "bytes": 5588
+      "sha256": "06485b4b0ddd8280f37ad4d9447d1bbd55a7a439ed25d96c3fea2abc6b513de2",
+      "bytes": 8393
     },
     "excel/spreadsheet-ui-core/src/calculation/command.ts": {
       "label": "excel/spreadsheet-ui-core/src/calculation/command.ts",
       "path": "excel/spreadsheet-ui-core/src/calculation/command.ts",
       "url": "../excel/spreadsheet-ui-core/src/calculation/command.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/spreadsheet-ui-core/src/calculation/command.ts",
-      "sha256": "00396c1e6e26d63a423dcd4943c47e39fc5b771602dbdad6d12b289520bfede0",
-      "bytes": 6576
+      "sha256": "0d516ed845b95e0cc20ce82df53681a227739a217bec7e323e3c5f69459dc4a0",
+      "bytes": 10145
     },
     "excel/rust/excel-core/src/workbook_calculation.rs": {
       "label": "excel/rust/excel-core/src/workbook_calculation.rs",
       "path": "excel/rust/excel-core/src/workbook_calculation.rs",
       "url": "../excel/rust/excel-core/src/workbook_calculation.rs",
-      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/rust/excel-core/src/workbook_calculation.rs",
-      "sha256": "3bbb797d2b6c25d2db004cdfafba8c634f3eda589bb9e58eec89e20183c94541",
-      "bytes": 7114
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/rust/excel-core/src/workbook_calculation.rs",
+      "sha256": "02a73031c1454434fb2f291a45df2a6afa1af22e163a16ed0ccf0ce95ab5185a",
+      "bytes": 9670
+    },
+    "excel/spreadsheet-ui-core/src/named-ranges/native-panel.ts": {
+      "label": "excel/spreadsheet-ui-core/src/named-ranges/native-panel.ts",
+      "path": "excel/spreadsheet-ui-core/src/named-ranges/native-panel.ts",
+      "url": "../excel/spreadsheet-ui-core/src/named-ranges/native-panel.ts",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/spreadsheet-ui-core/src/named-ranges/native-panel.ts",
+      "sha256": "d270228400b466363a36b4613d8f7c44053c74dbab7459c46a7ac6072cbda8e5",
+      "bytes": 9949
+    },
+    "excel/rust/excel-core/src/workbook_named.rs": {
+      "label": "excel/rust/excel-core/src/workbook_named.rs",
+      "path": "excel/rust/excel-core/src/workbook_named.rs",
+      "url": "../excel/rust/excel-core/src/workbook_named.rs",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/rust/excel-core/src/workbook_named.rs",
+      "sha256": "82c0a2d0241ea068975bacf81e31e361817a621bf467e621da7343adade0fd1d",
+      "bytes": 5869
+    },
+    "excel/rust/excel-core/src/formula/ast.rs": {
+      "label": "excel/rust/excel-core/src/formula/ast.rs",
+      "path": "excel/rust/excel-core/src/formula/ast.rs",
+      "url": "../excel/rust/excel-core/src/formula/ast.rs",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/rust/excel-core/src/formula/ast.rs",
+      "sha256": "b624b7f251df2214f09e23fe82dbcb3afc982d492dbad4d8629cba3f42f3941e",
+      "bytes": 13219
+    },
+    "excel/rust/excel-core/src/workbook_eval_provider.rs": {
+      "label": "excel/rust/excel-core/src/workbook_eval_provider.rs",
+      "path": "excel/rust/excel-core/src/workbook_eval_provider.rs",
+      "url": "../excel/rust/excel-core/src/workbook_eval_provider.rs",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/rust/excel-core/src/workbook_eval_provider.rs",
+      "sha256": "4ff94524a12a7f1bb9a6fe293957129b80f60c091ea363344c6d4c6ba980dcec",
+      "bytes": 12392
+    },
+    "excel/rust/excel-core/src/sheet_workbook_iterative.rs": {
+      "label": "excel/rust/excel-core/src/sheet_workbook_iterative.rs",
+      "path": "excel/rust/excel-core/src/sheet_workbook_iterative.rs",
+      "url": "../excel/rust/excel-core/src/sheet_workbook_iterative.rs",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/rust/excel-core/src/sheet_workbook_iterative.rs",
+      "sha256": "95e07dd093823f53da273ec6965f8e25a31914626616529b221d4f9178f24799",
+      "bytes": 10665
+    },
+    "excel/rust/excel-core/src/workbook_auditing.rs": {
+      "label": "excel/rust/excel-core/src/workbook_auditing.rs",
+      "path": "excel/rust/excel-core/src/workbook_auditing.rs",
+      "url": "../excel/rust/excel-core/src/workbook_auditing.rs",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/rust/excel-core/src/workbook_auditing.rs",
+      "sha256": "cbd39dd086f7556137e6e807278edda32d1c00c5feec731e1f9b06fb88061bef",
+      "bytes": 18773
+    },
+    "excel/rust/excel-core/src/auditing_eval.rs": {
+      "label": "excel/rust/excel-core/src/auditing_eval.rs",
+      "path": "excel/rust/excel-core/src/auditing_eval.rs",
+      "url": "../excel/rust/excel-core/src/auditing_eval.rs",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/rust/excel-core/src/auditing_eval.rs",
+      "sha256": "8bb8cfdf17ce685ea37ed81e627268e1d0989e9692843054a3b563931b846079",
+      "bytes": 18515
+    },
+    "excel/react-excel/src/components/formula-auditing/FormulaAuditingOverlay.tsx": {
+      "label": "excel/react-excel/src/components/formula-auditing/FormulaAuditingOverlay.tsx",
+      "path": "excel/react-excel/src/components/formula-auditing/FormulaAuditingOverlay.tsx",
+      "url": "../excel/react-excel/src/components/formula-auditing/FormulaAuditingOverlay.tsx",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/react-excel/src/components/formula-auditing/FormulaAuditingOverlay.tsx",
+      "sha256": "13ddd3a4a0458369a5ce7efc765768827eb324cd62efea110f5d945860fe8d40",
+      "bytes": 10321
+    },
+    "excel/react-excel/src/components/formula-auditing/EvaluateFormulaDialog.tsx": {
+      "label": "excel/react-excel/src/components/formula-auditing/EvaluateFormulaDialog.tsx",
+      "path": "excel/react-excel/src/components/formula-auditing/EvaluateFormulaDialog.tsx",
+      "url": "../excel/react-excel/src/components/formula-auditing/EvaluateFormulaDialog.tsx",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/react-excel/src/components/formula-auditing/EvaluateFormulaDialog.tsx",
+      "sha256": "20abe40b5c95044b668a12af67f54b4efc52f85aa6e9cc507833b59ed1331793",
+      "bytes": 4469
+    },
+    "excel/react-excel/src/components/formula-auditing/WatchWindowPanel.tsx": {
+      "label": "excel/react-excel/src/components/formula-auditing/WatchWindowPanel.tsx",
+      "path": "excel/react-excel/src/components/formula-auditing/WatchWindowPanel.tsx",
+      "url": "../excel/react-excel/src/components/formula-auditing/WatchWindowPanel.tsx",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/main/excel/react-excel/src/components/formula-auditing/WatchWindowPanel.tsx",
+      "sha256": "fc3ee5e6d98976dee24d7d4f00b649f27ee839d33265073f74c1989655ad7a36",
+      "bytes": 3912
     }
   },
   "tests": {
     "AFILT-001": {
-      "label": "添加 OR 组并应用任一组匹配",
+      "label": "AFILT-001 · 添加 OR 组并应用任一组匹配",
       "path": "excel/react-excel/e2e/advanced-filter/add-or-group.spec.ts",
+      "url": "../excel/react-excel/e2e/advanced-filter/add-or-group.spec.ts",
       "title": "advanced filter Add OR group includes either alternative in one apply at 1280px",
-      "registryLine": 87
+      "registryLine": 84
     },
     "AFILT-002": {
-      "label": "为当前 AND 组添加交集条件",
+      "label": "AFILT-002 · 为当前 AND 组添加交集条件",
       "path": "excel/react-excel/e2e/advanced-filter/add-and-condition.spec.ts",
+      "url": "../excel/react-excel/e2e/advanced-filter/add-and-condition.spec.ts",
       "title": "advanced filter Add condition intersects only its AND group at 1280px",
-      "registryLine": 88
+      "registryLine": 85
     },
     "AFORM-001": {
-      "label": "公式栏提交同源 JSON 异步公式并传播原生依赖",
+      "label": "AFORM-001 · 公式栏提交同源 JSON 异步公式并传播原生依赖",
       "path": "excel/react-excel/e2e/async-formulas/settlement.spec.ts",
+      "url": "../excel/react-excel/e2e/async-formulas/settlement.spec.ts",
       "title": "enter FETCHJSON through the formula bar and settle real HTTP with native dependents",
-      "registryLine": 68
-    },
-    "BORDER-001": {
-      "label": "外边框",
-      "path": "excel/react-excel/e2e/format/border-settings.spec.ts",
-      "title": "outside uses selection edges, not every cell perimeter",
-      "registryLine": 441
-    },
-    "CALC-001": {
-      "label": "当前表重算",
-      "path": "excel/react-excel/e2e/editing/manual-calculation.spec.ts",
-      "title": "native seed RAND changes on current-sheet calculation, its dependent agrees and history stays empty",
-      "registryLine": 810
-    },
-    "CALC-002": {
-      "label": "整个工作簿重算",
-      "path": "excel/react-excel/e2e/editing/manual-calculation.spec.ts",
-      "title": "worksheet scope leaves unrelated sheet cached; workbook scope refreshes it without adding history",
-      "registryLine": 811
-    },
-    "CALC-003": {
-      "label": "显示公式",
-      "path": "excel/react-excel/e2e/editing/manual-calculation.spec.ts",
-      "title": "formula view covers frozen and merged cells, remembers each sheet and preserves forced text",
-      "registryLine": 812
-    },
-    "CALC-007": {
-      "label": "自动求和按钮",
-      "path": "excel/react-excel/e2e/editing/quick-formula.spec.ts",
-      "title": "explicit selection uses an empty trailing cell, permits draft correction and Escape writes nothing",
-      "registryLine": 816
-    },
-    "CALC-008": {
-      "label": "函数选择器插入草稿",
-      "path": "excel/react-excel/e2e/editing/insert-function.spec.ts",
-      "title": "insert creates a draft, confirms via Rust and has one undo/redo step",
-      "registryLine": 817
-    },
-    "CALC-013": {
-      "label": "格内公式函数补全",
-      "path": "excel/react-excel/e2e/editing/insert-function.spec.ts",
-      "title": "cell autocomplete commits a native formula in one step at 1280px",
-      "registryLine": 822
-    },
-    "CALC-026": {
-      "label": "格内嵌套函数参数帮助",
-      "path": "excel/react-excel/e2e/editing/formula-argument-help.spec.ts",
-      "title": "cell nested argument help follows the active call without writing at 1280px",
-      "registryLine": 835
-    },
-    "CALC-028": {
-      "label": "格内点击拾取单元格引用",
-      "path": "excel/react-excel/e2e/editing/formula-reference.spec.ts",
-      "title": "cell: click references, type operators and commit once through Rust",
-      "registryLine": 837
-    },
-    "CALC-031": {
-      "label": "格内 F4 切换引用锁定",
-      "path": "excel/react-excel/e2e/editing/formula-reference-keys.spec.ts",
-      "title": "cell F4 cycles all reference locks before one native commit at 1280px",
-      "registryLine": 840
-    },
-    "CALC-035": {
-      "label": "格内开始跨表点击引用",
-      "path": "excel/react-excel/e2e/editing/formula-cross-sheet.spec.ts",
-      "title": "cell: cross-sheet click writes original cell once and supports undo/redo",
-      "registryLine": 844
-    },
-    "CENTERACROSS-001": {
-      "label": "跨列居中应用",
-      "path": "excel/react-excel/e2e/center-across/center-across.spec.ts",
-      "title": "center across selection centers the text across empty neighbours without merging",
-      "registryLine": 1084
-    },
-    "CENTERACROSS-002": {
-      "label": "跨列居中被内容截断",
-      "path": "excel/react-excel/e2e/center-across/center-across.spec.ts",
-      "title": "typing into the middle cell ends the center across span",
-      "registryLine": 1085
-    },
-    "CENTERACROSS-003": {
-      "label": "跨列居中撤销重做",
-      "path": "excel/react-excel/e2e/center-across/center-across.spec.ts",
-      "title": "center across is one undo step and redo restores the span",
-      "registryLine": 1086
-    },
-    "CENTERACROSS-004": {
-      "label": "跨列居中复制粘贴",
-      "path": "excel/react-excel/e2e/center-across/center-across.spec.ts",
-      "title": "copy and paste keep center across on the pasted cells",
-      "registryLine": 1087
-    },
-    "CF-001": {
-      "label": "新增条件格式规则",
-      "path": "excel/react-excel/e2e/format/conditional-rule-lifecycle.spec.ts",
-      "title": "adding a conditional rule changes only its applied cells at 1280px",
-      "registryLine": 467
-    },
-    "CF-002": {
-      "label": "修改条件格式规则",
-      "path": "excel/react-excel/e2e/format/conditional-rule-lifecycle.spec.ts",
-      "title": "editing a seeded conditional rule keeps one rule and one undo step at 1280px",
-      "registryLine": 468
-    },
-    "CF-006": {
-      "label": "复制条件格式规则",
-      "path": "excel/react-excel/e2e/format/conditional-rule-management.spec.ts",
-      "title": "copy a conditional rule preserves its disabled state at 1280px",
-      "registryLine": 472
-    },
-    "CF-007": {
-      "label": "条件格式规则上移",
-      "path": "excel/react-excel/e2e/format/conditional-rule-management.spec.ts",
-      "title": "move a conditional rule up changes only its priority at 1280px",
-      "registryLine": 473
-    },
-    "CF-016": {
-      "label": "条件命中后停止低优先规则",
-      "path": "excel/react-excel/e2e/format/conditional-text-duplicates.spec.ts",
-      "title": "Stop blocks lower data bars without removing numbers or base styles",
-      "registryLine": 482
-    },
-    "CF-017": {
-      "label": "混合引用公式条件格式",
-      "path": "excel/react-excel/e2e/format/conditional-formula-rank.spec.ts",
-      "title": "formula condition uses mixed references and undoes once at 1280px",
-      "registryLine": 483
-    },
-    "CF-018": {
-      "label": "条件排名前 N 项",
-      "path": "excel/react-excel/e2e/format/conditional-ranking.spec.ts",
-      "title": "top items conditional ranking undoes once at 1280px",
-      "registryLine": 484
-    },
-    "CF-022": {
-      "label": "双色阶条件格式",
-      "path": "excel/react-excel/e2e/format/conditional-visuals.spec.ts",
-      "title": "2-color scale applies independently and undoes once at 1280px",
-      "registryLine": 488
-    },
-    "CF-023": {
-      "label": "三色阶条件格式",
-      "path": "excel/react-excel/e2e/format/conditional-visuals.spec.ts",
-      "title": "3-color scale applies independently and undoes once at 1280px",
-      "registryLine": 489
-    },
-    "CF-024": {
-      "label": "正负数据条条件格式",
-      "path": "excel/react-excel/e2e/format/conditional-visuals.spec.ts",
-      "title": "data bar applies independently and undoes once at 1280px",
-      "registryLine": 490
-    },
-    "CF-025": {
-      "label": "数值条件大于",
-      "path": "excel/react-excel/e2e/format/conditional-value-comparisons.spec.ts",
-      "title": "gt conditional value matches its boundary and undoes once at 1280px",
-      "registryLine": 491
-    },
-    "CF-037": {
-      "label": "打开条件格式管理面板",
-      "path": "excel/react-excel/e2e/format/conditional-dialog.spec.ts",
-      "title": "Open conditional dialog preserves native rules colors and redo at 1280px",
-      "registryLine": 503
-    },
-    "CFADV-001": {
-      "label": "色阶最小阈值",
-      "path": "excel/react-excel/e2e/advanced-conditional-format/thresholds.spec.ts",
-      "title": "color scale min threshold applies and undoes once at 1280px",
-      "registryLine": 942
-    },
-    "CLEAR-001": {
-      "label": "清除内容",
-      "path": "excel/react-excel/e2e/editing/clear-selection.spec.ts",
-      "title": "clear contents keeps formatting and Delete recalculates dependent formulas",
-      "registryLine": 251
-    },
-    "CLEAR-002": {
-      "label": "清除格式",
-      "path": "excel/react-excel/e2e/editing/clear-selection.spec.ts",
-      "title": "clear formatting preserves values and formulas",
-      "registryLine": 252
-    },
-    "CLEAR-003": {
-      "label": "全部清除",
-      "path": "excel/react-excel/e2e/editing/clear-selection.spec.ts",
-      "title": "clear all erases a selected row including offscreen cells without touching neighbours",
-      "registryLine": 253
-    },
-    "CLIP-001": {
-      "label": "系统复制及重复粘贴",
-      "path": "excel/react-excel/e2e/editing/system-clipboard.spec.ts",
-      "title": "system copy freezes value and format and permits repeated pastes",
-      "registryLine": 255
-    },
-    "CLIP-003": {
-      "label": "同表剪切移动",
-      "path": "excel/react-excel/e2e/editing/system-clipboard.spec.ts",
-      "title": "cut only clears on paste and formulas follow the moved quantity",
-      "registryLine": 257
-    },
-    "COMMENT-001": {
-      "label": "新建线程",
-      "path": "excel/react-excel/e2e/comments/actions.spec.ts",
-      "title": "new comment retains author and local time through undo and redo at 1280px",
-      "registryLine": 1037
-    },
-    "COMMENT-003": {
-      "label": "回复线程",
-      "path": "excel/react-excel/e2e/comments/actions.spec.ts",
-      "title": "post reply retains both authors and undo restores original thread at 1280px",
-      "registryLine": 1039
-    },
-    "CUSTOM-001": {
-      "label": "打开目录",
-      "path": "excel/react-excel/e2e/custom-formulas/actions.spec.ts",
-      "title": "open custom formula directory reads native definitions at 1280px",
-      "registryLine": 989
-    },
-    "CUSTOM-003": {
-      "label": "公式栏调用",
-      "path": "excel/react-excel/e2e/custom-formulas/actions.spec.ts",
-      "title": "call registered expression from formula bar at 1280px",
-      "registryLine": 991
-    },
-    "DATA-001": {
-      "label": "等值筛选工作表",
-      "path": "excel/react-excel/e2e/editing/filter.spec.ts",
-      "title": "filter 1,000 rows through Rust, preserve header and source row numbers, undo/redo once",
-      "registryLine": 643
-    },
-    "DATA-002": {
-      "label": "清除筛选",
-      "path": "excel/react-excel/e2e/editing/filter.spec.ts",
-      "title": "clear filter preserves manually hidden rows and can be undone",
-      "registryLine": 644
-    },
-    "DATA-003": {
-      "label": "重新应用筛选",
-      "path": "excel/react-excel/e2e/editing/filter.spec.ts",
-      "title": "edit does not live-filter; reapply hides the changed row and undo restores the snapshot",
-      "registryLine": 645
-    },
-    "DATA-004": {
-      "label": "升序排序",
-      "path": "excel/react-excel/e2e/editing/sort.spec.ts",
-      "title": "ascending sort moves complete records and styles, with one undo/redo step",
-      "registryLine": 646
-    },
-    "DATA-005": {
-      "label": "删除重复项",
-      "path": "excel/react-excel/e2e/editing/remove-duplicates.spec.ts",
-      "title": "native seed removes matching records and restores once at 1280px",
-      "registryLine": 647
-    },
-    "DATA-006": {
-      "label": "分隔符分列",
-      "path": "excel/react-excel/e2e/editing/text-columns.spec.ts",
-      "title": "native delimited seed previews overwrite and undoes once at 1280px",
-      "registryLine": 648
-    },
-    "DATA-007": {
-      "label": "固定宽度分列",
-      "path": "excel/react-excel/e2e/editing/text-columns.spec.ts",
-      "title": "fixed-width seed uses Unicode positions and preserves leading zeros",
-      "registryLine": 649
-    },
-    "DATA-008": {
-      "label": "分列字段类型",
-      "path": "excel/react-excel/e2e/editing/text-column-types.spec.ts",
-      "title": "field types convert native seed and undo as one operation at 1280px",
-      "registryLine": 650
-    },
-    "DATA-010": {
-      "label": "自定义多级混合排序",
-      "path": "excel/react-excel/e2e/editing/sort.spec.ts",
-      "title": "custom sort keeps the header and uses ordered, mixed-direction keys",
-      "registryLine": 652
-    },
-    "DATA-011": {
-      "label": "排序区分大小写",
-      "path": "excel/react-excel/e2e/editing/sort-options.spec.ts",
-      "title": "native seed sort case=true empty=last order=asc is stable and undoable",
-      "registryLine": 653
-    },
-    "DATA-018": {
-      "label": "排序首行表头选项",
-      "path": "excel/react-excel/e2e/editing/sort-options.spec.ts",
-      "title": "sort header option true controls first-row movement at 1280px",
-      "registryLine": 660
-    },
-    "DATA-054": {
-      "label": "精确文字去重",
-      "path": "excel/react-excel/e2e/editing/duplicate-comparison.spec.ts",
-      "title": "exact duplicates preserves native record order in one undo at 1280px",
-      "registryLine": 696
-    },
-    "DATA-075": {
-      "label": "分列日期顺序 MDY",
-      "path": "excel/react-excel/e2e/editing/text-column-date-orders.spec.ts",
-      "title": "dateMdy split field uses its selected date order in one native undo at 1280px",
-      "registryLine": 717
-    },
-    "DRAGMOVE-001": {
-      "label": "悬停选区外框显示移动光标（填充柄仍为十字）",
-      "path": "excel/react-excel/e2e/drag-move/move.spec.ts",
-      "title": "hovering the selection border shows the move cursor but the fill handle keeps crosshair",
-      "registryLine": 1096
-    },
-    "DRAGMOVE-002": {
-      "label": "拖动选区外框移动区域，公式引用跟随",
-      "path": "excel/react-excel/e2e/drag-move/move.spec.ts",
-      "title": "dragging the selection border moves the range and formulas follow the moved cells",
-      "registryLine": 1097
-    },
-    "DRAGMOVE-003": {
-      "label": "松手时按住 Ctrl（Mac 为 Option）改为复制",
-      "path": "excel/react-excel/e2e/drag-move/move.spec.ts",
-      "title": "holding the copy modifier at release copies the range and shifts relative formulas",
-      "registryLine": 1098
-    },
-    "DRAGMOVE-004": {
-      "label": "拖动移动一步撤销",
-      "path": "excel/react-excel/e2e/drag-move/move.spec.ts",
-      "title": "undo restores a dragged move in one step",
-      "registryLine": 1099
-    },
-    "DRAGMOVE-005": {
-      "label": "拖动中按 Escape 取消",
-      "path": "excel/react-excel/e2e/drag-move/cancel-replace.spec.ts",
-      "title": "escape during a border drag cancels without moving cells",
-      "registryLine": 1100
-    },
-    "DRAGMOVE-006": {
-      "label": "落到已有数据时拒绝替换提示",
-      "path": "excel/react-excel/e2e/drag-move/cancel-replace.spec.ts",
-      "title": "declining the replace prompt keeps both the source and the existing data",
-      "registryLine": 1101
-    },
-    "DRAGMOVE-007": {
-      "label": "落到已有数据时确认替换",
-      "path": "excel/react-excel/e2e/drag-move/cancel-replace.spec.ts",
-      "title": "accepting the replace prompt overwrites the existing data",
-      "registryLine": 1102
-    },
-    "DRAGMOVE-008": {
-      "label": "冻结窗格下从冻结区拖到滚动区",
-      "path": "excel/react-excel/e2e/drag-move/viewport.spec.ts",
-      "title": "a border drag from the frozen pane drops into the scrolling pane",
-      "registryLine": 1103
-    },
-    "DRAGMOVE-009": {
-      "label": "缩放 150% 下落点命中指针下的格",
-      "path": "excel/react-excel/e2e/drag-move/viewport.spec.ts",
-      "title": "a border drag at 150 percent zoom drops on the cell under the pointer",
-      "registryLine": 1104
-    },
-    "DRAGMOVE-010": {
-      "label": "拖到视口边缘自动滚动落点",
-      "path": "excel/react-excel/e2e/drag-move/viewport.spec.ts",
-      "title": "holding a border drag near the bottom edge autoscrolls the drop target",
-      "registryLine": 1105
-    },
-    "EDIT-001": {
-      "label": "格内原始数值编辑",
-      "path": "excel/react-excel/e2e/editing/input-semantics.spec.ts",
-      "title": "P3 edits the original number and retains it after Enter and blur",
-      "registryLine": 204
-    },
-    "EDIT-002": {
-      "label": "格内 IME 确认键不提交",
-      "path": "excel/react-excel/e2e/editing/input-semantics.spec.ts",
-      "title": "cell editing does not consume IME confirmation or cancellation keys",
-      "registryLine": 205
-    },
-    "EDIT-004": {
-      "label": "格内 Alt+Enter 换行",
-      "path": "excel/react-excel/e2e/editing/input-semantics.spec.ts",
-      "title": "cell Alt+Enter inserts a newline at the caret and commits one multiline value",
-      "registryLine": 207
-    },
-    "EDIT-006": {
-      "label": "格内强制文本输入",
-      "path": "excel/react-excel/e2e/editing/typed-cell-input.spec.ts",
-      "title": "cell preserves forced text through re-editing and formula references",
-      "registryLine": 209
-    },
-    "EDIT-008": {
-      "label": "格内布尔值输入",
-      "path": "excel/react-excel/e2e/editing/typed-cell-input.spec.ts",
-      "title": "cell installs a Boolean and recalculates its dependent formula",
-      "registryLine": 211
-    },
-    "EDIT-010": {
-      "label": "格内百分比输入",
-      "path": "excel/react-excel/e2e/editing/typed-cell-input.spec.ts",
-      "title": "cell stores a percentage as a number and changes only its number format",
-      "registryLine": 213
-    },
-    "EDIT-012": {
-      "label": "格内 24 小时时间输入",
-      "path": "excel/react-excel/e2e/editing/time-fraction-input.spec.ts",
-      "title": "cell: 13:30 becomes a native number, re-edits and calculates",
-      "registryLine": 215
-    },
-    "EDIT-020": {
-      "label": "F2 编辑原始内容",
-      "path": "excel/react-excel/e2e/editing/editing-entries.spec.ts",
-      "title": "F2 opens the correct native draft and commits once at 1280px",
-      "registryLine": 223
-    },
-    "EDIT-032": {
-      "label": "格内失焦拒绝后留原草稿纠正",
-      "path": "excel/react-excel/e2e/editing/rejected-draft-replacement.spec.ts",
-      "title": "cell rejected blur cannot be replaced by another cell at 1280px",
-      "registryLine": 235
-    },
-    "EMBED-002": {
-      "label": "双击编辑仅修改所属实例",
-      "path": "excel/react-excel/e2e/package-embedding/host-isolation.spec.ts",
-      "title": "editing one embedded workbook leaves its sibling data unchanged",
-      "registryLine": 33
-    },
-    "EMBED-010": {
-      "label": "双实例同坐标错误仅朗读自身反馈",
-      "path": "excel/react-excel/e2e/package-embedding/editor-isolation.spec.ts",
-      "title": "same-coordinate rejected editors describe only their own instance feedback",
-      "registryLine": 41
-    },
-    "FARG-001": {
-      "label": "参数表单生成并提交 SUM 公式",
-      "path": "excel/react-excel/e2e/formula-arguments/native-calls.spec.ts",
-      "title": "FARG-001 SUM arguments create one native formula edit",
-      "registryLine": 70
-    },
-    "FARG-003": {
-      "label": "XLOOKUP 表单保留中间可选参数空位",
-      "path": "excel/react-excel/e2e/formula-arguments/native-calls.spec.ts",
-      "title": "FARG-003 XLOOKUP preserves an optional middle argument hole",
-      "registryLine": 72
-    },
-    "FILE-001": {
-      "label": "下载原生工作簿",
-      "path": "excel/react-excel/e2e/workbook/workbook-files.spec.ts",
-      "title": "download preserves workbook data and history at 1280px",
-      "registryLine": 900
-    },
-    "FILE-002": {
-      "label": "无效文件不破坏当前工作簿",
-      "path": "excel/react-excel/e2e/workbook/workbook-files.spec.ts",
-      "title": "invalid native content leaves values, selection, history and current file usable",
-      "registryLine": 901
-    },
-    "FILE-003": {
-      "label": "新建空白工作簿",
-      "path": "excel/react-excel/e2e/workbook/workbook-files.spec.ts",
-      "title": "new workbook cancellation keeps data before confirmed replacement at 1280px",
-      "registryLine": 902
-    },
-    "FILL-001": {
-      "label": "向下填充",
-      "path": "excel/react-excel/e2e/editing/directional-fill.spec.ts",
-      "title": "seed formula fills down with relative/absolute references and one undo step",
-      "registryLine": 303
-    },
-    "FILL-002": {
-      "label": "向右填充",
-      "path": "excel/react-excel/e2e/editing/directional-fill.spec.ts",
-      "title": "fill right copies seed text and underline, then shifts a formula horizontally",
-      "registryLine": 304
-    },
-    "FILL-003": {
-      "label": "等差数值序列",
-      "path": "excel/react-excel/e2e/editing/fill-series.spec.ts",
-      "title": "native number seed extends with one undo step while source samples stay intact",
-      "registryLine": 305
-    },
-    "FIND-001": {
-      "label": "工作簿查找",
-      "path": "excel/react-excel/e2e/editing/find-replace.spec.ts",
-      "title": "workbook find navigates offscreen into Summary and previous/next wrap exact occurrences",
-      "registryLine": 741
-    },
-    "FIND-002": {
-      "label": "当前替换",
-      "path": "excel/react-excel/e2e/editing/find-replace.spec.ts",
-      "title": "current replacement changes only the chosen Unicode occurrence and undo restores it",
-      "registryLine": 742
-    },
-    "FIND-004": {
-      "label": "查找全部",
-      "path": "excel/react-excel/e2e/editing/find-result-pages.spec.ts",
-      "title": "find all lists the first native result page without editing at 1280px",
-      "registryLine": 744
-    },
-    "FIND-009": {
-      "label": "通配符查找",
-      "path": "excel/react-excel/e2e/editing/find-options.spec.ts",
-      "title": "find wildcards distinguishes star question mark and escaped literal at 1280px",
-      "registryLine": 749
-    },
-    "FONT-001": {
-      "label": "粗体",
-      "path": "excel/react-excel/e2e/format/text-style.spec.ts",
-      "title": "Bold toggles the selected Rust cell style",
-      "registryLine": 359
-    },
-    "FONT-002": {
-      "label": "斜体",
-      "path": "excel/react-excel/e2e/format/text-style.spec.ts",
-      "title": "Italic toggles the selected Rust cell style",
-      "registryLine": 360
-    },
-    "FONT-003": {
-      "label": "下划线",
-      "path": "excel/react-excel/e2e/format/text-style.spec.ts",
-      "title": "Underline toggles the selected Rust cell style",
-      "registryLine": 361
-    },
-    "FREEZE-001": {
-      "label": "冻结首行",
-      "path": "excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
-      "title": "freezes the first row while vertical scrolling and edits the fixed cells",
-      "registryLine": 611
-    },
-    "FREEZE-002": {
-      "label": "冻结首列",
-      "path": "excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
-      "title": "freezes the first column while horizontal scrolling and keeps row headers aligned",
-      "registryLine": 612
-    },
-    "FREEZE-003": {
-      "label": "按活动格冻结，切窗保持行头身份（交叉回归见 freeze-cross-features）",
-      "path": "excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
-      "title": "freezes at B3 and follows keyboard moves below the fixed band with one undo",
-      "registryLine": 613
-    },
-    "FREEZE-004": {
-      "label": "取消冻结",
-      "path": "excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
-      "title": "unfreeze uses the seeded panes and undoes once at 1280px",
-      "registryLine": 614
-    },
-    "HIST-001": {
-      "label": "撤销按钮",
-      "path": "excel/react-excel/e2e/editing/history-actions.spec.ts",
-      "title": "Undo button restores input and cross-sheet formulas without switching tabs at 1280px",
-      "registryLine": 910
-    },
-    "HIST-002": {
-      "label": "重做按钮",
-      "path": "excel/react-excel/e2e/editing/history-actions.spec.ts",
-      "title": "Redo button reapplies input and cross-sheet formulas without switching tabs at 1280px",
-      "registryLine": 911
-    },
-    "LINK-001": {
-      "label": "插入超链接",
-      "path": "excel/react-excel/e2e/hyperlink/hyperlink.spec.ts",
-      "title": "insert hyperlink is independent and undoes once at 1280px",
-      "registryLine": 239
-    },
-    "LINK-003": {
-      "label": "移除原生超链接",
-      "path": "excel/react-excel/e2e/hyperlink/hyperlink.spec.ts",
-      "title": "remove hyperlink is independent and undoes once at 1280px",
-      "registryLine": 241
-    },
-    "MERGE-001": {
-      "label": "确认合并单元格",
-      "path": "excel/react-excel/e2e/workbook/merged-cells.spec.ts",
-      "title": "confirmed merge keeps its anchor and restores discarded values in one undo",
-      "registryLine": 615
-    },
-    "MERGE-002": {
-      "label": "合并后居中",
-      "path": "excel/react-excel/e2e/workbook/merged-cells.spec.ts",
-      "title": "merge and center has one outer frame and both editors use its anchor",
-      "registryLine": 616
-    },
-    "MERGE-003": {
-      "label": "拆分合并单元格",
-      "path": "excel/react-excel/e2e/workbook/merged-cells.spec.ts",
-      "title": "unmerge preserves the seeded anchor and other merges at 1280px",
-      "registryLine": 617
-    },
-    "MRSEL-001": {
-      "label": "Ctrl 点击追加单元格",
-      "path": "excel/react-excel/e2e/multi-range-selection/modifier-click.spec.ts",
-      "title": "Control click appends a disjoint cell and keeps the gap unselected at 1280px",
-      "registryLine": 60
-    },
-    "MRSEL-006": {
-      "label": "格式化手动追加的所有区域",
-      "path": "excel/react-excel/e2e/multi-range-selection/multi-format.spec.ts",
-      "title": "formatting manually appended areas changes every target and preserves the gap at 1280px",
       "registryLine": 65
     },
-    "NAME-001": {
-      "label": "名称管理器新增名称",
-      "path": "excel/react-excel/e2e/workbook/named-ranges.spec.ts",
-      "title": "create a name through the manager without changing its source at 1280px",
-      "registryLine": 192
+    "BORDER-001": {
+      "label": "BORDER-001 · 外边框",
+      "path": "excel/react-excel/e2e/format/border-settings.spec.ts",
+      "url": "../excel/react-excel/e2e/format/border-settings.spec.ts",
+      "title": "outside uses selection edges, not every cell perimeter",
+      "registryLine": 438
     },
-    "NAME-002": {
-      "label": "名称管理器重命名",
-      "path": "excel/react-excel/e2e/workbook/named-ranges.spec.ts",
-      "title": "rename a seeded name rewrites its formula in one step at 1280px",
-      "registryLine": 193
+    "CALC-001": {
+      "label": "CALC-001 · 当前表重算",
+      "path": "excel/react-excel/e2e/editing/manual-calculation.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/manual-calculation.spec.ts",
+      "title": "native seed RAND changes on current-sheet calculation, its dependent agrees and history stays empty",
+      "registryLine": 807
     },
-    "NAME-003": {
-      "label": "名称管理器删除名称",
-      "path": "excel/react-excel/e2e/workbook/named-ranges.spec.ts",
-      "title": "delete a seeded name keeps its formula and can undo once at 1280px",
-      "registryLine": 194
+    "CALC-002": {
+      "label": "CALC-002 · 整个工作簿重算",
+      "path": "excel/react-excel/e2e/editing/manual-calculation.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/manual-calculation.spec.ts",
+      "title": "worksheet scope leaves unrelated sheet cached; workbook scope refreshes it without adding history",
+      "registryLine": 808
     },
-    "NAV-001": {
-      "label": "名称框定位范围及露出填充柄",
-      "path": "excel/react-excel/e2e/workbook/name-box-range-visibility.spec.ts",
-      "title": "name box reveals the fill corner on both axes at 1280px",
-      "registryLine": 128
+    "CALC-003": {
+      "label": "CALC-003 · 显示公式",
+      "path": "excel/react-excel/e2e/editing/manual-calculation.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/manual-calculation.spec.ts",
+      "title": "formula view covers frozen and merged cells, remembers each sheet and preserves forced text",
+      "registryLine": 809
     },
-    "NAV-003": {
-      "label": "F5 打开定位弹窗",
-      "path": "excel/react-excel/e2e/navigation/go-to.spec.ts",
-      "title": "F5 opens Go To and Escape restores grid focus",
-      "registryLine": 130
+    "CALC-007": {
+      "label": "CALC-007 · 自动求和按钮",
+      "path": "excel/react-excel/e2e/editing/quick-formula.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/quick-formula.spec.ts",
+      "title": "explicit selection uses an empty trailing cell, permits draft correction and Escape writes nothing",
+      "registryLine": 813
     },
-    "NOTE-001": {
-      "label": "新增多行备注",
-      "path": "excel/react-excel/e2e/notes/actions.spec.ts",
-      "title": "insert multiline note preserves values and undoes once at 1280px",
-      "registryLine": 927
+    "CALC-008": {
+      "label": "CALC-008 · 函数选择器插入草稿",
+      "path": "excel/react-excel/e2e/editing/insert-function.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/insert-function.spec.ts",
+      "title": "insert creates a draft, confirms via Rust and has one undo/redo step",
+      "registryLine": 814
     },
-    "NOTE-002": {
-      "label": "查看已有备注",
-      "path": "excel/react-excel/e2e/notes/actions.spec.ts",
-      "title": "view existing note reads saved text without creating history at 1280px",
-      "registryLine": 928
+    "CALC-013": {
+      "label": "CALC-013 · 格内公式函数补全",
+      "path": "excel/react-excel/e2e/editing/insert-function.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/insert-function.spec.ts",
+      "title": "cell autocomplete commits a native formula in one step at 1280px",
+      "registryLine": 819
     },
-    "NUM-001": {
-      "label": "数值格式设置",
-      "path": "excel/react-excel/e2e/format/number-format-settings.spec.ts",
-      "title": "number settings preserve formulas and apply grouping and precision in one history entry",
-      "registryLine": 417
+    "CALC-026": {
+      "label": "CALC-026 · 格内嵌套函数参数帮助",
+      "path": "excel/react-excel/e2e/editing/formula-argument-help.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/formula-argument-help.spec.ts",
+      "title": "cell nested argument help follows the active call without writing at 1280px",
+      "registryLine": 832
     },
-    "NUM-006": {
-      "label": "时间及累计时长格式",
-      "path": "excel/react-excel/e2e/format/advanced-number-formats.spec.ts",
-      "title": "time displays day fractions, clock rollover and elapsed hours without changing values",
-      "registryLine": 422
+    "CALC-028": {
+      "label": "CALC-028 · 格内点击拾取单元格引用",
+      "path": "excel/react-excel/e2e/editing/formula-reference.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/formula-reference.spec.ts",
+      "title": "cell: click references, type operators and commit once through Rust",
+      "registryLine": 834
     },
-    "NUM-014": {
-      "label": "日期样式设置",
-      "path": "excel/react-excel/e2e/format/number-format-session.spec.ts",
-      "title": "date preview does not write until Apply and one undo restores the old display",
-      "registryLine": 430
+    "CALC-031": {
+      "label": "CALC-031 · 格内 F4 切换引用锁定",
+      "path": "excel/react-excel/e2e/editing/formula-reference-keys.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/formula-reference-keys.spec.ts",
+      "title": "cell F4 cycles all reference locks before one native commit at 1280px",
+      "registryLine": 837
     },
-    "OUTLINE-001": {
-      "label": "创建行分组",
-      "path": "excel/react-excel/e2e/workbook/outline-group-actions.spec.ts",
-      "title": "group rows creates only membership and undoes once at 1280px",
-      "registryLine": 624
+    "CALC-035": {
+      "label": "CALC-035 · 格内开始跨表点击引用",
+      "path": "excel/react-excel/e2e/editing/formula-cross-sheet.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/formula-cross-sheet.spec.ts",
+      "title": "cell: cross-sheet click writes original cell once and supports undo/redo",
+      "registryLine": 841
     },
-    "OUTLINE-002": {
-      "label": "创建列分组",
-      "path": "excel/react-excel/e2e/workbook/outline-group-actions.spec.ts",
-      "title": "group columns creates only membership and undoes once at 1280px",
-      "registryLine": 625
+    "CENTERACROSS-001": {
+      "label": "CENTERACROSS-001 · 跨列居中应用",
+      "path": "excel/react-excel/e2e/center-across/center-across.spec.ts",
+      "url": "../excel/react-excel/e2e/center-across/center-across.spec.ts",
+      "title": "center across selection centers the text across empty neighbours without merging",
+      "registryLine": 1105
     },
-    "OUTLINE-003": {
-      "label": "嵌套分组",
-      "path": "excel/react-excel/e2e/workbook/outline.spec.ts",
-      "title": "nested groups retain child collapse and partial overlaps fail without losing history",
-      "registryLine": 626
-    },
-    "PAINT-001": {
-      "label": "单击格式刷后点击目标",
-      "path": "excel/react-excel/e2e/format/format-painter.spec.ts",
-      "title": "single paint copies seeded bold, retains target content, exits and undoes once",
-      "registryLine": 506
-    },
-    "PAINT-002": {
-      "label": "格式刷拖拽平铺异构格式",
-      "path": "excel/react-excel/e2e/format/format-painter.spec.ts",
-      "title": "drag paints a tiled heterogeneous source range without replacing values",
-      "registryLine": 507
-    },
-    "PAINT-003": {
-      "label": "双击开启连续格式刷",
-      "path": "excel/react-excel/e2e/format/format-painter.spec.ts",
-      "title": "double click paints multiple targets from one snapshot; Escape stops subsequent clicks",
-      "registryLine": 508
-    },
-    "PKG-013": {
-      "label": "宿主 readOnly 拒绝实际键盘编辑",
-      "path": "excel/react-excel/e2e/package-host/controls.spec.ts",
-      "title": "installed vite read-only rejects keyboard edits with en feedback",
-      "registryLine": 55
-    },
-    "PKG-015": {
-      "label": "宿主结构策略拒绝新建表按钮",
-      "path": "excel/react-excel/e2e/package-host/controls.spec.ts",
-      "title": "installed vite structure policy rejects New sheet button with en feedback",
-      "registryLine": 57
-    },
-    "PKG-016": {
-      "label": "宿主结构策略拒绝工具栏插入行",
-      "path": "excel/react-excel/e2e/package-host/controls.spec.ts",
-      "title": "installed vite structure policy rejects row insertion toolbar with en feedback",
-      "registryLine": 58
-    },
-    "PROTECT-001": {
-      "label": "保护当前工作表",
-      "path": "excel/react-excel/e2e/protection/protection.spec.ts",
-      "title": "protect worksheet rejects locked input without changing data or content history at 1280px",
-      "registryLine": 977
-    },
-    "PROTECT-002": {
-      "label": "选区设为允许编辑",
-      "path": "excel/react-excel/e2e/protection/protection.spec.ts",
-      "title": "allow selection permits native editing and undo while its neighbor stays locked at 1280px",
-      "registryLine": 978
-    },
-    "REPEAT-001": {
-      "label": "重复按钮可用性与提示",
-      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
-      "title": "Repeat button is disabled until a repeatable command ran and names it in the tooltip",
-      "registryLine": 1077
-    },
-    "REPEAT-002": {
-      "label": "F4 重复加粗",
-      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
-      "title": "F4 repeats Bold on another range",
-      "registryLine": 1078
-    },
-    "REPEAT-003": {
-      "label": "重复按钮重复填充色",
-      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
-      "title": "The Repeat button repeats the last fill color on the current selection",
-      "registryLine": 1079
-    },
-    "REPEAT-004": {
-      "label": "F4 重复插入行",
-      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
-      "title": "F4 repeats Insert rows at the new selection",
-      "registryLine": 1080
-    },
-    "REPEAT-005": {
-      "label": "Ctrl+Y 先重做否则重复",
-      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
-      "title": "Ctrl+Y redoes when something can be redone and repeats otherwise",
-      "registryLine": 1081
-    },
-    "REPEAT-006": {
-      "label": "每次重复一个撤销步",
-      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
-      "title": "Each repeat is one new undo step",
-      "registryLine": 1082
-    },
-    "RESTORE-001": {
-      "label": "宿主快照刷新后恢复编辑",
-      "path": "excel/react-excel/e2e/local-restore/local-restore.spec.ts",
-      "title": "host snapshot restores edits after a page refresh",
-      "registryLine": 1071
-    },
-    "RESTORE-002": {
-      "label": "放弃本地副本回到示例",
-      "path": "excel/react-excel/e2e/local-restore/local-restore.spec.ts",
-      "title": "discarding the saved copy reloads the sample workbook",
-      "registryLine": 1072
-    },
-    "RESTORE-003": {
-      "label": "快照损坏时退回定义并报错",
-      "path": "excel/react-excel/e2e/local-restore/local-restore.spec.ts",
-      "title": "an unreadable saved snapshot falls back to the sample and reports the error",
-      "registryLine": 1073
-    },
-    "RULE-001": {
-      "label": "整数验证",
-      "path": "excel/react-excel/e2e/editing/data-validation.spec.ts",
-      "title": "integer seed rejects fractions without changing cell; corrected draft commits and undoes",
-      "registryLine": 780
-    },
-    "RULE-005": {
-      "label": "时间验证",
-      "path": "excel/react-excel/e2e/editing/data-validation.spec.ts",
-      "title": "time native seed enforces bounds and accepted input is undoable",
-      "registryLine": 784
-    },
-    "RULE-013": {
-      "label": "清除原生验证规则",
-      "path": "excel/react-excel/e2e/editing/data-validation-rules.spec.ts",
-      "title": "clear seeded validation keeps values and undoes once at 1280px",
-      "registryLine": 792
-    },
-    "SEL-001": {
-      "label": "单元格点击单选",
-      "path": "excel/react-excel/e2e/selection/basic-selection.spec.ts",
-      "title": "single cell click replaces the selection at 1280px",
-      "registryLine": 103
-    },
-    "SEL-002": {
-      "label": "鼠标拖拽矩形选区",
-      "path": "excel/react-excel/e2e/selection/basic-selection.spec.ts",
-      "title": "pointer drag selects a rectangle at 1280px",
-      "registryLine": 104
-    },
-    "SEL-003": {
-      "label": "行号选择整行",
-      "path": "excel/react-excel/e2e/selection/basic-selection.spec.ts",
-      "title": "row header selects its complete extent at 1280px",
-      "registryLine": 105
-    },
-    "SEL-004": {
-      "label": "列名选择整列",
-      "path": "excel/react-excel/e2e/selection/basic-selection.spec.ts",
-      "title": "column header selects its complete extent at 1280px",
-      "registryLine": 106
-    },
-    "SEL-005": {
-      "label": "左上角选择整表",
-      "path": "excel/react-excel/e2e/selection/basic-selection.spec.ts",
-      "title": "all header selects its complete extent at 1280px",
-      "registryLine": 107
-    },
-    "SEL-012": {
-      "label": "Shift 向上键扩选及缩选",
-      "path": "excel/react-excel/e2e/selection/keyboard-selection.spec.ts",
-      "title": "Shift ArrowUp extends and shrinks the original cell at 1280px",
-      "registryLine": 114
-    },
-    "SELSPECIAL-001": {
-      "label": "Alt+; 仅选可见块",
-      "path": "excel/react-excel/e2e/select-special/visible-cells.spec.ts",
-      "title": "Alt+Semicolon selects only the visible filtered blocks at 1280px",
+    "CENTERACROSS-002": {
+      "label": "CENTERACROSS-002 · 跨列居中被内容截断",
+      "path": "excel/react-excel/e2e/center-across/center-across.spec.ts",
+      "url": "../excel/react-excel/e2e/center-across/center-across.spec.ts",
+      "title": "typing into the middle cell ends the center across span",
       "registryLine": 1106
     },
-    "SELSPECIAL-002": {
-      "label": "仅可见后复制粘贴",
-      "path": "excel/react-excel/e2e/select-special/visible-cells.spec.ts",
-      "title": "copying visible cells only pastes the visible values at 1280px",
+    "CENTERACROSS-003": {
+      "label": "CENTERACROSS-003 · 跨列居中撤销重做",
+      "path": "excel/react-excel/e2e/center-across/center-across.spec.ts",
+      "url": "../excel/react-excel/e2e/center-across/center-across.spec.ts",
+      "title": "center across is one undo step and redo restores the span",
       "registryLine": 1107
     },
-    "SELSPECIAL-003": {
-      "label": "跳过隐藏列",
-      "path": "excel/react-excel/e2e/select-special/visible-cells.spec.ts",
-      "title": "visible cells skips a hidden column and copy pastes the remaining columns at 1280px",
+    "CENTERACROSS-004": {
+      "label": "CENTERACROSS-004 · 跨列居中复制粘贴",
+      "path": "excel/react-excel/e2e/center-across/center-across.spec.ts",
+      "url": "../excel/react-excel/e2e/center-across/center-across.spec.ts",
+      "title": "copy and paste keep center across on the pasted cells",
       "registryLine": 1108
     },
-    "SELSPECIAL-004": {
-      "label": "定位条件仅可见单元格",
-      "path": "excel/react-excel/e2e/select-special/visible-cells.spec.ts",
-      "title": "Go to special Visible cells only selects the visible blocks and closes the dialog at 1280px",
-      "registryLine": 1109
+    "CF-001": {
+      "label": "CF-001 · 新增条件格式规则",
+      "path": "excel/react-excel/e2e/format/conditional-rule-lifecycle.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-rule-lifecycle.spec.ts",
+      "title": "adding a conditional rule changes only its applied cells at 1280px",
+      "registryLine": 464
     },
-    "SELSPECIAL-005": {
-      "label": "Ctrl+Shift+* 当前区域",
-      "path": "excel/react-excel/e2e/select-special/current-region.spec.ts",
-      "title": "Ctrl+Shift+8 selects the current region around the active cell at 1280px",
-      "registryLine": 1110
+    "CF-002": {
+      "label": "CF-002 · 修改条件格式规则",
+      "path": "excel/react-excel/e2e/format/conditional-rule-lifecycle.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-rule-lifecycle.spec.ts",
+      "title": "editing a seeded conditional rule keeps one rule and one undo step at 1280px",
+      "registryLine": 465
     },
-    "SELSPECIAL-006": {
-      "label": "定位条件当前区域",
-      "path": "excel/react-excel/e2e/select-special/current-region.spec.ts",
-      "title": "Go to special Current region selects the region of the active cell at 1280px",
-      "registryLine": 1111
+    "CF-006": {
+      "label": "CF-006 · 复制条件格式规则",
+      "path": "excel/react-excel/e2e/format/conditional-rule-management.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-rule-management.spec.ts",
+      "title": "copy a conditional rule preserves its disabled state at 1280px",
+      "registryLine": 469
     },
-    "SELSPECIAL-007": {
-      "label": "Ctrl+A 先区域后整表",
-      "path": "excel/react-excel/e2e/select-special/current-region.spec.ts",
-      "title": "Ctrl+A selects the current region first and the whole sheet second at 1280px",
-      "registryLine": 1112
+    "CF-007": {
+      "label": "CF-007 · 条件格式规则上移",
+      "path": "excel/react-excel/e2e/format/conditional-rule-management.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-rule-management.spec.ts",
+      "title": "move a conditional rule up changes only its priority at 1280px",
+      "registryLine": 470
     },
-    "SHEET-001": {
-      "label": "新增工作表",
-      "path": "excel/react-excel/e2e/workbook/sheet-tabs.spec.ts",
-      "title": "new sheet is blank, editable and uses the existing Worker",
-      "registryLine": 540
+    "CF-016": {
+      "label": "CF-016 · 条件命中后停止低优先规则",
+      "path": "excel/react-excel/e2e/format/conditional-text-duplicates.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-text-duplicates.spec.ts",
+      "title": "Stop blocks lower data bars without removing numbers or base styles",
+      "registryLine": 479
     },
-    "SHEET-004": {
-      "label": "向右移动工作表",
-      "path": "excel/react-excel/e2e/workbook/sheet-movement.spec.ts",
-      "title": "move sheet right preserves identity and undoes once at 1280px",
-      "registryLine": 543
+    "CF-017": {
+      "label": "CF-017 · 混合引用公式条件格式",
+      "path": "excel/react-excel/e2e/format/conditional-formula-rank.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-formula-rank.spec.ts",
+      "title": "formula condition uses mixed references and undoes once at 1280px",
+      "registryLine": 480
     },
-    "SHEET-005": {
-      "label": "删除工作表",
-      "path": "excel/react-excel/e2e/workbook/sheet-structure.spec.ts",
-      "title": "deletes active sheet, chooses the neighbor, and rejects deleting the last sheet",
-      "registryLine": 544
+    "CF-018": {
+      "label": "CF-018 · 条件排名前 N 项",
+      "path": "excel/react-excel/e2e/format/conditional-ranking.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-ranking.spec.ts",
+      "title": "top items conditional ranking undoes once at 1280px",
+      "registryLine": 481
     },
-    "SHEETMGMT-001": {
-      "label": "复制工作表",
-      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
-      "title": "duplicate sheet copies data formulas and formatting into Sheet (2) and activates it",
-      "registryLine": 1088
+    "CF-022": {
+      "label": "CF-022 · 双色阶条件格式",
+      "path": "excel/react-excel/e2e/format/conditional-visuals.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-visuals.spec.ts",
+      "title": "2-color scale applies independently and undoes once at 1280px",
+      "registryLine": 485
     },
-    "SHEETMGMT-002": {
-      "label": "复制工作表撤销重做",
-      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
-      "title": "duplicate sheet is one undo step and redo restores the same copy",
-      "registryLine": 1089
+    "CF-023": {
+      "label": "CF-023 · 三色阶条件格式",
+      "path": "excel/react-excel/e2e/format/conditional-visuals.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-visuals.spec.ts",
+      "title": "3-color scale applies independently and undoes once at 1280px",
+      "registryLine": 486
     },
-    "SHEETMGMT-003": {
-      "label": "隐藏工作表",
-      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
-      "title": "hide sheet removes its tab while formulas that read it keep working, and undo shows it",
-      "registryLine": 1090
+    "CF-024": {
+      "label": "CF-024 · 正负数据条条件格式",
+      "path": "excel/react-excel/e2e/format/conditional-visuals.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-visuals.spec.ts",
+      "title": "data bar applies independently and undoes once at 1280px",
+      "registryLine": 487
     },
-    "SHEETMGMT-004": {
-      "label": "取消隐藏工作表",
-      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
-      "title": "unhide dialog lists hidden sheets and restores the chosen one",
-      "registryLine": 1091
+    "CF-025": {
+      "label": "CF-025 · 数值条件大于",
+      "path": "excel/react-excel/e2e/format/conditional-value-comparisons.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-value-comparisons.spec.ts",
+      "title": "gt conditional value matches its boundary and undoes once at 1280px",
+      "registryLine": 488
     },
-    "SHEETMGMT-005": {
-      "label": "最后一张可见表不可隐藏",
-      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
-      "title": "the last visible sheet cannot be hidden",
-      "registryLine": 1092
+    "CF-037": {
+      "label": "CF-037 · 打开条件格式管理面板",
+      "path": "excel/react-excel/e2e/format/conditional-dialog.spec.ts",
+      "url": "../excel/react-excel/e2e/format/conditional-dialog.spec.ts",
+      "title": "Open conditional dialog preserves native rules colors and redo at 1280px",
+      "registryLine": 500
     },
-    "SHEETMGMT-006": {
-      "label": "标签颜色设置与清除",
-      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
-      "title": "tab color can be set from the palette and cleared with No color, each undoable",
-      "registryLine": 1093
+    "CFADV-001": {
+      "label": "CFADV-001 · 色阶最小阈值",
+      "path": "excel/react-excel/e2e/advanced-conditional-format/thresholds.spec.ts",
+      "url": "../excel/react-excel/e2e/advanced-conditional-format/thresholds.spec.ts",
+      "title": "color scale min threshold applies and undoes once at 1280px",
+      "registryLine": 961
     },
-    "SHEETMGMT-007": {
-      "label": "下载打开保留隐藏与颜色",
-      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
-      "title": "download and open keep hidden sheets and tab colors",
-      "registryLine": 1094
+    "CLEAR-001": {
+      "label": "CLEAR-001 · 清除内容",
+      "path": "excel/react-excel/e2e/editing/clear-selection.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/clear-selection.spec.ts",
+      "title": "clear contents keeps formatting and Delete recalculates dependent formulas",
+      "registryLine": 248
     },
-    "SHEETMGMT-008": {
-      "label": "Ctrl+PageUp/PageDown 跳过隐藏表",
-      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
-      "title": "Ctrl+PageUp and Ctrl+PageDown skip hidden sheets",
-      "registryLine": 1095
+    "CLEAR-002": {
+      "label": "CLEAR-002 · 清除格式",
+      "path": "excel/react-excel/e2e/editing/clear-selection.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/clear-selection.spec.ts",
+      "title": "clear formatting preserves values and formulas",
+      "registryLine": 249
     },
-    "SHIFTCELLS-001": {
-      "label": "插入单元格·活动单元格右移",
-      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
-      "title": "insert cells shift right from the ribbon moves the row band, follows references and undoes once",
-      "registryLine": 1113
+    "CLEAR-003": {
+      "label": "CLEAR-003 · 全部清除",
+      "path": "excel/react-excel/e2e/editing/clear-selection.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/clear-selection.spec.ts",
+      "title": "clear all erases a selected row including offscreen cells without touching neighbours",
+      "registryLine": 250
     },
-    "SHIFTCELLS-002": {
-      "label": "插入单元格·活动单元格下移（Ctrl+Shift+=）",
-      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
-      "title": "Ctrl+Shift+= opens Insert and shift down moves only the selected column",
-      "registryLine": 1114
+    "CLIP-001": {
+      "label": "CLIP-001 · 系统复制及重复粘贴",
+      "path": "excel/react-excel/e2e/editing/system-clipboard.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/system-clipboard.spec.ts",
+      "title": "system copy freezes value and format and permits repeated pastes",
+      "registryLine": 252
     },
-    "SHIFTCELLS-003": {
-      "label": "删除单元格·右侧单元格左移（右键菜单）",
-      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
-      "title": "cell context menu Delete shift left closes the gap and keeps references to moved cells",
-      "registryLine": 1115
+    "CLIP-003": {
+      "label": "CLIP-003 · 同表剪切移动",
+      "path": "excel/react-excel/e2e/editing/system-clipboard.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/system-clipboard.spec.ts",
+      "title": "cut only clears on paste and formulas follow the moved quantity",
+      "registryLine": 254
     },
-    "SHIFTCELLS-004": {
-      "label": "删除单元格·下方单元格上移（Ctrl+-）",
-      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
-      "title": "Ctrl+- opens Delete and shift up pulls the column below into the selection",
-      "registryLine": 1116
+    "COMMENT-001": {
+      "label": "COMMENT-001 · 新建线程",
+      "path": "excel/react-excel/e2e/comments/actions.spec.ts",
+      "url": "../excel/react-excel/e2e/comments/actions.spec.ts",
+      "title": "new comment retains author and local time through undo and redo at 1280px",
+      "registryLine": 1056
     },
-    "SHIFTCELLS-005": {
-      "label": "删除被引用单元格产生 #REF!",
-      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
-      "title": "deleting a referenced cell shows #REF! in the dependent sheet and undo restores the value",
-      "registryLine": 1117
+    "COMMENT-003": {
+      "label": "COMMENT-003 · 回复线程",
+      "path": "excel/react-excel/e2e/comments/actions.spec.ts",
+      "url": "../excel/react-excel/e2e/comments/actions.spec.ts",
+      "title": "post reply retains both authors and undo restores original thread at 1280px",
+      "registryLine": 1058
     },
-    "SHIFTCELLS-006": {
-      "label": "拒绝切开合并单元格",
-      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
-      "title": "shifting through part of a merged cell is rejected without changing the sheet",
-      "registryLine": 1118
+    "CUSTOM-001": {
+      "label": "CUSTOM-001 · 打开目录",
+      "path": "excel/react-excel/e2e/custom-formulas/actions.spec.ts",
+      "url": "../excel/react-excel/e2e/custom-formulas/actions.spec.ts",
+      "title": "open custom formula directory reads native definitions at 1280px",
+      "registryLine": 1008
     },
-    "SHIFTCELLS-007": {
-      "label": "插入对话框整行选项",
-      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
-      "title": "Insert dialog Entire row inserts whole rows through the row command",
-      "registryLine": 1119
+    "CUSTOM-003": {
+      "label": "CUSTOM-003 · 公式栏调用",
+      "path": "excel/react-excel/e2e/custom-formulas/actions.spec.ts",
+      "url": "../excel/react-excel/e2e/custom-formulas/actions.spec.ts",
+      "title": "call registered expression from formula bar at 1280px",
+      "registryLine": 1010
     },
-    "SIZE-001": {
-      "label": "设置行高",
-      "path": "excel/react-excel/e2e/format/selection-sizes.spec.ts",
-      "title": "row height affects selected rows only and preserves formulas and style",
-      "registryLine": 513
+    "DATA-001": {
+      "label": "DATA-001 · 等值筛选工作表",
+      "path": "excel/react-excel/e2e/editing/filter.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/filter.spec.ts",
+      "title": "filter 1,000 rows through Rust, preserve header and source row numbers, undo/redo once",
+      "registryLine": 640
     },
-    "SIZE-002": {
-      "label": "设置列宽",
-      "path": "excel/react-excel/e2e/format/selection-sizes.spec.ts",
-      "title": "column width aligns headers, selection outline and cell editor",
-      "registryLine": 514
+    "DATA-002": {
+      "label": "DATA-002 · 清除筛选",
+      "path": "excel/react-excel/e2e/editing/filter.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/filter.spec.ts",
+      "title": "clear filter preserves manually hidden rows and can be undone",
+      "registryLine": 641
     },
-    "SIZE-003": {
-      "label": "恢复所选行列尺寸",
-      "path": "excel/react-excel/e2e/format/selection-sizes.spec.ts",
-      "title": "reset restores defaults only for selected rows and columns",
-      "registryLine": 515
+    "DATA-003": {
+      "label": "DATA-003 · 重新应用筛选",
+      "path": "excel/react-excel/e2e/editing/filter.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/filter.spec.ts",
+      "title": "edit does not live-filter; reapply hides the changed row and undo restores the snapshot",
+      "registryLine": 642
     },
-    "SIZE-004": {
-      "label": "自动适应列宽",
-      "path": "excel/react-excel/e2e/format/auto-fit.spec.ts",
-      "title": "double-click fits a column to styled offscreen content, with one undo and redo",
-      "registryLine": 516
+    "DATA-004": {
+      "label": "DATA-004 · 升序排序",
+      "path": "excel/react-excel/e2e/editing/sort.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/sort.spec.ts",
+      "title": "ascending sort moves complete records and styles, with one undo/redo step",
+      "registryLine": 643
     },
-    "SIZE-006": {
-      "label": "隐藏行",
-      "path": "excel/react-excel/e2e/format/visibility.spec.ts",
-      "title": "hidden rows collapse without gaps, navigation skips them and undo restores seed data",
-      "registryLine": 518
+    "DATA-005": {
+      "label": "DATA-005 · 删除重复项",
+      "path": "excel/react-excel/e2e/editing/remove-duplicates.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/remove-duplicates.spec.ts",
+      "title": "native seed removes matching records and restores once at 1280px",
+      "registryLine": 644
     },
-    "SIZE-007": {
-      "label": "隐藏列",
-      "path": "excel/react-excel/e2e/format/visibility.spec.ts",
-      "title": "hidden columns collapse and cell editor stays aligned after arrow and Tab navigation",
-      "registryLine": 519
+    "DATA-006": {
+      "label": "DATA-006 · 分隔符分列",
+      "path": "excel/react-excel/e2e/editing/text-columns.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/text-columns.spec.ts",
+      "title": "native delimited seed previews overwrite and undoes once at 1280px",
+      "registryLine": 645
     },
-    "SIZE-008": {
-      "label": "恢复选中范围隐藏行列",
-      "path": "excel/react-excel/e2e/format/visibility.spec.ts",
-      "title": "unhide selected range preserves unrelated hidden rows and columns",
-      "registryLine": 520
+    "DATA-007": {
+      "label": "DATA-007 · 固定宽度分列",
+      "path": "excel/react-excel/e2e/editing/text-columns.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/text-columns.spec.ts",
+      "title": "fixed-width seed uses Unicode positions and preserves leading zeros",
+      "registryLine": 646
     },
-    "SIZE-011": {
-      "label": "Enter 自动适应行高",
-      "path": "excel/react-excel/e2e/format/auto-fit.spec.ts",
-      "title": "Enter fits a row to multiline Chinese content and restores grid focus",
-      "registryLine": 523
+    "DATA-008": {
+      "label": "DATA-008 · 分列字段类型",
+      "path": "excel/react-excel/e2e/editing/text-column-types.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/text-column-types.spec.ts",
+      "title": "field types convert native seed and undo as one operation at 1280px",
+      "registryLine": 647
     },
-    "SIZE-012": {
-      "label": "双击自动适应行高",
-      "path": "excel/react-excel/e2e/format/auto-fit.spec.ts",
-      "title": "frozen headers stay clickable after scrolling to an automatic row fit",
-      "registryLine": 524
+    "DATA-010": {
+      "label": "DATA-010 · 自定义多级混合排序",
+      "path": "excel/react-excel/e2e/editing/sort.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/sort.spec.ts",
+      "title": "custom sort keeps the header and uses ordered, mixed-direction keys",
+      "registryLine": 649
     },
-    "SIZE-019": {
-      "label": "Enter 自动适应列宽",
-      "path": "excel/react-excel/e2e/format/auto-fit-entries.spec.ts",
-      "title": "Enter fits a column to styled offscreen content with one undo at 1280px",
-      "registryLine": 531
+    "DATA-011": {
+      "label": "DATA-011 · 排序区分大小写",
+      "path": "excel/react-excel/e2e/editing/sort-options.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/sort-options.spec.ts",
+      "title": "native seed sort case=true empty=last order=asc is stable and undoable",
+      "registryLine": 650
     },
-    "SPILL-001": {
-      "label": "打开原生溢出详情",
-      "path": "excel/react-excel/e2e/editing/spill-actions.spec.ts",
-      "title": "Open spill details preserves native values and redo at 1280px",
-      "registryLine": 877
+    "DATA-018": {
+      "label": "DATA-018 · 排序首行表头选项",
+      "path": "excel/react-excel/e2e/editing/sort-options.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/sort-options.spec.ts",
+      "title": "sort header option true controls first-row movement at 1280px",
+      "registryLine": 657
     },
-    "SPILL-003": {
-      "label": "选择完整溢出区域",
-      "path": "excel/react-excel/e2e/editing/spill-actions.spec.ts",
-      "title": "Select spill range spill details preserves native values and redo at 1280px",
-      "registryLine": 879
+    "DATA-054": {
+      "label": "DATA-054 · 精确文字去重",
+      "path": "excel/react-excel/e2e/editing/duplicate-comparison.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/duplicate-comparison.spec.ts",
+      "title": "exact duplicates preserves native record order in one undo at 1280px",
+      "registryLine": 693
     },
-    "STAT-001": {
-      "label": "整列统计包含视口外记录",
-      "path": "excel/react-excel/e2e/selection/statistics-actions.spec.ts",
-      "title": "column statistics include all offscreen native records at 1280px",
-      "registryLine": 855
+    "DATA-075": {
+      "label": "DATA-075 · 分列日期顺序 MDY",
+      "path": "excel/react-excel/e2e/editing/text-column-date-orders.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/text-column-date-orders.spec.ts",
+      "title": "dateMdy split field uses its selected date order in one native undo at 1280px",
+      "registryLine": 714
     },
-    "STAT-002": {
-      "label": "恢复全部统计默认显示",
-      "path": "excel/react-excel/e2e/selection/statistics-preferences.spec.ts",
-      "title": "restore default statistics resets all six without changing redo at 1280px",
-      "registryLine": 856
+    "DRAGMOVE-001": {
+      "label": "DRAGMOVE-001 · 悬停选区外框显示移动光标（填充柄仍为十字）",
+      "path": "excel/react-excel/e2e/drag-move/move.spec.ts",
+      "url": "../excel/react-excel/e2e/drag-move/move.spec.ts",
+      "title": "hovering the selection border shows the move cursor but the fill handle keeps crosshair",
+      "registryLine": 1120
     },
-    "STAT-003": {
-      "label": "复制求和完整精度",
-      "path": "excel/react-excel/e2e/selection/statistics-actions.spec.ts",
-      "title": "copies full precision to the real system clipboard and pastes as a scalar",
-      "registryLine": 857
+    "DRAGMOVE-002": {
+      "label": "DRAGMOVE-002 · 拖动选区外框移动区域，公式引用跟随",
+      "path": "excel/react-excel/e2e/drag-move/move.spec.ts",
+      "url": "../excel/react-excel/e2e/drag-move/move.spec.ts",
+      "title": "dragging the selection border moves the range and formulas follow the moved cells",
+      "registryLine": 1121
     },
-    "STRUCT-001": {
-      "label": "插入所选行",
-      "path": "excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
-      "title": "insert selected rows moves native cells, formulas and styles; undo and redo restore them",
-      "registryLine": 607
+    "DRAGMOVE-003": {
+      "label": "DRAGMOVE-003 · 松手时按住 Ctrl（Mac 为 Option）改为复制",
+      "path": "excel/react-excel/e2e/drag-move/move.spec.ts",
+      "url": "../excel/react-excel/e2e/drag-move/move.spec.ts",
+      "title": "holding the copy modifier at release copies the range and shifts relative formulas",
+      "registryLine": 1122
     },
-    "STRUCT-002": {
-      "label": "插入所选列",
-      "path": "excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
-      "title": "insert selected columns moves formulas and underline, and delete columns reverses the shift",
+    "DRAGMOVE-004": {
+      "label": "DRAGMOVE-004 · 拖动移动一步撤销",
+      "path": "excel/react-excel/e2e/drag-move/move.spec.ts",
+      "url": "../excel/react-excel/e2e/drag-move/move.spec.ts",
+      "title": "undo restores a dragged move in one step",
+      "registryLine": 1123
+    },
+    "DRAGMOVE-005": {
+      "label": "DRAGMOVE-005 · 拖动中按 Escape 取消",
+      "path": "excel/react-excel/e2e/drag-move/cancel-replace.spec.ts",
+      "url": "../excel/react-excel/e2e/drag-move/cancel-replace.spec.ts",
+      "title": "escape during a border drag cancels without moving cells",
+      "registryLine": 1124
+    },
+    "DRAGMOVE-006": {
+      "label": "DRAGMOVE-006 · 落到已有数据时拒绝替换提示",
+      "path": "excel/react-excel/e2e/drag-move/cancel-replace.spec.ts",
+      "url": "../excel/react-excel/e2e/drag-move/cancel-replace.spec.ts",
+      "title": "declining the replace prompt keeps both the source and the existing data",
+      "registryLine": 1125
+    },
+    "DRAGMOVE-007": {
+      "label": "DRAGMOVE-007 · 落到已有数据时确认替换",
+      "path": "excel/react-excel/e2e/drag-move/cancel-replace.spec.ts",
+      "url": "../excel/react-excel/e2e/drag-move/cancel-replace.spec.ts",
+      "title": "accepting the replace prompt overwrites the existing data",
+      "registryLine": 1126
+    },
+    "DRAGMOVE-008": {
+      "label": "DRAGMOVE-008 · 冻结窗格下从冻结区拖到滚动区",
+      "path": "excel/react-excel/e2e/drag-move/viewport.spec.ts",
+      "url": "../excel/react-excel/e2e/drag-move/viewport.spec.ts",
+      "title": "a border drag from the frozen pane drops into the scrolling pane",
+      "registryLine": 1127
+    },
+    "DRAGMOVE-009": {
+      "label": "DRAGMOVE-009 · 缩放 150% 下落点命中指针下的格",
+      "path": "excel/react-excel/e2e/drag-move/viewport.spec.ts",
+      "url": "../excel/react-excel/e2e/drag-move/viewport.spec.ts",
+      "title": "a border drag at 150 percent zoom drops on the cell under the pointer",
+      "registryLine": 1128
+    },
+    "DRAGMOVE-010": {
+      "label": "DRAGMOVE-010 · 拖到视口边缘自动滚动落点",
+      "path": "excel/react-excel/e2e/drag-move/viewport.spec.ts",
+      "url": "../excel/react-excel/e2e/drag-move/viewport.spec.ts",
+      "title": "holding a border drag near the bottom edge autoscrolls the drop target",
+      "registryLine": 1129
+    },
+    "EDIT-001": {
+      "label": "EDIT-001 · 格内原始数值编辑",
+      "path": "excel/react-excel/e2e/editing/input-semantics.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/input-semantics.spec.ts",
+      "title": "P3 edits the original number and retains it after Enter and blur",
+      "registryLine": 201
+    },
+    "EDIT-002": {
+      "label": "EDIT-002 · 格内 IME 确认键不提交",
+      "path": "excel/react-excel/e2e/editing/input-semantics.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/input-semantics.spec.ts",
+      "title": "cell editing does not consume IME confirmation or cancellation keys",
+      "registryLine": 202
+    },
+    "EDIT-004": {
+      "label": "EDIT-004 · 格内 Alt+Enter 换行",
+      "path": "excel/react-excel/e2e/editing/input-semantics.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/input-semantics.spec.ts",
+      "title": "cell Alt+Enter inserts a newline at the caret and commits one multiline value",
+      "registryLine": 204
+    },
+    "EDIT-006": {
+      "label": "EDIT-006 · 格内强制文本输入",
+      "path": "excel/react-excel/e2e/editing/typed-cell-input.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/typed-cell-input.spec.ts",
+      "title": "cell preserves forced text through re-editing and formula references",
+      "registryLine": 206
+    },
+    "EDIT-008": {
+      "label": "EDIT-008 · 格内布尔值输入",
+      "path": "excel/react-excel/e2e/editing/typed-cell-input.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/typed-cell-input.spec.ts",
+      "title": "cell installs a Boolean and recalculates its dependent formula",
+      "registryLine": 208
+    },
+    "EDIT-010": {
+      "label": "EDIT-010 · 格内百分比输入",
+      "path": "excel/react-excel/e2e/editing/typed-cell-input.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/typed-cell-input.spec.ts",
+      "title": "cell stores a percentage as a number and changes only its number format",
+      "registryLine": 210
+    },
+    "EDIT-012": {
+      "label": "EDIT-012 · 格内 24 小时时间输入",
+      "path": "excel/react-excel/e2e/editing/time-fraction-input.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/time-fraction-input.spec.ts",
+      "title": "cell: 13:30 becomes a native number, re-edits and calculates",
+      "registryLine": 212
+    },
+    "EDIT-020": {
+      "label": "EDIT-020 · F2 编辑原始内容",
+      "path": "excel/react-excel/e2e/editing/editing-entries.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/editing-entries.spec.ts",
+      "title": "F2 opens the correct native draft and commits once at 1280px",
+      "registryLine": 220
+    },
+    "EDIT-032": {
+      "label": "EDIT-032 · 格内失焦拒绝后留原草稿纠正",
+      "path": "excel/react-excel/e2e/editing/rejected-draft-replacement.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/rejected-draft-replacement.spec.ts",
+      "title": "cell rejected blur cannot be replaced by another cell at 1280px",
+      "registryLine": 232
+    },
+    "EMBED-002": {
+      "label": "EMBED-002 · 双击编辑仅修改所属实例",
+      "path": "excel/react-excel/e2e/package-embedding/host-isolation.spec.ts",
+      "url": "../excel/react-excel/e2e/package-embedding/host-isolation.spec.ts",
+      "title": "editing one embedded workbook leaves its sibling data unchanged",
+      "registryLine": 30
+    },
+    "EMBED-010": {
+      "label": "EMBED-010 · 双实例同坐标错误仅朗读自身反馈",
+      "path": "excel/react-excel/e2e/package-embedding/editor-isolation.spec.ts",
+      "url": "../excel/react-excel/e2e/package-embedding/editor-isolation.spec.ts",
+      "title": "same-coordinate rejected editors describe only their own instance feedback",
+      "registryLine": 38
+    },
+    "FARG-001": {
+      "label": "FARG-001 · 参数表单生成并提交 SUM 公式",
+      "path": "excel/react-excel/e2e/formula-arguments/native-calls.spec.ts",
+      "url": "../excel/react-excel/e2e/formula-arguments/native-calls.spec.ts",
+      "title": "FARG-001 SUM arguments create one native formula edit",
+      "registryLine": 67
+    },
+    "FARG-003": {
+      "label": "FARG-003 · XLOOKUP 表单保留中间可选参数空位",
+      "path": "excel/react-excel/e2e/formula-arguments/native-calls.spec.ts",
+      "url": "../excel/react-excel/e2e/formula-arguments/native-calls.spec.ts",
+      "title": "FARG-003 XLOOKUP preserves an optional middle argument hole",
+      "registryLine": 69
+    },
+    "FILE-001": {
+      "label": "FILE-001 · 下载原生工作簿",
+      "path": "excel/react-excel/e2e/workbook/workbook-files.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/workbook-files.spec.ts",
+      "title": "download preserves workbook data and history at 1280px",
+      "registryLine": 919
+    },
+    "FILE-002": {
+      "label": "FILE-002 · 无效文件不破坏当前工作簿",
+      "path": "excel/react-excel/e2e/workbook/workbook-files.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/workbook-files.spec.ts",
+      "title": "invalid native content leaves values, selection, history and current file usable",
+      "registryLine": 920
+    },
+    "FILE-003": {
+      "label": "FILE-003 · 新建空白工作簿",
+      "path": "excel/react-excel/e2e/workbook/workbook-files.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/workbook-files.spec.ts",
+      "title": "new workbook cancellation keeps data before confirmed replacement at 1280px",
+      "registryLine": 921
+    },
+    "FILL-001": {
+      "label": "FILL-001 · 向下填充",
+      "path": "excel/react-excel/e2e/editing/directional-fill.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/directional-fill.spec.ts",
+      "title": "seed formula fills down with relative/absolute references and one undo step",
+      "registryLine": 300
+    },
+    "FILL-002": {
+      "label": "FILL-002 · 向右填充",
+      "path": "excel/react-excel/e2e/editing/directional-fill.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/directional-fill.spec.ts",
+      "title": "fill right copies seed text and underline, then shifts a formula horizontally",
+      "registryLine": 301
+    },
+    "FILL-003": {
+      "label": "FILL-003 · 等差数值序列",
+      "path": "excel/react-excel/e2e/editing/fill-series.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/fill-series.spec.ts",
+      "title": "native number seed extends with one undo step while source samples stay intact",
+      "registryLine": 302
+    },
+    "FIND-001": {
+      "label": "FIND-001 · 工作簿查找",
+      "path": "excel/react-excel/e2e/editing/find-replace.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/find-replace.spec.ts",
+      "title": "workbook find navigates offscreen into Summary and previous/next wrap exact occurrences",
+      "registryLine": 738
+    },
+    "FIND-002": {
+      "label": "FIND-002 · 当前替换",
+      "path": "excel/react-excel/e2e/editing/find-replace.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/find-replace.spec.ts",
+      "title": "current replacement changes only the chosen Unicode occurrence and undo restores it",
+      "registryLine": 739
+    },
+    "FIND-004": {
+      "label": "FIND-004 · 查找全部",
+      "path": "excel/react-excel/e2e/editing/find-result-pages.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/find-result-pages.spec.ts",
+      "title": "find all lists the first native result page without editing at 1280px",
+      "registryLine": 741
+    },
+    "FIND-009": {
+      "label": "FIND-009 · 通配符查找",
+      "path": "excel/react-excel/e2e/editing/find-options.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/find-options.spec.ts",
+      "title": "find wildcards distinguishes star question mark and escaped literal at 1280px",
+      "registryLine": 746
+    },
+    "FONT-001": {
+      "label": "FONT-001 · 粗体",
+      "path": "excel/react-excel/e2e/format/text-style.spec.ts",
+      "url": "../excel/react-excel/e2e/format/text-style.spec.ts",
+      "title": "Bold toggles the selected Rust cell style",
+      "registryLine": 356
+    },
+    "FONT-002": {
+      "label": "FONT-002 · 斜体",
+      "path": "excel/react-excel/e2e/format/text-style.spec.ts",
+      "url": "../excel/react-excel/e2e/format/text-style.spec.ts",
+      "title": "Italic toggles the selected Rust cell style",
+      "registryLine": 357
+    },
+    "FONT-003": {
+      "label": "FONT-003 · 下划线",
+      "path": "excel/react-excel/e2e/format/text-style.spec.ts",
+      "url": "../excel/react-excel/e2e/format/text-style.spec.ts",
+      "title": "Underline toggles the selected Rust cell style",
+      "registryLine": 358
+    },
+    "FREEZE-001": {
+      "label": "FREEZE-001 · 冻结首行",
+      "path": "excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
+      "title": "freezes the first row while vertical scrolling and edits the fixed cells",
       "registryLine": 608
     },
-    "STRUCT-003": {
-      "label": "删除所选行",
-      "path": "excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
-      "title": "delete rows removes data, exposes reference errors and undo restores cross-sheet values",
+    "FREEZE-002": {
+      "label": "FREEZE-002 · 冻结首列",
+      "path": "excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
+      "title": "freezes the first column while horizontal scrolling and keeps row headers aligned",
       "registryLine": 609
     },
-    "STRUCT-004": {
-      "label": "删除所选列",
-      "path": "excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
-      "title": "delete columns works from the original seed with one undo at 1280px",
+    "FREEZE-003": {
+      "label": "FREEZE-003 · 按活动格冻结，切窗保持行头身份（交叉回归见 freeze-cross-features）",
+      "path": "excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
+      "title": "freezes at B3 and follows keyboard moves below the fixed band with one undo",
       "registryLine": 610
     },
+    "FREEZE-004": {
+      "label": "FREEZE-004 · 取消冻结",
+      "path": "excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/freeze-ui.spec.ts",
+      "title": "unfreeze uses the seeded panes and undoes once at 1280px",
+      "registryLine": 611
+    },
+    "HIST-001": {
+      "label": "HIST-001 · 撤销按钮",
+      "path": "excel/react-excel/e2e/editing/history-actions.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/history-actions.spec.ts",
+      "title": "Undo button restores input and cross-sheet formulas without switching tabs at 1280px",
+      "registryLine": 929
+    },
+    "HIST-002": {
+      "label": "HIST-002 · 重做按钮",
+      "path": "excel/react-excel/e2e/editing/history-actions.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/history-actions.spec.ts",
+      "title": "Redo button reapplies input and cross-sheet formulas without switching tabs at 1280px",
+      "registryLine": 930
+    },
+    "LINK-001": {
+      "label": "LINK-001 · 插入超链接",
+      "path": "excel/react-excel/e2e/hyperlink/hyperlink.spec.ts",
+      "url": "../excel/react-excel/e2e/hyperlink/hyperlink.spec.ts",
+      "title": "insert hyperlink is independent and undoes once at 1280px",
+      "registryLine": 236
+    },
+    "LINK-003": {
+      "label": "LINK-003 · 移除原生超链接",
+      "path": "excel/react-excel/e2e/hyperlink/hyperlink.spec.ts",
+      "url": "../excel/react-excel/e2e/hyperlink/hyperlink.spec.ts",
+      "title": "remove hyperlink is independent and undoes once at 1280px",
+      "registryLine": 238
+    },
+    "MERGE-001": {
+      "label": "MERGE-001 · 确认合并单元格",
+      "path": "excel/react-excel/e2e/workbook/merged-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/merged-cells.spec.ts",
+      "title": "confirmed merge keeps its anchor and restores discarded values in one undo",
+      "registryLine": 612
+    },
+    "MERGE-002": {
+      "label": "MERGE-002 · 合并后居中",
+      "path": "excel/react-excel/e2e/workbook/merged-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/merged-cells.spec.ts",
+      "title": "merge and center has one outer frame and both editors use its anchor",
+      "registryLine": 613
+    },
+    "MERGE-003": {
+      "label": "MERGE-003 · 拆分合并单元格",
+      "path": "excel/react-excel/e2e/workbook/merged-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/merged-cells.spec.ts",
+      "title": "unmerge preserves the seeded anchor and other merges at 1280px",
+      "registryLine": 614
+    },
+    "MRSEL-001": {
+      "label": "MRSEL-001 · Ctrl 点击追加单元格",
+      "path": "excel/react-excel/e2e/multi-range-selection/modifier-click.spec.ts",
+      "url": "../excel/react-excel/e2e/multi-range-selection/modifier-click.spec.ts",
+      "title": "Control click appends a disjoint cell and keeps the gap unselected at 1280px",
+      "registryLine": 57
+    },
+    "MRSEL-006": {
+      "label": "MRSEL-006 · 格式化手动追加的所有区域",
+      "path": "excel/react-excel/e2e/multi-range-selection/multi-format.spec.ts",
+      "url": "../excel/react-excel/e2e/multi-range-selection/multi-format.spec.ts",
+      "title": "formatting manually appended areas changes every target and preserves the gap at 1280px",
+      "registryLine": 62
+    },
+    "NAME-001": {
+      "label": "NAME-001 · 名称管理器新增名称",
+      "path": "excel/react-excel/e2e/workbook/named-ranges.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/named-ranges.spec.ts",
+      "title": "create a name through the manager without changing its source at 1280px",
+      "registryLine": 189
+    },
+    "NAME-002": {
+      "label": "NAME-002 · 名称管理器重命名",
+      "path": "excel/react-excel/e2e/workbook/named-ranges.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/named-ranges.spec.ts",
+      "title": "rename a seeded name rewrites its formula in one step at 1280px",
+      "registryLine": 190
+    },
+    "NAME-003": {
+      "label": "NAME-003 · 名称管理器删除名称",
+      "path": "excel/react-excel/e2e/workbook/named-ranges.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/named-ranges.spec.ts",
+      "title": "delete a seeded name keeps its formula and can undo once at 1280px",
+      "registryLine": 191
+    },
+    "NAV-001": {
+      "label": "NAV-001 · 名称框定位范围及露出填充柄",
+      "path": "excel/react-excel/e2e/workbook/name-box-range-visibility.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/name-box-range-visibility.spec.ts",
+      "title": "name box reveals the fill corner on both axes at 1280px",
+      "registryLine": 125
+    },
+    "NAV-003": {
+      "label": "NAV-003 · F5 打开定位弹窗",
+      "path": "excel/react-excel/e2e/navigation/go-to.spec.ts",
+      "url": "../excel/react-excel/e2e/navigation/go-to.spec.ts",
+      "title": "F5 opens Go To and Escape restores grid focus",
+      "registryLine": 127
+    },
+    "NOTE-001": {
+      "label": "NOTE-001 · 新增多行备注",
+      "path": "excel/react-excel/e2e/notes/actions.spec.ts",
+      "url": "../excel/react-excel/e2e/notes/actions.spec.ts",
+      "title": "insert multiline note preserves values and undoes once at 1280px",
+      "registryLine": 946
+    },
+    "NOTE-002": {
+      "label": "NOTE-002 · 查看已有备注",
+      "path": "excel/react-excel/e2e/notes/actions.spec.ts",
+      "url": "../excel/react-excel/e2e/notes/actions.spec.ts",
+      "title": "view existing note reads saved text without creating history at 1280px",
+      "registryLine": 947
+    },
+    "NUM-001": {
+      "label": "NUM-001 · 数值格式设置",
+      "path": "excel/react-excel/e2e/format/number-format-settings.spec.ts",
+      "url": "../excel/react-excel/e2e/format/number-format-settings.spec.ts",
+      "title": "number settings preserve formulas and apply grouping and precision in one history entry",
+      "registryLine": 414
+    },
+    "NUM-006": {
+      "label": "NUM-006 · 时间及累计时长格式",
+      "path": "excel/react-excel/e2e/format/advanced-number-formats.spec.ts",
+      "url": "../excel/react-excel/e2e/format/advanced-number-formats.spec.ts",
+      "title": "time displays day fractions, clock rollover and elapsed hours without changing values",
+      "registryLine": 419
+    },
+    "NUM-014": {
+      "label": "NUM-014 · 日期样式设置",
+      "path": "excel/react-excel/e2e/format/number-format-session.spec.ts",
+      "url": "../excel/react-excel/e2e/format/number-format-session.spec.ts",
+      "title": "date preview does not write until Apply and one undo restores the old display",
+      "registryLine": 427
+    },
+    "OUTLINE-001": {
+      "label": "OUTLINE-001 · 创建行分组",
+      "path": "excel/react-excel/e2e/workbook/outline-group-actions.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/outline-group-actions.spec.ts",
+      "title": "group rows creates only membership and undoes once at 1280px",
+      "registryLine": 621
+    },
+    "OUTLINE-002": {
+      "label": "OUTLINE-002 · 创建列分组",
+      "path": "excel/react-excel/e2e/workbook/outline-group-actions.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/outline-group-actions.spec.ts",
+      "title": "group columns creates only membership and undoes once at 1280px",
+      "registryLine": 622
+    },
+    "OUTLINE-003": {
+      "label": "OUTLINE-003 · 嵌套分组",
+      "path": "excel/react-excel/e2e/workbook/outline.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/outline.spec.ts",
+      "title": "nested groups retain child collapse and partial overlaps fail without losing history",
+      "registryLine": 623
+    },
+    "PAINT-001": {
+      "label": "PAINT-001 · 单击格式刷后点击目标",
+      "path": "excel/react-excel/e2e/format/format-painter.spec.ts",
+      "url": "../excel/react-excel/e2e/format/format-painter.spec.ts",
+      "title": "single paint copies seeded bold, retains target content, exits and undoes once",
+      "registryLine": 503
+    },
+    "PAINT-002": {
+      "label": "PAINT-002 · 格式刷拖拽平铺异构格式",
+      "path": "excel/react-excel/e2e/format/format-painter.spec.ts",
+      "url": "../excel/react-excel/e2e/format/format-painter.spec.ts",
+      "title": "drag paints a tiled heterogeneous source range without replacing values",
+      "registryLine": 504
+    },
+    "PAINT-003": {
+      "label": "PAINT-003 · 双击开启连续格式刷",
+      "path": "excel/react-excel/e2e/format/format-painter.spec.ts",
+      "url": "../excel/react-excel/e2e/format/format-painter.spec.ts",
+      "title": "double click paints multiple targets from one snapshot; Escape stops subsequent clicks",
+      "registryLine": 505
+    },
+    "PKG-013": {
+      "label": "PKG-013 · 宿主 readOnly 拒绝实际键盘编辑",
+      "path": "excel/react-excel/e2e/package-host/controls.spec.ts",
+      "url": "../excel/react-excel/e2e/package-host/controls.spec.ts",
+      "title": "installed vite read-only rejects keyboard edits with en feedback",
+      "registryLine": 52
+    },
+    "PKG-015": {
+      "label": "PKG-015 · 宿主结构策略拒绝新建表按钮",
+      "path": "excel/react-excel/e2e/package-host/controls.spec.ts",
+      "url": "../excel/react-excel/e2e/package-host/controls.spec.ts",
+      "title": "installed vite structure policy rejects New sheet button with en feedback",
+      "registryLine": 54
+    },
+    "PKG-016": {
+      "label": "PKG-016 · 宿主结构策略拒绝工具栏插入行",
+      "path": "excel/react-excel/e2e/package-host/controls.spec.ts",
+      "url": "../excel/react-excel/e2e/package-host/controls.spec.ts",
+      "title": "installed vite structure policy rejects row insertion toolbar with en feedback",
+      "registryLine": 55
+    },
+    "PROTECT-001": {
+      "label": "PROTECT-001 · 保护当前工作表",
+      "path": "excel/react-excel/e2e/protection/protection.spec.ts",
+      "url": "../excel/react-excel/e2e/protection/protection.spec.ts",
+      "title": "protect worksheet rejects locked input without changing data or content history at 1280px",
+      "registryLine": 996
+    },
+    "PROTECT-002": {
+      "label": "PROTECT-002 · 选区设为允许编辑",
+      "path": "excel/react-excel/e2e/protection/protection.spec.ts",
+      "url": "../excel/react-excel/e2e/protection/protection.spec.ts",
+      "title": "allow selection permits native editing and undo while its neighbor stays locked at 1280px",
+      "registryLine": 997
+    },
+    "REPEAT-001": {
+      "label": "REPEAT-001 · 重复按钮可用性与提示",
+      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "url": "../excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "title": "Repeat button is disabled until a repeatable command ran and names it in the tooltip",
+      "registryLine": 1096
+    },
+    "REPEAT-002": {
+      "label": "REPEAT-002 · F4 重复加粗",
+      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "url": "../excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "title": "F4 repeats Bold on another range",
+      "registryLine": 1097
+    },
+    "REPEAT-003": {
+      "label": "REPEAT-003 · 重复按钮重复填充色",
+      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "url": "../excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "title": "The Repeat button repeats the last fill color on the current selection",
+      "registryLine": 1098
+    },
+    "REPEAT-004": {
+      "label": "REPEAT-004 · F4 重复插入行",
+      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "url": "../excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "title": "F4 repeats Insert rows at the new selection",
+      "registryLine": 1099
+    },
+    "REPEAT-005": {
+      "label": "REPEAT-005 · Ctrl+Y 先重做否则重复",
+      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "url": "../excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "title": "Ctrl+Y redoes when something can be redone and repeats otherwise",
+      "registryLine": 1100
+    },
+    "REPEAT-006": {
+      "label": "REPEAT-006 · 每次重复一个撤销步",
+      "path": "excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "url": "../excel/react-excel/e2e/repeat/repeat.spec.ts",
+      "title": "Each repeat is one new undo step",
+      "registryLine": 1101
+    },
+    "RESTORE-001": {
+      "label": "RESTORE-001 · 宿主快照刷新后恢复编辑",
+      "path": "excel/react-excel/e2e/local-restore/local-restore.spec.ts",
+      "url": "../excel/react-excel/e2e/local-restore/local-restore.spec.ts",
+      "title": "host snapshot restores edits after a page refresh",
+      "registryLine": 1090
+    },
+    "RESTORE-002": {
+      "label": "RESTORE-002 · 放弃本地副本回到示例",
+      "path": "excel/react-excel/e2e/local-restore/local-restore.spec.ts",
+      "url": "../excel/react-excel/e2e/local-restore/local-restore.spec.ts",
+      "title": "discarding the saved copy reloads the sample workbook",
+      "registryLine": 1091
+    },
+    "RESTORE-003": {
+      "label": "RESTORE-003 · 快照损坏时退回定义并报错",
+      "path": "excel/react-excel/e2e/local-restore/local-restore.spec.ts",
+      "url": "../excel/react-excel/e2e/local-restore/local-restore.spec.ts",
+      "title": "an unreadable saved snapshot falls back to the sample and reports the error",
+      "registryLine": 1092
+    },
+    "RULE-001": {
+      "label": "RULE-001 · 整数验证",
+      "path": "excel/react-excel/e2e/editing/data-validation.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/data-validation.spec.ts",
+      "title": "integer seed rejects fractions without changing cell; corrected draft commits and undoes",
+      "registryLine": 777
+    },
+    "RULE-005": {
+      "label": "RULE-005 · 时间验证",
+      "path": "excel/react-excel/e2e/editing/data-validation.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/data-validation.spec.ts",
+      "title": "time native seed enforces bounds and accepted input is undoable",
+      "registryLine": 781
+    },
+    "RULE-013": {
+      "label": "RULE-013 · 清除原生验证规则",
+      "path": "excel/react-excel/e2e/editing/data-validation-rules.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/data-validation-rules.spec.ts",
+      "title": "clear seeded validation keeps values and undoes once at 1280px",
+      "registryLine": 789
+    },
+    "SEL-001": {
+      "label": "SEL-001 · 单元格点击单选",
+      "path": "excel/react-excel/e2e/selection/basic-selection.spec.ts",
+      "url": "../excel/react-excel/e2e/selection/basic-selection.spec.ts",
+      "title": "single cell click replaces the selection at 1280px",
+      "registryLine": 100
+    },
+    "SEL-002": {
+      "label": "SEL-002 · 鼠标拖拽矩形选区",
+      "path": "excel/react-excel/e2e/selection/basic-selection.spec.ts",
+      "url": "../excel/react-excel/e2e/selection/basic-selection.spec.ts",
+      "title": "pointer drag selects a rectangle at 1280px",
+      "registryLine": 101
+    },
+    "SEL-003": {
+      "label": "SEL-003 · 行号选择整行",
+      "path": "excel/react-excel/e2e/selection/basic-selection.spec.ts",
+      "url": "../excel/react-excel/e2e/selection/basic-selection.spec.ts",
+      "title": "row header selects its complete extent at 1280px",
+      "registryLine": 102
+    },
+    "SEL-004": {
+      "label": "SEL-004 · 列名选择整列",
+      "path": "excel/react-excel/e2e/selection/basic-selection.spec.ts",
+      "url": "../excel/react-excel/e2e/selection/basic-selection.spec.ts",
+      "title": "column header selects its complete extent at 1280px",
+      "registryLine": 103
+    },
+    "SEL-005": {
+      "label": "SEL-005 · 左上角选择整表",
+      "path": "excel/react-excel/e2e/selection/basic-selection.spec.ts",
+      "url": "../excel/react-excel/e2e/selection/basic-selection.spec.ts",
+      "title": "all header selects its complete extent at 1280px",
+      "registryLine": 104
+    },
+    "SEL-012": {
+      "label": "SEL-012 · Shift 向上键扩选及缩选",
+      "path": "excel/react-excel/e2e/selection/keyboard-selection.spec.ts",
+      "url": "../excel/react-excel/e2e/selection/keyboard-selection.spec.ts",
+      "title": "Shift ArrowUp extends and shrinks the original cell at 1280px",
+      "registryLine": 111
+    },
+    "SELSPECIAL-001": {
+      "label": "SELSPECIAL-001 · Alt+; 仅选可见块",
+      "path": "excel/react-excel/e2e/select-special/visible-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/select-special/visible-cells.spec.ts",
+      "title": "Alt+Semicolon selects only the visible filtered blocks at 1280px",
+      "registryLine": 1130
+    },
+    "SELSPECIAL-002": {
+      "label": "SELSPECIAL-002 · 仅可见后复制粘贴",
+      "path": "excel/react-excel/e2e/select-special/visible-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/select-special/visible-cells.spec.ts",
+      "title": "copying visible cells only pastes the visible values at 1280px",
+      "registryLine": 1131
+    },
+    "SELSPECIAL-003": {
+      "label": "SELSPECIAL-003 · 跳过隐藏列",
+      "path": "excel/react-excel/e2e/select-special/visible-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/select-special/visible-cells.spec.ts",
+      "title": "visible cells skips a hidden column and copy pastes the remaining columns at 1280px",
+      "registryLine": 1132
+    },
+    "SELSPECIAL-004": {
+      "label": "SELSPECIAL-004 · 定位条件仅可见单元格",
+      "path": "excel/react-excel/e2e/select-special/visible-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/select-special/visible-cells.spec.ts",
+      "title": "Go to special Visible cells only selects the visible blocks and closes the dialog at 1280px",
+      "registryLine": 1133
+    },
+    "SELSPECIAL-005": {
+      "label": "SELSPECIAL-005 · Ctrl+Shift+* 当前区域",
+      "path": "excel/react-excel/e2e/select-special/current-region.spec.ts",
+      "url": "../excel/react-excel/e2e/select-special/current-region.spec.ts",
+      "title": "Ctrl+Shift+8 selects the current region around the active cell at 1280px",
+      "registryLine": 1134
+    },
+    "SELSPECIAL-006": {
+      "label": "SELSPECIAL-006 · 定位条件当前区域",
+      "path": "excel/react-excel/e2e/select-special/current-region.spec.ts",
+      "url": "../excel/react-excel/e2e/select-special/current-region.spec.ts",
+      "title": "Go to special Current region selects the region of the active cell at 1280px",
+      "registryLine": 1135
+    },
+    "SELSPECIAL-007": {
+      "label": "SELSPECIAL-007 · Ctrl+A 先区域后整表",
+      "path": "excel/react-excel/e2e/select-special/current-region.spec.ts",
+      "url": "../excel/react-excel/e2e/select-special/current-region.spec.ts",
+      "title": "Ctrl+A selects the current region first and the whole sheet second at 1280px",
+      "registryLine": 1136
+    },
+    "SHEET-001": {
+      "label": "SHEET-001 · 新增工作表",
+      "path": "excel/react-excel/e2e/workbook/sheet-tabs.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/sheet-tabs.spec.ts",
+      "title": "new sheet is blank, editable and uses the existing Worker",
+      "registryLine": 537
+    },
+    "SHEET-004": {
+      "label": "SHEET-004 · 向右移动工作表",
+      "path": "excel/react-excel/e2e/workbook/sheet-movement.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/sheet-movement.spec.ts",
+      "title": "move sheet right preserves identity and undoes once at 1280px",
+      "registryLine": 540
+    },
+    "SHEET-005": {
+      "label": "SHEET-005 · 删除工作表",
+      "path": "excel/react-excel/e2e/workbook/sheet-structure.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/sheet-structure.spec.ts",
+      "title": "deletes active sheet, chooses the neighbor, and rejects deleting the last sheet",
+      "registryLine": 541
+    },
+    "SHEETMGMT-001": {
+      "label": "SHEETMGMT-001 · 复制工作表",
+      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "title": "duplicate sheet copies data formulas and formatting into Sheet (2) and activates it",
+      "registryLine": 1109
+    },
+    "SHEETMGMT-002": {
+      "label": "SHEETMGMT-002 · 复制工作表撤销重做",
+      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "title": "duplicate sheet is one undo step and redo restores the same copy",
+      "registryLine": 1110
+    },
+    "SHEETMGMT-003": {
+      "label": "SHEETMGMT-003 · 隐藏工作表",
+      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "title": "hide sheet removes its tab while formulas that read it keep working, and undo shows it",
+      "registryLine": 1111
+    },
+    "SHEETMGMT-004": {
+      "label": "SHEETMGMT-004 · 取消隐藏工作表",
+      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "title": "unhide dialog lists hidden sheets and restores the chosen one",
+      "registryLine": 1112
+    },
+    "SHEETMGMT-005": {
+      "label": "SHEETMGMT-005 · 最后一张可见表不可隐藏",
+      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "title": "the last visible sheet cannot be hidden",
+      "registryLine": 1113
+    },
+    "SHEETMGMT-006": {
+      "label": "SHEETMGMT-006 · 标签颜色设置与清除",
+      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "title": "tab color can be set from the palette and cleared with No color, each undoable",
+      "registryLine": 1114
+    },
+    "SHEETMGMT-007": {
+      "label": "SHEETMGMT-007 · 下载打开保留隐藏与颜色",
+      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "title": "download and open keep hidden sheets and tab colors",
+      "registryLine": 1115
+    },
+    "SHEETMGMT-008": {
+      "label": "SHEETMGMT-008 · Ctrl+PageUp/PageDown 跳过隐藏表",
+      "path": "excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/sheet-management.spec.ts",
+      "title": "Ctrl+PageUp and Ctrl+PageDown skip hidden sheets",
+      "registryLine": 1116
+    },
+    "SHIFTCELLS-001": {
+      "label": "SHIFTCELLS-001 · 插入单元格·活动单元格右移",
+      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "title": "insert cells shift right from the ribbon moves the row band, follows references and undoes once",
+      "registryLine": 1137
+    },
+    "SHIFTCELLS-002": {
+      "label": "SHIFTCELLS-002 · 插入单元格·活动单元格下移（Ctrl+Shift+=）",
+      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "title": "Ctrl+Shift+= opens Insert and shift down moves only the selected column",
+      "registryLine": 1138
+    },
+    "SHIFTCELLS-003": {
+      "label": "SHIFTCELLS-003 · 删除单元格·右侧单元格左移（右键菜单）",
+      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "title": "cell context menu Delete shift left closes the gap and keeps references to moved cells",
+      "registryLine": 1139
+    },
+    "SHIFTCELLS-004": {
+      "label": "SHIFTCELLS-004 · 删除单元格·下方单元格上移（Ctrl+-）",
+      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "title": "Ctrl+- opens Delete and shift up pulls the column below into the selection",
+      "registryLine": 1140
+    },
+    "SHIFTCELLS-005": {
+      "label": "SHIFTCELLS-005 · 删除被引用单元格产生 #REF!",
+      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "title": "deleting a referenced cell shows #REF! in the dependent sheet and undo restores the value",
+      "registryLine": 1141
+    },
+    "SHIFTCELLS-006": {
+      "label": "SHIFTCELLS-006 · 拒绝切开合并单元格",
+      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "title": "shifting through part of a merged cell is rejected without changing the sheet",
+      "registryLine": 1142
+    },
+    "SHIFTCELLS-007": {
+      "label": "SHIFTCELLS-007 · 插入对话框整行选项",
+      "path": "excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "url": "../excel/react-excel/e2e/shift-cells/shift-cells.spec.ts",
+      "title": "Insert dialog Entire row inserts whole rows through the row command",
+      "registryLine": 1143
+    },
+    "SIZE-001": {
+      "label": "SIZE-001 · 设置行高",
+      "path": "excel/react-excel/e2e/format/selection-sizes.spec.ts",
+      "url": "../excel/react-excel/e2e/format/selection-sizes.spec.ts",
+      "title": "row height affects selected rows only and preserves formulas and style",
+      "registryLine": 510
+    },
+    "SIZE-002": {
+      "label": "SIZE-002 · 设置列宽",
+      "path": "excel/react-excel/e2e/format/selection-sizes.spec.ts",
+      "url": "../excel/react-excel/e2e/format/selection-sizes.spec.ts",
+      "title": "column width aligns headers, selection outline and cell editor",
+      "registryLine": 511
+    },
+    "SIZE-003": {
+      "label": "SIZE-003 · 恢复所选行列尺寸",
+      "path": "excel/react-excel/e2e/format/selection-sizes.spec.ts",
+      "url": "../excel/react-excel/e2e/format/selection-sizes.spec.ts",
+      "title": "reset restores defaults only for selected rows and columns",
+      "registryLine": 512
+    },
+    "SIZE-004": {
+      "label": "SIZE-004 · 自动适应列宽",
+      "path": "excel/react-excel/e2e/format/auto-fit.spec.ts",
+      "url": "../excel/react-excel/e2e/format/auto-fit.spec.ts",
+      "title": "double-click fits a column to styled offscreen content, with one undo and redo",
+      "registryLine": 513
+    },
+    "SIZE-006": {
+      "label": "SIZE-006 · 隐藏行",
+      "path": "excel/react-excel/e2e/format/visibility.spec.ts",
+      "url": "../excel/react-excel/e2e/format/visibility.spec.ts",
+      "title": "hidden rows collapse without gaps, navigation skips them and undo restores seed data",
+      "registryLine": 515
+    },
+    "SIZE-007": {
+      "label": "SIZE-007 · 隐藏列",
+      "path": "excel/react-excel/e2e/format/visibility.spec.ts",
+      "url": "../excel/react-excel/e2e/format/visibility.spec.ts",
+      "title": "hidden columns collapse and cell editor stays aligned after arrow and Tab navigation",
+      "registryLine": 516
+    },
+    "SIZE-008": {
+      "label": "SIZE-008 · 恢复选中范围隐藏行列",
+      "path": "excel/react-excel/e2e/format/visibility.spec.ts",
+      "url": "../excel/react-excel/e2e/format/visibility.spec.ts",
+      "title": "unhide selected range preserves unrelated hidden rows and columns",
+      "registryLine": 517
+    },
+    "SIZE-011": {
+      "label": "SIZE-011 · Enter 自动适应行高",
+      "path": "excel/react-excel/e2e/format/auto-fit.spec.ts",
+      "url": "../excel/react-excel/e2e/format/auto-fit.spec.ts",
+      "title": "Enter fits a row to multiline Chinese content and restores grid focus",
+      "registryLine": 520
+    },
+    "SIZE-012": {
+      "label": "SIZE-012 · 双击自动适应行高",
+      "path": "excel/react-excel/e2e/format/auto-fit.spec.ts",
+      "url": "../excel/react-excel/e2e/format/auto-fit.spec.ts",
+      "title": "frozen headers stay clickable after scrolling to an automatic row fit",
+      "registryLine": 521
+    },
+    "SIZE-019": {
+      "label": "SIZE-019 · Enter 自动适应列宽",
+      "path": "excel/react-excel/e2e/format/auto-fit-entries.spec.ts",
+      "url": "../excel/react-excel/e2e/format/auto-fit-entries.spec.ts",
+      "title": "Enter fits a column to styled offscreen content with one undo at 1280px",
+      "registryLine": 528
+    },
+    "SPILL-001": {
+      "label": "SPILL-001 · 打开原生溢出详情",
+      "path": "excel/react-excel/e2e/editing/spill-actions.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/spill-actions.spec.ts",
+      "title": "Open spill details preserves native values and redo at 1280px",
+      "registryLine": 896
+    },
+    "SPILL-003": {
+      "label": "SPILL-003 · 选择完整溢出区域",
+      "path": "excel/react-excel/e2e/editing/spill-actions.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/spill-actions.spec.ts",
+      "title": "Select spill range spill details preserves native values and redo at 1280px",
+      "registryLine": 898
+    },
+    "STAT-001": {
+      "label": "STAT-001 · 整列统计包含视口外记录",
+      "path": "excel/react-excel/e2e/selection/statistics-actions.spec.ts",
+      "url": "../excel/react-excel/e2e/selection/statistics-actions.spec.ts",
+      "title": "column statistics include all offscreen native records at 1280px",
+      "registryLine": 874
+    },
+    "STAT-002": {
+      "label": "STAT-002 · 恢复全部统计默认显示",
+      "path": "excel/react-excel/e2e/selection/statistics-preferences.spec.ts",
+      "url": "../excel/react-excel/e2e/selection/statistics-preferences.spec.ts",
+      "title": "restore default statistics resets all six without changing redo at 1280px",
+      "registryLine": 875
+    },
+    "STAT-003": {
+      "label": "STAT-003 · 复制求和完整精度",
+      "path": "excel/react-excel/e2e/selection/statistics-actions.spec.ts",
+      "url": "../excel/react-excel/e2e/selection/statistics-actions.spec.ts",
+      "title": "copies full precision to the real system clipboard and pastes as a scalar",
+      "registryLine": 876
+    },
+    "STRUCT-001": {
+      "label": "STRUCT-001 · 插入所选行",
+      "path": "excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
+      "title": "insert selected rows moves native cells, formulas and styles; undo and redo restore them",
+      "registryLine": 604
+    },
+    "STRUCT-002": {
+      "label": "STRUCT-002 · 插入所选列",
+      "path": "excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
+      "title": "insert selected columns moves formulas and underline, and delete columns reverses the shift",
+      "registryLine": 605
+    },
+    "STRUCT-003": {
+      "label": "STRUCT-003 · 删除所选行",
+      "path": "excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
+      "title": "delete rows removes data, exposes reference errors and undo restores cross-sheet values",
+      "registryLine": 606
+    },
+    "STRUCT-004": {
+      "label": "STRUCT-004 · 删除所选列",
+      "path": "excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/row-column-structure.spec.ts",
+      "title": "delete columns works from the original seed with one undo at 1280px",
+      "registryLine": 607
+    },
     "STYLE-003": {
-      "label": "水平居中",
+      "label": "STYLE-003 · 水平居中",
       "path": "excel/react-excel/e2e/format/cell-appearance.spec.ts",
+      "url": "../excel/react-excel/e2e/format/cell-appearance.spec.ts",
       "title": "horizontal center is an independent undoable choice at 1280px",
-      "registryLine": 383
+      "registryLine": 380
     },
     "STYLE-004": {
-      "label": "垂直居中",
+      "label": "STYLE-004 · 垂直居中",
       "path": "excel/react-excel/e2e/format/cell-appearance.spec.ts",
+      "url": "../excel/react-excel/e2e/format/cell-appearance.spec.ts",
       "title": "vertical center is an independent undoable choice at 1280px",
-      "registryLine": 384
+      "registryLine": 381
     },
     "STYLE-016": {
-      "label": "竖排文字",
+      "label": "STYLE-016 · 竖排文字",
       "path": "excel/react-excel/e2e/format/cell-appearance.spec.ts",
+      "url": "../excel/react-excel/e2e/format/cell-appearance.spec.ts",
       "title": "rotation vertical preserves cell data and undoes once at 1280px",
-      "registryLine": 396
+      "registryLine": 393
     },
     "TABLE-001": {
-      "label": "创建 Table",
+      "label": "TABLE-001 · 创建 Table",
       "path": "excel/react-excel/e2e/workbook/tables.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/tables.spec.ts",
       "title": "create a table preserves its source and undoes once at 1280px",
-      "registryLine": 566
+      "registryLine": 563
     },
     "TABLE-002": {
-      "label": "Table 重命名",
+      "label": "TABLE-002 · Table 重命名",
       "path": "excel/react-excel/e2e/workbook/tables.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/tables.spec.ts",
       "title": "rename a seeded table rewrites only its references at 1280px",
-      "registryLine": 567
+      "registryLine": 564
     },
     "TABLE-007": {
-      "label": "调整 Table 范围",
+      "label": "TABLE-007 · 调整 Table 范围",
       "path": "excel/react-excel/e2e/workbook/table-resize.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/table-resize.spec.ts",
       "title": "resizing moves totals, adds a native column and keeps one undo step",
-      "registryLine": 572
+      "registryLine": 569
     },
     "TABLE-008": {
-      "label": "Table 添加数据行",
+      "label": "TABLE-008 · Table 添加数据行",
       "path": "excel/react-excel/e2e/workbook/table-append-row.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/table-append-row.spec.ts",
       "title": "new seed table records inherit calculated formulas with one undo",
-      "registryLine": 573
+      "registryLine": 570
     },
     "TABLE-010": {
-      "label": "设置 Table 样式预设",
+      "label": "TABLE-010 · 设置 Table 样式预设",
       "path": "excel/react-excel/e2e/workbook/table-style.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/table-style.spec.ts",
       "title": "table preset green preserves values and undoes once at 1280px",
-      "registryLine": 575
+      "registryLine": 572
     },
     "TABLE-011": {
-      "label": "Table 行条纹",
+      "label": "TABLE-011 · Table 行条纹",
       "path": "excel/react-excel/e2e/workbook/table-style.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/table-style.spec.ts",
       "title": "Banded rows changes independently and undoes once at 1280px",
-      "registryLine": 576
+      "registryLine": 573
     },
     "TABLE-017": {
-      "label": "显示 Table 汇总行",
+      "label": "TABLE-017 · 显示 Table 汇总行",
       "path": "excel/react-excel/e2e/workbook/table-totals.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/table-totals.spec.ts",
       "title": "show totals uses the seeded table without totals and undoes once at 1280px",
-      "registryLine": 582
+      "registryLine": 579
     },
     "TABLE-020": {
-      "label": "Table 汇总求和",
+      "label": "TABLE-020 · Table 汇总求和",
       "path": "excel/react-excel/e2e/workbook/table-total-functions.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/table-total-functions.spec.ts",
       "title": "total sum preserves data and undoes once at 1280px",
-      "registryLine": 585
+      "registryLine": 582
     },
     "TABLE-030": {
-      "label": "Table 表头筛选",
+      "label": "TABLE-030 · Table 表头筛选",
       "path": "excel/react-excel/e2e/workbook/table-filter.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/table-filter.spec.ts",
       "title": "table header filter excludes totals and undoes once at 1280px",
-      "registryLine": 595
+      "registryLine": 592
     },
     "VALADV-001": {
-      "label": "创建相对公式验证",
+      "label": "VALADV-001 · 创建相对公式验证",
       "path": "excel/react-excel/e2e/advanced-validation/custom-formula.spec.ts",
+      "url": "../excel/react-excel/e2e/advanced-validation/custom-formula.spec.ts",
       "title": "create custom formula validation relative to the selected range at 1280px",
-      "registryLine": 1020
+      "registryLine": 1039
     },
     "VALADV-002": {
-      "label": "选格显示输入提示",
+      "label": "VALADV-002 · 选格显示输入提示",
       "path": "excel/react-excel/e2e/advanced-validation/custom-formula.spec.ts",
+      "url": "../excel/react-excel/e2e/advanced-validation/custom-formula.spec.ts",
       "title": "show input message on cell selection without native history at 1280px",
-      "registryLine": 1021
+      "registryLine": 1040
     },
     "VALADV-003": {
-      "label": "Stop 拒绝输入",
+      "label": "VALADV-003 · Stop 拒绝输入",
       "path": "excel/react-excel/e2e/advanced-validation/custom-formula.spec.ts",
+      "url": "../excel/react-excel/e2e/advanced-validation/custom-formula.spec.ts",
       "title": "Stop rejects invalid native input with the configured error message at 1280px",
-      "registryLine": 1022
+      "registryLine": 1041
     },
     "VIEW-002": {
-      "label": "动态切换中英文",
+      "label": "VIEW-002 · 动态切换中英文",
       "path": "excel/react-excel/e2e/workbook/localization.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/localization.spec.ts",
       "title": "live language switching preserves Rust data and editing at 1280px",
-      "registryLine": 890
+      "registryLine": 909
     },
     "VIEW-003": {
-      "label": "滚动不搬移旧格坐标",
+      "label": "VIEW-003 · 滚动不搬移旧格坐标",
       "path": "excel/react-excel/e2e/workbook/scroll-stability.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/scroll-stability.spec.ts",
       "title": "vertical scroll reuses buffered cells at their actual sheet coordinates",
-      "registryLine": 891
+      "registryLine": 910
     },
     "XLSX-001": {
-      "label": "打开 .xlsx 换簿（多表、公式、格式、合并）",
+      "label": "XLSX-001 · 打开 .xlsx 换簿（多表、公式、格式、合并）",
       "path": "excel/react-excel/e2e/xlsx/xlsx-file.spec.ts",
+      "url": "../excel/react-excel/e2e/xlsx/xlsx-file.spec.ts",
       "title": "opening an xlsx file replaces the workbook with its sheets, formulas and formatting",
-      "registryLine": 1074
+      "registryLine": 1093
     },
     "XLSX-002": {
-      "label": "下载为 Excel 并能原样打开回来",
+      "label": "XLSX-002 · 下载为 Excel 并能原样打开回来",
       "path": "excel/react-excel/e2e/xlsx/xlsx-file.spec.ts",
+      "url": "../excel/react-excel/e2e/xlsx/xlsx-file.spec.ts",
       "title": "download as Excel writes an xlsx that opens back to the same workbook",
-      "registryLine": 1075
+      "registryLine": 1094
     },
     "XLSX-003": {
-      "label": "损坏的 .xlsx 被拒绝且保留当前簿",
+      "label": "XLSX-003 · 损坏的 .xlsx 被拒绝且保留当前簿",
       "path": "excel/react-excel/e2e/xlsx/xlsx-file.spec.ts",
+      "url": "../excel/react-excel/e2e/xlsx/xlsx-file.spec.ts",
       "title": "an unreadable xlsx file is rejected and keeps the current workbook",
-      "registryLine": 1076
+      "registryLine": 1095
     },
     "XLSX-004": {
-      "label": "打开 .xlsx 保留超链接、隐藏行等功能数据",
+      "label": "XLSX-004 · 打开 .xlsx 保留超链接、隐藏行、命名范围和命名公式",
       "path": "excel/react-excel/e2e/xlsx/xlsx-file.spec.ts",
+      "url": "../excel/react-excel/e2e/xlsx/xlsx-file.spec.ts",
       "title": "an xlsx file keeps hyperlinks, hidden rows and tables when opened",
-      "registryLine": 1083
+      "registryLine": 1102
     },
     "XSCUT-001": {
-      "label": "键盘跨表剪切并原子改写三表引用",
+      "label": "XSCUT-001 · 键盘跨表剪切并原子改写三表引用",
       "path": "excel/react-excel/e2e/cross-sheet-cut/move.spec.ts",
+      "url": "../excel/react-excel/e2e/cross-sheet-cut/move.spec.ts",
       "title": "XSCUT-01 keyboard cut across tabs retargets mixed references in three sheets with one undo",
-      "registryLine": 95
+      "registryLine": 92
     },
     "XSCUT-002": {
-      "label": "工具栏跨表剪切格式、链接与空白格",
+      "label": "XSCUT-002 · 工具栏跨表剪切格式、链接与空白格",
       "path": "excel/react-excel/e2e/cross-sheet-cut/move.spec.ts",
+      "url": "../excel/react-excel/e2e/cross-sheet-cut/move.spec.ts",
       "title": "XSCUT-02 toolbar cut across tabs moves formatting hyperlinks and blank payloads",
-      "registryLine": 96
+      "registryLine": 93
     },
     "ZOOM-001": {
-      "label": "状态栏 −/＋ 按 10% 缩放网格",
+      "label": "ZOOM-001 · 状态栏 −/＋ 按 10% 缩放网格",
       "path": "excel/react-excel/e2e/zoom/zoom.spec.ts",
+      "url": "../excel/react-excel/e2e/zoom/zoom.spec.ts",
       "title": "zoom in and out buttons step the grid by 10 percent",
-      "registryLine": 1065
+      "registryLine": 1084
     },
     "ZOOM-002": {
-      "label": "缩放滑块设定比例",
+      "label": "ZOOM-002 · 缩放滑块设定比例",
       "path": "excel/react-excel/e2e/zoom/zoom.spec.ts",
+      "url": "../excel/react-excel/e2e/zoom/zoom.spec.ts",
       "title": "zoom slider sets an exact zoom level",
-      "registryLine": 1066
+      "registryLine": 1085
     },
     "ZOOM-003": {
-      "label": "点百分比恢复 100%",
+      "label": "ZOOM-003 · 点百分比恢复 100%",
       "path": "excel/react-excel/e2e/zoom/zoom.spec.ts",
+      "url": "../excel/react-excel/e2e/zoom/zoom.spec.ts",
       "title": "clicking the zoom percentage resets the sheet to 100 percent",
-      "registryLine": 1067
+      "registryLine": 1086
     },
     "ZOOM-004": {
-      "label": "Ctrl+滚轮缩放网格不缩放页面",
+      "label": "ZOOM-004 · Ctrl+滚轮缩放网格不缩放页面",
       "path": "excel/react-excel/e2e/zoom/zoom.spec.ts",
+      "url": "../excel/react-excel/e2e/zoom/zoom.spec.ts",
       "title": "ctrl wheel over the grid zooms the sheet without zooming the page",
-      "registryLine": 1068
+      "registryLine": 1087
     },
     "ZOOM-005": {
-      "label": "缩放下拖选、填充柄、列宽拖拽命中指针下的格",
+      "label": "ZOOM-005 · 缩放下拖选、填充柄、列宽拖拽命中指针下的格",
       "path": "excel/react-excel/e2e/zoom/zoom.spec.ts",
+      "url": "../excel/react-excel/e2e/zoom/zoom.spec.ts",
       "title": "pointer selection, fill drag and column resize hit the cells under the pointer at 150 percent",
-      "registryLine": 1069
+      "registryLine": 1088
     },
     "ZOOM-006": {
-      "label": "每张表各自保留缩放比例",
+      "label": "ZOOM-006 · 每张表各自保留缩放比例",
       "path": "excel/react-excel/e2e/zoom/zoom.spec.ts",
+      "url": "../excel/react-excel/e2e/zoom/zoom.spec.ts",
       "title": "each sheet keeps its own zoom level",
-      "registryLine": 1070
+      "registryLine": 1089
     },
     "SHEETMGMT-009": {
       "label": "SHEETMGMT-009 · Ctrl/Shift 点击工作表分组与取消分组",
       "path": "excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
       "url": "../excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
       "title": "Ctrl/Cmd+Click and Shift+Click group worksheet tabs, and Ungroup sheets or clicking an ungrouped tab ungroups them",
-      "registryLine": 1099
+      "registryLine": 1117
     },
     "SHEETMGMT-010": {
       "label": "SHEETMGMT-010 · 右键全选可见工作表分组",
       "path": "excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
       "url": "../excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
       "title": "Select all sheets from the tab context menu groups all visible sheets",
-      "registryLine": 1100
+      "registryLine": 1118
     },
     "SHEETMGMT-011": {
       "label": "SHEETMGMT-011 · 工作表分组同步输入、格式、清除与单步撤销",
       "path": "excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
       "url": "../excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
       "title": "Editing a cell, formatting, or clearing while sheets are grouped writes to all grouped sheets and undoes in one step",
-      "registryLine": 1101
+      "registryLine": 1119
     },
     "CALC-046": {
       "label": "CALC-046 · 编辑公式时引用文本与网格区域同色高亮",
@@ -3110,6 +3404,132 @@ window.PROJECT_EVIDENCE = {
       "url": "../excel/react-excel/e2e/editing/manual-calculation-mode.spec.ts",
       "title": "pressing F9 recalculates the workbook and Shift+F9 recalculates the current worksheet in manual mode",
       "registryLine": 855
+    },
+    "CALC-050": {
+      "label": "CALC-050 · 工作表级名称与命名公式",
+      "path": "excel/react-excel/e2e/workbook/named-ranges.spec.ts",
+      "url": "../excel/react-excel/e2e/workbook/named-ranges.spec.ts",
+      "title": "sheet-scoped defined names and named formulas resolve by scope and sheet qualification",
+      "registryLine": 856
+    },
+    "CALC-051": {
+      "label": "CALC-051 · 三维引用跨表聚合与数据变更重算",
+      "path": "excel/react-excel/e2e/calculation/three-d-references.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/three-d-references.spec.ts",
+      "title": "evaluates 3D references across sheets and recalculates when spanned cells change",
+      "registryLine": 857
+    },
+    "CALC-052": {
+      "label": "CALC-052 · 迭代计算收敛与最大次数/最大误差配置",
+      "path": "excel/react-excel/e2e/calculation/iterative-calculation.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/iterative-calculation.spec.ts",
+      "title": "iterative calculation converges circular formulas and respects maxIterations / maxChange",
+      "registryLine": 858
+    },
+    "CALC-053": {
+      "label": "CALC-053 · 追踪引用单元格",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "trace precedents draws the referenced cell arrow without changing values",
+      "registryLine": 859
+    },
+    "CALC-054": {
+      "label": "CALC-054 · 公式单步求值",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "evaluate formula advances highlighted expressions to the final result",
+      "registryLine": 860
+    },
+    "CALC-055": {
+      "label": "CALC-055 · 添加监视并实时刷新",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "add watch keeps the watched formula value current after upstream edits",
+      "registryLine": 861
+    },
+    "CALC-056": {
+      "label": "CALC-056 · 追踪从属单元格",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "trace dependents draws the dependent cell arrow without changing values",
+      "registryLine": 862
+    },
+    "CALC-057": {
+      "label": "CALC-057 · 移除审核箭头",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "remove arrows clears existing precedent and dependent traces",
+      "registryLine": 863
+    },
+    "CALC-058": {
+      "label": "CALC-058 · 公式求值步入",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "step in opens the referenced formula evaluation",
+      "registryLine": 864
+    },
+    "CALC-059": {
+      "label": "CALC-059 · 公式求值步出",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "step out restores the parent formula evaluation",
+      "registryLine": 865
+    },
+    "CALC-060": {
+      "label": "CALC-060 · 重新开始公式求值",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "restart returns formula evaluation to its first step",
+      "registryLine": 866
+    },
+    "CALC-061": {
+      "label": "CALC-061 · 关闭公式求值",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "close dismisses formula evaluation without changing the formula",
+      "registryLine": 867
+    },
+    "CALC-062": {
+      "label": "CALC-062 · 点击监视项跨表定位",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "watch row click navigates back to its worksheet and cell",
+      "registryLine": 868
+    },
+    "CALC-063": {
+      "label": "CALC-063 · 删除监视项",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "delete watch removes the selected watch without changing its cell",
+      "registryLine": 869
+    },
+    "CALC-064": {
+      "label": "CALC-064 · 三维引用追踪",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "trace precedents includes sheets in a three dimensional formula",
+      "registryLine": 870
+    },
+    "CALC-065": {
+      "label": "CALC-065 · 三维引用循环迭代收敛",
+      "path": "excel/react-excel/e2e/calculation/iterative-reference-integration.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/iterative-reference-integration.spec.ts",
+      "title": "iterative calculation converges a cycle through a three dimensional reference",
+      "registryLine": 871
+    },
+    "CALC-066": {
+      "label": "CALC-066 · 工作表级命名公式循环迭代收敛",
+      "path": "excel/react-excel/e2e/calculation/iterative-reference-integration.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/iterative-reference-integration.spec.ts",
+      "title": "iterative calculation converges a cycle through a scoped named formula",
+      "registryLine": 872
+    },
+    "CALC-067": {
+      "label": "CALC-067 · 带工作表前缀的命名公式追踪",
+      "path": "excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "url": "../excel/react-excel/e2e/calculation/formula-auditing.spec.ts",
+      "title": "trace precedents follows a sheet qualified named formula",
+      "registryLine": 873
     }
   },
   "functionGroups": [
@@ -8303,13 +8723,15 @@ window.PROJECT_EVIDENCE = {
         "引用",
         "三维引用"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/rust/excel-core/src/formula/ast.rs",
+        "excel/rust/excel-core/src/workbook_eval_provider.rs"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "支持 Sheet1:Sheet3!A1:B2 及单引号跨表区间三维引用，按当前工作表顺序聚合求值，工作表重排/增删/改名自动触发依赖重算。",
+      "tests": [
+        "CALC-051"
+      ]
     },
     {
       "path": [
@@ -8430,13 +8852,16 @@ window.PROJECT_EVIDENCE = {
         "名称管理",
         "工作表级名称"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/workbook/chrome/ribbon/NamedRangeTools.tsx",
+        "excel/spreadsheet-ui-core/src/named-ranges/native-panel.ts",
+        "excel/rust/excel-core/src/workbook_named.rs"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "支持工作簿级与工作表级名称共存在不同作用域、同名就近解析与 Sheet!Name 跨表限定访问，并支持 .einfach.json 与 .xlsx localSheetId 往返。",
+      "tests": [
+        "CALC-050"
+      ]
     },
     {
       "path": [
@@ -8480,13 +8905,16 @@ window.PROJECT_EVIDENCE = {
         "名称管理",
         "命名公式"
       ],
-      "state": "core",
+      "state": "done",
       "sources": [
-        "excel/rust/excel-core/src/workbook_names.rs",
-        "excel/react-excel/FEATURE_PROGRESS.md"
+        "excel/react-excel/src/workbook/chrome/ribbon/NamedRangeTools.tsx",
+        "excel/spreadsheet-ui-core/src/named-ranges/native-panel.ts",
+        "excel/rust/excel-core/src/workbook_named.rs"
       ],
-      "note": "复查确认：Rust define_name 支持解析和计算表达式，但保存的是计算结果 NamedDefinition::Value，而不是普通命名公式的持续重算定义；React 名称管理器仅支持矩形区域。这里只确认底层表达式求值与名称注册，不代表 Excel 命名公式已完成。",
-      "tests": []
+      "note": "名称管理器支持输入动态公式表达式并在引用单元格求值时实时重算、追踪依赖与检测循环引用。",
+      "tests": [
+        "CALC-050"
+      ]
     },
     {
       "path": [
@@ -8494,13 +8922,15 @@ window.PROJECT_EVIDENCE = {
         "名称管理",
         "命名常量"
       ],
-      "state": "core",
+      "state": "done",
       "sources": [
-        "excel/rust/excel-core/src/workbook_names.rs",
-        "excel/react-excel/FEATURE_PROGRESS.md"
+        "excel/react-excel/src/workbook/chrome/ribbon/NamedRangeTools.tsx",
+        "excel/rust/excel-core/src/workbook_named.rs"
       ],
-      "note": "复查确认：Rust define_name / define_name_value 可注册命名常量并使读取名称的公式失效重算；React 名称管理器仅接受静态矩形区域，未提供命名常量入口。",
-      "tests": []
+      "note": "名称管理器支持输入常量表达式（如 =0.08、=\"USD\"）并在工作簿或工作表作用域内求值。",
+      "tests": [
+        "CALC-050"
+      ]
     },
     {
       "path": [
@@ -8508,13 +8938,15 @@ window.PROJECT_EVIDENCE = {
         "名称管理",
         "动态命名区域"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/rust/excel-core/src/workbook_names.rs",
-        "excel/react-excel/FEATURE_PROGRESS.md"
+        "excel/react-excel/src/workbook/chrome/ribbon/NamedRangeTools.tsx",
+        "excel/rust/excel-core/src/workbook_named.rs"
       ],
-      "note": "复查确认：define_name 先计算表达式，再将结果存为 NamedDefinition::Value，不保留可随数据变化重新求值的区域表达式。React 名称管理器也仅支持静态矩形区域，未找到动态命名区域实现。",
-      "tests": []
+      "note": "支持以命名公式（如 OFFSET / INDEX 动态范围表达式）定义动态命名区域并随源数据重算。",
+      "tests": [
+        "CALC-050"
+      ]
     },
     {
       "path": [
@@ -8765,13 +9197,16 @@ window.PROJECT_EVIDENCE = {
         "计算控制",
         "迭代计算"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
+        "excel/rust/excel-core/src/sheet_workbook_iterative.rs",
+        "excel/rust/excel-core/src/workbook_calculation.rs"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "支持开启/关闭迭代计算，对自引用与跨单元格/跨表循环引用 SCC 进行不动点迭代收敛，并随 .einfach.json 与 .xlsx calcPr 持久化。",
+      "tests": [
+        "CALC-052"
+      ]
     },
     {
       "path": [
@@ -8779,13 +9214,16 @@ window.PROJECT_EVIDENCE = {
         "计算控制",
         "最大迭代次数与误差"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
+        "excel/rust/excel-core/src/sheet_workbook_iterative.rs",
+        "excel/rust/excel-core/src/workbook_calculation.rs"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "工具栏与引擎支持配置最大迭代次数（1..=32767，默认 100）与最大变化量阈值（默认 0.001）。",
+      "tests": [
+        "CALC-052"
+      ]
     },
     {
       "path": [
@@ -8940,13 +9378,15 @@ window.PROJECT_EVIDENCE = {
         "公式审核",
         "追踪引用单元格"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/components/formula-auditing/FormulaAuditingOverlay.tsx",
+        "excel/rust/excel-core/src/workbook_auditing.rs"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "支持多级追踪引用单元格（含同表/跨表区域、名称、表结构化引用与溢出源），绘制蓝/红 SVG 箭头并提供跨表跳转徽章。",
+      "tests": [
+        "CALC-053"
+      ]
     },
     {
       "path": [
@@ -8954,13 +9394,15 @@ window.PROJECT_EVIDENCE = {
         "公式审核",
         "追踪从属单元格"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/components/formula-auditing/FormulaAuditingOverlay.tsx",
+        "excel/rust/excel-core/src/workbook_auditing.rs"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "支持多级追踪从属单元格，绘制蓝/红 SVG 指示箭头与跨表从属跳转。",
+      "tests": [
+        "CALC-056"
+      ]
     },
     {
       "path": [
@@ -8968,13 +9410,15 @@ window.PROJECT_EVIDENCE = {
         "公式审核",
         "移去箭头"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/components/formula-auditing/FormulaAuditingOverlay.tsx",
+        "excel/rust/excel-core/src/workbook_auditing.rs"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "支持一键清除当前工作簿上的全部公式追踪箭头叠加层。",
+      "tests": [
+        "CALC-057"
+      ]
     },
     {
       "path": [
@@ -9005,7 +9449,7 @@ window.PROJECT_EVIDENCE = {
         "excel/spreadsheet-ui-core/src/editing/index.ts",
         "excel/react-excel/docs/current-capabilities.md"
       ],
-      "note": "有解析/循环检查与写入错误反馈、保留失败草稿；没有完整审核向导、追踪箭头或持久化“忽略错误”。",
+      "note": "有解析/循环检查与写入错误反馈、保留失败草稿；没有完整审核向导或持久化“忽略错误”。",
       "tests": [
         "EDIT-032"
       ]
@@ -9016,13 +9460,19 @@ window.PROJECT_EVIDENCE = {
         "公式审核",
         "公式求值"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/components/formula-auditing/EvaluateFormulaDialog.tsx",
+        "excel/rust/excel-core/src/auditing_eval.rs"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "提供单步公式求值弹窗，高亮当前求值子表达式，支持求值（Evaluate）、步入（Step In）、步出（Step Out）与重新开始（Restart）。",
+      "tests": [
+        "CALC-054",
+        "CALC-058",
+        "CALC-059",
+        "CALC-060",
+        "CALC-061"
+      ]
     },
     {
       "path": [
@@ -9030,13 +9480,17 @@ window.PROJECT_EVIDENCE = {
         "公式审核",
         "监视窗口"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/components/formula-auditing/WatchWindowPanel.tsx",
+        "excel/rust/excel-core/src/workbook_auditing.rs"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "提供跨工作表监视窗口面板，实时展示工作表、名称、单元格、值与公式，支持添加/删除监视及点击跳转到目标单元格。",
+      "tests": [
+        "CALC-055",
+        "CALC-062",
+        "CALC-063"
+      ]
     },
     {
       "path": [
@@ -9050,7 +9504,7 @@ window.PROJECT_EVIDENCE = {
         "excel/spreadsheet-ui-core/src/editing/index.ts",
         "excel/react-excel/docs/current-capabilities.md"
       ],
-      "note": "有解析/循环检查与写入错误反馈、保留失败草稿；没有完整审核向导、追踪箭头或持久化“忽略错误”。",
+      "note": "有解析/循环检查与写入错误反馈、保留失败草稿；没有完整审核向导或持久化“忽略错误”。",
       "tests": [
         "EDIT-032"
       ]
@@ -9067,7 +9521,7 @@ window.PROJECT_EVIDENCE = {
         "excel/spreadsheet-ui-core/src/editing/index.ts",
         "excel/react-excel/docs/current-capabilities.md"
       ],
-      "note": "有解析/循环检查与写入错误反馈、保留失败草稿；没有完整审核向导、追踪箭头或持久化“忽略错误”。",
+      "note": "有解析/循环检查与写入错误反馈、保留失败草稿；没有完整审核向导或持久化“忽略错误”。",
       "tests": [
         "EDIT-032"
       ]

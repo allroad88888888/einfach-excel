@@ -853,6 +853,24 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | CALC-047 | 重复引用复用同色且跨表引用在目标表高亮 | `editing/formula-reference-coloring.spec.ts` | CALC-047 duplicate references share the same color and cross-sheet references highlight when viewing the target sheet |
 | CALC-048 | 自动与手动计算模式切换 | `editing/manual-calculation-mode.spec.ts` | manual calculation mode keeps dependent formulas cached when inputs change until recalculate or automatic |
 | CALC-049 | F9 与 Shift+F9 快捷键重算 | `editing/manual-calculation-mode.spec.ts` | pressing F9 recalculates the workbook and Shift+F9 recalculates the current worksheet in manual mode |
+| CALC-050 | 工作表级名称与命名公式 | `workbook/named-ranges.spec.ts` | sheet-scoped defined names and named formulas resolve by scope and sheet qualification |
+| CALC-051 | 三维引用跨表聚合与数据变更重算 | `calculation/three-d-references.spec.ts` | evaluates 3D references across sheets and recalculates when spanned cells change |
+| CALC-052 | 迭代计算收敛与最大次数/最大误差配置 | `calculation/iterative-calculation.spec.ts` | iterative calculation converges circular formulas and respects maxIterations / maxChange |
+| CALC-053 | 追踪引用单元格 | `calculation/formula-auditing.spec.ts` | trace precedents draws the referenced cell arrow without changing values |
+| CALC-054 | 公式单步求值 | `calculation/formula-auditing.spec.ts` | evaluate formula advances highlighted expressions to the final result |
+| CALC-055 | 添加监视并实时刷新 | `calculation/formula-auditing.spec.ts` | add watch keeps the watched formula value current after upstream edits |
+| CALC-056 | 追踪从属单元格 | `calculation/formula-auditing.spec.ts` | trace dependents draws the dependent cell arrow without changing values |
+| CALC-057 | 移除审核箭头 | `calculation/formula-auditing.spec.ts` | remove arrows clears existing precedent and dependent traces |
+| CALC-058 | 公式求值步入 | `calculation/formula-auditing.spec.ts` | step in opens the referenced formula evaluation |
+| CALC-059 | 公式求值步出 | `calculation/formula-auditing.spec.ts` | step out restores the parent formula evaluation |
+| CALC-060 | 重新开始公式求值 | `calculation/formula-auditing.spec.ts` | restart returns formula evaluation to its first step |
+| CALC-061 | 关闭公式求值 | `calculation/formula-auditing.spec.ts` | close dismisses formula evaluation without changing the formula |
+| CALC-062 | 点击监视项跨表定位 | `calculation/formula-auditing.spec.ts` | watch row click navigates back to its worksheet and cell |
+| CALC-063 | 删除监视项 | `calculation/formula-auditing.spec.ts` | delete watch removes the selected watch without changing its cell |
+| CALC-064 | 三维引用追踪 | `calculation/formula-auditing.spec.ts` | trace precedents includes sheets in a three dimensional formula |
+| CALC-065 | 三维引用循环迭代收敛 | `calculation/iterative-reference-integration.spec.ts` | iterative calculation converges a cycle through a three dimensional reference |
+| CALC-066 | 工作表级命名公式循环迭代收敛 | `calculation/iterative-reference-integration.spec.ts` | iterative calculation converges a cycle through a scoped named formula |
+| CALC-067 | 带工作表前缀的命名公式追踪 | `calculation/formula-auditing.spec.ts` | trace precedents follows a sheet qualified named formula |
 | STAT-001 | 整列统计包含视口外记录 | `selection/statistics-actions.spec.ts` | column statistics include all offscreen native records at 1280px |
 | STAT-002 | 恢复全部统计默认显示 | `selection/statistics-preferences.spec.ts` | restore default statistics resets all six without changing redo at 1280px |
 | STAT-003 | 复制求和完整精度 | `selection/statistics-actions.spec.ts` | copies full precision to the real system clipboard and pastes as a scalar |
@@ -1081,7 +1099,7 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | REPEAT-004 | F4 重复插入行 | `repeat/repeat.spec.ts` | F4 repeats Insert rows at the new selection |
 | REPEAT-005 | Ctrl+Y 先重做否则重复 | `repeat/repeat.spec.ts` | Ctrl+Y redoes when something can be redone and repeats otherwise |
 | REPEAT-006 | 每次重复一个撤销步 | `repeat/repeat.spec.ts` | Each repeat is one new undo step |
-| XLSX-004 | 打开 .xlsx 保留超链接、隐藏行等功能数据 | `xlsx/xlsx-file.spec.ts` | an xlsx file keeps hyperlinks, hidden rows and tables when opened |
+| XLSX-004 | 打开 .xlsx 保留超链接、隐藏行、命名范围和命名公式 | `xlsx/xlsx-file.spec.ts` | an xlsx file keeps hyperlinks, hidden rows and tables when opened |
 | XLSX-005 | 打开 1904 日期及含未支持部件的 .xlsx 时转换日期并提示跳过项 | `xlsx/xlsx-file.spec.ts` | opening a 1904 xlsx file with unsupported parts converts dates and reports skipped features |
 | XLSX-006 | 导出 .xlsx 时提示未导出的工作簿特性 | `xlsx/xlsx-file.spec.ts` | downloading a workbook with non-exported features as Excel reports what was omitted |
 | CENTERACROSS-001 | 跨列居中应用 | `center-across/center-across.spec.ts` | center across selection centers the text across empty neighbours without merging |

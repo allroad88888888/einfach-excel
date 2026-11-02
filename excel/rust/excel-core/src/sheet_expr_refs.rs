@@ -58,7 +58,8 @@ pub(super) fn collect_range_refs_into(expr: &Expr, out: &mut HashSet<CellRange>)
         | Expr::Text(_)
         | Expr::Bool(_)
         | Expr::Error(_)
-        | Expr::Name(_) => {}
+        | Expr::Name(_)
+        | Expr::SheetName { .. } => {}
         Expr::SpillRef(anchor) => collect_range_refs_into(anchor, out),
         Expr::DynamicRange { start, end } => {
             collect_range_refs_into(start, out);
@@ -139,7 +140,8 @@ pub(super) fn collect_refs(expr: &Expr, out: &mut Vec<CellAddress>) {
         Expr::SheetRef { .. }
         | Expr::SheetRange { .. }
         | Expr::Sheet3DRef { .. }
-        | Expr::Sheet3DRange { .. } => {}
+        | Expr::Sheet3DRange { .. }
+        | Expr::SheetName { .. } => {}
         Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) | Expr::Omitted => {}
         // LET-bound names don't reference cells.
         Expr::Name(_) => {}

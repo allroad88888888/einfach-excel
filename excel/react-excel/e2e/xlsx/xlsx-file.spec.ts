@@ -69,8 +69,16 @@ test('an xlsx file keeps hyperlinks, hidden rows and tables when opened', async 
   await expect(cell(page, '3:0')).toHaveCount(0)
   await expect(cell(page, '4:0')).toHaveText('item5')
   await expect(page.getByRole('status', { name: 'Workbook file status' })).toContainText(
-    'Opened Excel workbook. Skipped: unsupported defined names, unsupported hyperlinks.',
+    'Opened Excel workbook. Skipped: unsupported hyperlinks.',
   )
+  await page.getByRole('button', { name: 'Name manager', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Edit Computed', exact: true }))
+    .toContainText('Workbook · =SUM(Data!$B$2:$B$3)')
+  await expect(page.getByRole('button', { name: 'Edit Quantities', exact: true }))
+    .toContainText('Data!B2:B7')
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await expect(cell(page, '4:0')).toHaveText('item5')
 })
 
 test('opening a 1904 xlsx file with unsupported parts converts dates and reports skipped features', async ({ page }) => {

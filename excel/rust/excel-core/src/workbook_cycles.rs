@@ -87,13 +87,13 @@ impl Workbook {
         false
     }
 
-    fn collect_workbook_cycle_refs(
+    pub(super) fn collect_workbook_cycle_refs(
         &self,
         expr: &Expr,
         current_idx: usize,
         target: (usize, CellAddress),
         out: &mut Vec<(usize, CellAddress)>,
-        visiting_names: &mut HashSet<String>,
+        visiting_names: &mut HashSet<(Option<u64>, String)>,
         detect_unbounded_target: bool,
         overlay: &FormulaOverlay<'_>,
     ) -> bool {
@@ -130,7 +130,13 @@ impl Workbook {
                     out.push((sheet_idx, *addr));
                 }
             }
-            Expr::SheetRange { sheet, start, end, unbounded, .. } => {
+            Expr::SheetRange {
+                sheet,
+                start,
+                end,
+                unbounded,
+                ..
+            } => {
                 if let Some(sheet_idx) = self.sheet_index_ci(sheet) {
                     if self.collect_cycle_range_refs(
                         sheet_idx, CellRange::new(*start, *end), *unbounded,
@@ -197,7 +203,7 @@ impl Workbook {
                             return true;
                         }
                         if let Expr::Name(alias) = &pair[0] {
-                            scoped.insert(alias.to_uppercase());
+                            scoped.insert((Some(u64::MAX), alias.to_uppercase()));
                         }
                     }
                     return self.collect_workbook_cycle_refs(
@@ -214,7 +220,7 @@ impl Workbook {
                     let mut scoped = visiting_names.clone();
                     for param in &args[..args.len() - 1] {
                         if let Expr::Name(alias) = param {
-                            scoped.insert(alias.to_uppercase());
+                            scoped.insert((Some(u64::MAX), alias.to_uppercase()));
                         }
                     }
                     return self.collect_workbook_cycle_refs(
@@ -253,6 +259,20 @@ impl Workbook {
                     return true;
                 }
             }
+            Expr::SheetName { sheet, name } => {
+                if self.collect_sheet_named_cycle_refs(
+                    sheet,
+                    name,
+                    current_idx,
+                    target,
+                    out,
+                    visiting_names,
+                    detect_unbounded_target,
+                    overlay,
+                ) {
+                    return true;
+                }
+            }
             Expr::Call(callee, args) => {
                 if self.collect_workbook_cycle_refs(
                     callee, current_idx, target, out, visiting_names, detect_unbounded_target, overlay,
@@ -286,7 +306,7 @@ impl Workbook {
         false
     }
 
-    fn collect_cycle_range_refs(
+    pub(super) fn collect_cycle_range_refs(
         &self,
         sheet_idx: usize,
         range: CellRange,
@@ -318,107 +338,5 @@ impl Workbook {
             out.extend(formula_addrs.into_iter().map(|addr| (sheet_idx, addr)));
         }
         false
-    }
-
-    fn collect_named_cycle_refs(
-        &self,
-        name: &str,
-        current_idx: usize,
-        target: (usize, CellAddress),
-        out: &mut Vec<(usize, CellAddress)>,
-        visiting_names: &mut HashSet<String>,
-        detect_unbounded_target: bool,
-        overlay: &FormulaOverlay<'_>,
-    ) -> bool {
-        let key = name.to_uppercase();
-        if !visiting_names.insert(key.clone()) {
-            return false;
-        }
-        let result = self.named_values.get(&key).is_some_and(|entry| {
-            if let NamedDefinition::Range { sheet_key, range } = &entry.definition {
-                let Some(range) = range else { return false };
-                return self
-                    .sheet_keys
-                    .iter()
-                    .position(|key| key == sheet_key)
-                    .is_some_and(|index| {
-                        self.collect_cycle_range_refs(
-                            index,
-                            *range,
-                            RangeBounds::None,
-                            target,
-                            out,
-                            detect_unbounded_target,
-                            overlay,
-                        )
-                    });
-            }
-            let lambda;
-            let value = match &entry.definition {
-                NamedDefinition::Value(value) => value,
-                NamedDefinition::CustomFormula(definition) => {
-                    lambda = definition.lambda_value(|name| matches!(
-                        self.named_values.get(name),
-                        Some(NamedEntry { definition: NamedDefinition::CustomFormula(_), .. })
-                    ));
-                    &lambda
-                }
-                NamedDefinition::Range { .. } => return false,
-            };
-            self.collect_value_cycle_refs(
-                value,
-                current_idx,
-                target,
-                out,
-                visiting_names,
-                detect_unbounded_target,
-                overlay,
-            )
-        });
-        visiting_names.remove(&key);
-        result
-    }
-
-    fn collect_value_cycle_refs(
-        &self,
-        value: &Value,
-        current_idx: usize,
-        target: (usize, CellAddress),
-        out: &mut Vec<(usize, CellAddress)>,
-        visiting_names: &mut HashSet<String>,
-        detect_unbounded_target: bool,
-        overlay: &FormulaOverlay<'_>,
-    ) -> bool {
-        let Value::Lambda(lambda) = value else {
-            return false;
-        };
-        let Some(lambda) = lambda.as_any().downcast_ref::<ExcelLambda>() else {
-            return false;
-        };
-        let mut scoped = visiting_names.clone();
-        scoped.extend(lambda.params.iter().map(|name| name.to_uppercase()));
-        scoped.extend(lambda.captured.iter().map(|(name, _)| name.to_uppercase()));
-        if self.collect_workbook_cycle_refs(
-            &lambda.body,
-            current_idx,
-            target,
-            out,
-            &mut scoped,
-            detect_unbounded_target,
-            overlay,
-        ) {
-            return true;
-        }
-        lambda.captured.iter().any(|(_, captured)| {
-            self.collect_value_cycle_refs(
-                captured,
-                current_idx,
-                target,
-                out,
-                visiting_names,
-                detect_unbounded_target,
-                overlay,
-            )
-        })
     }
 }

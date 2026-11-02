@@ -43,10 +43,26 @@ export function runFormulaAuditingTrace(
 
   return {
     sourceIsError: Boolean(sourceSnapshot?.isError),
-    items: rawItems.map((item) => ({
-      ...item,
-      sheetId: sheetIdByIndex(sheets, item.sheetIndex, sheet.id),
-    })),
+    items: rawItems.map((item) => {
+      const rawRange = (
+        item as {
+          range?: { rowStart?: number; colStart?: number; rowEnd?: number; colEnd?: number }
+        }
+      ).range
+      const rowStart = item.rowStart ?? rawRange?.rowStart ?? 0
+      const colStart = item.colStart ?? rawRange?.colStart ?? 0
+      const rowEnd = item.rowEnd ?? rawRange?.rowEnd ?? rowStart
+      const colEnd = item.colEnd ?? rawRange?.colEnd ?? colStart
+      return {
+        ...item,
+        rowStart,
+        colStart,
+        rowEnd,
+        colEnd,
+        isRange: item.isRange ?? (rowStart !== rowEnd || colStart !== colEnd),
+        sheetId: sheetIdByIndex(sheets, item.sheetIndex, sheet.id),
+      }
+    }),
   }
 }
 
@@ -92,17 +108,26 @@ export function runFormulaAuditingEvaluate(
   return {
     ...trace,
     sheetId: sheetIdByIndex(sheets, trace.sheetIndex, sheet.id),
-    steps: trace.steps.map((step) =>
-      step.stepInTarget
+    steps: trace.steps.map((step) => {
+      const rawSpan = (step as { focusSpan?: readonly [number, number] }).focusSpan
+      const focusStart = step.focusStart ?? rawSpan?.[0] ?? 0
+      const focusEnd = step.focusEnd ?? rawSpan?.[1] ?? 0
+      return step.stepInTarget
         ? {
             ...step,
+            focusStart,
+            focusEnd,
             stepInTarget: {
               ...step.stepInTarget,
               sheetId: sheetIdByIndex(sheets, step.stepInTarget.sheetIndex, sheet.id),
             },
           }
-        : step,
-    ),
+        : {
+            ...step,
+            focusStart,
+            focusEnd,
+          }
+    }),
   }
 }
 
@@ -142,7 +167,12 @@ export function runFormulaAuditingWatch(
   if (resolvedTargets.length === 0) return []
   if (workbook.inspect_watched_cells) {
     const snapshots = workbook.inspect_watched_cells(
-      resolvedTargets.map(({ sheetIndex, row, col }) => ({ sheetIndex, row, col })),
+      resolvedTargets.map(({ sheetIndex, row, col }) => ({
+        sheet: sheetIndex,
+        sheetIndex,
+        row,
+        col,
+      })),
     )
     return snapshots.map((snapshot, idx) => ({
       ...snapshot,

@@ -68,29 +68,78 @@ impl Parser {
     /// `A1` 会被整列扫描当成列字母 `A` 后接垃圾。三个扫描失败时都自行回卷
     /// 位置，所以逐个试不会吃掉输入。
     pub(super) fn finish_sheet_qualified_ref(&mut self, sheet: String) -> Option<Expr> {
+        let saved = self.pos;
         if let Some((start, start_abs)) = self.scan_abs_cell_addr() {
-            return self.finish_sheet_ref_tail(sheet, start, start_abs);
+            let cont = self.peek().is_some_and(|ch| {
+                ch.is_ascii_alphanumeric() || ch == '_' || ch == '.' || !ch.is_ascii()
+            });
+            let out_of_grid_name = start_abs == RefAbs::REL
+                && (start.row >= crate::sheet::EXCEL_MAX_ROWS
+                    || start.col >= crate::sheet::EXCEL_MAX_COLS)
+                && self.peek() != Some(':');
+            if !cont && !out_of_grid_name {
+                return self.finish_sheet_ref_tail(sheet, start, start_abs);
+            }
+            self.pos = saved;
         }
-        let whole_axis = match self.try_scan_whole_col_range() {
-            Some(expr) => expr,
-            None => self.try_parse_whole_row_range()?,
-        };
-        let Expr::Range {
+        let whole_axis = self
+            .try_scan_whole_col_range()
+            .or_else(|| self.try_parse_whole_row_range());
+        if let Some(Expr::Range {
             start,
             end,
             unbounded,
             abs,
-        } = whole_axis
-        else {
+        }) = whole_axis
+        {
+            return Some(Expr::SheetRange {
+                sheet,
+                start,
+                end,
+                unbounded,
+                abs,
+            });
+        }
+        self.pos = saved;
+        self.scan_sheet_qualified_name(sheet)
+    }
+
+    fn scan_sheet_qualified_name(&mut self, sheet: String) -> Option<Expr> {
+        let saved = self.pos;
+        let first = self.peek()?;
+        if !(first.is_ascii_alphabetic() || first == '_' || !first.is_ascii()) {
             return None;
-        };
-        Some(Expr::SheetRange {
-            sheet,
-            start,
-            end,
-            unbounded,
-            abs,
-        })
+        }
+        let mut name = String::new();
+        while let Some(ch) = self.peek() {
+            if ch.is_ascii_alphanumeric() || ch == '_' || ch == '.' || !ch.is_ascii() {
+                name.push(ch);
+                self.advance();
+            } else {
+                break;
+            }
+        }
+        if name.eq_ignore_ascii_case("TRUE")
+            || name.eq_ignore_ascii_case("FALSE")
+            || name.eq_ignore_ascii_case("R")
+            || name.eq_ignore_ascii_case("C")
+            || self.peek() == Some('[')
+        {
+            self.pos = saved;
+            return None;
+        }
+        let start = Expr::SheetName { sheet, name };
+        self.skip_whitespace();
+        if self.peek() == Some(':') {
+            self.advance();
+            self.skip_whitespace();
+            let end = self.parse_unary()?;
+            return Some(Expr::DynamicRange {
+                start: Box::new(start),
+                end: Box::new(end),
+            });
+        }
+        Some(start)
     }
 
     /// `Sheet!<角>` 之后的可选 `:` 尾巴 —— [`Self::finish_same_sheet_ref`]

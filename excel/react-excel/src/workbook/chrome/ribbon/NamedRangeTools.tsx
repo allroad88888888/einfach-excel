@@ -49,15 +49,31 @@ export function NamedRangeTools() {
         {names.length === 0 && <p><Trans>No named ranges yet. Create one below.</Trans></p>}
         {names.map((entry) => {
           const target = entry.target
+          const scopeSheet = entry.scope != null
+            ? sheets.find((candidate) => candidate.index === entry.scope)
+            : undefined
+          const scopeLabel = scopeSheet ? scopeSheet.name : t`Workbook`
           const sheet = sheets.find((candidate) => candidate.index === target?.sheet)
-          const reference = target && sheet ? `${sheet.name}!${rangeToA1({
-            rowStart: target.range[0], colStart: target.range[1],
-            rowEnd: target.range[2], colEnd: target.range[3],
-          })}` : '#REF!'
-          return <button key={entry.name} type="button" disabled={state.busy}
-            aria-label={t`Edit ${entry.name}`} aria-pressed={state.editingName === entry.name}
-            onClick={() => void run({ edit: entry.name })}>
-            <strong>{entry.name}</strong><span>{reference}</span>
+          const reference = entry.formula
+            ? entry.formula
+            : target && sheet
+              ? `${sheet.name}!${rangeToA1({
+                  rowStart: target.range[0], colStart: target.range[1],
+                  rowEnd: target.range[2], colEnd: target.range[3],
+                })}`
+              : '#REF!'
+          const duplicate = names.some(
+            (other) => other !== entry && other.name.toUpperCase() === entry.name.toUpperCase(),
+          )
+          const editLabel = duplicate && scopeSheet
+            ? t`Edit ${entry.name} (${scopeSheet.name})`
+            : t`Edit ${entry.name}`
+          const isEditing = state.editingName === entry.name &&
+            (state.editingScopeSheetId ?? '') === (scopeSheet?.id ?? '')
+          return <button key={`${entry.scope ?? 'wb'}:${entry.name}`} type="button" disabled={state.busy}
+            aria-label={editLabel} aria-pressed={isEditing}
+            onClick={() => void run({ edit: entry.name, scope: entry.scope ?? null })}>
+            <strong>{entry.name}</strong><span>{scopeLabel} · {reference}</span>
           </button>
         })}
       </div>
@@ -71,6 +87,12 @@ export function NamedRangeTools() {
           <label htmlFor={`${id}-name`}><Trans>Name</Trans></label>
           <input id={`${id}-name`} value={state.name} required autoComplete="off"
             onChange={(event) => void run({ name: event.currentTarget.value })} />
+          <label htmlFor={`${id}-scope`}><Trans>Scope</Trans></label>
+          <select id={`${id}-scope`} value={state.scopeSheetId}
+            onChange={(event) => void run({ scopeSheetId: event.currentTarget.value })}>
+            <option value="">{t`Workbook`}</option>
+            {sheets.map((sheet) => <option key={sheet.id} value={sheet.id}>{sheet.name}</option>)}
+          </select>
           <label htmlFor={`${id}-sheet`}><Trans>Worksheet</Trans></label>
           <select id={`${id}-sheet`} value={state.targetSheetId}
             onChange={(event) => void run({ targetSheetId: event.currentTarget.value })}>

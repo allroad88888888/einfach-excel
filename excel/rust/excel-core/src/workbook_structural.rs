@@ -205,7 +205,7 @@ impl Workbook {
             return Err(TableError::NameConflict);
         }
         // … and with defined names (forward direction of §4.2's mutex).
-        if self.named_values.contains_key(&key) {
+        if self.named_values.contains_key(&key) || self.has_sheet_scoped_name(&key) {
             return Err(TableError::NameConflict);
         }
         Ok(())
@@ -220,7 +220,10 @@ impl Workbook {
         loop {
             let candidate = format!("Table{n}");
             let key = candidate.to_ascii_uppercase();
-            if !self.tables.contains_key(&key) && !self.named_values.contains_key(&key) {
+            if !self.tables.contains_key(&key)
+                && !self.named_values.contains_key(&key)
+                && !self.has_sheet_scoped_name(&key)
+            {
                 return candidate;
             }
             n += 1;

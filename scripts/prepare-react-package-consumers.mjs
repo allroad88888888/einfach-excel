@@ -69,7 +69,12 @@ for (const name of packages) {
   const filename = `${manifest.name.replace('@', '').replaceAll('/', '-')}-${manifest.version}.tgz`
   packed[manifest.name] = { version: manifest.version, file: path.join(tarballs, filename) }
 }
-if (packed['@einfach-excel/spreadsheet-ui-core'].version !== '0.2.0' || packed['@einfach-excel/react-excel'].version !== '0.1.0')
+// Reviewed pending plan: removing public UI Core exports requires 0.3.0;
+// Changesets raises the dependent React package to 1.0.0 with the matching peer.
+const reactCandidate = await json(path.join(stage, 'excel/react-excel/package.json'))
+if (packed['@einfach-excel/spreadsheet-ui-core'].version !== '0.3.0' ||
+  packed['@einfach-excel/react-excel'].version !== '1.0.0' ||
+  reactCandidate.peerDependencies['@einfach-excel/spreadsheet-ui-core'] !== '^0.3.0')
   throw new Error('Release plan changed; review the React minimum peer before accepting a new plan.')
 const consumers = {}
 for (const bundler of ['vite', 'rspack']) {

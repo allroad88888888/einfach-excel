@@ -15,6 +15,7 @@ pub struct ArchivedWorksheet {
     print_config: workbook_print_config::SheetPrintConfig,
     conditional_format: workbook_conditional_format_types::SheetConditionalFormatConfig,
     tables: Vec<TableEntry>,
+    scoped_names: Vec<(String, NamedEntry)>,
     // 只保存删除真正改写过的其它表公式；Sheet 自己的公式由原对象保留。
     references: Vec<(usize, CellAddress, String)>,
     conditional_references: ConditionalRuleSources,
@@ -48,6 +49,7 @@ impl ArchivedWorksheet {
             + metadata_bytes(&self.print_config)
             + metadata_bytes(&self.conditional_format)
             + metadata_bytes(&self.tables)
+            + metadata_bytes(&self.scoped_names)
             + metadata_bytes(&self.references)
             + metadata_bytes(&self.conditional_references)
             + metadata_bytes(&self.validation_references)
@@ -119,12 +121,16 @@ impl ArchivedWorksheet {
             if tables_changed {
                 workbook.bump_tables_epoch();
             }
+            let scoped_names_changed = !self.scoped_names.is_empty();
+            for (k, entry) in self.scoped_names.drain(..) {
+                workbook.sheet_named_values.insert((self.key, k), entry);
+            }
             workbook.rebuild_name_lookup();
             for lambda in &self.lambdas {
                 lambda.apply(workbook, true);
             }
             for template in &self.templates { template.apply(workbook, true); }
-            if !self.lambdas.is_empty() {
+            if !self.lambdas.is_empty() || scoped_names_changed {
                 workbook.publish_atom_names();
             }
             workbook.sync_atom_topology();
@@ -184,6 +190,12 @@ impl Workbook {
             .filter(|table| table.sheet_name == name)
             .cloned()
             .collect();
+        let scoped_names = self
+            .sheet_named_values
+            .iter()
+            .filter(|((sk, _), _)| *sk == key)
+            .map(|((_, k), entry)| (k.clone(), entry.clone()))
+            .collect();
         let references = self
             .sheet_ref_rewrites(&name, None)
             .into_iter()
@@ -206,6 +218,7 @@ impl Workbook {
             print_config,
             conditional_format,
             tables,
+            scoped_names,
             references,
             conditional_references,
             validation_references,

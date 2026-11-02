@@ -85,7 +85,6 @@ impl Workbook {
                 sheet.restore_hydrated_cyclic_formulas();
             }
         }
-        self.atom_context.bump_iterative_epoch();
         let _ = self.recalculate(None);
         true
     }
@@ -177,9 +176,7 @@ impl Workbook {
         self.atom_context.clear_iterative_converged();
         let store = self.store.clone();
         store.batch(|_| {
-            if self.iterative_calculation.enabled {
-                self.atom_context.bump_iterative_epoch();
-            }
+            self.atom_context.bump_iterative_epoch();
             for (index, addrs) in &selected {
                 self.sheets[*index].invalidate_calculation(addrs);
             }

@@ -34,20 +34,28 @@ fn rejected_restore_keeps_all_existing_names() {
     let before = wb.snapshot_named_ranges();
     let first = NamedRangeSnapshot {
         name: "NewSales".into(),
+        scope: None,
         target: Some((0, range)),
+        formula: None,
     };
     for bad in [
         NamedRangeSnapshot {
             name: "Keep".into(),
+            scope: None,
             target: None,
+            formula: None,
         },
         NamedRangeSnapshot {
             name: "NewSales".into(),
+            scope: None,
             target: None,
+            formula: None,
         },
         NamedRangeSnapshot {
             name: "BadRange".into(),
+            scope: None,
             target: Some((99, range)),
+            formula: None,
         },
     ] {
         assert!(wb.restore_named_ranges(vec![first.clone(), bad]).is_err());

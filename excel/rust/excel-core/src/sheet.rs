@@ -156,6 +156,8 @@ mod subscribe;
 mod workbook_async_context;
 #[path = "sheet_workbook_context.rs"]
 mod workbook_context;
+#[path = "sheet_iterative_refs.rs"]
+mod iterative_refs;
 #[path = "sheet_workbook_iterative.rs"]
 mod workbook_iterative;
 #[path = "sheet_workbook_hidden_context.rs"]

@@ -276,6 +276,10 @@ msgstr "添加规则"
 msgid "Add table row"
 msgstr "添加表格行"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Add Watch"
+msgstr "添加监视"
+
 #: src/i18n/feedback-messages.ts
 msgid "Add worksheet"
 msgstr "添加工作表"
@@ -696,6 +700,10 @@ msgstr "区分大小写"
 msgid "Category"
 msgstr "类别"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Cell"
+msgstr "单元格"
+
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Cell {address}. Click to select; Ctrl/⌘+click to open the link."
 msgstr "单元格 {address}。单击选中；按住 Ctrl/⌘ 单击打开链接。"
@@ -723,6 +731,10 @@ msgstr "单元格有备注"
 #: src/workbook/grid/viewport/CellRenderer.tsx
 msgid "Cell has comments"
 msgstr "单元格有批注"
+
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Cell or Sheet!A1 (blank = selection)"
+msgstr "单元格或 Sheet!A1（留空使用当前选区）"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Cell value"
@@ -966,6 +978,8 @@ msgstr "剪贴板状态"
 msgid "Clipboard write is unavailable. Use the browser copy shortcut."
 msgstr "无法写入剪贴板，请使用浏览器复制快捷键。"
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+#: src/components/formula-auditing/WatchWindowPanel.tsx
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 #: src/workbook/chrome/ribbon/SpillTools.tsx
@@ -1657,6 +1671,10 @@ msgstr "删除工作表"
 msgid "Delete table"
 msgstr "删除表格"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Delete Watch"
+msgstr "删除监视"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
 msgid "Delete worksheet"
@@ -1870,6 +1888,12 @@ msgstr "编辑"
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Edit {0}"
 msgstr "编辑 {0}"
+
+#. placeholder {0}: entry.name
+#. placeholder {1}: scopeSheet.name
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Edit {0} ({1})"
+msgstr "编辑 {0}（{1}）"
 
 #: src/i18n/feedback-messages.ts
 msgid "Edit cell"
@@ -2142,6 +2166,15 @@ msgstr "错误内容"
 msgid "Error title"
 msgstr "错误标题"
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Evaluate"
+msgstr "求值"
+
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+#: src/components/formula-auditing/FormulaAuditingToolbar.tsx
+msgid "Evaluate Formula"
+msgstr "公式求值"
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Exact text"
 msgstr "精确文本"
@@ -2370,6 +2403,10 @@ msgstr "筛选"
 msgid "Filters the worksheet’s used rows, not just the selection. Row 1 stays visible."
 msgstr "筛选工作表中已使用的行，而非仅筛选选区。第 1 行保持可见。"
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Final result"
+msgstr "最终结果"
+
 #: src/i18n/feedback-messages.ts
 msgid "Financial"
 msgstr "财务"
@@ -2573,6 +2610,7 @@ msgstr "格式设置范围超过 100,000 个单元格，请缩小选区。"
 msgid "Formatting only"
 msgstr "仅格式"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Formula"
@@ -3037,6 +3075,10 @@ msgstr "无效输入"
 msgid "Invalid input requires an explicit Continue or Cancel choice."
 msgstr "无效输入需要明确选择继续或取消。"
 
+#: src/i18n/next-version-feedback.ts
+msgid "Invalid iterative calculation configuration."
+msgstr "迭代计算配置无效。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Invalid note projection request."
 msgstr "备注投影请求无效。"
@@ -3066,9 +3108,29 @@ msgstr "项数"
 msgid "Items, one per line"
 msgstr "列表项，每行一项"
 
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Iterative"
+msgstr "启用迭代"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Iterative calculation"
+msgstr "迭代计算"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Iterative calculation disabled."
+msgstr "已关闭迭代计算。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Iterative calculation enabled (max {maxIterations} iterations, delta {maxChange})."
+msgstr "已开启迭代计算（最多 {maxIterations} 次迭代，最大误差 {maxChange}）。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Joins several text strings into one."
 msgstr "将多个文本字符串连接为一个。"
+
+#: src/components/formula-auditing/FormulaAuditingOverlay.tsx
+msgid "Jump to {label}"
+msgstr "跳转到 {label}"
 
 #: src/i18n/feedback-messages.ts
 msgid "Keep at least one worksheet visible."
@@ -3291,6 +3353,14 @@ msgstr "数学与统计"
 msgid "Max"
 msgstr "最大值"
 
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Max change"
+msgstr "最大误差"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Max iterations"
+msgstr "最多迭代次数"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
@@ -3464,6 +3534,7 @@ msgstr "多行文本保持完整。请通过“选择值”修改。"
 msgid "Multiply"
 msgstr "乘"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Name"
 msgstr "名称"
@@ -3558,6 +3629,10 @@ msgstr "下一页"
 msgid "Next sheet"
 msgstr "下一张工作表"
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Next step result"
+msgstr "下一步求值结果"
+
 #: src/i18n/feedback-messages.ts
 msgid "No adjacent continuous data to fill."
 msgstr "相邻列没有可向下延续的连续数据。"
@@ -3637,6 +3712,10 @@ msgstr "尚无表格，请在下方选择区域。"
 #: src/i18n/select-special-feedback.ts
 msgid "No visible cells in the selection."
 msgstr "所选区域中没有可见单元格。"
+
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "No watched cells yet. Select a cell and click Add Watch."
+msgstr "暂无监视单元格。请选择单元格后点击“添加监视”。"
 
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Nonbreaking space"
@@ -4133,6 +4212,7 @@ msgstr "重做"
 msgid "Redo (Ctrl/⌘+Shift+Z or Ctrl+Y)"
 msgstr "重做 (Ctrl/⌘+Shift+Z 或 Ctrl+Y)"
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
 #: src/workbook/chrome/ribbon/GoToTools.tsx
 msgid "Reference"
 msgstr "引用"
@@ -4168,6 +4248,10 @@ msgstr "移除"
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Remove "
 msgstr "删除"
+
+#: src/components/formula-auditing/FormulaAuditingToolbar.tsx
+msgid "Remove Arrows"
+msgstr "移去箭头"
 
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
@@ -4430,9 +4514,17 @@ msgstr "已解决"
 msgid "Resolved this discussion"
 msgstr "已解决此讨论"
 
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Restart"
+msgstr "重新开始"
+
 #: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
 msgid "Restore defaults"
 msgstr "恢复默认"
+
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Result"
+msgstr "结果"
 
 #. placeholder {0}: page.offset + 1
 #. placeholder {1}: page.offset + page.matches.length
@@ -4582,6 +4674,10 @@ msgstr "Rust 拖动移动不可用。"
 msgid "Rust hyperlink editing is unavailable."
 msgstr "Rust 超链接编辑功能不可用。"
 
+#: src/i18n/next-version-feedback.ts
+msgid "Rust iterative calculation is unavailable."
+msgstr "Rust 迭代计算不可用。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust note editing is unavailable."
 msgstr "原生备注编辑暂不可用。"
@@ -4621,6 +4717,10 @@ msgstr "原生引擎返回的批注线程无效。"
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust returned an invalid custom formula directory."
 msgstr "Rust 返回的自定义公式目录无效。"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Rust returned an invalid iterative calculation result."
+msgstr "Rust 返回了无效的迭代计算结果。"
 
 #: src/i18n/next-version-feedback.ts
 msgid "Rust returned incomplete search matches. The selection was not changed."
@@ -4727,6 +4827,10 @@ msgstr "色阶颜色"
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Scientific"
 msgstr "科学记数"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Scope"
+msgstr "作用域"
 
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Search"
@@ -5002,6 +5106,10 @@ msgstr "设置表格汇总函数"
 msgid "Settings start from the active cell. Apply changes only the number format of the selection."
 msgstr "设置以活动单元格为初始值，应用时仅修改选区的数字格式。"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Sheet"
+msgstr "工作表"
+
 #: src/workbook/chrome/ribbon/FindResults.tsx
 msgid "Sheet / cell"
 msgstr "工作表 / 单元格"
@@ -5242,6 +5350,18 @@ msgstr "统计值复制状态"
 #: src/workbook/chrome/footer/SelectionStatus.tsx
 msgid "Statistics unavailable"
 msgstr "统计暂不可用"
+
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Step In"
+msgstr "步入"
+
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Step Out"
+msgstr "步出"
+
+#: src/components/formula-auditing/EvaluateFormulaDialog.tsx
+msgid "Stepped In"
+msgstr "已步入"
 
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Stop"
@@ -6009,6 +6129,14 @@ msgstr "汇总行操作失败：表格下方的行已有内容，请清空后重
 msgid "Totals use SUBTOTAL and exclude filtered and manually hidden rows."
 msgstr "汇总使用 SUBTOTAL，排除筛除和手动隐藏的行。"
 
+#: src/components/formula-auditing/FormulaAuditingToolbar.tsx
+msgid "Trace Dependents"
+msgstr "追踪从属单元格"
+
+#: src/components/formula-auditing/FormulaAuditingToolbar.tsx
+msgid "Trace Precedents"
+msgstr "追踪引用单元格"
+
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Transpose"
 msgstr "转置"
@@ -6364,6 +6492,7 @@ msgstr "验证标题最多 32 个字符，正文最多 255 个字符。"
 msgid "Validation warning"
 msgstr "数据验证警告"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
@@ -6430,6 +6559,15 @@ msgstr "正在等待表格列表…"
 msgid "Warning"
 msgstr "警告"
 
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Watch cell reference"
+msgstr "监视单元格引用"
+
+#: src/components/formula-auditing/FormulaAuditingToolbar.tsx
+#: src/components/formula-auditing/WatchWindowPanel.tsx
+msgid "Watch Window"
+msgstr "监视窗口"
+
 #: src/i18n/feedback-messages.ts
 msgid "Weekday names"
 msgstr "星期名称"
@@ -6448,6 +6586,7 @@ msgstr "范围"
 
 #: src/workbook/chrome/header/WorkbookHeader.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Workbook"
 msgstr "工作簿"
 

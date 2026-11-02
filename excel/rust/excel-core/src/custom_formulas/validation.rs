@@ -73,7 +73,7 @@ fn calls(
     match expr {
         Expr::CellRef(..) | Expr::Range { .. } | Expr::SheetRef { .. } |
         Expr::SheetRange { .. } | Expr::Sheet3DRef { .. } | Expr::Sheet3DRange { .. } |
-        Expr::TableRef { .. } | Expr::MultiArea(_) |
+        Expr::SheetName { .. } | Expr::TableRef { .. } | Expr::MultiArea(_) |
         Expr::DynamicRange { .. } | Expr::SpillRef(_) =>
             return Err("Pass cell and range references as custom formula arguments."),
         Expr::FuncCall { name, args } => {

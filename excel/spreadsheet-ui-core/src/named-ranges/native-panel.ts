@@ -14,16 +14,31 @@ import { changeNativeNamedRangeAtom, nativeNameChangeBusyAtom } from './native-c
 import type { ProjectionRevision } from '../contracts'
 import type { NamedRangeChange } from './native-types'
 
-interface Draft { name: string; targetSheetId: string; range: string }
+interface Draft {
+  name: string
+  scopeSheetId: string
+  targetSheetId: string
+  range: string
+}
 interface Panel extends Draft {
   ownerSheetId: string | null
   connection: RustWorkbookConnection | null
   revision?: ProjectionRevision
   editingName: string | null
+  editingScopeSheetId: string | null
   error: string
 }
-const CLOSED: Panel = { ownerSheetId: null, connection: null, editingName: null,
-  name: '', targetSheetId: '', range: '', error: '' }
+const CLOSED: Panel = {
+  ownerSheetId: null,
+  connection: null,
+  editingName: null,
+  editingScopeSheetId: null,
+  name: '',
+  scopeSheetId: '',
+  targetSheetId: '',
+  range: '',
+  error: '',
+}
 /** 只保存面板草稿与用户可见的忙碌/错误状态。 */
 const draftAtom = atom<Panel>(CLOSED)
 export const nativeNameManagerAtom = atom((get) => {
@@ -43,7 +58,7 @@ export const nativeNameManagerOpenAtom = atom((get) => {
 })
 
 export const runNativeNameManagerAtom = atom(null, async (get, set,
-  action: 'open' | 'close' | 'new' | 'save' | 'delete' | { edit: string } |
+  action: 'open' | 'close' | 'new' | 'save' | 'delete' | { edit: string; scope?: number | null } |
   { locateTable: string } | Partial<Draft>,
 ): Promise<boolean> => {
   const state = get(draftAtom)
@@ -68,7 +83,7 @@ export const runNativeNameManagerAtom = atom(null, async (get, set,
     if (get(editingSessionAtom).source) return false
     const selection = get(selectionSnapshotAtom)
     set(draftAtom, { ...CLOSED, ownerSheetId: sheet.id, connection,
-      targetSheetId: sheet.id, revision: result.revision,
+      scopeSheetId: '', targetSheetId: sheet.id, revision: result.revision,
       range: get(selectionRegionsAtom).length === 1 ? rangeToA1(selection.range) : '' })
     return true
   }
@@ -90,40 +105,109 @@ export const runNativeNameManagerAtom = atom(null, async (get, set,
         rowAlign: 'start', colAlign: 'nearest' })
       set(draftAtom, CLOSED)
     } else if ('edit' in action) {
-      const entry = result.namedRanges.find((candidate) => candidate.name === action.edit)
+      const entry = result.namedRanges.find((candidate) =>
+        candidate.name === action.edit &&
+        (action.scope === undefined || (candidate.scope ?? null) === action.scope),
+      )
       if (!entry) return fail('The named range no longer exists.')
-      const targetSheet = get(workbookDocumentAtom).sheets
-        .find((s) => s.index === entry.target?.sheet)
+      const sheets = get(workbookDocumentAtom).sheets
+      const scopeSheet = entry.scope != null
+        ? sheets.find((s) => s.index === entry.scope)
+        : undefined
+      const targetSheet = sheets.find((s) => s.index === entry.target?.sheet)
       const bounds = entry.target?.range
+      const rangeText = entry.formula
+        ? entry.formula
+        : bounds
+          ? rangeToA1({
+              rowStart: bounds[0], colStart: bounds[1], rowEnd: bounds[2], colEnd: bounds[3],
+            })
+          : '#REF!'
       set(draftAtom, { ...state, name: entry.name, editingName: entry.name,
+        editingScopeSheetId: scopeSheet?.id ?? '', scopeSheetId: scopeSheet?.id ?? '',
         revision: result.revision, targetSheetId: targetSheet?.id ?? sheet.id, error: '',
-        range: bounds ? rangeToA1({ rowStart: bounds[0], colStart: bounds[1],
-          rowEnd: bounds[2], colEnd: bounds[3] }) : '#REF!' })
+        range: rangeText })
     } else set(draftAtom, { ...state, ...action, error: '' })
     return true
   }
   let change: NamedRangeChange
   if (action === 'delete') {
     if (!state.editingName) return fail('Choose a named range to delete.')
-    change = { kind: 'delete', name: state.editingName }
+    change = {
+      kind: 'delete',
+      name: state.editingName,
+      ...(state.editingScopeSheetId ? { scopeSheetId: state.editingScopeSheetId } : {}),
+    }
   } else {
     const name = state.name.trim()
     if (!name) return fail('Enter a name.')
-    // 失效定义允许只改名；只有用户输入新坐标才提交新的目标。
-    if (state.editingName && state.range === '#REF!') {
-      change = { kind: 'update', name: state.editingName, newName: name }
+    const rawRange = state.range.trim()
+    const scopeSheetId = state.scopeSheetId || null
+    const oldScopeSheetId = state.editingScopeSheetId || null
+    const scopeChanged = state.editingName !== null && scopeSheetId !== oldScopeSheetId
+    // 失效定义允许只改名；只有用户输入新坐标或公式才提交新的定义。
+    if (state.editingName && rawRange === '#REF!') {
+      change = {
+        kind: 'update',
+        name: state.editingName,
+        newName: name,
+        ...(oldScopeSheetId ? { scopeSheetId: oldScopeSheetId } : {}),
+        ...(scopeChanged ? { newScopeSheetId: scopeSheetId } : {}),
+      }
+    } else if (rawRange.startsWith('=')) {
+      if (!rawRange.slice(1).trim()) {
+        return fail('Enter a range inside the selected worksheet, for example A1:A100.')
+      }
+      change = state.editingName
+        ? {
+            kind: 'update',
+            name: state.editingName,
+            newName: name,
+            formula: rawRange,
+            ...(oldScopeSheetId ? { scopeSheetId: oldScopeSheetId } : {}),
+            ...(scopeChanged ? { newScopeSheetId: scopeSheetId } : {}),
+          }
+        : {
+            kind: 'create',
+            name,
+            formula: rawRange,
+            ...(scopeSheetId ? { scopeSheetId } : {}),
+          }
     } else {
-      const cell = parseA1Cell(state.range)
-      const range = parseA1Range(state.range) ?? (cell
+      const sheets = get(workbookDocumentAtom).sheets
+      let targetSheet = sheets.find((s) => s.id === state.targetSheetId)
+      let a1Text = rawRange
+      const bang = rawRange.lastIndexOf('!')
+      if (bang > 0) {
+        let sheetName = rawRange.slice(0, bang).trim()
+        if (sheetName.startsWith("'") && sheetName.endsWith("'") && sheetName.length >= 2) {
+          sheetName = sheetName.slice(1, -1).replace(/''/g, "'")
+        }
+        targetSheet = sheets.find((s) => s.name.toUpperCase() === sheetName.toUpperCase())
+        a1Text = rawRange.slice(bang + 1).trim()
+      }
+      const cell = parseA1Cell(a1Text)
+      const range = parseA1Range(a1Text) ?? (cell
         ? { rowStart: cell.row, colStart: cell.col, rowEnd: cell.row, colEnd: cell.col } : null)
-      const targetSheet = get(workbookDocumentAtom).sheets.find((s) => s.id === state.targetSheetId)
       if (!range || !targetSheet || range.rowEnd >= targetSheet.rowCount ||
         range.colEnd >= targetSheet.colCount)
         return fail('Enter a range inside the selected worksheet, for example A1:A100.')
       const target = { sheetId: targetSheet.id, range }
       change = state.editingName
-        ? { kind: 'update', name: state.editingName, newName: name, target }
-        : { kind: 'create', name, target }
+        ? {
+            kind: 'update',
+            name: state.editingName,
+            newName: name,
+            target,
+            ...(oldScopeSheetId ? { scopeSheetId: oldScopeSheetId } : {}),
+            ...(scopeChanged ? { newScopeSheetId: scopeSheetId } : {}),
+          }
+        : {
+            kind: 'create',
+            name,
+            target,
+            ...(scopeSheetId ? { scopeSheetId } : {}),
+          }
     }
   }
   try {

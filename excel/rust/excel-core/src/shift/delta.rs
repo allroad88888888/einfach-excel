@@ -35,7 +35,8 @@ pub fn shift_refs(expr: &Expr, drow: i32, dcol: i32) -> Result<Expr, ()> {
         Expr::SheetRef { .. }
         | Expr::SheetRange { .. }
         | Expr::Sheet3DRef { .. }
-        | Expr::Sheet3DRange { .. } => expr.clone(),
+        | Expr::Sheet3DRange { .. }
+        | Expr::SheetName { .. } => expr.clone(),
         Expr::SpillRef(anchor) => Expr::SpillRef(Box::new(shift_refs(anchor, drow, dcol)?)),
         Expr::DynamicRange { start, end } => Expr::DynamicRange {
             start: Box::new(shift_refs(start, drow, dcol)?),

@@ -83,6 +83,8 @@ use self::advanced_validation::ValidationRuleSources;
 mod workbook_custom;
 #[path = "workbook_cycles.rs"]
 mod workbook_cycles;
+#[path = "workbook_cycle_refs.rs"]
+mod workbook_cycle_refs;
 #[path = "workbook_errors.rs"]
 mod workbook_errors;
 #[path = "workbook_eval_provider.rs"]
@@ -238,6 +240,7 @@ pub struct Workbook {
     pub(super) by_name: HashMap<String, usize>,
     pub(super) cycle_ast_walk_count: Cell<usize>,
     pub(super) named_values: BTreeMap<String, NamedEntry>,
+    pub(super) sheet_named_values: BTreeMap<(u64, String), NamedEntry>,
     pub(super) custom_functions: Option<Arc<dyn CustomFunctionRegistry>>,
     pub(crate) protection: BTreeMap<u64, crate::protection::SheetProtection>,
     pub(crate) validation_confirmation: Rc<Cell<bool>>,

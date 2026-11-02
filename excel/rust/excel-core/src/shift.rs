@@ -40,7 +40,7 @@ mod render_ref;
 mod retarget;
 mod structural_refs;
 mod named_ref;
-pub(crate) use named_ref::rename_named_reference;
+pub(crate) use named_ref::{rename_named_reference, rename_scoped_named_reference};
 mod table_ref;
 mod table_ref_scope;
 mod table_column_ref;

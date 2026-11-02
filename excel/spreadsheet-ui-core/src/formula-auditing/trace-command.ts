@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import { applyGoToTargetAtom } from '../go-to'
+import { applyGoToTargetAtom } from '../go-to/selection-commands'
 import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'

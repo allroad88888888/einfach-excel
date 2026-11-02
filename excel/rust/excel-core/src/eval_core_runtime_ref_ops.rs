@@ -71,12 +71,32 @@ pub(super) fn runtime_ref_from_indirect(
         return Err(ValueError::InvalidRef);
     }
     let text = coerce_to_text(&ref_v);
-    let (sheet, start, end) = parse_indirect_ref(&text).ok_or(ValueError::InvalidRef)?;
-    Ok(RuntimeRef {
-        sheet,
-        range: CellRange::new(start, end),
-        materialized: None,
-    })
+    if let Some((sheet, start, end)) = parse_indirect_ref(&text) {
+        return Ok(RuntimeRef {
+            sheet,
+            range: CellRange::new(start, end),
+            materialized: None,
+        });
+    }
+    resolve_indirect_named_ref(&text, provider)
+}
+
+fn resolve_indirect_named_ref(
+    text: &str,
+    provider: &dyn EvalProvider,
+) -> Result<RuntimeRef, ValueError> {
+    let trimmed = text.trim();
+    if trimmed.is_empty() {
+        return Err(ValueError::InvalidRef);
+    }
+    let expr = crate::formula::parse_formula(&format!("={trimmed}"))
+        .ok_or(ValueError::InvalidRef)?;
+    match expr {
+        Expr::Name(_) | Expr::SheetName { .. } => {
+            runtime_ref_from_expr(&expr, provider).map_err(|_| ValueError::InvalidRef)
+        }
+        _ => Err(ValueError::InvalidRef),
+    }
 }
 
 pub(super) fn runtime_ref_from_index(

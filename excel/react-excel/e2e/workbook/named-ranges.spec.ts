@@ -249,3 +249,31 @@ for (const width of [1280, 390]) test.describe(`${width}px independent name acti
     await expect(page.getByLabel('Refers to', { exact: true })).toHaveValue('C65:C67')
   })
 })
+
+test('sheet-scoped defined names and named formulas resolve by scope and sheet qualification', async ({ page }) => {
+  await open(page)
+  await page.getByLabel('Name', { exact: true }).fill('TaxRate')
+  await page.getByLabel('Scope', { exact: true }).selectOption('')
+  await page.getByLabel('Refers to', { exact: true }).fill('=0.05')
+  await save(page, 'Create name')
+
+  await open(page)
+  await page.getByLabel('Name', { exact: true }).fill('TaxRate')
+  await page.getByLabel('Scope', { exact: true }).selectOption('summary')
+  await page.getByLabel('Refers to', { exact: true }).fill('=SUM(Summary!$C$65:$C$67)*2')
+  await save(page, 'Create name')
+
+  await open(page)
+  await expect(button(page, 'Edit TaxRate')).toContainText('Workbook · =0.05')
+  await expect(button(page, 'Edit TaxRate (Summary)')).toContainText('Summary · =SUM(Summary!$C$65:$C$67)*2')
+  await save(page, 'Cancel')
+
+  await input(page, 'J2', '1:9', '=TaxRate*100')
+  await expect(cell(page, '1:9')).toHaveText('5')
+  await input(page, 'J3', '2:9', '=Summary!TaxRate')
+  await expect(cell(page, '2:9')).toHaveText('24')
+
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await input(page, 'B5', '4:1', '=TaxRate')
+  await expect(cell(page, '4:1')).toHaveText('24')
+})

@@ -217,7 +217,7 @@ impl Workbook {
         current_sheet_idx: usize,
         origin_addr: CellAddress,
         scoped_names: &HashSet<String>,
-        visiting_names: &mut HashSet<String>,
+        visiting_names: &mut HashSet<(usize, String)>,
         out: &mut Vec<(usize, CellRange)>,
     ) {
         match expr {
@@ -228,13 +228,31 @@ impl Workbook {
                 out.push((current_sheet_idx, Self::clamp_grid_range(*start, *end)));
             }
             Expr::SheetRef { sheet, addr, .. } if addr.row <= GRID_MAX_ROW && addr.col <= GRID_MAX_COL => {
-                if let Some(&target_idx) = self.by_name.get(sheet) {
+                if let Some(target_idx) = self.sheet_index_ci(sheet) {
                     out.push((target_idx, CellRange::single(*addr)));
                 }
             }
             Expr::SheetRange { sheet, start, end, .. } => {
-                if let Some(&target_idx) = self.by_name.get(sheet) {
+                if let Some(target_idx) = self.sheet_index_ci(sheet) {
                     out.push((target_idx, Self::clamp_grid_range(*start, *end)));
+                }
+            }
+            Expr::Sheet3DRef { start_sheet, end_sheet, addr, .. } => {
+                if let Some(span) = self.resolve_sheet_span_indices(start_sheet, end_sheet) {
+                    out.extend(span.map(|sheet| (sheet, CellRange::single(*addr))));
+                }
+            }
+            Expr::Sheet3DRange { start_sheet, end_sheet, start, end, .. } => {
+                if let Some(span) = self.resolve_sheet_span_indices(start_sheet, end_sheet) {
+                    let range = Self::clamp_grid_range(*start, *end);
+                    out.extend(span.map(|sheet| (sheet, range)));
+                }
+            }
+            Expr::SheetName { sheet, name } => {
+                if let Some(index) = self.sheet_index_ci(sheet) {
+                    self.collect_named_precedents(
+                        name, index, origin_addr, &HashSet::new(), visiting_names, out,
+                    );
                 }
             }
             Expr::SpillRef(inner) => {
@@ -322,14 +340,15 @@ impl Workbook {
         current_sheet_idx: usize,
         origin_addr: CellAddress,
         scoped_names: &HashSet<String>,
-        visiting_names: &mut HashSet<String>,
+        visiting_names: &mut HashSet<(usize, String)>,
         out: &mut Vec<(usize, CellRange)>,
     ) {
         let key = name.to_uppercase();
-        if scoped_names.contains(&key) || !visiting_names.insert(key.clone()) {
+        let token = (current_sheet_idx, key.clone());
+        if scoped_names.contains(&key) || !visiting_names.insert(token.clone()) {
             return;
         }
-        if let Some(entry) = self.named_values.get(&key) {
+        if let Some((scope_idx, _, entry)) = self.resolve_scoped_entry(current_sheet_idx, name) {
             match &entry.definition {
                 NamedDefinition::Range { sheet_key, range: Some(range) } => {
                     if let Some(target_idx) = self.sheet_keys.iter().position(|k| k == sheet_key) {
@@ -337,6 +356,10 @@ impl Workbook {
                     }
                 }
                 NamedDefinition::Range { range: None, .. } => {}
+                NamedDefinition::Formula { expr, .. } => {
+                    let eval_sheet = scope_idx.unwrap_or(current_sheet_idx);
+                    self.collect_precedent_ranges(expr, eval_sheet, origin_addr, scoped_names, visiting_names, out);
+                }
                 NamedDefinition::Value(val) => {
                     self.collect_lambda_value_precedents(val, current_sheet_idx, origin_addr, visiting_names, out);
                 }
@@ -350,7 +373,7 @@ impl Workbook {
         } else if let Some(resolved) = self.resolve_auditing_table_ref(current_sheet_idx, Some(origin_addr), Some(name), TableArea::Data, None) {
             out.push(resolved);
         }
-        visiting_names.remove(&key);
+        visiting_names.remove(&token);
     }
 
     fn collect_lambda_value_precedents(
@@ -358,7 +381,7 @@ impl Workbook {
         value: &Value,
         current_sheet_idx: usize,
         origin_addr: CellAddress,
-        visiting_names: &mut HashSet<String>,
+        visiting_names: &mut HashSet<(usize, String)>,
         out: &mut Vec<(usize, CellRange)>,
     ) {
         let Value::Lambda(lambda) = value else { return };

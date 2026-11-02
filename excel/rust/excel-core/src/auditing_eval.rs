@@ -153,7 +153,7 @@ pub(crate) fn collapse_top_left(val: &Value) -> Value {
 }
 
 fn is_range_node(expr: &Expr) -> bool {
-    matches!(expr, Expr::Range { .. } | Expr::SheetRange { .. } | Expr::MultiArea(_))
+    matches!(expr, Expr::Range { .. } | Expr::SheetRange { .. } | Expr::Sheet3DRef { .. } | Expr::Sheet3DRange { .. } | Expr::MultiArea(_))
 }
 
 fn arg_preserves_cell_ref(func_name: &str, arg_index: usize) -> bool {
@@ -171,7 +171,7 @@ fn find_next_redex(expr: &Expr, id: &mut usize) -> Option<usize> {
 
     match expr {
         Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) | Expr::Omitted | Expr::ArrayLit { .. } => None,
-        Expr::CellRef(..) | Expr::SheetRef { .. } | Expr::Name(_) | Expr::TableRef { .. } | Expr::Range { .. } | Expr::SheetRange { .. } => Some(my_id),
+        Expr::CellRef(..) | Expr::SheetRef { .. } | Expr::Sheet3DRef { .. } | Expr::Sheet3DRange { .. } | Expr::Name(_) | Expr::SheetName { .. } | Expr::TableRef { .. } | Expr::Range { .. } | Expr::SheetRange { .. } => Some(my_id),
         Expr::SpillRef(inner) | Expr::Negate(inner) | Expr::Percent(inner) => {
             if matches!(expr, Expr::SpillRef(_)) && matches!(inner.as_ref(), Expr::CellRef(..) | Expr::SheetRef { .. }) {
                 count_subtree(inner, id);

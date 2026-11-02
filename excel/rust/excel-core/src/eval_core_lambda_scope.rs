@@ -64,6 +64,62 @@ thread_local! {
     /// the workbook registry and is about to evaluate its body — i.e.
     /// the entry/exit points where unbounded self-reference happens.
     pub(super) static NAMED_CALL_DEPTH: Cell<usize> = const { Cell::new(0) };
+    pub(super) static NAMED_FORMULA_STACK: RefCell<Vec<(usize, Option<usize>, String)>> =
+        const { RefCell::new(Vec::new()) };
+}
+
+pub(crate) fn active_named_formula_sheet(provider_id: usize) -> Option<usize> {
+    NAMED_FORMULA_STACK.with(|stack| {
+        let stack = stack.borrow();
+        stack
+            .iter()
+            .rev()
+            .find(|(pid, _, _)| *pid == provider_id)
+            .and_then(|(_, scope, _)| *scope)
+    })
+}
+
+pub(super) fn with_named_formula_scope<T>(
+    provider: &dyn EvalProvider,
+    scope_sheet: Option<usize>,
+    name: &str,
+    f: impl FnOnce() -> T,
+) -> Result<T, ValueError> {
+    struct ScopeGuard;
+    impl Drop for ScopeGuard {
+        fn drop(&mut self) {
+            NAMED_FORMULA_STACK.with(|stack| {
+                stack.borrow_mut().pop();
+            });
+        }
+    }
+
+    let provider_id = provider as *const dyn EvalProvider as *const () as usize;
+    let key = name.to_uppercase();
+    let is_cycle = NAMED_FORMULA_STACK.with(|stack| {
+        let mut stack = stack.borrow_mut();
+        if stack
+            .iter()
+            .any(|(pid, s, k)| *pid == provider_id && *s == scope_sheet && k == &key)
+            || stack.len() >= MAX_NAMED_CALL_DEPTH
+        {
+            return true;
+        }
+        let effective_scope = scope_sheet.or_else(|| {
+            stack
+                .iter()
+                .rev()
+                .find(|(pid, _, _)| *pid == provider_id)
+                .and_then(|(_, s, _)| *s)
+        });
+        stack.push((provider_id, effective_scope, key));
+        false
+    });
+    if is_cycle {
+        return Err(ValueError::CyclicRef);
+    }
+    let _guard = ScopeGuard;
+    Ok(f())
 }
 
 /// Maximum nesting depth for `apply_lambda` recursion. Exceeded depth

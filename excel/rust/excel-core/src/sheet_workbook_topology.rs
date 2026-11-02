@@ -41,6 +41,7 @@ impl ProjectedTable {
 
 pub(super) struct WorkbookAtomTopology {
     pub(super) sheets: Vec<(String, FacadeCtx)>,
+    pub(super) keys: Vec<u64>,
     pub(super) by_name: HashMap<String, usize>,
     pub(super) by_key: HashMap<u64, usize>,
 }

@@ -39,6 +39,11 @@ fn format_range_a1(r: CellRange) -> String {
 struct AuditingRefJSON {
     sheet_index: usize,
     sheet_name: String,
+    row_start: u32,
+    col_start: u32,
+    row_end: u32,
+    col_end: u32,
+    is_range: bool,
     range: AuditingRangeJSON,
     addr: String,
     is_error: bool,
@@ -47,10 +52,17 @@ struct AuditingRefJSON {
 impl From<AuditingRef> for AuditingRefJSON {
     fn from(item: AuditingRef) -> Self {
         let addr = format_range_a1(item.range);
+        let range: AuditingRangeJSON = item.range.into();
+        let is_range = range.row_start != range.row_end || range.col_start != range.col_end;
         Self {
             sheet_index: item.sheet_index,
             sheet_name: item.sheet_name,
-            range: item.range.into(),
+            row_start: range.row_start,
+            col_start: range.col_start,
+            row_end: range.row_end,
+            col_end: range.col_end,
+            is_range,
+            range,
             addr,
             is_error: item.is_error,
         }
@@ -71,6 +83,8 @@ struct AuditingStepInTargetJSON {
 #[serde(rename_all = "camelCase")]
 struct FormulaEvalStepJSON {
     expression_before: String,
+    focus_start: usize,
+    focus_end: usize,
     focus_span: (usize, usize),
     focus_text: String,
     step_result: String,
@@ -103,6 +117,8 @@ impl From<FormulaEvalStep> for FormulaEvalStepJSON {
                 });
         Self {
             expression_before: step.expression_before,
+            focus_start: focus_span.0,
+            focus_end: focus_span.1,
             focus_span,
             focus_text,
             step_result: step.step_result,
@@ -145,9 +161,10 @@ impl From<FormulaEvaluationTrace> for FormulaEvaluationTraceJSON {
 }
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[serde(rename_all = "camelCase")]
 struct WatchTargetRequestJSON {
-    sheet: usize,
+    sheet: Option<usize>,
+    sheet_index: Option<usize>,
     row: u32,
     col: u32,
 }
@@ -226,7 +243,7 @@ impl WasmWorkbook {
             .map_err(|err| JsValue::from_str(&err.to_string()))?;
         let coords: Vec<(usize, CellAddress)> = parsed
             .into_iter()
-            .map(|t| (t.sheet, CellAddress::new(t.row, t.col)))
+            .map(|t| (t.sheet.or(t.sheet_index).unwrap_or(0), CellAddress::new(t.row, t.col)))
             .collect();
         let results: Vec<WatchedCellSnapshotJSON> = self
             .workbook

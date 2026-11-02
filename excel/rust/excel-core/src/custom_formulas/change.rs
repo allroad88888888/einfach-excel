@@ -20,6 +20,7 @@ impl CustomFormulaChange {
                 let definition = validation::normalize(definition)?;
                 let key = definition.name.clone();
                 if workbook.tables.contains_key(&key)
+                    || workbook.has_sheet_scoped_name(&key)
                     || workbook.named_values.get(&key).is_some_and(|entry| {
                         !matches!(entry.definition, NamedDefinition::CustomFormula(_))
                     })

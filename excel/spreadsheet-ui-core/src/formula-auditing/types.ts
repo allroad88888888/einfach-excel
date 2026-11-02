@@ -60,6 +60,7 @@ export interface FormulaEvaluationTraceSnapshot {
 }
 
 export interface WatchTargetSpec {
+  readonly sheet?: number
   readonly sheetIndex: number
   readonly row: number
   readonly col: number

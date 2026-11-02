@@ -32,7 +32,9 @@ pnpm --filter @einfach-excel/react-excel e2e # 准备仓外消费者，再运行
 ```
 
 pack 准备脚本在 mktemp 副本运行现有 Changesets version + lockfile 流程，pnpm pack 五个发行包。
-源码仍为原版本，模拟发行是 React 0.1.0 与 fixed 组 Core/styles/TS core/WASM 0.2.0。
+源码仍为原版本。当前待消费的 UI Core 公共导出清理 Changeset 使 fixed 组
+Core/styles/TS core/WASM 的模拟版本为 0.3.0；Changesets 将 React 候选升为 1.0.0，
+其 UI Core peer 同步为 `^0.3.0`。包准备脚本核对这组候选与 peer，版本应用和发布仍单独授权。
 Vite/Rspack 安装的是 tarball 与 registry 包；无源码 alias、workspace link、宏插件或消费者 Rust。
 消费者只安装 React、UI Core、WASM 三份 tarball；另外两包仅验证关联发行计划，不进入 React 依赖树。
 依赖树、构建/声明日志、tarball SHA 和临时路径在 `.codex-artifacts/react-excel-package-004/`。

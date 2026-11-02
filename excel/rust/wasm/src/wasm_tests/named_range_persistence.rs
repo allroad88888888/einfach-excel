@@ -167,3 +167,37 @@ fn named_ranges_snapshot_is_lazy_and_legacy_v1_without_names_stays_valid() {
     let empty = serde_json::to_value(WasmWorkbook::new().snapshot_persistence_v1_json()).unwrap();
     assert!(empty.get("namedRanges").is_none());
 }
+
+#[test]
+fn named_ranges_v1_roundtrips_sheet_scoped_names_and_named_formulas() {
+    let mut source = WasmWorkbook::new();
+    source.add_sheet("Sheet2");
+    source.set_number(0, "A1", 10.0);
+    source.set_number(1, "A1", 25.0);
+    source
+        .workbook
+        .define_named_formula("TaxRate", None, "=0.08")
+        .unwrap();
+    source
+        .workbook
+        .define_named_formula("TaxRate", Some(1), "=$A$1*2")
+        .unwrap();
+    source.set_formula(0, "B1", "=TaxRate*100");
+    source.set_formula(1, "B1", "=TaxRate");
+    let json = serde_json::to_value(source.snapshot_persistence_v1_json()).unwrap();
+    assert_eq!(
+        json["namedRanges"],
+        serde_json::json!([
+            {"name":"TaxRate","target":null,"formula":"=0.08"},
+            {"name":"TaxRate","scope":1,"target":null,"formula":"=$A$1*2"}
+        ])
+    );
+    let mut restored = WasmWorkbook::new();
+    restored
+        .restore_persistence_v1_json(serde_json::from_value(json).unwrap())
+        .unwrap();
+    assert_eq!(restored.get_number(0, "B1"), 8.0);
+    assert_eq!(restored.get_number(1, "B1"), 50.0);
+    restored.set_number(1, "A1", 40.0);
+    assert_eq!(restored.get_number(1, "B1"), 80.0);
+}

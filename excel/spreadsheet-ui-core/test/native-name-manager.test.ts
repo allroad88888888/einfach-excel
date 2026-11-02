@@ -181,6 +181,50 @@ test('workbook replacement hides a draft even when the new workbook has the same
   expect(await run('save')).toBe(false)
 })
 
+test('sheet-scoped names and named formulas send scopeSheetId and formula through the command atom', async () => {
+  const { store, request, run, project } = setup()
+  await run('open')
+  await run({ name: 'TaxRate', scopeSheetId: 'source', range: '=SUM(Source!$A$1:$A$5)*1.1' })
+  expect(await run('save')).toBe(true)
+  expect(request).toHaveBeenLastCalledWith('namedRange.change', expect.objectContaining({
+    sheetId: 'view',
+    action: {
+      kind: 'create',
+      name: 'TaxRate',
+      scopeSheetId: 'source',
+      formula: '=SUM(Source!$A$1:$A$5)*1.1',
+    },
+  }))
+
+  // Sheet-qualified range in Refers to (e.g. Source!B2:C5) resolves target sheet automatically
+  project(2, [
+    { name: 'TaxRate', scope: 1, target: null, formula: '=SUM(Source!$A$1:$A$5)*1.1' },
+  ])
+  await run('open')
+  await run({ edit: 'TaxRate', scope: 1 })
+  expect(store.getter(nativeNameManagerAtom)).toMatchObject({
+    name: 'TaxRate',
+    scopeSheetId: 'source',
+    editingScopeSheetId: 'source',
+    range: '=SUM(Source!$A$1:$A$5)*1.1',
+  })
+  await run({ range: 'Source!B2:C5', scopeSheetId: '' })
+  expect(await run('save')).toBe(true)
+  expect(request).toHaveBeenLastCalledWith('namedRange.change', expect.objectContaining({
+    action: {
+      kind: 'update',
+      name: 'TaxRate',
+      newName: 'TaxRate',
+      scopeSheetId: 'source',
+      newScopeSheetId: null,
+      target: {
+        sheetId: 'source',
+        range: { rowStart: 1, colStart: 1, rowEnd: 4, colEnd: 2 },
+      },
+    },
+  }))
+})
+
 test.each(['sheet', 'bounds', 'superseded'] as const)(
   '%s response never replaces the current name catalog', async (kind) => {
     const { store, request, run, project } = setup()

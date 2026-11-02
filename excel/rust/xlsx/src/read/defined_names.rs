@@ -1,5 +1,5 @@
-//! `workbook.xml` 的 `<definedNames>` → 原生命名区域。
-//! 原生只有"某表某矩形"的名字：公式型、工作表级、内置（`_xlnm.*`）、隐藏、外部引用的名字都跳过。
+//! `workbook.xml` 的 `<definedNames>` → 原生命名区域与命名公式（支持工作簿级与工作表级 `localSheetId`）。
+//! 内置（`_xlnm.*`）、隐藏、外部工作簿引用或 `#REF!` 的名字跳过。
 
 use std::collections::HashSet;
 
@@ -62,6 +62,24 @@ fn parse_area(cells: &str) -> Option<[u32; 4]> {
     None
 }
 
+fn is_supported_formula_body(body: &str) -> bool {
+    if body.is_empty() || body.starts_with('#') || body.contains("#REF!") {
+        return false;
+    }
+    // External workbook links in OOXML take the form `[1]Sheet1!$A$1`.
+    if let Some((_, after_open)) = body.split_once('[') {
+        if let Some((inside, after_close)) = after_open.split_once(']') {
+            if !inside.is_empty()
+                && inside.bytes().all(|b| b.is_ascii_digit())
+                && after_close.contains('!')
+            {
+                return false;
+            }
+        }
+    }
+    true
+}
+
 /// `sheet_names` 是 workbook.xml 里的原始表名（按工作表顺序）。
 pub fn parse(workbook: &Node, sheet_names: &[String]) -> (Vec<NamedRange>, usize) {
     let Some(names) = workbook.child("definedNames") else { return (Vec::new(), 0) };
@@ -73,24 +91,55 @@ pub fn parse(workbook: &Node, sheet_names: &[String]) -> (Vec<NamedRange>, usize
         if name.starts_with("_xlnm") {
             continue;
         }
-        if entry.attr("localSheetId").is_some() || entry.attr_bool("hidden", false) || !is_valid_name(name) {
+        let scope = match entry.attr("localSheetId") {
+            None => None,
+            Some(raw) => {
+                let Ok(idx) = raw.parse::<usize>() else {
+                    skipped += 1;
+                    continue;
+                };
+                if idx >= sheet_names.len() {
+                    skipped += 1;
+                    continue;
+                }
+                Some(idx)
+            }
+        };
+        if entry.attr_bool("hidden", false) || !is_valid_name(name) {
             skipped += 1;
             continue;
         }
-        let Some((sheet_name, cells)) = split_sheet(entry.text.trim()) else {
+        let raw_text = entry.text.trim();
+        if let Some((sheet_name, cells)) = split_sheet(raw_text) {
+            if let Some(range) = parse_area(cells) {
+                let Some(sheet) = sheet_names.iter().position(|n| n.eq_ignore_ascii_case(&sheet_name)) else {
+                    skipped += 1;
+                    continue;
+                };
+                if seen.insert((scope, name.to_uppercase())) {
+                    out.push(NamedRange {
+                        name: name.to_string(),
+                        scope,
+                        target: Some(NamedRangeTarget { sheet, range }),
+                        formula: None,
+                    });
+                }
+                continue;
+            }
+        }
+        let body = raw_text.strip_prefix('=').unwrap_or(raw_text).trim();
+        if !is_supported_formula_body(body) {
             skipped += 1;
             continue;
-        };
-        let Some(sheet) = sheet_names.iter().position(|n| n.eq_ignore_ascii_case(&sheet_name)) else {
-            skipped += 1;
-            continue;
-        };
-        let Some(range) = parse_area(cells) else {
-            skipped += 1;
-            continue;
-        };
-        if seen.insert(name.to_uppercase()) {
-            out.push(NamedRange { name: name.to_string(), target: Some(NamedRangeTarget { sheet, range }) });
+        }
+        let formula = crate::formula::from_xlsx(body);
+        if seen.insert((scope, name.to_uppercase())) {
+            out.push(NamedRange {
+                name: name.to_string(),
+                scope,
+                target: None,
+                formula: Some(formula),
+            });
         }
     }
     (out, skipped)

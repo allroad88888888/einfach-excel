@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import { applyGoToTargetAtom } from '../go-to'
+import { applyGoToTargetAtom } from '../go-to/selection-commands'
 import { parseGoToReference } from '../go-to/reference-parser'
 import type { GoToParseResult } from '../go-to/types'
 import { coordToA1 } from '../name-box/address'

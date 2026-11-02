@@ -99,6 +99,11 @@ fn render_into(expr: &Expr, out: &mut String) {
             }
             None => out.push_str("#REF!"),
         },
+        Expr::SheetName { sheet, name } => {
+            push_sheet_name(out, sheet);
+            out.push('!');
+            out.push_str(name);
+        }
         Expr::SpillRef(anchor) => {
             render_into(anchor, out);
             out.push('#');

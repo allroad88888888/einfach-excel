@@ -171,6 +171,7 @@ impl Sheet {
             | Expr::Bool(_)
             | Expr::Error(_)
             | Expr::Name(_)
+            | Expr::SheetName { .. }
             | Expr::ArrayLit { .. }
             // 空占位实参没有地址。
             | Expr::Omitted
@@ -241,6 +242,7 @@ impl Sheet {
             | Expr::Bool(_)
             | Expr::Error(_)
             | Expr::Name(_)
+            | Expr::SheetName { .. }
             | Expr::ArrayLit { .. }
             // 空占位实参没有地址。
             | Expr::Omitted

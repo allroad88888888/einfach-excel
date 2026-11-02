@@ -4,8 +4,20 @@ use crate::formula::Expr;
 
 /// 返回 true 才修改原 AST。局部绑定撞上新名称时 alpha-renaming，避免捕获全局引用。
 pub(crate) fn rename_named_reference(expr: &mut Expr, old: &str, new: &str) -> bool {
+    rename_scoped_named_reference(expr, None, true, old, new)
+}
+
+pub(crate) fn rename_scoped_named_reference(
+    expr: &mut Expr,
+    target_sheet: Option<&str>,
+    rewrite_unqualified: bool,
+    old: &str,
+    new: &str,
+) -> bool {
     let mut candidate = expr.clone();
     let mut rename = Rename {
+        target_sheet,
+        rewrite_unqualified,
         old: old.to_uppercase(),
         new,
         new_key: new.to_uppercase(),
@@ -21,6 +33,8 @@ pub(crate) fn rename_named_reference(expr: &mut Expr, old: &str, new: &str) -> b
 }
 
 struct Rename<'a> {
+    target_sheet: Option<&'a str>,
+    rewrite_unqualified: bool,
     old: String,
     new: &'a str,
     new_key: String,
@@ -45,7 +59,7 @@ impl Rename<'_> {
     fn bind(&mut self, expr: &mut Expr, locals: &mut Locals) {
         let Expr::Name(name) = expr else { return };
         let key = name.to_uppercase();
-        let alias = if key == self.new_key && self.old != self.new_key {
+        let alias = if self.rewrite_unqualified && key == self.new_key && self.old != self.new_key {
             loop {
                 self.serial += 1;
                 let candidate = format!("_named_local_{}", self.serial);
@@ -65,12 +79,20 @@ impl Rename<'_> {
             Expr::Name(name) => match self.local(name, locals) {
                 Some(Some(alias)) => *name = alias,
                 Some(None) => {}
-                None if name.to_uppercase() == self.old => {
+                None if self.rewrite_unqualified && name.to_uppercase() == self.old => {
                     *name = self.new.into();
                     self.changed = true;
                 }
                 None => {}
             },
+            Expr::SheetName { sheet, name } => {
+                if let Some(target) = self.target_sheet {
+                    if sheet.eq_ignore_ascii_case(target) && name.to_uppercase() == self.old {
+                        *name = self.new.into();
+                        self.changed = true;
+                    }
+                }
+            }
             Expr::FuncCall { name, args }
                 if name == "LET" && args.len() >= 3 && args.len() % 2 == 1 =>
             {

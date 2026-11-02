@@ -5,6 +5,7 @@ use crate::shift::{shift_structural_range, ShiftEdit};
 
 #[derive(Debug)]
 pub(super) struct NamedRangeShift {
+    scope_sheet_key: Option<u64>,
     name: String,
     before: Option<CellRange>,
     after: Option<CellRange>,
@@ -17,7 +18,16 @@ impl NamedRangeShift {
 
     /// 原生事务已完成身份校验；调用方统一发布名称 epoch 和数组投影。
     pub(super) fn apply(&self, workbook: &mut Workbook, undo: bool) {
-        let entry = workbook.named_values.get_mut(&self.name).expect("validated named range");
+        let entry = match self.scope_sheet_key {
+            None => workbook
+                .named_values
+                .get_mut(&self.name)
+                .expect("validated named range"),
+            Some(sk) => workbook
+                .sheet_named_values
+                .get_mut(&(sk, self.name.clone()))
+                .expect("validated named range"),
+        };
         let NamedDefinition::Range { range, .. } = &mut entry.definition else {
             unreachable!("validated named range")
         };
@@ -68,7 +78,13 @@ impl Workbook {
         };
         self.named_values
             .iter()
-            .filter_map(|(name, entry)| {
+            .map(|(name, entry)| (None, name, entry))
+            .chain(
+                self.sheet_named_values
+                    .iter()
+                    .map(|((sk, name), entry)| (Some(*sk), name, entry)),
+            )
+            .filter_map(|(scope_sheet_key, name, entry)| {
                 let NamedDefinition::Range {
                     sheet_key,
                     range: Some(before),
@@ -93,6 +109,7 @@ impl Workbook {
                 let valid = shift_structural_range(&mut after.start, &mut after.end, bounds, edit);
                 let after = valid.then_some(after);
                 (after != Some(before)).then(|| NamedRangeShift {
+                    scope_sheet_key,
                     name: name.clone(),
                     before: Some(before),
                     after,
@@ -130,7 +147,7 @@ impl Workbook {
             .ok_or("The worksheet no longer exists.")?;
         for change in changes {
             let expected = if undo { change.after } else { change.before };
-            if !matches!(self.named_values.get(&change.name),
+            if !matches!(self.get_scoped_entry(change.scope_sheet_key, &change.name),
                 Some(NamedEntry { definition: NamedDefinition::Range { sheet_key, range }, .. })
                     if *sheet_key == key && *range == expected)
             {

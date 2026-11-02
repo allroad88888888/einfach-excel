@@ -116,7 +116,7 @@ pub(crate) fn expr_may_produce_array(expr: &Expr) -> bool {
         // A structured (Table) reference materializes its resolved region
         // as a `Value::Array` in value context, so a bare `=Table1[Col]`
         // must take the eager spill re-eval path (design doc §5.3).
-        Expr::TableRef { .. } | Expr::Name(_) => true,
+        Expr::TableRef { .. } | Expr::Name(_) | Expr::SheetName { .. } => true,
         // Multi-area evaluates to `#VALUE!` (error scalar) anywhere
         // other than as an `AREAS` argument — it never produces a
         // spillable `Value::Array`.

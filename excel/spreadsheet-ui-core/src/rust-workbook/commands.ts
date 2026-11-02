@@ -171,6 +171,7 @@ export interface RustImportStats {
 export type RustClearRangeMode = 'contents' | 'formats' | 'all'
 export interface RustClearRangeRequest {
   readonly sheetId: string
+  readonly sheetIds?: readonly string[]
   readonly requestId: number
   readonly range: CellRange
   readonly scope: 'cell' | 'row' | 'column'

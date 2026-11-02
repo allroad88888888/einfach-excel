@@ -55,8 +55,20 @@ export function writeCellInput(
   input: string,
   expandTables?: boolean,
   validationConfirmation?: 'continue',
+  sheets?: readonly number[],
 ): void {
   const address = toA1(row, col)
+  if (sheets && sheets.length > 1) {
+    requiredMethod(workbook.set_cell_input_sheets, 'set_cell_input_sheets').call(
+      workbook,
+      sheets,
+      address,
+      input,
+      expandTables !== false,
+      validationConfirmation === 'continue',
+    )
+    return
+  }
   if (validationConfirmation === 'continue') {
     requiredMethod(workbook.setCellInputConfirmed, 'setCellInputConfirmed')
       .call(workbook, sheet, address, input, expandTables !== false)

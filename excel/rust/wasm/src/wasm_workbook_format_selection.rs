@@ -17,6 +17,8 @@ struct FormatSelectionTargetJSON {
 #[serde(deny_unknown_fields)]
 struct FormatSelectionJSON {
     sheet: usize,
+    #[serde(default)]
+    sheets: Vec<usize>,
     targets: Vec<FormatSelectionTargetJSON>,
     patch: CellFormatJSON,
 }
@@ -32,7 +34,13 @@ impl FormatSelectionJSON {
             (CellRange::new(CellAddress::new(target.row_start, target.col_start),
                 CellAddress::new(target.row_end, target.col_end)), scope)
         }).collect();
-        history.patch_format_selection(workbook, self.sheet, &targets, self.patch.into_style())
+        history.patch_format_selection_sheets(
+            workbook,
+            self.sheet,
+            &self.sheets,
+            &targets,
+            self.patch.into_style(),
+        )
     }
 }
 

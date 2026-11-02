@@ -17,7 +17,9 @@ import {
   publishWorkbookSheetStructureAtom,
   workbookDocumentAtom,
 } from '../runtime/workbook-document'
+import { groupedSheetIdsBackingAtom } from '../runtime/sheet-view-state'
 import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
+import { applySheetTabSwitch, type SheetTabSelectMode } from '../sheet-management/grouping'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-state'
 import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
@@ -38,7 +40,12 @@ export type WorkbookSheetCommand =
         | 'move-left'
         | 'move-right'
     }
-  | { readonly operation: 'switch' | 'begin-rename'; readonly sheetId: string }
+  | {
+      readonly operation: 'switch'
+      readonly sheetId: string
+      readonly mode?: SheetTabSelectMode
+    }
+  | { readonly operation: 'begin-rename'; readonly sheetId: string }
   | { readonly operation: 'change-name'; readonly name: string }
 
 /** 当前 Rust 工作簿的标签操作；复用既有草稿/错误状态，不接旧 backend ports。 */
@@ -143,15 +150,8 @@ export const runWorkbookSheetCommandAtom = atom(
       return true
     }
     if (input.operation === 'switch') {
-      // 同表的临时引用浏览也需回到普通视图；普通重复点击由切表命令直接忽略。
-      set(activateWorkbookSheetAtom, target)
-      set(sheetTabsAtom, {
-        ...get(sheetTabsAtom),
-        rename: null,
-        error: null,
-        deleteConfirmation: null,
-      })
-      return true
+      // 同表的临时引用浏览也需回到普通视图；支持普通切换、Ctrl/Cmd 切换分组与 Shift 连续分组。
+      return applySheetTabSwitch(get, set, target, input.mode ?? 'single')
     }
     const rename = get(sheetTabsAtom).rename
     if (input.operation === 'rename' && !rename) return false
@@ -197,8 +197,11 @@ export const runWorkbookSheetCommandAtom = atom(
         if (get(rustWorkbookConnectionAtom) !== connection) return false
         set(publishWorkbookSheetStructureAtom, result.sheets)
         if (deleting && active.id === target.id) {
+          const remaining = get(groupedSheetIdsBackingAtom)
+          const sheets = get(workbookDocumentAtom).sheets
           const next =
-            get(workbookDocumentAtom).sheets[Math.min(target.index, result.sheets.length - 1)]
+            sheets.find((sheet) => !sheet.hidden && remaining.includes(sheet.id)) ??
+            sheets[Math.min(target.index, result.sheets.length - 1)]
           if (next) set(activateWorkbookSheetAtom, next)
         }
         if (projection && result.projection)
@@ -233,7 +236,10 @@ export const runWorkbookSheetCommandAtom = atom(
         colCount: previous?.colCount ?? active.colCount,
       }
       set(publishWorkbookSheetAtom, sheet)
-      if (input.operation === 'add') set(activateWorkbookSheetAtom, sheet)
+      if (input.operation === 'add') {
+        set(groupedSheetIdsBackingAtom, [sheet.id])
+        set(activateWorkbookSheetAtom, sheet)
+      }
       if (projection && result.projection)
         set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
       set(sheetTabsAtom, { ...get(sheetTabsAtom), mutation: null, rename: null, error: null })

@@ -23,6 +23,8 @@ struct ClearTargetJSON {
 #[serde(deny_unknown_fields)]
 struct ClearSelectionJSON {
     sheet: usize,
+    #[serde(default)]
+    sheets: Vec<usize>,
     targets: Vec<ClearTargetJSON>,
     mode: ClearModeJSON,
 }
@@ -44,7 +46,7 @@ impl ClearSelectionJSON {
             ClearModeJSON::Formats => ClearSelectionMode::Formats,
             ClearModeJSON::All => ClearSelectionMode::All,
         };
-        history.clear_selection(workbook, self.sheet, &targets, mode)
+        history.clear_selection_sheets(workbook, self.sheet, &self.sheets, &targets, mode)
     }
 }
 

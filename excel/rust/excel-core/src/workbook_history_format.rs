@@ -14,52 +14,71 @@ impl WorkbookHistory {
         targets: &[(CellRange, StyleScope)],
         patch: CellStyle,
     ) -> Result<CellRange, &'static str> {
+        self.patch_format_selection_sheets(workbook, sheet, &[sheet], targets, patch)
+    }
+
+    pub fn patch_format_selection_sheets(
+        &mut self,
+        workbook: &mut Workbook,
+        sheet: usize,
+        sheets: &[usize],
+        targets: &[(CellRange, StyleScope)],
+        patch: CellStyle,
+    ) -> Result<CellRange, &'static str> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another mutation is in progress.");
         }
         if targets.is_empty() || targets.len() > 500 {
             return Err("Format selection requires between 1 and 500 areas.");
         }
+        let mut target_sheets = vec![sheet];
+        for &extra in sheets {
+            if !target_sheets.contains(&extra) {
+                target_sheets.push(extra);
+            }
+        }
         let mut affected = targets[0].0;
         let mut visits = 0_u64;
-        let mut snapshots = Vec::with_capacity(targets.len());
-        for &(range, scope) in targets {
-            validate_target(workbook, sheet, range)?;
-            let source = workbook.sheet(sheet).unwrap();
-            // 行列样式只作用于指定轴；穿过合并框不应扩大或拒绝整行／整列操作。
-            if scope == StyleScope::Cell
-                && source.merged_ranges().iter().any(|merged| {
-                    merged.intersects(range)
-                        && (!range.contains(merged.start) || !range.contains(merged.end))
-                })
-            {
-                return Err("Select the entire merged cell before formatting.");
+        let mut snapshots = Vec::with_capacity(targets.len() * target_sheets.len());
+        for &target_sheet in &target_sheets {
+            for &(range, scope) in targets {
+                validate_target(workbook, target_sheet, range)?;
+                let source = workbook.sheet(target_sheet).unwrap();
+                // 行列样式只作用于指定轴；穿过合并框不应扩大或拒绝整行／整列操作。
+                if scope == StyleScope::Cell
+                    && source.merged_ranges().iter().any(|merged| {
+                        merged.intersects(range)
+                            && (!range.contains(merged.start) || !range.contains(merged.end))
+                    })
+                {
+                    return Err("Select the entire merged cell before formatting.");
+                }
+                visits += u64::from(range.rows()) * u64::from(range.cols());
+                if visits > 100_000 {
+                    return Err(
+                        "Formatting exceeds 100,000 addressed cells. Choose a smaller selection.",
+                    );
+                }
+                affected.start.row = affected.start.row.min(range.start.row);
+                affected.start.col = affected.start.col.min(range.start.col);
+                affected.end.row = affected.end.row.max(range.end.row);
+                affected.end.col = affected.end.col.max(range.end.col);
+                // rowStyle / columnStyle 的交叉覆盖可超出可见画布；历史只捕获格式，不能回放值。
+                let history_range = match scope {
+                    StyleScope::Cell => range,
+                    StyleScope::Row => CellRange::new(
+                        CellAddress::new(range.start.row, 0),
+                        CellAddress::new(range.end.row, 16_383),
+                    ),
+                    StyleScope::Column => CellRange::new(
+                        CellAddress::new(0, range.start.col),
+                        CellAddress::new(1_048_575, range.end.col),
+                    ),
+                };
+                snapshots.push((target_sheet, history_range, false));
             }
-            visits += u64::from(range.rows()) * u64::from(range.cols());
-            if visits > 100_000 {
-                return Err(
-                    "Formatting exceeds 100,000 addressed cells. Choose a smaller selection.",
-                );
-            }
-            affected.start.row = affected.start.row.min(range.start.row);
-            affected.start.col = affected.start.col.min(range.start.col);
-            affected.end.row = affected.end.row.max(range.end.row);
-            affected.end.col = affected.end.col.max(range.end.col);
-            // rowStyle / columnStyle 的交叉覆盖可超出可见画布；历史只捕获格式，不能回放值。
-            let history_range = match scope {
-                StyleScope::Cell => range,
-                StyleScope::Row => CellRange::new(
-                    CellAddress::new(range.start.row, 0),
-                    CellAddress::new(range.end.row, 16_383),
-                ),
-                StyleScope::Column => CellRange::new(
-                    CellAddress::new(0, range.start.col),
-                    CellAddress::new(1_048_575, range.end.col),
-                ),
-            };
-            snapshots.push((sheet, history_range, false));
+            preflight_selection(workbook, target_sheet, targets, &patch)?;
         }
-        preflight_selection(workbook, sheet, targets, &patch)?;
         self.begin_ranges(
             workbook,
             sheet,
@@ -71,9 +90,11 @@ impl WorkbookHistory {
         let store = workbook.store.clone();
         let mut outcome = Ok(());
         store.batch(|_| {
-            outcome = targets.iter().try_for_each(|&(range, scope)| {
-                self.patch_format_range(workbook, sheet, range, scope, patch.clone())
-                    .map(|_| ())
+            outcome = target_sheets.iter().try_for_each(|&target_sheet| {
+                targets.iter().try_for_each(|&(range, scope)| {
+                    self.patch_format_range(workbook, target_sheet, range, scope, patch.clone())
+                        .map(|_| ())
+                })
             });
             if let Err(error) = self.finish(workbook, outcome.is_ok()) {
                 outcome = Err(error);

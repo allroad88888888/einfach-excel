@@ -3,14 +3,18 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   closeSheetTabMenuAtom,
   duplicateSheetAtom,
+  groupedSheetIdsAtom,
   hiddenSheetListAtom,
   hideSheetAtom,
   hostControlsAtom,
+  isSheetGroupActiveAtom,
   openUnhideDialogAtom,
+  selectAllSheetsAtom,
   setSheetTabColorAtom,
   sheetManagementUiAtom,
   sheetTabsAtom,
   toggleTabColorMenuAtom,
+  ungroupSheetsAtom,
   visibleSheets,
   workbookDocumentAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
@@ -18,7 +22,7 @@ import { useEffect, useRef } from 'react'
 import { TAB_COLORS } from './tab-colors'
 import './sheet-management.css'
 
-/** 标签右键菜单：复制、隐藏、取消隐藏…、标签颜色。所有状态与命令都在 UI Core。 */
+/** 标签右键菜单：复制、隐藏、取消隐藏…、标签颜色、全选工作表、取消工作表分组。所有状态与命令都在 UI Core。 */
 export function SheetTabContextMenu() {
   const { i18n, t } = useLingui()
   const menu = useAtomValue(sheetTabsAtom).contextMenu
@@ -26,12 +30,16 @@ export function SheetTabContextMenu() {
   const hidden = useAtomValue(hiddenSheetListAtom)
   const controls = useAtomValue(hostControlsAtom)
   const sheets = useAtomValue(workbookDocumentAtom).sheets
+  const grouped = useAtomValue(groupedSheetIdsAtom)
+  const isGroupActive = useAtomValue(isSheetGroupActiveAtom)
   const close = useSetAtom(closeSheetTabMenuAtom)
   const duplicate = useSetAtom(duplicateSheetAtom)
   const hide = useSetAtom(hideSheetAtom)
   const openUnhide = useSetAtom(openUnhideDialogAtom)
   const toggleColors = useSetAtom(toggleTabColorMenuAtom)
   const setColor = useSetAtom(setSheetTabColorAtom)
+  const selectAll = useSetAtom(selectAllSheetsAtom)
+  const ungroup = useSetAtom(ungroupSheetsAtom)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -50,7 +58,9 @@ export function SheetTabContextMenu() {
   const target = sheets.find((sheet) => sheet.id === menu.sheetId)
   if (!target) return null
   const locked = !controls.allowSheetStructure || controls.readOnly
-  const onlyVisible = visibleSheets(sheets).length <= 1
+  const visible = visibleSheets(sheets)
+  const onlyVisible = visible.length <= 1
+  const allGrouped = !onlyVisible && grouped.length >= visible.length
   const items = (): HTMLElement[] =>
     Array.from(ref.current?.querySelectorAll<HTMLElement>('[role="menuitem"]:not(:disabled)') ?? [])
 
@@ -129,6 +139,22 @@ export function SheetTabContextMenu() {
           </button>
         </div>
       )}
+      <button
+        type="button"
+        role="menuitem"
+        disabled={onlyVisible || allGrouped}
+        onClick={() => void selectAll()}
+      >
+        <Trans>Select all sheets</Trans>
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        disabled={!isGroupActive}
+        onClick={() => void ungroup()}
+      >
+        <Trans>Ungroup sheets</Trans>
+      </button>
     </div>
   )
 }

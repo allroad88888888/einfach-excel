@@ -14,31 +14,60 @@ impl WorkbookHistory {
         preset: BorderPreset,
         border: BorderSpec,
     ) -> Result<usize, &'static str> {
+        self.patch_range_borders_sheets(workbook, sheet, &[sheet], range, preset, border)
+    }
+
+    pub fn patch_range_borders_sheets(
+        &mut self,
+        workbook: &mut Workbook,
+        sheet: usize,
+        sheets: &[usize],
+        range: CellRange,
+        preset: BorderPreset,
+        border: BorderSpec,
+    ) -> Result<usize, &'static str> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another mutation is in progress.");
         }
         let range = range.normalize();
-        validate_target(workbook, sheet, range)?;
-        let writes = workbook
-            .sheet(sheet)
-            .unwrap()
-            .plan_range_borders(range, preset, border)?;
-        if writes.is_empty() {
-            return Ok(0);
+        let mut target_sheets = vec![sheet];
+        for &extra in sheets {
+            if !target_sheets.contains(&extra) {
+                target_sheets.push(extra);
+            }
         }
-        let targets: Vec<_> = border_plan_ranges(&writes)
-            .into_iter()
-            .map(|range| (sheet, range, false))
-            .collect();
-        for addr in writes.keys() {
-            workbook.ensure_range_editable(sheet, CellRange::single(*addr))?;
+        let mut plans = Vec::with_capacity(target_sheets.len());
+        let mut targets = Vec::new();
+        for &target_sheet in &target_sheets {
+            validate_target(workbook, target_sheet, range)?;
+            let writes = workbook
+                .sheet(target_sheet)
+                .unwrap()
+                .plan_range_borders(range, preset, border.clone())?;
+            for addr in writes.keys() {
+                workbook.ensure_range_editable(target_sheet, CellRange::single(*addr))?;
+            }
+            targets.extend(
+                border_plan_ranges(&writes)
+                    .into_iter()
+                    .map(|r| (target_sheet, r, false)),
+            );
+            plans.push((target_sheet, writes));
+        }
+        if plans.iter().all(|(_, writes)| writes.is_empty()) {
+            return Ok(0);
         }
         self.begin_ranges(workbook, sheet, range, "Format borders", &targets, false)?;
         let store = workbook.store.clone();
         let mut count = 0;
         let mut outcome = Ok(());
         store.batch(|_| {
-            count = workbook.sheet_mut(sheet).unwrap().apply_border_plan(writes);
+            for (target_sheet, writes) in plans {
+                count += workbook
+                    .sheet_mut(target_sheet)
+                    .unwrap()
+                    .apply_border_plan(writes);
+            }
             outcome = self.finish(workbook, true);
         });
         outcome?;

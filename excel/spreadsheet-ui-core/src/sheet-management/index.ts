@@ -4,6 +4,14 @@ export {
   setSheetTabColorAtom,
   unhideSheetAtom,
 } from './commands'
+export {
+  applySheetTabSwitch,
+  groupedSheetIdsAtom,
+  isSheetGroupActiveAtom,
+  selectAllSheetsAtom,
+  ungroupSheetsAtom,
+  type SheetTabSelectMode,
+} from './grouping'
 export { switchAdjacentSheetAtom } from './navigate'
 export {
   chooseUnhideSheetAtom,

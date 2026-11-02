@@ -1,7 +1,10 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
 import {
-  activeWorkbookSheetAtom, rustHistoryPanelAtom, type RustWorkbookCommands,
+  activeWorkbookSheetAtom,
+  groupedSheetIdsAtom,
+  rustHistoryPanelAtom,
+  type RustWorkbookCommands,
 } from '@einfach-excel/spreadsheet-ui-core'
 import {
   createControlledCellEditingConnection,
@@ -109,5 +112,36 @@ describe('workbook sheet tabs', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('not saved'))
     expect(store.getter(activeWorkbookSheetAtom)?.id).toBe('orders')
     expect(screen.getByLabelText('Cell editor')).toHaveValue('Unsaved value')
+  })
+
+  test('Ctrl/Shift click and context menu Select all sheets / Ungroup sheets manage worksheet group UI', async () => {
+    const { store } = await setup()
+    const ordersTab = screen.getByRole('tab', { name: 'Sales Orders' })
+    const summaryTab = screen.getByRole('tab', { name: 'Summary' })
+    expect(ordersTab).not.toHaveAttribute('data-grouped')
+    expect(summaryTab).not.toHaveAttribute('data-grouped')
+    expect(screen.queryByText('[Group]')).toBeNull()
+
+    fireEvent.click(summaryTab, { ctrlKey: true })
+    await waitFor(() => expect(store.getter(groupedSheetIdsAtom)).toEqual(['orders', 'summary']))
+    expect(ordersTab).toHaveAttribute('data-grouped', 'true')
+    expect(summaryTab).toHaveAttribute('data-grouped', 'true')
+    expect(screen.getByText('[Group]')).toBeVisible()
+
+    fireEvent.contextMenu(ordersTab)
+    const ungroupBtn = await screen.findByRole('menuitem', { name: 'Ungroup sheets' })
+    expect(ungroupBtn).toBeEnabled()
+    expect(screen.getByRole('menuitem', { name: 'Select all sheets' })).toBeDisabled()
+    fireEvent.click(ungroupBtn)
+    await waitFor(() => expect(store.getter(groupedSheetIdsAtom)).toEqual(['orders']))
+    expect(screen.queryByText('[Group]')).toBeNull()
+
+    fireEvent.contextMenu(ordersTab)
+    const selectAllBtn = await screen.findByRole('menuitem', { name: 'Select all sheets' })
+    expect(selectAllBtn).toBeEnabled()
+    expect(screen.getByRole('menuitem', { name: 'Ungroup sheets' })).toBeDisabled()
+    fireEvent.click(selectAllBtn)
+    await waitFor(() => expect(store.getter(groupedSheetIdsAtom)).toEqual(['orders', 'summary']))
+    expect(screen.getByText('[Group]')).toBeVisible()
   })
 })

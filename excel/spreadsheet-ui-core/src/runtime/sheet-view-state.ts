@@ -14,3 +14,7 @@ export const sheetViewsBackingAtom = atom<{
   /** 引用拾取只是临时浏览，不得覆盖各表的普通视图。 */
   referenceBrowsing: boolean
 }>(EMPTY_SHEET_VIEWS)
+sheetViewsBackingAtom.debugLabel = 'spreadsheet.runtime.sheetViewsBacking'
+
+export const groupedSheetIdsBackingAtom = atom<readonly string[]>([])
+groupedSheetIdsBackingAtom.debugLabel = 'spreadsheet.sheetManagement.groupedIdsBacking'

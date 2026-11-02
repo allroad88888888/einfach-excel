@@ -13,8 +13,8 @@ The companion contracts provide fuller API and ownership detail:
 
 - [Sparse storage model](SPARSE_STORAGE_MODEL.md)
 - [Range dependency tiers](RANGE_DEPENDENCY_TIERS.md)
-- [Boundedness contracts](BOUNDEDNESS_CONTRACTS.md)
 - [Projection boundary contract](PROJECTION_BOUNDARY_CONTRACT.md)
+- [Historical boundedness contracts (archived)](archive/BOUNDEDNESS_CONTRACTS.md)
 
 ## Sparse cell records
 
@@ -51,17 +51,18 @@ quantify memory use or execution cost for a workbook or a range.
 - A range at or below Tier A takes dependencies through individual cell
   facades. Larger ranges take one epoch dependency per column-row band when the
   band count is within the Tier-B limit.
-  `excel/rust/excel-core/src/sheet.rs:1474-1490`,
-  `excel/rust/excel-core/src/sheet.rs:1639-1658`
+  `excel/rust/excel-core/src/sheet_facade_range_context.rs:24-41`,
+  `excel/rust/excel-core/src/sheet_atom_formula_provider.rs:54-74`
 - If Tier B does not apply, a range uses per-column epochs when its column count
   is within the Tier-C limit; otherwise it uses the sheet epoch.
-  `excel/rust/excel-core/src/sheet.rs:1491-1502`
+  `excel/rust/excel-core/src/sheet_facade_range_context.rs:43-52`
 - Range-epoch objects are created lazily when a dependency needs them.
-  `excel/rust/excel-core/src/sheet.rs:1456-1472`
+  `excel/rust/excel-core/src/sheet_facade_range_context.rs:6-22`
 - When an address's store-root collection is built, existing row-band, column,
-  and sheet epoch atoms for that address are included.
-  `excel/rust/excel-core/src/sheet.rs:1972-1999`,
-  `excel/rust/excel-core/src/sheet.rs:2014-2040`
+  and sheet epoch atoms for that address are included, and membership-changing
+  writes bump only already-materialized geometry roots.
+  `excel/rust/excel-core/src/sheet_dependency_graph.rs:12-34,89-116`,
+  `excel/rust/excel-core/src/sheet_facade.rs:84-120`
 
 The limits are current source constants and routing rules. They are not a
 promise about recalculation time, invalidation volume, or memory use.
@@ -94,22 +95,20 @@ transport behavior.
 
 ## Range-native operations
 
-- The UI store currently sets a 10,000-cell threshold for range clear, range
-  formatting, and clipboard-related address expansion. `excel/solid-excel/legacy/sheet-store.ts:76-79`
-- For a selection above the clear threshold, clearing calls the backend
-  `clear_range` rectangle operation. If that operation is unavailable, the
-  helper reports failure instead of expanding the selection into cell actions.
-  `excel/solid-excel/legacy/sheet-store.ts:682-735`
-- For a selection above the formatting threshold, formatting calls
-  `set_format_range`. If unavailable, the helper reports failure; smaller
-  selections use the address-oriented path. `excel/solid-excel/legacy/sheet-store.ts:584-660`
-- For a selection above the clipboard threshold, copy attempts range TSV export
-  through `export_range_tsv_chunks` or `export_range_tsv`; without either it
-  returns `null`. `excel/solid-excel/legacy/sheet-store.ts:527-575`
-- Address expansion for selection-based actions returns `null` above the
-  configured limit, preventing those callers from receiving a full address
-  grid. `excel/solid-excel/legacy/sheet-store.ts:806-826`
+- In the current mainline, range clear (`range.clear`) and range formatting
+  (`format.setRange`) transmit explicit rectangle coordinates (`CellRange`) over
+  `RustWorkbookConnection` rather than expanding a selection into per-cell RPCs.
+  `excel/spreadsheet-ui-core/src/rust-workbook/commands.ts:334-337,365-371`
+- Clipboard export (`clipboard.export`) validates the requested `CellRange`
+  within Excel sheet bounds and rejects ranges exceeding `MAX_EXPORT_CELLS`
+  (`100_000` cells) or `MAX_EXPORT_BYTES` (`16 MiB`) with explicit errors
+  (`CLIPBOARD_TOO_LARGE`).
+  `excel/spreadsheet-ui-core/src/rust-workbook/clipboard-export.ts:9-30,58-63`
+- Range sort (`range.sort`) validates the rectangle bounds and rejects ranges
+  exceeding `1,048,576` cells before executing in the Worker.
+  `excel/spreadsheet-ui-core/src/rust-workbook/sort-io.ts:13-20`
+- The earlier paused Solid-era `sheet-store.ts` 10,000-cell optional capability
+  threshold is preserved in [Historical boundedness contracts (archived)](archive/BOUNDEDNESS_CONTRACTS.md).
 
-These are current operation-selection rules. They do not guarantee that a
-backend exposes a range operation, nor do they make a transport or timing
-claim.
+These are current operation-selection and validation rules. They do not make a
+transport or timing claim.

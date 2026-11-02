@@ -61,17 +61,15 @@ dependency layers beneath it.
 
 ## 4. Range-native operations: preserve the rectangle at command time
 
-The [boundedness capability contracts](BOUNDEDNESS_CONTRACTS.md) record the
-selection rules for clear, formatting, and clipboard actions. Above each
-operation's configured address-grid limit, the UI attempts the corresponding
-backend rectangle capability: `clear_range`, `set_format_range`, or range TSV
-export. Address expansion itself returns `null` above its configured limit.
-
-Backend capabilities are optional. An oversized clear or formatting request
-whose backend lacks the required range capability is explicitly refused; an
-oversized copy without a range TSV export returns `null`. The UI does not imply
-that every backend supports these operations, and it does not silently expand
-an unsupported oversized rectangle into per-cell work.
+In the current mainline (`RustWorkbookConnection`), range operations such as
+`range.clear`, `format.setRange`, `range.fill`, `range.sort`, and
+`clipboard.export` pass explicit `CellRange` rectangles directly to the Rust
+Worker instead of expanding selections into per-cell requests on the main
+thread. Operations that materialize serialized export payloads (such as
+`clipboard.export`) enforce explicit cell-count and byte caps in the Worker and
+reject oversized requests rather than silently expanding unbounded grids. The
+historical Solid-era optional capability rules are preserved in
+[boundedness capability contracts (archived)](archive/BOUNDEDNESS_CONTRACTS.md).
 
 ## Reading the architecture correctly
 

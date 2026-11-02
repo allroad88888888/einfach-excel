@@ -168,7 +168,7 @@ jobs:
 
   # Rust 引擎门禁。三个 crate 的 2700+ 个 #[test] 此前不在任何 workflow 里,
   # 纯靠人工本地跑。命令口径来自 excel/rust/docs/archive/RELEASE_GATE_PLAN.md
-  # 的 blocking gate 与 docs/PARITY_BACKLOG_HANDOFF_2026-08-04.md 的验证纪律:
+  # 的 blocking gate 与 docs/archive/PARITY_BACKLOG_HANDOFF_2026-08-04.md 的验证纪律:
   # excel-core 双跑 default 与 --no-default-features(对应 full/lite 两份 WASM
   # 产物的 feature 面);bench --no-run 抓 bench harness 与引擎 API 签名漂移;
   # wasm-pack test 是 WASM 浏览器行为的门禁(#[wasm_bindgen_test])。

@@ -1,11 +1,11 @@
 # AD-800：规模能力与技术差异化
 
-父节点：[对外采用与推广：Issue 树](../ADOPTION_ISSUE_TREE.md)
+父节点：[对外采用与推广：Issue 树](../archive/ADOPTION_ISSUE_TREE.md)
 
 本组把「大规模表格下仍然有界」的代码事实转成对外可验证的差异点。它独立于 [AD-500](AD-500-performance.md)：后者测多快，本组证明多大仍不失控。
 
 状态：**AD-801~807、AD-810~811、AD-813~817、AD-819~827 完成并独立验收；其余未开始。**
-验收提交号的权威登记是 [Issue 树](../ADOPTION_ISSUE_TREE.md)的「已完成叶子」表；下方交付表只列已成文的机制契约。
+验收提交号的权威登记是 [Issue 树](../archive/ADOPTION_ISSUE_TREE.md)的「已完成叶子」表；下方交付表只列已成文的机制契约。
 
 ## 声明纪律
 
@@ -19,11 +19,11 @@
 | 叶子   | 交付物                                                  | 提交                                       |
 | ------ | ------------------------------------------------------- | ------------------------------------------ |
 | AD-802 | [Tier 分层机制说明](../RANGE_DEPENDENCY_TIERS.md)       | `2134b04`                                  |
-| AD-804 | [有界性契约映射](../BOUNDEDNESS_CONTRACTS.md)           | `61bf5c1`                                  |
+| AD-804 | [有界性契约映射](../archive/BOUNDEDNESS_CONTRACTS.md)           | `61bf5c1`                                  |
 | AD-814 | [规模与架构对比维度](../SCALE_COMPARISON_DIMENSIONS.md) | `fa834e2a51e98e8ee86f0a3ddc1ca44cf5a76b17` |
 | AD-821 | [按需求值机制](../ON_DEMAND_EVALUATION.md)              | `fe8e6a1`                                  |
 | AD-822 | [跨 sheet 按需求值](../CROSS_SHEET_EVALUATION.md)       | `ae7f5bc`                                  |
-| AD-823 | [懒求值归档件与现状审计](../LAZY_EVALUATION_AUDIT.md)   | `62755dc`、`fbdf800`                       |
+| AD-823 | [懒求值归档件与现状审计](../archive/LAZY_EVALUATION_AUDIT.md)   | `62755dc`、`fbdf800`                       |
 | AD-824 | [投影边界约束](../PROJECTION_BOUNDARY_CONTRACT.md)      | `336c449`                                  |
 
 这些交付确认的只是契约和源码现状；它们不构成网络载荷、远程后端或千万级性能的实测承诺。
@@ -40,8 +40,8 @@
 
 - **AD-806** —— 千万级已填充格种子数据与生成脚本。
 - **AD-807** —— **完成**：千万级加载边界观察已验收（`4a2ab4e`、`c815e39`）。
-- **AD-808** —— **完成**（于可达档位）：6,000×1,000 真实 DemoMillion 表面——视口推进/远角跳转/全表选区,DOM 与订阅全程视口量级;千万档未达成:direct 导入三次均在累计 7,340,000 格 WASM trap(引擎边界,issue #13 / AD-830),见[观察记录](../AD808_SCALE_INTERACTION_OBSERVATION.md)。
-- **AD-809** —— **完成**（于可达档位）：7,000×1,000 + 深链 + 整列 SUM——导入后求值 0、窗口读恰 13、累计求值仅总格数 0.30%,AD-821 按需求值的规模实测印证;见[观察记录](../AD809_SCALE_RECALC_OBSERVATION.md)。
+- **AD-808** —— **完成**（于可达档位）：6,000×1,000 真实 DemoMillion 表面——视口推进/远角跳转/全表选区,DOM 与订阅全程视口量级;千万档未达成:direct 导入三次均在累计 7,340,000 格 WASM trap(引擎边界,issue #13 / AD-830),见[观察记录](../archive/AD808_SCALE_INTERACTION_OBSERVATION.md)。
+- **AD-809** —— **完成**（于可达档位）：7,000×1,000 + 深链 + 整列 SUM——导入后求值 0、窗口读恰 13、累计求值仅总格数 0.30%,AD-821 按需求值的规模实测印证;见[观察记录](../archive/AD809_SCALE_RECALC_OBSERVATION.md)。
 - **AD-810** —— **完成**：原子导入 session 边界观察已验收（`bcfc527`）。
 - **AD-811** —— 每万格内存开销的测量口径。
 - **AD-812** —— **完成**：PV-36/37 常驻契约(密集视口往返有界 + 求值数跟随访问范围),双 project 常绿,无时间数字。
@@ -54,10 +54,10 @@
 - **AD-823 归档件与现状复核** —— **完成**：归档结论与当前代码差异已审计；后续引用以此审计为准。
 - **AD-824 投影边界约束成文** —— **完成**：无 fact store、无 offscreen 缓存、按 `sheetId` 限定的边界已成文。
 - **AD-825** —— **完成**：worker 过线载荷字节遥测已落地（`b8c4e226`、`56ca8bb`）。
-- **AD-826** —— **完成**：首屏实际求值格数与工作簿总格数已有实测记录（`db5a2a8` 建测，`4f6bc662` 钉死真实 worker 后端后验收）：96 格夹具、48 条公式，首屏读取后两种后端的累计求值数均为 24；解释边界见 [观察记录](../AD826_FIRST_SCREEN_EVALUATION_OBSERVATION.md)。
+- **AD-826** —— **完成**：首屏实际求值格数与工作簿总格数已有实测记录（`db5a2a8` 建测，`4f6bc662` 钉死真实 worker 后端后验收）：96 格夹具、48 条公式，首屏读取后两种后端的累计求值数均为 24；解释边界见 [观察记录](../archive/AD826_FIRST_SCREEN_EVALUATION_OBSERVATION.md)。
 - **AD-827** —— **完成**：有界与全范围读取观察已验收（`19bb65a2`）。
-- **AD-828** —— **完成**：HTTP 后端 demo(`?backend=remote`)+ 实测——60 万格远端工作簿,整场会话 5 次请求 / 227,172 字节 vs 全簿序列化 47,285,608 字节;见[观察记录](../AD828_REMOTE_BACKEND_OBSERVATION.md)(demo 非生产、回环非真实网络等边界在记录内)。
-- **AD-829** —— **完成**：[规模传输叙事](../SCALE_TRANSPORT_NARRATIVE.md)——稀疏存储→Tier→按需求值→载荷口径→有界读取→远程可行,每论点只引已入库记录。
+- **AD-828** —— **完成**：HTTP 后端 demo(`?backend=remote`)+ 实测——60 万格远端工作簿,整场会话 5 次请求 / 227,172 字节 vs 全簿序列化 47,285,608 字节;见[观察记录](../archive/AD828_REMOTE_BACKEND_OBSERVATION.md)(demo 非生产、回环非真实网络等边界在记录内)。
+- **AD-829** —— **完成**：[规模传输叙事](../archive/SCALE_TRANSPORT_NARRATIVE.md)——稀疏存储→Tier→按需求值→载荷口径→有界读取→远程可行,每论点只引已入库记录。
 
 ## 对比文档
 

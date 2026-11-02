@@ -17,8 +17,8 @@ same Store after visiting the non-empty cells in its requested range. A formula
 visited through either public read therefore evaluates in workbook context,
 rather than with the single-sheet provider.
 
-Sources: `excel/rust/excel-core/src/workbook_read.rs:4-67`;
-`excel/rust/excel-core/src/sheet.rs:2534-2551`.
+Sources: `excel/rust/excel-core/src/workbook_read.rs:6-61`;
+`excel/rust/excel-core/src/sheet_read.rs:32-50` (`Sheet::peek_value_with_provider`).
 
 ## Provider routing
 
@@ -51,7 +51,7 @@ Sources: `excel/rust/excel-core/src/workbook_eval_provider.rs:20-116`.
   `FormulaRecord` hydration remains deferred.
 
 Sources: `excel/rust/excel-core/src/workbook_eval_provider.rs:48-108`;
-`excel/rust/excel-core/src/sheet.rs:2534-2551`;
+`excel/rust/excel-core/src/sheet_read.rs:32-50` (`Sheet::peek_value_with_provider`);
 `excel/rust/excel-core/src/sheet_bulk_formula.rs:118-145`.
 
 ## Topology and reactive propagation

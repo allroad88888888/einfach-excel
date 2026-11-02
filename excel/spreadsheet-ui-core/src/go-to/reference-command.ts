@@ -58,7 +58,7 @@ export const runGoToReferenceAtom = atom(null, (get, set, action: GoToReferenceA
   const active = get(activeWorkbookSheetAtom)!
   const sheets = get(workbookDocumentAtom).sheets
   const input = recent ?? get(goToInputAtom)
-  const named = resolveNativeNamedRange(input, get(nativeNamedRangesAtom), sheets)
+  const named = resolveNativeNamedRange(input, get(nativeNamedRangesAtom), sheets, active.id)
   if (named === null) return fail('This named range no longer refers to an available worksheet range.')
   const parsed: GoToParseResult = named ? { ok: true, target: named } : parseGoToReference(input, {
     activeSheetId: active.id, activeCell: get(selectionSnapshotAtom).activeCell,

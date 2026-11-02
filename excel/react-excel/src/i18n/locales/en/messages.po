@@ -1871,6 +1871,12 @@ msgstr "Edit"
 msgid "Edit {0}"
 msgstr "Edit {0}"
 
+#. placeholder {0}: entry.name
+#. placeholder {1}: scopeSheet.name
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Edit {0} ({1})"
+msgstr "Edit {0} ({1})"
+
 #: src/i18n/feedback-messages.ts
 msgid "Edit cell"
 msgstr "Edit cell"
@@ -4728,6 +4734,10 @@ msgstr "Scale colors"
 msgid "Scientific"
 msgstr "Scientific"
 
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Scope"
+msgstr "Scope"
+
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Search"
 msgstr "Search"
@@ -6448,6 +6458,7 @@ msgstr "Within"
 
 #: src/workbook/chrome/header/WorkbookHeader.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Workbook"
 msgstr "Workbook"
 

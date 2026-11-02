@@ -127,3 +127,21 @@ test('Table entries show their cross-sheet target and navigate without a native 
   expect(request).not.toHaveBeenCalled()
   await waitFor(() => expect(screen.getByTestId('grid')).toHaveFocus())
 })
+
+test('Scope selector and formula Refers to create sheet-scoped named formulas', async () => {
+  const request = setup()
+  await click('Name manager')
+  await change('Name', 'TaxFormula')
+  await change('Scope', 'source')
+  await change('Refers to', '=SUM(Source!A1:A5)*0.15')
+  await click('Create name')
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request.mock.calls[0]).toMatchObject(['namedRange.change', {
+    action: {
+      kind: 'create',
+      name: 'TaxFormula',
+      scopeSheetId: 'source',
+      formula: '=SUM(Source!A1:A5)*0.15',
+    },
+  }])
+})

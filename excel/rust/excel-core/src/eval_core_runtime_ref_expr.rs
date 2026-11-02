@@ -20,12 +20,28 @@ pub(super) fn runtime_ref_from_expr(
                     materialized: None,
                 });
             }
+            if let Some(reference) = eval_named_formula_runtime_ref(None, name, provider)? {
+                return Ok(reference);
+            }
             // 裸表名等同 Table[#Data]，仍使用同一个几何解析入口。
             // 未找到 Table 时保留 InvalidValue，让值求值继续查命名常量/LAMBDA。
             match resolve_table_ref(Some(name), TableArea::Data, None, provider) {
                 Err(ValueError::InvalidName) => Err(ValueError::InvalidValue),
                 result => result,
             }
+        }
+        Expr::SheetName { sheet, name } => {
+            if let Some((target_sheet, range)) = provider.lookup_sheet_named_range(sheet, name)? {
+                return Ok(RuntimeRef {
+                    sheet: Some(target_sheet),
+                    range,
+                    materialized: None,
+                });
+            }
+            if let Some(reference) = eval_named_formula_runtime_ref(Some(sheet), name, provider)? {
+                return Ok(reference);
+            }
+            Err(ValueError::InvalidValue)
         }
         Expr::CellRef(addr, _) => Ok(RuntimeRef {
             sheet: None,
@@ -125,4 +141,27 @@ pub(super) fn resolve_table_ref(
         range,
         materialized,
     })
+}
+
+pub(super) fn eval_named_formula_runtime_ref(
+    sheet: Option<&str>,
+    name: &str,
+    provider: &dyn EvalProvider,
+) -> Result<Option<RuntimeRef>, ValueError> {
+    let Some((scope_idx, scope_name, expr)) = provider.lookup_named_formula(sheet, name)? else {
+        return Ok(None);
+    };
+    let inner = with_named_formula_scope(provider, scope_idx, name, || {
+        runtime_ref_from_expr(&expr, provider)
+    })?;
+    match inner {
+        Ok(mut reference) => {
+            if reference.sheet.is_none() {
+                reference.sheet = scope_name;
+            }
+            Ok(Some(reference))
+        }
+        Err(ValueError::InvalidValue) => Ok(None),
+        Err(err) => Err(err),
+    }
 }

@@ -2,7 +2,11 @@
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct NamedRangeJSON {
     name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    scope: Option<usize>,
     target: Option<NamedRangeTargetJSON>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    formula: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -24,40 +28,158 @@ impl NamedRangeTargetJSON {
 
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
-enum NamedRangeActionJSON {
+enum RawNamedRangeActionJSON {
     Create {
         name: String,
-        target: NamedRangeTargetJSON,
+        #[serde(default)]
+        scope: Option<usize>,
+        #[serde(default)]
+        target: Option<NamedRangeTargetJSON>,
+        #[serde(default)]
+        formula: Option<String>,
     },
     Update {
         name: String,
+        #[serde(default)]
+        scope: Option<usize>,
         #[serde(rename = "newName")]
         new_name: String,
+        #[serde(default, rename = "newScope")]
+        new_scope: Option<Option<usize>>,
+        #[serde(default)]
         target: Option<NamedRangeTargetJSON>,
+        #[serde(default)]
+        formula: Option<String>,
     },
     Delete {
         name: String,
+        #[serde(default)]
+        scope: Option<usize>,
     },
+}
+
+#[derive(Deserialize)]
+#[serde(try_from = "RawNamedRangeActionJSON")]
+enum NamedRangeActionJSON {
+    Create {
+        name: String,
+        scope: Option<usize>,
+        target: Option<NamedRangeTargetJSON>,
+        formula: Option<String>,
+    },
+    Update {
+        name: String,
+        scope: Option<usize>,
+        new_name: String,
+        new_scope: Option<Option<usize>>,
+        target: Option<NamedRangeTargetJSON>,
+        formula: Option<String>,
+    },
+    Delete {
+        name: String,
+        scope: Option<usize>,
+    },
+}
+
+impl TryFrom<RawNamedRangeActionJSON> for NamedRangeActionJSON {
+    type Error = &'static str;
+
+    fn try_from(raw: RawNamedRangeActionJSON) -> Result<Self, Self::Error> {
+        match raw {
+            RawNamedRangeActionJSON::Create {
+                name,
+                scope,
+                target,
+                formula,
+            } => {
+                if target.is_none() == formula.is_none() {
+                    return Err("Create requires exactly one of target or formula.");
+                }
+                Ok(Self::Create {
+                    name,
+                    scope,
+                    target,
+                    formula,
+                })
+            }
+            RawNamedRangeActionJSON::Update {
+                name,
+                scope,
+                new_name,
+                new_scope,
+                target,
+                formula,
+            } => {
+                if target.is_some() && formula.is_some() {
+                    return Err("Update cannot specify both target and formula.");
+                }
+                Ok(Self::Update {
+                    name,
+                    scope,
+                    new_name,
+                    new_scope,
+                    target,
+                    formula,
+                })
+            }
+            RawNamedRangeActionJSON::Delete { name, scope } => Ok(Self::Delete { name, scope }),
+        }
+    }
 }
 
 impl NamedRangeActionJSON {
     fn into_action(self) -> einfach_excel_core::workbook::NamedRangeAction {
         use einfach_excel_core::workbook::NamedRangeAction as Action;
         match self {
-            Self::Create { name, target } => {
+            Self::Create {
+                name,
+                scope: None,
+                target: Some(target),
+                formula: None,
+            } => {
                 let (sheet, range) = target.into_target();
                 Action::Create { name, sheet, range }
             }
+            Self::Create {
+                name,
+                scope,
+                target,
+                formula,
+            } => Action::CreateScoped {
+                name,
+                scope,
+                target: target.map(NamedRangeTargetJSON::into_target),
+                formula,
+            },
             Self::Update {
                 name,
+                scope: None,
                 new_name,
+                new_scope: None,
                 target,
+                formula: None,
             } => Action::Update {
                 name,
                 new_name,
                 target: target.map(NamedRangeTargetJSON::into_target),
             },
-            Self::Delete { name } => Action::Delete { name },
+            Self::Update {
+                name,
+                scope,
+                new_name,
+                new_scope,
+                target,
+                formula,
+            } => Action::UpdateScoped {
+                name,
+                scope,
+                new_name,
+                new_scope,
+                target: target.map(NamedRangeTargetJSON::into_target),
+                formula,
+            },
+            Self::Delete { name, scope: None } => Action::Delete { name },
+            Self::Delete { name, scope } => Action::DeleteScoped { name, scope },
         }
     }
 }
@@ -85,6 +207,7 @@ impl WasmWorkbook {
             .into_iter()
             .map(|entry| NamedRangeJSON {
                 name: entry.name,
+                scope: entry.scope,
                 target: entry.target.map(|(sheet, range)| NamedRangeTargetJSON {
                     sheet,
                     range: [
@@ -94,6 +217,7 @@ impl WasmWorkbook {
                         range.end.col,
                     ],
                 }),
+                formula: entry.formula,
             })
             .collect()
     }
@@ -106,7 +230,9 @@ impl WasmWorkbook {
             .into_iter()
             .map(|entry| einfach_excel_core::workbook::NamedRangeSnapshot {
                 name: entry.name,
+                scope: entry.scope,
                 target: entry.target.map(NamedRangeTargetJSON::into_target),
+                formula: entry.formula,
             })
             .collect();
         workbook

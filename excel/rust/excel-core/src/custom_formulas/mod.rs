@@ -102,6 +102,7 @@ impl Workbook {
         for definition in definitions {
             let definition = validation::normalize(definition)?;
             if self.named_values.contains_key(&definition.name)
+                || self.has_sheet_scoped_name(&definition.name)
                 || self.tables.contains_key(&definition.name)
             {
                 return Err("The custom formula name is already in use.");

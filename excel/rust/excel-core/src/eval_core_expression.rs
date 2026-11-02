@@ -145,10 +145,33 @@ pub fn eval_expr_with_provider(expr: &Expr, provider: &dyn EvalProvider) -> Valu
                 Err(ValueError::InvalidValue) => {}
                 Err(error) => return Value::Error(error),
             }
+            match eval_named_formula_value(None, name, provider) {
+                Ok(Some(v)) => return v,
+                Ok(None) => {}
+                Err(e) => return Value::Error(e),
+            }
             if let Some(v) = provider.lookup_named(name) {
                 return v;
             }
             Value::Error(ValueError::InvalidName)
+        }
+
+        Expr::SheetName { sheet, name } => {
+            match runtime_ref_from_expr(expr, provider) {
+                Ok(reference) => return runtime_ref_to_value(&reference, provider),
+                Err(ValueError::InvalidValue) => {}
+                Err(error) => return Value::Error(error),
+            }
+            match eval_named_formula_value(Some(sheet), name, provider) {
+                Ok(Some(v)) => return v,
+                Ok(None) => {}
+                Err(e) => return Value::Error(e),
+            }
+            match provider.lookup_sheet_named(sheet, name) {
+                Ok(Some(v)) => v,
+                Ok(None) => Value::Error(ValueError::InvalidName),
+                Err(e) => Value::Error(e),
+            }
         }
 
         Expr::Call(callee, call_args) => {
@@ -211,4 +234,18 @@ pub fn eval_expr_with_provider(expr: &Expr, provider: &dyn EvalProvider) -> Valu
             Value::Error(ValueError::InvalidValue)
         }
     }
+}
+
+pub(super) fn eval_named_formula_value(
+    sheet: Option<&str>,
+    name: &str,
+    provider: &dyn EvalProvider,
+) -> Result<Option<Value>, ValueError> {
+    let Some((scope_idx, _, expr)) = provider.lookup_named_formula(sheet, name)? else {
+        return Ok(None);
+    };
+    let value = with_named_formula_scope(provider, scope_idx, name, || {
+        eval_expr_with_provider(&expr, provider)
+    })?;
+    Ok(Some(value))
 }

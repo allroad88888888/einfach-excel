@@ -40,11 +40,32 @@ impl<'a, 'r> AtomFormulaProvider<'a, 'r> {
     }
 
     fn read_facade(&self, addr: CellAddress) -> Value {
+        if let Some(ctx) = self.override_ctx() {
+            return self.read_facade_from(&ctx, addr);
+        }
         self.read_facade_from(&self.ctx, addr)
     }
 
     fn workbook_context(&self) -> Option<Rc<WorkbookAtomContext>> {
         self.ctx.workbook_scope().map(|(context, _)| context)
+    }
+
+    fn effective_sheet_index(&self) -> Option<usize> {
+        let provider_id = self as *const Self as usize;
+        if let Some(idx) = crate::eval::active_named_formula_sheet(provider_id) {
+            return Some(idx);
+        }
+        self.ctx.workbook_scope().map(|(_, idx)| idx)
+    }
+
+    fn override_ctx(&self) -> Option<FacadeCtx> {
+        let provider_id = self as *const Self as usize;
+        let idx = crate::eval::active_named_formula_sheet(provider_id)?;
+        let (context, base_idx) = self.ctx.workbook_scope()?;
+        if idx == base_idx {
+            return None;
+        }
+        context.resolve_sheet_by_index(idx, self.args)
     }
 
     fn resolve_sheet(&self, name: &str) -> Option<(usize, FacadeCtx)> {
@@ -113,6 +134,10 @@ impl<'a, 'r> EvalProvider for AtomFormulaProvider<'a, 'r> {
     /// remains sparse: empty cells are only read for dependency edges and are
     /// not emitted.
     fn for_each_range_cell(&self, range: CellRange, f: &mut dyn FnMut(CellAddress, Value)) {
+        if let Some(ctx) = self.override_ctx() {
+            self.for_each_range_in(&ctx, range, f);
+            return;
+        }
         self.for_each_range_in(&self.ctx, range, f);
     }
 
@@ -163,13 +188,64 @@ impl<'a, 'r> EvalProvider for AtomFormulaProvider<'a, 'r> {
     }
 
     fn lookup_named(&self, name: &str) -> Option<Value> {
+        if let Some(sheet_idx) = self.effective_sheet_index() {
+            if let Some(resolved) = self
+                .workbook_context()?
+                .lookup_sheet_scoped_value(sheet_idx, name, self.args)
+            {
+                return resolved;
+            }
+        }
         self.workbook_context()?.lookup_named(name, self.args)
     }
 
     fn lookup_named_range(&self, name: &str) -> Result<Option<(String, CellRange)>, ValueError> {
         match self.workbook_context() {
-            Some(context) => context.lookup_named_range(name, self.args),
+            Some(context) => {
+                context.lookup_scoped_named_range(self.effective_sheet_index(), name, self.args)
+            }
             None => Ok(None),
+        }
+    }
+
+    fn lookup_sheet_named(
+        &self,
+        sheet: &str,
+        name: &str,
+    ) -> Result<Option<Value>, ValueError> {
+        match self.workbook_context() {
+            Some(context) => context.lookup_sheet_named(sheet, name, self.args),
+            None => Err(ValueError::InvalidRef),
+        }
+    }
+
+    fn lookup_sheet_named_range(
+        &self,
+        sheet: &str,
+        name: &str,
+    ) -> Result<Option<(String, CellRange)>, ValueError> {
+        match self.workbook_context() {
+            Some(context) => context.lookup_sheet_named_range(sheet, name, self.args),
+            None => Err(ValueError::InvalidRef),
+        }
+    }
+
+    fn lookup_named_formula(
+        &self,
+        sheet: Option<&str>,
+        name: &str,
+    ) -> Result<Option<(Option<usize>, Option<String>, Rc<Expr>)>, ValueError> {
+        match self.workbook_context() {
+            Some(context) => context.lookup_named_formula(
+                self.effective_sheet_index(),
+                sheet,
+                name,
+                self.args,
+            ),
+            None => match sheet {
+                Some(_) => Err(ValueError::InvalidRef),
+                None => Ok(None),
+            },
         }
     }
 
@@ -188,9 +264,9 @@ impl<'a, 'r> EvalProvider for AtomFormulaProvider<'a, 'r> {
     }
 
     fn current_sheet_index(&self) -> Option<usize> {
-        let (context, sheet_idx) = self.ctx.workbook_scope()?;
+        let (context, _) = self.ctx.workbook_scope()?;
         context.depend_topology(self.args);
-        Some(sheet_idx)
+        self.effective_sheet_index()
     }
 
     fn hidden_rows(&self, sheet_index: Option<usize>) -> Option<Rc<HashSet<u32>>> {

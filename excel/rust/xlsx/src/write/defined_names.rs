@@ -22,13 +22,27 @@ fn area([r1, c1, r2, c2]: [u32; 4]) -> String {
 pub fn xml(names: &[NamedRange], sheets: &[String]) -> (String, usize) {
     let mut broken = 0usize;
     let items: String = names.iter().map(|named| {
-        let target = named.target.as_ref()
-            .and_then(|t| sheets.get(t.sheet).map(|sheet| format!("'{}'!{}", sheet.replace('\'', "''"), area(t.range))))
-            .unwrap_or_else(|| {
+        let target = if let Some(formula) = &named.formula {
+            let body = crate::formula::to_xlsx(formula);
+            if body.is_empty() || body.contains("#REF!") {
                 broken += 1;
                 "#REF!".into()
-            });
-        format!(r#"<definedName name="{}">{}</definedName>"#, escape(&named.name), escape(&target))
+            } else {
+                body
+            }
+        } else {
+            named.target.as_ref()
+                .and_then(|t| sheets.get(t.sheet).map(|sheet| format!("'{}'!{}", sheet.replace('\'', "''"), area(t.range))))
+                .unwrap_or_else(|| {
+                    broken += 1;
+                    "#REF!".into()
+                })
+        };
+        let scope_attr = match named.scope {
+            Some(scope) if scope < sheets.len() => format!(r#" localSheetId="{scope}""#),
+            _ => String::new(),
+        };
+        format!(r#"<definedName name="{}"{scope_attr}>{}</definedName>"#, escape(&named.name), escape(&target))
     }).collect();
     if items.is_empty() {
         (String::new(), broken)

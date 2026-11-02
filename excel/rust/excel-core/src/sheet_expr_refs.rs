@@ -56,7 +56,8 @@ pub(super) fn collect_range_refs_into(expr: &Expr, out: &mut HashSet<CellRange>)
         | Expr::Text(_)
         | Expr::Bool(_)
         | Expr::Error(_)
-        | Expr::Name(_) => {}
+        | Expr::Name(_)
+        | Expr::SheetName { .. } => {}
         Expr::SpillRef(anchor) => collect_range_refs_into(anchor, out),
         Expr::DynamicRange { start, end } => {
             collect_range_refs_into(start, out);
@@ -134,7 +135,7 @@ pub(super) fn collect_refs(expr: &Expr, out: &mut Vec<CellAddress>) {
         }
         // Cross-sheet refs are out-of-scope for static cycle detection on
         // this sheet (cross-sheet cycles need workbook-level analysis).
-        Expr::SheetRef { .. } | Expr::SheetRange { .. } => {}
+        Expr::SheetRef { .. } | Expr::SheetRange { .. } | Expr::SheetName { .. } => {}
         Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) | Expr::Omitted => {}
         // LET-bound names don't reference cells.
         Expr::Name(_) => {}

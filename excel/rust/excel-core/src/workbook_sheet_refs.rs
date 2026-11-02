@@ -4,7 +4,9 @@ use crate::formula::Expr;
 
 pub(crate) fn rewrite_sheet_refs(expr: &mut Expr, old: &str, new: Option<&str>) {
     match expr {
-        Expr::SheetRef { sheet, .. } | Expr::SheetRange { sheet, .. } => {
+        Expr::SheetRef { sheet, .. }
+        | Expr::SheetRange { sheet, .. }
+        | Expr::SheetName { sheet, .. } => {
             if sheet.eq_ignore_ascii_case(old) {
                 if let Some(name) = new {
                     *sheet = name.to_string();

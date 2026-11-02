@@ -202,6 +202,11 @@ pub enum Expr {
         unbounded: RangeBounds,
         abs: RangeAbs,
     },
+    /// Sheet-qualified defined name: `Sheet1!TaxRate` or `'Sales Q1'!TaxRate`.
+    SheetName {
+        sheet: String,
+        name: String,
+    },
     /// Dynamic-array spill reference: `A1#` / `Sheet1!A1#`. The anchor is
     /// restricted to a single-cell reference at parse time.
     SpillRef(Box<Expr>),

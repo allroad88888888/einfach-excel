@@ -18,6 +18,11 @@ pub(crate) struct WorkbookEvalProvider<'a> {
 }
 
 impl<'a> WorkbookEvalProvider<'a> {
+    fn effective_sheet(&self) -> usize {
+        let provider_id = self as *const Self as usize;
+        crate::eval::active_named_formula_sheet(provider_id).unwrap_or_else(|| self.current.get())
+    }
+
     fn with_current<T>(&self, idx: usize, f: impl FnOnce() -> T) -> T {
         struct CurrentGuard<'a> {
             current: &'a Cell<usize>,
@@ -40,14 +45,14 @@ impl<'a> WorkbookEvalProvider<'a> {
 
 impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
     fn cell(&self, addr: CellAddress) -> Value {
-        let idx = self.current.get();
+        let idx = self.effective_sheet();
         crate::sheet::collapse_array_for_eval(
             self.wb.sheets[idx].peek_value_with_provider(addr, self),
         )
     }
 
     fn sheet_cell(&self, sheet: &str, addr: CellAddress) -> Value {
-        let Some(idx) = self.wb.by_name.get(sheet).copied() else {
+        let Some(idx) = self.wb.resolve_sheet_index_ci(sheet) else {
             return Value::Error(ValueError::InvalidRef);
         };
         self.with_current(idx, || {
@@ -58,12 +63,12 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
     }
 
     fn raw_cell(&self, addr: CellAddress) -> Value {
-        let idx = self.current.get();
+        let idx = self.effective_sheet();
         self.wb.sheets[idx].peek_value_with_provider(addr, self)
     }
 
     fn raw_sheet_cell(&self, sheet: &str, addr: CellAddress) -> Value {
-        let Some(idx) = self.wb.by_name.get(sheet).copied() else {
+        let Some(idx) = self.wb.resolve_sheet_index_ci(sheet) else {
             return Value::Error(ValueError::InvalidRef);
         };
         self.with_current(idx, || {
@@ -77,7 +82,7 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
     /// the workbook chain (the single-sheet `peek_value` would return
     /// `#REF!` for `Sheet2!A1`).
     fn for_each_range_cell(&self, range: CellRange, f: &mut dyn FnMut(CellAddress, Value)) {
-        let idx = self.current.get();
+        let idx = self.effective_sheet();
         let sheet = &self.wb.sheets[idx];
         sheet.for_each_sparse_cell_with(
             range,
@@ -94,7 +99,7 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
         range: CellRange,
         f: &mut dyn FnMut(CellAddress, Value),
     ) {
-        let Some(idx) = self.wb.by_name.get(sheet).copied() else {
+        let Some(idx) = self.wb.resolve_sheet_index_ci(sheet) else {
             f(
                 range.normalize().start,
                 Value::Error(ValueError::InvalidRef),
@@ -128,18 +133,43 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
         // consumed by `CELL("width")` on the eager workbook eval path
         // (`get_cell`, `define_name`). Cross-sheet `CELL("width", Other!A1)`
         // collapses to this sheet, matching the content-touching info_types.
-        self.wb.sheets[self.current.get()].col_width(col)
+        self.wb.sheets[self.effective_sheet()].col_width(col)
     }
 
     fn lookup_named(&self, name: &str) -> Option<Value> {
         // Delegate to the workbook's case-insensitive registry. Returns
         // a clone of the stored value (cheap for `Value::Lambda`, which
         // wraps an `Arc<dyn LambdaValue>`; constant-time for scalars).
-        self.wb.get_named(name)
+        self.wb.get_scoped_named_value(self.effective_sheet(), name)
     }
 
     fn lookup_named_range(&self, name: &str) -> Result<Option<(String, CellRange)>, ValueError> {
-        self.wb.named_range(name)
+        self.wb.scoped_named_range(self.effective_sheet(), name)
+    }
+
+    fn lookup_sheet_named(
+        &self,
+        sheet: &str,
+        name: &str,
+    ) -> Result<Option<Value>, ValueError> {
+        self.wb.sheet_qualified_named_value(sheet, name)
+    }
+
+    fn lookup_sheet_named_range(
+        &self,
+        sheet: &str,
+        name: &str,
+    ) -> Result<Option<(String, CellRange)>, ValueError> {
+        self.wb.sheet_qualified_named_range(sheet, name)
+    }
+
+    fn lookup_named_formula(
+        &self,
+        sheet: Option<&str>,
+        name: &str,
+    ) -> Result<Option<(Option<usize>, Option<String>, Rc<Expr>)>, ValueError> {
+        self.wb
+            .lookup_eval_named_formula(self.effective_sheet(), sheet, name)
     }
 
     fn lookup_table(&self, name: Option<&str>) -> Option<ResolvedTable> {
@@ -204,11 +234,11 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
     }
 
     fn current_sheet_index(&self) -> Option<usize> {
-        Some(self.current.get())
+        Some(self.effective_sheet())
     }
 
     fn sheet_index_of(&self, name: &str) -> Option<usize> {
-        self.wb.by_name.get(name).copied()
+        self.wb.resolve_sheet_index_ci(name)
     }
 
     fn hidden_rows(&self, sheet_index: Option<usize>) -> Option<Rc<HashSet<u32>>> {

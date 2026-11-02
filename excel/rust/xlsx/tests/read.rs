@@ -120,9 +120,10 @@ fn reads_hidden_rows_columns_links_notes_names_and_tables() {
     // 内部跳转（#Data!A1）没有原生对应物，只留外部链接。
     assert_eq!(book["hyperlinks"], serde_json::json!([{"sheet": 0, "row": 9, "col": 0, "url": "https://example.com/a?b=1&c=2"}]));
     assert_eq!(book["notes"], serde_json::json!([{"sheet": 0, "row": 9, "col": 1, "text": "Check this <value>\nsecond line"}]));
-    // 公式型名字（Computed）被跳过。
+    // 公式型名字（Computed）与范围名字一并保留。
     assert_eq!(book["namedRanges"], serde_json::json!([
         {"name": "Quantities", "target": {"sheet": 0, "range": [1, 1, 6, 1]}},
+        {"name": "Computed", "target": null, "formula": "=SUM(Data!$B$2:$B$3)"},
         {"name": "Other", "target": {"sheet": 1, "range": [1, 1, 1, 1]}}]));
     let table = &book["tables"][0];
     assert_eq!((table["name"].clone(), table["range"].clone(), table["sheet"].clone()), ("Sales".into(), "A1:D7".into(), "Data".into()));
@@ -210,8 +211,12 @@ body</t></r><rPh><t>skip</t></rPh></text></comment><comment ref="C3" authorId="0
     assert!(book["dataValidations"].is_null(), "range lists and inverted bounds are skipped");
     assert_eq!(book["hyperlinks"], serde_json::json!([{"sheet": 0, "row": 0, "col": 0, "url": "https://example.org/x"}]));
     assert_eq!(book["notes"], serde_json::json!([{"sheet": 0, "row": 1, "col": 1, "text": "A:\nbody"}]));
-    let names: Vec<_> = book["namedRanges"].as_array().unwrap().iter().map(|n| (n["name"].clone(), n["target"]["range"].clone())).collect();
-    assert_eq!(names, [("Rows".into(), serde_json::json!([1, 0, 2, 16383])), ("Cols".into(), serde_json::json!([0, 1, 1048575, 2]))]);
+    let names: Vec<_> = book["namedRanges"].as_array().unwrap().iter().map(|n| (n["name"].clone(), n["scope"].clone(), n["target"]["range"].clone())).collect();
+    assert_eq!(names, [
+        ("Local".into(), serde_json::json!(0), serde_json::json!([0, 0, 0, 0])),
+        ("Rows".into(), Value::Null, serde_json::json!([1, 0, 2, 16383])),
+        ("Cols".into(), Value::Null, serde_json::json!([0, 1, 1048575, 2])),
+    ]);
 }
 
 #[test]
@@ -228,10 +233,10 @@ fn reports_clean_import_on_basic_fixture_and_skipped_items_on_features_fixture()
         "features",
     ).unwrap();
     let kinds: Vec<_> = feat_report.items.iter().map(|i| (i.kind.as_str(), i.count)).collect();
-    assert_eq!(kinds, [("definedNames", 1), ("hyperlinks", 1)]);
+    assert_eq!(kinds, [("hyperlinks", 1)]);
     assert_eq!(
         feat_report.summary,
-        "Opened Excel workbook. Skipped: unsupported defined names, unsupported hyperlinks."
+        "Opened Excel workbook. Skipped: unsupported hyperlinks."
     );
 }
 
@@ -247,11 +252,15 @@ fn converts_1904_dates_and_reports_dropped_parts_from_edge_cases_fixture() {
     // 1904 serial 39813 + 1462 = 41275 (2013-01-01 in 1900 system); time cell C3 (0.5) is untouched.
     assert_eq!(cell(&file, 0, "C2").unwrap()["value"], 41275.0);
     assert_eq!(cell(&file, 0, "C3").unwrap()["value"], 0.5);
+    assert_eq!(
+        file["workbook"]["namedRanges"],
+        serde_json::json!([{"name": "FormulaName", "target": null, "formula": "=SUM(RichAndUnsupported!$B$2:$B$3)"}])
+    );
 
     let kinds: Vec<&str> = report.items.iter().map(|i| i.kind.as_str()).collect();
     for expected in [
         "date1904", "charts", "threadedComments", "conditionalFormats", "dataValidations",
-        "definedNames", "hyperlinks", "richText", "sheetProtection", "autoFilter",
+        "hyperlinks", "richText", "sheetProtection", "autoFilter",
         "outline", "printSetup", "macros",
     ] {
         assert!(kinds.contains(&expected), "expected {expected} in {kinds:?}");

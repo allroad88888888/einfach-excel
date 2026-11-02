@@ -144,6 +144,30 @@ pub trait EvalProvider {
         Ok(None)
     }
 
+    fn lookup_sheet_named(
+        &self,
+        _sheet: &str,
+        _name: &str,
+    ) -> Result<Option<Value>, ValueError> {
+        Ok(None)
+    }
+
+    fn lookup_sheet_named_range(
+        &self,
+        _sheet: &str,
+        _name: &str,
+    ) -> Result<Option<(String, CellRange)>, ValueError> {
+        Ok(None)
+    }
+
+    fn lookup_named_formula(
+        &self,
+        _sheet: Option<&str>,
+        _name: &str,
+    ) -> Result<Option<(Option<usize>, Option<String>, Rc<Expr>)>, ValueError> {
+        Ok(None)
+    }
+
     /// Does the cell at `addr` contain a formula? Default `false`.
     fn cell_has_formula(&self, _addr: CellAddress) -> bool {
         false

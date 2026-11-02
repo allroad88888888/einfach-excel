@@ -30,11 +30,16 @@ export const nameBoxDisplayAtom = atom((get): string => {
   const address = rangeToA1(snapshot.range)
   const names = get(nativeNamedRangesAtom)
   const sheets = get(workbookDocumentAtom).sheets
-  const match = names.find((entry) => {
+  const activeSheet = sheets.find((s) => s.id === snapshot.selection.sheetId)
+  const matchesTarget = (entry: (typeof names)[number]) => {
     const target = resolveNativeNamedRange(entry.name, [entry], sheets)
     return target?.sheetId === snapshot.selection.sheetId && rangeToA1(target.range) === address
-  })
-  return match?.name ?? address
+  }
+  const scopedMatch = activeSheet
+    ? names.find((entry) => entry.scope === activeSheet.index && matchesTarget(entry))
+    : undefined
+  const globalMatch = names.find((entry) => entry.scope == null && matchesTarget(entry))
+  return (scopedMatch ?? globalMatch)?.name ?? address
 })
 
 /** Starts a new edit session and snapshots the canonical display. */

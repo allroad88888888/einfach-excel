@@ -138,7 +138,15 @@ define_builtin_dispatch! {
 pub(super) fn eval_named_call(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
     // 局部 LAMBDA 参数或闭包捕获优先于全局名称；与裸名称求值使用同一作用域。
     let local = lookup_let_binding(name);
-    if let Some(value) = local.clone().or_else(|| provider.lookup_named(name)) {
+    let resolved = match local.clone() {
+        Some(v) => Some(v),
+        None => match eval_named_formula_value(None, name, provider) {
+            Ok(Some(v)) => Some(v),
+            Ok(None) => provider.lookup_named(name),
+            Err(e) => Some(Value::Error(e)),
+        },
+    };
+    if let Some(value) = resolved {
         match &value {
             Value::Lambda(_) => {
                 let mut arg_values: Vec<Value> = Vec::with_capacity(args.len());

@@ -3,53 +3,120 @@ use super::*;
 
 #[derive(Debug)]
 pub(crate) struct FormulaLambdaChange {
+    scope_sheet_key: Option<u64>,
     key: String,
     before: NamedEntry,
     after: NamedEntry,
 }
 
 impl FormulaLambdaChange {
-    /// 与单元格共用静态工作表引用改写；只保留真正变化的闭包。
+    /// 与单元格共用静态工作表引用改写；只保留真正变化的闭包与命名公式。
     pub fn for_sheet_refs(workbook: &Workbook, old: &str, new: Option<&str>) -> Vec<Self> {
-        Self::prepare(workbook, &|expr| {
+        let deleted_key = new
+            .is_none()
+            .then(|| {
+                workbook
+                    .resolve_sheet_index_ci(old)
+                    .and_then(|idx| workbook.sheet_key(idx))
+            })
+            .flatten();
+        Self::prepare_with_context(workbook, &|scope_key, _, expr| {
+            if deleted_key.is_some() && scope_key == deleted_key {
+                return false;
+            }
             let before = expr.clone();
             super::workbook_sheet_refs::rewrite_sheet_refs(expr, old, new);
             *expr != before
         })
     }
 
-    /// 保存的闭包没有所属单元格，只位移显式指向目标表的地址。
+    /// 保存的闭包没有所属单元格，只位移显式指向目标表的地址；命名公式额外跟随所属表位移裸引用。
     pub fn for_structural_shift(
         workbook: &Workbook,
         sheet: &str,
         edit: crate::shift::ShiftEdit,
     ) -> Vec<Self> {
-        Self::prepare(workbook, &|expr| {
-            crate::shift::rewrite_structural_refs(expr, sheet, false, edit)
+        let target_idx = workbook.resolve_sheet_index_ci(sheet);
+        let target_key = target_idx.and_then(|idx| workbook.sheet_key(idx));
+        Self::prepare_with_context(workbook, &|scope_key, is_formula, expr| {
+            let local = is_formula
+                && match scope_key {
+                    Some(sk) => Some(sk) == target_key,
+                    None => target_idx == Some(0),
+                };
+            crate::shift::rewrite_structural_refs(expr, sheet, local, edit)
         })
     }
 
     pub fn prepare(workbook: &Workbook, rewrite: &impl Fn(&mut Expr) -> bool) -> Vec<Self> {
+        Self::prepare_with_context(workbook, &|_, _, expr| rewrite(expr))
+    }
+
+    pub fn prepare_scoped(
+        workbook: &Workbook,
+        rewrite: &impl Fn(Option<u64>, &mut Expr) -> bool,
+    ) -> Vec<Self> {
+        Self::prepare_with_context(workbook, &|scope_key, _, expr| rewrite(scope_key, expr))
+    }
+
+    pub fn prepare_with_context(
+        workbook: &Workbook,
+        rewrite: &impl Fn(Option<u64>, bool, &mut Expr) -> bool,
+    ) -> Vec<Self> {
         let mut changes = Vec::new();
-        for (key, entry) in &workbook.named_values {
-            if let NamedDefinition::Value(value) = &entry.definition {
-                if let Some(value) = rewrite_value(value, rewrite) {
-                    changes.push(Self {
-                        key: key.clone(),
-                        before: entry.clone(),
-                        after: NamedEntry {
-                            canonical_name: entry.canonical_name.clone(),
-                            definition: NamedDefinition::Value(value),
-                        },
-                    });
+        let all_entries = workbook
+            .named_values
+            .iter()
+            .map(|(key, entry)| (None, key, entry))
+            .chain(
+                workbook
+                    .sheet_named_values
+                    .iter()
+                    .map(|((sk, key), entry)| (Some(*sk), key, entry)),
+            );
+        for (scope_sheet_key, key, entry) in all_entries {
+            match &entry.definition {
+                NamedDefinition::Value(value) => {
+                    if let Some(value) =
+                        rewrite_value(value, &|expr| rewrite(scope_sheet_key, false, expr))
+                    {
+                        changes.push(Self {
+                            scope_sheet_key,
+                            key: key.clone(),
+                            before: entry.clone(),
+                            after: NamedEntry {
+                                canonical_name: entry.canonical_name.clone(),
+                                definition: NamedDefinition::Value(value),
+                            },
+                        });
+                    }
                 }
+                NamedDefinition::Formula { expr, .. } => {
+                    let mut next_expr = (**expr).clone();
+                    if rewrite(scope_sheet_key, true, &mut next_expr) {
+                        let next_source = crate::render_formula(&next_expr);
+                        changes.push(Self {
+                            scope_sheet_key,
+                            key: key.clone(),
+                            before: entry.clone(),
+                            after: NamedEntry {
+                                canonical_name: entry.canonical_name.clone(),
+                                definition: NamedDefinition::Formula {
+                                    source: next_source,
+                                    expr: Rc::new(next_expr),
+                                },
+                            },
+                        });
+                    }
+                }
+                NamedDefinition::Range { .. } | NamedDefinition::CustomFormula(_) => {}
             }
         }
         changes
     }
 
     pub fn validate(&self, workbook: &Workbook, undo: bool) -> Result<(), &'static str> {
-        if workbook.named_values.get(&self.key)
+        if workbook.get_scoped_entry(self.scope_sheet_key, &self.key)
             != Some(if undo { &self.after } else { &self.before })
         {
             return Err("A referring named lambda changed outside history.");
@@ -58,7 +125,8 @@ impl FormulaLambdaChange {
     }
 
     pub fn apply(&self, workbook: &mut Workbook, undo: bool) {
-        workbook.named_values.insert(
+        workbook.insert_scoped_entry(
+            self.scope_sheet_key,
             self.key.clone(),
             if undo { &self.before } else { &self.after }.clone(),
         );

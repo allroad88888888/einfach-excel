@@ -35,6 +35,28 @@ fn named_range_wire_commands_use_one_native_history_entry_each() {
 }
 
 #[test]
+fn named_range_wire_supports_scoped_names_and_named_formulas() {
+    let mut book = WasmWorkbook::new();
+    book.add_sheet("Sheet2");
+    book.set_number(0, "A1", 10.0);
+    book.set_number(1, "A1", 20.0);
+    for json in [
+        serde_json::json!({"kind":"create","name":"TaxRate","formula":"=0.08"}),
+        serde_json::json!({"kind":"create","name":"TaxRate","scope":1,"formula":"=$A$1*0.01"}),
+    ] {
+        let action: NamedRangeActionJSON = serde_json::from_value(json).unwrap();
+        assert!(book
+            .history
+            .change_named_range(&mut book.workbook, 0, action.into_action())
+            .unwrap());
+    }
+    book.set_formula(0, "B1", "=TaxRate*100");
+    book.set_formula(1, "B1", "=TaxRate*100");
+    assert_eq!(book.get_number(0, "B1"), 8.0);
+    assert_eq!(book.get_number(1, "B1"), 20.0);
+}
+
+#[test]
 fn named_range_wire_rejects_extra_fields_and_malformed_targets() {
     for invalid in [
         serde_json::json!({"kind":"create","name":"Sales"}),

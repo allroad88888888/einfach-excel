@@ -21,10 +21,30 @@ pub enum NamedRangeAction {
     Delete {
         name: String,
     },
+    CreateScoped {
+        name: String,
+        scope: Option<usize>,
+        target: Option<(usize, CellRange)>,
+        formula: Option<String>,
+    },
+    UpdateScoped {
+        name: String,
+        scope: Option<usize>,
+        new_name: String,
+        new_scope: Option<Option<usize>>,
+        target: Option<(usize, CellRange)>,
+        formula: Option<String>,
+    },
+    DeleteScoped {
+        name: String,
+        scope: Option<usize>,
+    },
 }
 
 #[derive(Debug)]
 pub(crate) struct NamedRangeChange {
+    old_scope: Option<u64>,
+    new_scope: Option<u64>,
     before: Option<NamedEntry>,
     after: Option<NamedEntry>,
     formulas: Vec<FormulaSourceChange>,
@@ -42,18 +62,39 @@ impl NamedRangeChange {
         action: NamedRangeAction,
     ) -> Result<Option<Self>, &'static str> {
         workbook.ensure_workbook_unprotected()?;
-        let read = |name: &str| -> Result<NamedEntry, &'static str> {
-            match workbook.named_values.get(&name.to_uppercase()) {
-                Some(
-                    entry @ NamedEntry {
-                        definition: NamedDefinition::Range { .. },
-                        ..
-                    },
-                ) => Ok(entry.clone()),
+        let resolve_scope = |scope: Option<usize>| -> Result<Option<u64>, &'static str> {
+            match scope {
+                None => Ok(None),
+                Some(idx) => workbook
+                    .sheet_key(idx)
+                    .map(Some)
+                    .ok_or("The worksheet no longer exists."),
+            }
+        };
+        let read = |scope_key: Option<u64>, name: &str| -> Result<NamedEntry, &'static str> {
+            match workbook.get_scoped_entry(scope_key, &name.to_uppercase()) {
+                Some(entry) if Workbook::is_user_defined_name(&entry.definition) => {
+                    Ok(entry.clone())
+                }
                 _ => Err("The named range no longer exists."),
             }
         };
-        let (before, after) = match action {
+        let build_definition = |target: Option<(usize, CellRange)>,
+                                formula: Option<String>|
+         -> Result<NamedDefinition, &'static str> {
+            if let Some(formula) = formula {
+                let (source, expr) = Workbook::parse_named_formula_source(&formula, false)
+                    .ok_or("The defined name formula is invalid.")?;
+                Ok(NamedDefinition::Formula { source, expr })
+            } else if let Some((sheet, range)) = target {
+                workbook
+                    .named_range_definition(sheet, range)
+                    .map_err(name_error)
+            } else {
+                Err("The named range target is invalid.")
+            }
+        };
+        let (old_scope, new_scope, before, after) = match action {
             NamedRangeAction::Create { name, sheet, range } => {
                 let key = workbook
                     .validate_named_range_name(&name)
@@ -66,6 +107,37 @@ impl NamedRangeChange {
                     .map_err(name_error)?;
                 (
                     None,
+                    None,
+                    None,
+                    Some(NamedEntry {
+                        canonical_name: name,
+                        definition,
+                    }),
+                )
+            }
+            NamedRangeAction::CreateScoped {
+                name,
+                scope,
+                target,
+                formula,
+            } => {
+                let scope_key = resolve_scope(scope)?;
+                let key = workbook
+                    .validate_named_range_name(&name)
+                    .map_err(name_error)?;
+                if workbook
+                    .named_values
+                    .get(&key)
+                    .is_some_and(|e| matches!(e.definition, NamedDefinition::CustomFormula(_)))
+                    || workbook.get_scoped_entry(scope_key, &key).is_some()
+                {
+                    return Err("The name is already in use.");
+                }
+                let definition = build_definition(target, formula)?;
+                (
+                    scope_key,
+                    scope_key,
+                    None,
                     Some(NamedEntry {
                         canonical_name: name,
                         definition,
@@ -77,7 +149,7 @@ impl NamedRangeChange {
                 new_name,
                 target,
             } => {
-                let before = read(&name)?;
+                let before = read(None, &name)?;
                 let key = workbook
                     .validate_named_range_name(&new_name)
                     .map_err(name_error)?;
@@ -93,6 +165,8 @@ impl NamedRangeChange {
                     None => before.definition.clone(),
                 };
                 (
+                    None,
+                    None,
                     Some(before),
                     Some(NamedEntry {
                         canonical_name: new_name,
@@ -100,29 +174,110 @@ impl NamedRangeChange {
                     }),
                 )
             }
-            NamedRangeAction::Delete { name } => (Some(read(&name)?), None),
+            NamedRangeAction::UpdateScoped {
+                name,
+                scope,
+                new_name,
+                new_scope,
+                target,
+                formula,
+            } => {
+                let old_scope = resolve_scope(scope)?;
+                let next_scope = match new_scope {
+                    Some(s) => resolve_scope(s)?,
+                    None => old_scope,
+                };
+                let before = read(old_scope, &name)?;
+                let key = workbook
+                    .validate_named_range_name(&new_name)
+                    .map_err(name_error)?;
+                if workbook
+                    .named_values
+                    .get(&key)
+                    .is_some_and(|e| matches!(e.definition, NamedDefinition::CustomFormula(_)))
+                {
+                    return Err("The name is already in use.");
+                }
+                if (next_scope, &key) != (old_scope, &before.canonical_name.to_uppercase())
+                    && workbook.get_scoped_entry(next_scope, &key).is_some()
+                {
+                    return Err("The name is already in use.");
+                }
+                let definition = if formula.is_some() || target.is_some() {
+                    build_definition(target, formula)?
+                } else {
+                    before.definition.clone()
+                };
+                (
+                    old_scope,
+                    next_scope,
+                    Some(before),
+                    Some(NamedEntry {
+                        canonical_name: new_name,
+                        definition,
+                    }),
+                )
+            }
+            NamedRangeAction::Delete { name } => (None, None, Some(read(None, &name)?), None),
+            NamedRangeAction::DeleteScoped { name, scope } => {
+                let scope_key = resolve_scope(scope)?;
+                (scope_key, scope_key, Some(read(scope_key, &name)?), None)
+            }
         };
-        if before == after {
+        if old_scope == new_scope && before == after {
             return Ok(None);
         }
         let mut formulas = Vec::new();
         let mut rules = Vec::new();
         let mut lambdas = Vec::new();
         if let (Some(old), Some(new)) = (&before, &after) {
-            if old.canonical_name != new.canonical_name {
-                let rewrite = |expr: &mut Expr| {
-                    crate::shift::rename_named_reference(
+            if old.canonical_name != new.canonical_name && old_scope == new_scope {
+                let old_upper = old.canonical_name.to_uppercase();
+                let target_sheet = old_scope
+                    .and_then(|sk| workbook.sheet_index_by_key(sk))
+                    .and_then(|idx| workbook.names.get(idx).map(String::as_str));
+                let unqual_for_sheet_key = |sk: Option<u64>| match old_scope {
+                    Some(scope_sk) => sk == Some(scope_sk),
+                    None => sk.is_none_or(|s| {
+                        !workbook
+                            .sheet_named_values
+                            .contains_key(&(s, old_upper.clone()))
+                    }),
+                };
+                rules = FormulaRuleChange::prepare(workbook, &|sheet, _, expr| {
+                    let sk = workbook.sheet_key(sheet);
+                    crate::shift::rename_scoped_named_reference(
                         expr,
+                        target_sheet,
+                        unqual_for_sheet_key(sk),
                         &old.canonical_name,
                         &new.canonical_name,
                     )
-                };
-                rules = FormulaRuleChange::prepare(workbook, &|_, _, expr| rewrite(expr));
-                lambdas = FormulaLambdaChange::prepare(workbook, &rewrite);
-                formulas = FormulaSourceChange::prepare(workbook, &|_, _, _, expr| rewrite(expr));
+                });
+                lambdas = FormulaLambdaChange::prepare_scoped(workbook, &|scope_sk, expr| {
+                    crate::shift::rename_scoped_named_reference(
+                        expr,
+                        target_sheet,
+                        unqual_for_sheet_key(scope_sk),
+                        &old.canonical_name,
+                        &new.canonical_name,
+                    )
+                });
+                formulas = FormulaSourceChange::prepare(workbook, &|sheet, _, _, expr| {
+                    let sk = workbook.sheet_key(sheet);
+                    crate::shift::rename_scoped_named_reference(
+                        expr,
+                        target_sheet,
+                        unqual_for_sheet_key(sk),
+                        &old.canonical_name,
+                        &new.canonical_name,
+                    )
+                });
             }
         }
         Ok(Some(Self {
+            old_scope,
+            new_scope,
             before,
             after,
             formulas,
@@ -133,6 +288,11 @@ impl NamedRangeChange {
 
     pub(crate) fn affected_sheets(&self, workbook: &Workbook, active: usize) -> Vec<usize> {
         let mut indices = BTreeSet::from([active]);
+        for scope_key in [self.old_scope, self.new_scope].into_iter().flatten() {
+            if let Some(index) = workbook.sheet_index_by_key(scope_key) {
+                indices.insert(index);
+            }
+        }
         for entry in self.before.iter().chain(&self.after) {
             if let NamedDefinition::Range { sheet_key, .. } = entry.definition {
                 if let Some(index) = workbook.sheet_keys.iter().position(|key| *key == sheet_key) {
@@ -163,10 +323,10 @@ impl NamedRangeChange {
         if workbook.is_inside_custom_call() {
             return Err("Cannot edit names during a custom call.");
         }
-        let (expected, next) = if undo {
-            (&self.after, &self.before)
+        let (expected_scope, next_scope, expected, next) = if undo {
+            (self.new_scope, self.old_scope, &self.after, &self.before)
         } else {
-            (&self.before, &self.after)
+            (self.old_scope, self.new_scope, &self.before, &self.after)
         };
         let old_key = expected
             .as_ref()
@@ -175,13 +335,14 @@ impl NamedRangeChange {
             .as_ref()
             .map(|entry| entry.canonical_name.to_uppercase());
         if let Some(key) = &old_key {
-            if workbook.named_values.get(key) != expected.as_ref() {
+            if workbook.get_scoped_entry(expected_scope, key) != expected.as_ref() {
                 return Err("The name changed outside history.");
             }
         }
         if let Some(key) = &new_key {
             if workbook.tables.contains_key(key)
-                || (new_key != old_key && workbook.named_values.contains_key(key))
+                || ((next_scope, new_key.as_ref()) != (expected_scope, old_key.as_ref())
+                    && workbook.get_scoped_entry(next_scope, key).is_some())
             {
                 return Err("The name is already in use.");
             }
@@ -208,10 +369,10 @@ impl NamedRangeChange {
         let store = workbook.store.clone();
         store.batch(|_| {
             if let Some(key) = old_key {
-                workbook.named_values.remove(&key);
+                workbook.remove_scoped_entry(expected_scope, &key);
             }
             if let (Some(key), Some(entry)) = (new_key, next) {
-                workbook.named_values.insert(key, entry.clone());
+                workbook.insert_scoped_entry(next_scope, key, entry.clone());
             }
             for rule in &self.rules {
                 rule.apply(workbook, undo);

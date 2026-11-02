@@ -17,6 +17,7 @@ impl Workbook {
             by_name: HashMap::new(),
             cycle_ast_walk_count: Cell::new(0),
             named_values: BTreeMap::new(),
+            sheet_named_values: BTreeMap::new(),
             custom_functions: None,
             protection: BTreeMap::new(),
             validation_confirmation: Rc::new(Cell::new(false)),
@@ -67,7 +68,12 @@ impl Workbook {
             .iter()
             .map(|(key, entry)| (key.clone(), entry.definition.clone()))
             .collect();
-        self.atom_context.sync_names(names);
+        let sheet_names = self
+            .sheet_named_values
+            .iter()
+            .map(|((sk, key), entry)| ((*sk, key.clone()), entry.definition.clone()))
+            .collect();
+        self.atom_context.sync_scoped_names(names, sheet_names);
     }
 
     pub(super) fn named_array_dependents(&self) -> Vec<(usize, HashSet<CellAddress>)> {

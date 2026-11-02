@@ -71,9 +71,17 @@ impl CellShiftChange {
                 && rewrite_band_shift(expr, &name, owner == sheet, edit, band)
         });
         let rules = FormulaRuleChange::prepare_cell_shift(workbook, sheet, edit, band)?;
-        let lambdas = FormulaLambdaChange::prepare(workbook, &|expr| {
-            rewrite_band_shift(expr, &name, false, edit, band)
-        });
+        let lambdas = FormulaLambdaChange::prepare_with_context(
+            workbook,
+            &|scope_key, is_formula, expr| {
+                let local = is_formula
+                    && match scope_key {
+                        Some(sk) => Some(sk) == workbook.sheet_key(sheet),
+                        None => sheet == 0,
+                    };
+                rewrite_band_shift(expr, &name, local, edit, band)
+            },
+        );
         let named_ranges = workbook.named_ranges_for_cell_shift(sheet, edit, band)?;
         let validations_before = target.data_validations().to_vec();
         let mut validations_after = Vec::new();

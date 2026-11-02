@@ -42,17 +42,52 @@ export function changeNamedRange(
       throw new Error('Choose a named range inside the worksheet.')
     target = { sheet: sheet.index, range: [rowStart, colStart, rowEnd, colEnd] }
   }
+  const resolveScope = (scopeSheetId: string | null | undefined): number | undefined => {
+    if (!scopeSheetId) return undefined
+    const scopeSheet = sheets.get(scopeSheetId)
+    if (!scopeSheet || scopeSheet.index < 0) {
+      throw new Error('The scope worksheet no longer exists.')
+    }
+    return scopeSheet.index
+  }
+  const scope = resolveScope(action.scopeSheetId)
+  const formula = 'formula' in action && typeof action.formula === 'string'
+    ? action.formula.trim()
+    : undefined
   let native: NativeNamedRangeAction
   switch (action.kind) {
     case 'create':
-      if (!target) throw new Error('Choose a range before creating a name.')
-      native = { kind: 'create', name: action.name, target }
+      if (!target && !formula) throw new Error('Choose a range or formula before creating a name.')
+      native = {
+        kind: 'create',
+        name: action.name,
+        ...(scope !== undefined ? { scope } : {}),
+        ...(target ? { target } : {}),
+        ...(formula ? { formula } : {}),
+      }
       break
-    case 'update':
-      native = { kind: 'update', name: action.name, newName: action.newName, ...(target ? { target } : {}) }
+    case 'update': {
+      const hasNewScope = action.newScopeSheetId !== undefined
+      const newScope = hasNewScope
+        ? (action.newScopeSheetId ? resolveScope(action.newScopeSheetId)! : null)
+        : undefined
+      native = {
+        kind: 'update',
+        name: action.name,
+        newName: action.newName,
+        ...(scope !== undefined ? { scope } : {}),
+        ...(newScope !== undefined ? { newScope } : {}),
+        ...(target ? { target } : {}),
+        ...(formula ? { formula } : {}),
+      }
       break
+    }
     case 'delete':
-      native = { kind: 'delete', name: action.name }
+      native = {
+        kind: 'delete',
+        name: action.name,
+        ...(scope !== undefined ? { scope } : {}),
+      }
       break
     default:
       throw new Error('Invalid named-range action.')

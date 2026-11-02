@@ -172,7 +172,10 @@ pub(super) fn eval_fn_reference_resolution(
                     Some(s) => provider.sheet_cell(&s, start),
                     None => provider.cell(start),
                 },
-                None => Value::Error(ValueError::InvalidRef),
+                None => match runtime_ref_from_indirect(args, provider) {
+                    Ok(r) => runtime_ref_to_value(&r, provider),
+                    Err(e) => Value::Error(e),
+                },
             }
         }
 

@@ -112,6 +112,7 @@ impl Workbook {
         mut renames: CopyRenames,
     ) -> Result<(), &'static str> {
         renames.tables = self.copy_tables(&renames.old_sheet, &renames.new_sheet);
+        self.copy_scoped_names(source, target, &renames);
         self.copy_cells(source, target, &renames)?;
         self.copy_sheet_data(source, target)?;
         self.copy_workbook_sheet_config(source, target);
@@ -119,6 +120,43 @@ impl Workbook {
         let color = self.sheets[source].tab_color.clone();
         self.sheets[target].tab_color = color;
         Ok(())
+    }
+
+    fn copy_scoped_names(&mut self, source: usize, target: usize, renames: &CopyRenames) {
+        let Some(source_key) = self.sheet_key(source) else {
+            return;
+        };
+        let Some(target_key) = self.sheet_key(target) else {
+            return;
+        };
+        let entries: Vec<(String, NamedEntry)> = self
+            .sheet_named_values
+            .iter()
+            .filter(|((sk, _), _)| *sk == source_key)
+            .map(|((_, key), entry)| (key.clone(), entry.clone()))
+            .collect();
+        if entries.is_empty() {
+            return;
+        }
+        for (key, mut entry) in entries {
+            match &mut entry.definition {
+                NamedDefinition::Range { sheet_key, .. } if *sheet_key == source_key => {
+                    *sheet_key = target_key;
+                }
+                NamedDefinition::Formula { source: f_src, expr } => {
+                    let rewritten = renames.source(f_src);
+                    if let Some((next_src, next_expr)) =
+                        Self::parse_named_formula_source(&rewritten, true)
+                    {
+                        *f_src = next_src;
+                        *expr = next_expr;
+                    }
+                }
+                _ => {}
+            }
+            self.sheet_named_values.insert((target_key, key), entry);
+        }
+        self.sync_atom_names();
     }
 
     /// Table 按 Excel 规则改名为 `Name_2`…，注册先于公式安装，结构化引用才能解析。

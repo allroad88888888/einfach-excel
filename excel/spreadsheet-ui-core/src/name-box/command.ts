@@ -29,7 +29,7 @@ export const commitNameBoxAtom = atom(null, (get, set,
   const snapshot = get(selectionSnapshotAtom)
   const sheetId = input.sheetId ?? snapshot.selection.sheetId
   const sheets = get(workbookDocumentAtom).sheets
-  const named = resolveNativeNamedRange(value, get(nativeNamedRangesAtom), sheets)
+  const named = resolveNativeNamedRange(value, get(nativeNamedRangesAtom), sheets, sheetId)
   if (named === null) return fail('This named range no longer refers to an available worksheet range.')
   const cell = parseA1Cell(value)
   const range = parseA1Range(value)

@@ -161,3 +161,33 @@ fn reports_dropped_and_downgraded_features_on_export() {
     ]);
     assert!(report.summary.starts_with("Download requested. Not exported to Excel: threaded comments exported as notes, "));
 }
+
+#[test]
+fn sheet_scoped_defined_names_and_named_formulas_round_trip_through_xlsx() {
+    let native = serde_json::json!({
+        "format": "einfach-workbook",
+        "version": 1,
+        "title": "ScopedNamesAndFormulas",
+        "canvases": [
+            {"rowCount": 1048576, "colCount": 16384},
+            {"rowCount": 1048576, "colCount": 16384}
+        ],
+        "workbook": {
+            "version": 1,
+            "sheets": [
+                {"idx": 0, "name": "Sheet1"},
+                {"idx": 1, "name": "Sales Q1"}
+            ],
+            "cells": [],
+            "namedRanges": [
+                {"name": "TaxRate", "target": null, "formula": "=0.08"},
+                {"name": "TaxRate", "scope": 0, "target": {"sheet": 0, "range": [0, 0, 0, 0]}},
+                {"name": "TaxRate", "scope": 1, "target": null, "formula": "=SUM('Sales Q1'!$A$1:$A$10)*1.1"}
+            ]
+        }
+    });
+    let (bytes, report) = einfach_xlsx::native_to_xlsx_with_report(&native.to_string()).unwrap();
+    assert!(report.items.is_empty(), "unexpected export report: {:?}", report.items);
+    let back = to_native(bytes);
+    assert_eq!(back["workbook"]["namedRanges"], native["workbook"]["namedRanges"]);
+}

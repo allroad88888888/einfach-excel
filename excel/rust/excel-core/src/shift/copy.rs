@@ -63,6 +63,7 @@ pub fn shift_copy_formula(expr: &Expr, drow: i64, dcol: i64) -> Result<Expr, ()>
         | Expr::Bool(_)
         | Expr::Error(_)
         | Expr::Name(_)
+        | Expr::SheetName { .. }
         // 结构化引用没有相对 A1 坐标；ThisRow 在目标格求值时再决定行号。
         | Expr::TableRef { .. } => expr.clone(),
         Expr::CellRef(addr, abs) => shift_ref(*addr, *abs, drow, dcol)

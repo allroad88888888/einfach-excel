@@ -124,8 +124,10 @@ pub(super) fn prepare(
         }
     }
     next.cells.as_mut().unwrap().sort_by_key(|cell| (cell.addr.row, cell.addr.col));
-    let lambdas = FormulaLambdaChange::prepare(workbook, &|expr|
-        rewrite_row_band_insert(expr, before.sheet_name(), false, row, columns));
+    let lambdas = FormulaLambdaChange::prepare_with_context(workbook, &|scope_key, is_formula, expr| {
+        let local = is_formula && match scope_key { Some(sk) => Some(sk) == workbook.sheet_key(sheet), None => sheet == 0 };
+        rewrite_row_band_insert(expr, before.sheet_name(), local, row, columns)
+    });
     let change = TableDefinitionChange { sheet, range: after.range, before, after: Some(after),
         cells: vec![(original, next)], formulas, rules, lambdas, named_ranges, shifted_tables, filter, validations };
     if change.retained_bytes() > MAX_BYTES {

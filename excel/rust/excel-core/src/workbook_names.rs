@@ -103,8 +103,61 @@ impl Workbook {
             NamedDefinition::CustomFormula(definition) => Some(definition.lambda_value(|name|
                 self.named_values.get(name).is_some_and(|entry|
                     matches!(entry.definition, NamedDefinition::CustomFormula(_))))),
-            NamedDefinition::Range { .. } => None,
+            NamedDefinition::Range { .. } | NamedDefinition::Formula { .. } => None,
         }
+    }
+
+    pub(crate) fn get_scoped_named_value(&self, current_sheet: usize, name: &str) -> Option<Value> {
+        let (_, _, entry) = self.resolve_scoped_entry(current_sheet, name)?;
+        match &entry.definition {
+            NamedDefinition::Value(value) => Some(value.clone()),
+            NamedDefinition::CustomFormula(definition) => Some(definition.lambda_value(|name| {
+                self.named_values
+                    .get(name)
+                    .is_some_and(|e| matches!(e.definition, NamedDefinition::CustomFormula(_)))
+            })),
+            NamedDefinition::Range { .. } | NamedDefinition::Formula { .. } => None,
+        }
+    }
+
+    pub(crate) fn sheet_qualified_named_value(
+        &self,
+        sheet_name: &str,
+        name: &str,
+    ) -> Result<Option<Value>, ValueError> {
+        let Some((_, _, entry)) = self.resolve_sheet_qualified_entry(sheet_name, name)? else {
+            return Ok(None);
+        };
+        match &entry.definition {
+            NamedDefinition::Value(value) => Ok(Some(value.clone())),
+            NamedDefinition::CustomFormula(definition) => Ok(Some(definition.lambda_value(|name| {
+                self.named_values
+                    .get(name)
+                    .is_some_and(|e| matches!(e.definition, NamedDefinition::CustomFormula(_)))
+            }))),
+            NamedDefinition::Range { .. } | NamedDefinition::Formula { .. } => Ok(None),
+        }
+    }
+
+    pub(crate) fn lookup_eval_named_formula(
+        &self,
+        current_sheet: usize,
+        sheet_name: Option<&str>,
+        name: &str,
+    ) -> Result<Option<(Option<usize>, Option<String>, Rc<Expr>)>, ValueError> {
+        let resolved = if let Some(sheet) = sheet_name {
+            self.resolve_sheet_qualified_entry(sheet, name)?
+        } else {
+            self.resolve_scoped_entry(current_sheet, name)
+        };
+        let Some((scope_idx, _, entry)) = resolved else {
+            return Ok(None);
+        };
+        let NamedDefinition::Formula { expr, .. } = &entry.definition else {
+            return Ok(None);
+        };
+        let scope_sheet_name = scope_idx.and_then(|idx| self.names.get(idx).cloned());
+        Ok(Some((scope_idx, scope_sheet_name, Rc::clone(expr))))
     }
 
     /// Iterator over registered names in canonical (user-typed) casing,

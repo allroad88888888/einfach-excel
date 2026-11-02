@@ -32,7 +32,7 @@ pub fn shift_refs(expr: &Expr, drow: i32, dcol: i32) -> Result<Expr, ()> {
         }
         // Cross-sheet refs aren't shifted on copy/paste — they point to a
         // fixed location on a different sheet regardless of paste target.
-        Expr::SheetRef { .. } | Expr::SheetRange { .. } => expr.clone(),
+        Expr::SheetRef { .. } | Expr::SheetRange { .. } | Expr::SheetName { .. } => expr.clone(),
         Expr::SpillRef(anchor) => Expr::SpillRef(Box::new(shift_refs(anchor, drow, dcol)?)),
         Expr::DynamicRange { start, end } => Expr::DynamicRange {
             start: Box::new(shift_refs(start, drow, dcol)?),

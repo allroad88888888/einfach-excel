@@ -63,7 +63,11 @@ pub struct SheetHiddenColumns {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NamedRange {
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scope: Option<usize>,
     pub target: Option<NamedRangeTarget>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub formula: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

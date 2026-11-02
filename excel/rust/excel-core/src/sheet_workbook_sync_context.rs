@@ -25,14 +25,20 @@ impl WorkbookAtomContext {
             .collect();
         *self.topology.borrow_mut() = WorkbookAtomTopology {
             sheets,
+            keys: keys.to_vec(),
             by_name,
             by_key,
         };
         self.bump_epoch(&self.topology_epoch, &self.topology_revision);
     }
 
-    pub(crate) fn sync_names(&self, names: HashMap<String, crate::workbook::NamedDefinition>) {
+    pub(crate) fn sync_scoped_names(
+        &self,
+        names: HashMap<String, crate::workbook::NamedDefinition>,
+        sheet_names: HashMap<(u64, String), crate::workbook::NamedDefinition>,
+    ) {
         *self.names.borrow_mut() = names;
+        *self.sheet_names.borrow_mut() = sheet_names;
         self.bump_epoch(&self.names_epoch, &self.names_revision);
     }
 
@@ -144,13 +150,84 @@ impl WorkbookAtomContext {
     pub(super) fn resolve_sheet(&self, name: &str, args: &ReadArgs) -> Option<(usize, FacadeCtx)> {
         self.depend_topology(args);
         let topology = self.topology.borrow();
-        let idx = topology.by_name.get(name).copied()?;
+        let idx = topology.by_name.get(name).copied().or_else(|| {
+            topology
+                .sheets
+                .iter()
+                .position(|(sheet_name, _)| sheet_name.eq_ignore_ascii_case(name))
+        })?;
         Some((idx, topology.sheets.get(idx)?.1.clone()))
+    }
+
+    pub(super) fn resolve_sheet_by_index(&self, idx: usize, args: &ReadArgs) -> Option<FacadeCtx> {
+        self.depend_topology(args);
+        self.topology
+            .borrow()
+            .sheets
+            .get(idx)
+            .map(|(_, ctx)| ctx.clone())
     }
 
     pub(super) fn sheet_count(&self, args: &ReadArgs) -> usize {
         self.depend_topology(args);
         self.topology.borrow().sheets.len()
+    }
+
+    fn resolve_scoped_definition(
+        &self,
+        sheet_idx: Option<usize>,
+        name: &str,
+        args: &ReadArgs,
+    ) -> Option<(Option<usize>, crate::workbook::NamedDefinition)> {
+        self.depend_names(args);
+        let key = name.to_uppercase();
+        if let Some(idx) = sheet_idx {
+            self.depend_topology(args);
+            if let Some(&sk) = self.topology.borrow().keys.get(idx) {
+                if let Some(def) = self.sheet_names.borrow().get(&(sk, key.clone())).cloned() {
+                    return Some((Some(idx), def));
+                }
+            }
+        }
+        self.names.borrow().get(&key).cloned().map(|def| (None, def))
+    }
+
+    fn resolve_sheet_qualified_definition(
+        &self,
+        sheet_name: &str,
+        name: &str,
+        args: &ReadArgs,
+    ) -> Result<Option<(usize, crate::workbook::NamedDefinition)>, ValueError> {
+        self.depend_names(args);
+        let Some((idx, _)) = self.resolve_sheet(sheet_name, args) else {
+            return Err(ValueError::InvalidRef);
+        };
+        let key = name.to_uppercase();
+        let sk = self.topology.borrow().keys[idx];
+        if let Some(def) = self.sheet_names.borrow().get(&(sk, key.clone())).cloned() {
+            return Ok(Some((idx, def)));
+        }
+        Ok(self.names.borrow().get(&key).cloned().map(|def| (idx, def)))
+    }
+
+    pub(super) fn lookup_sheet_scoped_value(
+        &self,
+        sheet_idx: usize,
+        name: &str,
+        args: &ReadArgs,
+    ) -> Option<Option<Value>> {
+        self.depend_names(args);
+        self.depend_topology(args);
+        let sk = *self.topology.borrow().keys.get(sheet_idx)?;
+        let def = self
+            .sheet_names
+            .borrow()
+            .get(&(sk, name.to_uppercase()))?
+            .clone();
+        Some(match def {
+            crate::workbook::NamedDefinition::Value(value) => Some(value),
+            _ => None,
+        })
     }
 
     pub(super) fn lookup_named(&self, name: &str, args: &ReadArgs) -> Option<Value> {
@@ -159,18 +236,59 @@ impl WorkbookAtomContext {
             crate::workbook::NamedDefinition::Value(value) => Some(value.clone()),
             crate::workbook::NamedDefinition::CustomFormula(definition) => Some(definition.lambda_value(|name|
                 matches!(self.names.borrow().get(name), Some(crate::workbook::NamedDefinition::CustomFormula(_))))),
-            crate::workbook::NamedDefinition::Range { .. } => None,
+            crate::workbook::NamedDefinition::Range { .. }
+            | crate::workbook::NamedDefinition::Formula { .. } => None,
         }
     }
 
-    pub(super) fn lookup_named_range(
+    pub(super) fn lookup_sheet_named(
         &self,
+        sheet_name: &str,
+        name: &str,
+        args: &ReadArgs,
+    ) -> Result<Option<Value>, ValueError> {
+        let Some((_, def)) = self.resolve_sheet_qualified_definition(sheet_name, name, args)? else {
+            return Ok(None);
+        };
+        Ok(match def {
+            crate::workbook::NamedDefinition::Value(value) => Some(value),
+            crate::workbook::NamedDefinition::CustomFormula(definition) => Some(definition.lambda_value(|n|
+                matches!(self.names.borrow().get(n), Some(crate::workbook::NamedDefinition::CustomFormula(_))))),
+            crate::workbook::NamedDefinition::Range { .. }
+            | crate::workbook::NamedDefinition::Formula { .. } => None,
+        })
+    }
+
+    pub(super) fn lookup_scoped_named_range(
+        &self,
+        sheet_idx: Option<usize>,
         name: &str,
         args: &ReadArgs,
     ) -> Result<Option<(String, CellRange)>, ValueError> {
-        self.depend_names(args);
-        let definition = self.names.borrow().get(&name.to_uppercase()).cloned();
-        let Some(crate::workbook::NamedDefinition::Range { sheet_key, range }) = definition else {
+        let Some((_, definition)) = self.resolve_scoped_definition(sheet_idx, name, args) else {
+            return Ok(None);
+        };
+        self.range_from_definition(definition, args)
+    }
+
+    pub(super) fn lookup_sheet_named_range(
+        &self,
+        sheet_name: &str,
+        name: &str,
+        args: &ReadArgs,
+    ) -> Result<Option<(String, CellRange)>, ValueError> {
+        let Some((_, definition)) = self.resolve_sheet_qualified_definition(sheet_name, name, args)? else {
+            return Ok(None);
+        };
+        self.range_from_definition(definition, args)
+    }
+
+    fn range_from_definition(
+        &self,
+        definition: crate::workbook::NamedDefinition,
+        args: &ReadArgs,
+    ) -> Result<Option<(String, CellRange)>, ValueError> {
+        let crate::workbook::NamedDefinition::Range { sheet_key, range } = definition else {
             return Ok(None);
         };
         self.depend_topology(args);
@@ -183,6 +301,34 @@ impl WorkbookAtomContext {
             topology.sheets[*index].0.clone(),
             range.ok_or(ValueError::InvalidRef)?,
         )))
+    }
+
+    pub(super) fn lookup_named_formula(
+        &self,
+        sheet_idx: Option<usize>,
+        sheet_name: Option<&str>,
+        name: &str,
+        args: &ReadArgs,
+    ) -> Result<Option<(Option<usize>, Option<String>, Rc<Expr>)>, ValueError> {
+        let resolved = match sheet_name {
+            Some(sn) => self
+                .resolve_sheet_qualified_definition(sn, name, args)?
+                .map(|(idx, def)| (Some(idx), def)),
+            None => self.resolve_scoped_definition(sheet_idx, name, args),
+        };
+        let Some((scope_idx, crate::workbook::NamedDefinition::Formula { expr, .. })) = resolved
+        else {
+            return Ok(None);
+        };
+        self.depend_topology(args);
+        let scope_name = scope_idx.and_then(|idx| {
+            self.topology
+                .borrow()
+                .sheets
+                .get(idx)
+                .map(|(n, _)| n.clone())
+        });
+        Ok(Some((scope_idx, scope_name, expr)))
     }
 
     pub(super) fn call_custom(

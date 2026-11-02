@@ -53,12 +53,16 @@ impl Workbook {
             self.apply_validation_rule_sources(&validations);
             self.clear_conditional_range_atoms(idx);
             let sheet = self.sheets.remove(idx);
-            self.sheet_keys.remove(idx);
+            let removed_key = self.sheet_keys.remove(idx);
             self.print_configs.remove(idx);
             self.conditional_formats.remove(idx);
             sheet.detach_workbook_context();
             let name = self.names.remove(idx);
             self.by_name.remove(&name);
+            let before_scoped_names = self.sheet_named_values.len();
+            self.sheet_named_values
+                .retain(|(sk, _), _| *sk != removed_key);
+            let scoped_names_removed = self.sheet_named_values.len() != before_scoped_names;
             // Table anchor maintenance (design doc #32 §4.4): drop every Table
             // anchored to the removed sheet. Formulas on OTHER sheets that
             // referenced those Tables surface `#NAME?` at eval time (T3);
@@ -79,7 +83,7 @@ impl Workbook {
                 lambda.apply(self, false);
             }
             for template in &templates { template.apply(self, false); }
-            if !lambdas.is_empty() {
+            if !lambdas.is_empty() || scoped_names_removed {
                 self.publish_atom_names();
             }
             self.sync_atom_topology();

@@ -26,21 +26,21 @@ gzip 固定使用 `gzip -n -9 -c`，不写回输入文件。
 ## 采集步骤
 
 先在仓库根目录从干净或明确记录的工作树生成要测量的候选目录；脚本故意不执行构建，防止把
-旧候选物误当作刚生成的结果。例如，测量 Solid Vite 候选目录：
+旧候选物误当作刚生成的结果。例如，测量 React Vite 候选目录：
 
 ```bash
-npm run build -w @einfach-excel/solid-excel
+pnpm --filter @einfach-excel/react-excel build
 node scripts/measure-ad512-size-composition.mjs \
-  --candidate excel/solid-excel/dist \
-  --build-command 'npm run build -w @einfach-excel/solid-excel' \
-  > /tmp/ad512-solid-candidate.json
+  --candidate excel/react-excel/dist \
+  --build-command 'pnpm --filter @einfach-excel/react-excel build' \
+  > /tmp/ad512-react-candidate.json
 ```
 
 记录 JSON 含 `candidate_path`、`revision`、`worktree`、`captured_at_utc`、实际
 `build_command`、gzip 命令与运行工具版本。先运行构建命令，再立刻测量；构建输入、修订、
 候选路径、压缩工具或分类规则变化时应另存一份记录，不能推导比较结论。
 
-`wasm-pkg` 或 `wasm-pkg-full` 目录也可作为候选路径。它们通常只有 WASM 与 glue；空的
+`excel/excel-wasm/lite` 或 `excel/excel-wasm/full` 目录也可作为候选路径。它们通常只有 WASM 与 glue；空的
 `worker` 或 `ui` 数组表示该目录不含这类资源，不代表任何宿主交付边界。
 
 ## 验证

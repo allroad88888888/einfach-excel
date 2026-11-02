@@ -33,12 +33,16 @@ DOM 事件 → 一个 UI Core command atom → 一次 Rust 请求 → 发布结�
 
 | 目录 | 状态 | 职责 |
 |---|---|---|
-| `excel/react-excel/` | 当前主线 | 完整 React 产品与 Vite 演示 |
-| `excel/spreadsheet-ui-core/` | 当前主线 | UI atoms、Rust 命令和 Worker 传输 |
+| `excel/react-excel/` | 当前主线 | 完整 React 产品（含外部宿主组件 `<Spreadsheet />`）与 Vite 演示 |
+| `excel/spreadsheet-ui-core/` | 当前主线 | UI atoms、Rust 工作簿命令和 Worker 传输 |
+| `excel/rust/core/` | 当前主线 | Rust 端 atom store 实现 |
 | `excel/rust/excel-core/` | 当前主线 | Rust 工作簿与公式引擎 |
 | `excel/rust/wasm/` | 当前主线 | Rust 到浏览器的 WASM 绑定 |
-| `excel/excel-wasm/` | 当前主线 | wasm-pack JavaScript 包装产物入口 |
-| `excel/spreadsheet-ui-styles/` | 维护中 | 跨框架表格视觉样式 |
+| `excel/excel-wasm/` | 当前主线 | wasm-pack JavaScript 包装产物入口（`lite` / `full`） |
+| `excel/rust/xlsx/`、`excel/xlsx-wasm/` | 当前主线 | Rust `.xlsx` 读写 crate 与按需注入的 WASM 包装（`@einfach-excel/xlsx`） |
+| `packages/react-cells/` | 当前主线 | React DOM 单元格表面插件与内置渲染器 |
+| `packages/canvas/`、`packages/canvas-cells/`、`packages/canvas-demo/` | 当前主线 | Canvas 2D 网格内核、Canvas 单元格表面插件与独立演示 |
+| `excel/spreadsheet-ui-styles/` | 维护中 | 跨框架表格视觉样式与设计令牌 |
 | `excel/excel-core-ts/` | 参照实现 | TypeScript parity 参照，不接入 React 运行时 |
 | `excel/vue-excel/` | 独立实验 | Vue 视图，不参与 React 主线门禁 |
 | `excel/solid-excel/` | 已暂停 | 仅保留源码考古 |
@@ -55,7 +59,7 @@ npm run ensureWasm
 pnpm --filter @einfach-excel/react-excel dev
 ```
 
-Vite 输出的本地地址就是当前 demo。
+Vite 输出的本地地址就是当前 demo。外部应用消费组件包的快速接入见 [五分钟上手](./docs/QUICKSTART.md)。
 
 ## 校验
 
@@ -83,10 +87,14 @@ pnpm check:docs
 
 ## 文档
 
+- [五分钟上手](./docs/QUICKSTART.md)
 - [架构与单元格编辑链](./docs/ARCHITECTURE.md)
 - [React 产品说明](./excel/react-excel/README.md)
+- [React 功能进度与路线图](./excel/react-excel/FEATURE_PROGRESS.md)
+- [对外路线图](./docs/PUBLIC_ROADMAP.md)
 - [UI Core 说明](./excel/spreadsheet-ui-core/README.md)
 - [Rust/WASM 构建](./excel/rust/wasm/README.md)
+- [发布流程](./docs/RELEASING.md)
 - [贡献指南](./CONTRIBUTING.md)
 - [架构决策](./docs/decisions/README.md)
 

@@ -2,7 +2,7 @@ import type {
   BackendMutationResult,
   ProjectionRequestId,
   ProjectionRevision,
-} from '../backend/types'
+} from '../contracts/types'
 import type {
   StructureOperationControllerPort,
   StructureOperationIntent,

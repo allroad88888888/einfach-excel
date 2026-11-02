@@ -2,7 +2,7 @@ import type {
   ProjectionRequestId,
   SortRangeRejectionCode,
   SortRangeRequest,
-} from '../backend/types'
+} from '../contracts/types'
 import type { CellRange } from '../shared'
 import type { HistoryEntry, HistoryEntryRecorder, HistoryProducerReservation } from '../history'
 import type { SelectionAuthorityWitness } from '../selection'

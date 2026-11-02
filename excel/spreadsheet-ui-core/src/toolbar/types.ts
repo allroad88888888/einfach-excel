@@ -8,7 +8,7 @@ import type {
   SetFormatRangeRequest,
   SpreadsheetCellFormat,
   UnmergeRangeRequest,
-} from '../backend/types'
+} from '../contracts/types'
 import type { CellRange } from '../shared'
 import type { HistoryEntryRecorder } from '../history'
 

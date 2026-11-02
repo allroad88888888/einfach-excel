@@ -1,5 +1,5 @@
 import type { Getter, Setter } from '@einfach/core'
-import type { VisibleProjectionRequest } from '../backend'
+import type { VisibleProjectionRequest } from '../contracts'
 import { commitCellEditingAtom } from '../editing/commit-cell-editing'
 import { activeEditingCommitTicketAtom } from '../editing/commit-state'
 import { editingSessionAtom } from '../editing/session-atoms'

@@ -12,7 +12,7 @@ import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import { showFormulasAtom } from '../calculation/formula-view'
 import type { CellCoord } from '../shared'
-import type { ProjectionRevision, VisibleProjectionResult } from '../backend'
+import type { ProjectionRevision, VisibleProjectionResult } from '../contracts'
 
 function projectedCell(result: VisibleProjectionResult, cell: CellCoord) {
   return [...result.mergeAnchors ?? [], ...result.cells,

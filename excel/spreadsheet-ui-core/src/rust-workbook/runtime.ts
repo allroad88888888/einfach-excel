@@ -1,6 +1,6 @@
 /// <reference lib="WebWorker" />
 
-import type { BackendMutationResult, VisibleProjectionRequest } from '../backend'
+import type { BackendMutationResult, VisibleProjectionRequest } from '../contracts'
 import { installHostWorkerGateway } from '../host/worker'
 import { writeTrackedMutation } from './tracked-mutation'
 import { applyRustHistory } from './history-apply'

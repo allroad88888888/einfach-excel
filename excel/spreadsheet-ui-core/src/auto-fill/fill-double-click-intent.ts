@@ -1,5 +1,5 @@
 import type { Getter } from '@einfach/core'
-import type { DisplayCell, RangeProjectionResult } from '../backend/types'
+import type { DisplayCell, RangeProjectionResult } from '../contracts/types'
 import { filterSortStateAtom } from '../filter-sort'
 import type { CellCoord, CellRange } from '../shared'
 import type {

@@ -1,4 +1,4 @@
-import type { SetFormatRangeRequest } from '../backend'
+import type { SetFormatRangeRequest } from '../contracts'
 import type { WasmWorkbook } from './wasm-types'
 
 function requiredSetFormatRange(

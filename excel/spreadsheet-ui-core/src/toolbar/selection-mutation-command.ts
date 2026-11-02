@@ -1,6 +1,6 @@
 import { atom } from '@einfach/core'
-import type { SpreadsheetCellFormat } from '../backend'
-import type { RangeBorderPatch } from '../backend/format-contracts'
+import type { SpreadsheetCellFormat } from '../contracts'
+import type { RangeBorderPatch } from '../contracts/format-contracts'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import { editingSessionAtom } from '../editing/session-atoms'
 import {

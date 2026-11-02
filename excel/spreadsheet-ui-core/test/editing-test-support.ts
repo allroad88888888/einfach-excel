@@ -7,7 +7,7 @@ import type {
   BackendMutationResult,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '../src/backend'
+} from '../src/contracts'
 import { beginProjectionAtom, projectionSnapshotAtom, resolveProjectionAtom } from '../src/projection'
 import { bindTestRustWorkbookConnection } from './support/rust-workbook-connection'
 

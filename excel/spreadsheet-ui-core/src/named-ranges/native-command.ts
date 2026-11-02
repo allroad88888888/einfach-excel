@@ -11,7 +11,7 @@ import {
   issueProjectionRequestIdAtom, projectionSnapshotAtom,
 } from '../projection'
 import { validateProjectionResult } from '../projection/contracts'
-import type { ProjectionRevision } from '../backend'
+import type { ProjectionRevision } from '../contracts'
 import type { NamedRangeChange } from './native-types'
 
 // 两个名称入口共用一份忙碌状态；更换工作簿后旧请求不能锁住新工作簿。

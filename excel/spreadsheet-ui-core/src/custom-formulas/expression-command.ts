@@ -8,7 +8,7 @@ import { sheetTabsAtom } from '../sheet-tabs/state'
 import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../projection'
 import { validateProjectionResult } from '../projection/contracts'
-import type { ProjectionRevision } from '../backend'
+import type { ProjectionRevision } from '../contracts'
 import { hydrateCustomFormulaDefinitionsAtom, nativeCustomFormulaDefinitionsAtom } from './expression-catalog'
 import { validateCustomFormulaDefinitions, type NativeCustomFormulaAction } from './expression-types'
 

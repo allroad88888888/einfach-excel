@@ -1,4 +1,4 @@
-import type { ProjectionRequestId, ProjectionRevision } from '../backend/types'
+import type { ProjectionRequestId, ProjectionRevision } from '../contracts/types'
 import type { HistoryEntryRecorder, HistoryProducerReservation } from '../history'
 import type { CellRange } from '../shared'
 import { isValidPasteSpecialRange, snapshotRange } from './session-snapshot'

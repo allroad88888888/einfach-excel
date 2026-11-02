@@ -5,7 +5,7 @@ import {
   type AutoFillControllerPort,
   type RunAutoFillIntentInput,
 } from '../src/auto-fill'
-import type { AutoFillMutationResult, BackendMutationResult } from '../src/backend/types'
+import type { AutoFillMutationResult, BackendMutationResult } from '../src/contracts/types'
 import {
   acquireHistoryProducerReservationAtom,
   historyStackAtom,

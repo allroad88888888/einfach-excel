@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import type { VisibleProjectionResult } from '../src/backend'
+import type { VisibleProjectionResult } from '../src/contracts'
 import { validateProjectionResult } from '../src/projection/contracts'
 
 function result(): VisibleProjectionResult {

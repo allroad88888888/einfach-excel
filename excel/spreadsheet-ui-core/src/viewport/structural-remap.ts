@@ -1,7 +1,7 @@
-import type { BackendStructuralShift } from '../backend/types'
+import type { BackendStructuralShift } from '../contracts/types'
 import type { CellRange } from '../shared'
 
-// Pure remap helpers for BackendStructuralShift (see backend/types.ts).
+// Pure remap helpers for BackendStructuralShift (see contracts/types.ts).
 // They translate pre-mutation axis indices / ranges into post-mutation
 // coordinates. Nothing here touches atoms or lifecycles — wiring the
 // helpers into viewport state is a later stage.

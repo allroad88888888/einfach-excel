@@ -1,9 +1,9 @@
-import type { ProjectionRevision } from '../backend/types'
+import type { ProjectionRevision } from '../contracts/types'
 import type {
   SpreadsheetBorderSpec,
   SpreadsheetBorders,
   SpreadsheetCellFormat,
-} from '../backend/types'
+} from '../contracts/types'
 import type { CellRange } from '../shared'
 
 export function isProjectionRevision(value: unknown): value is ProjectionRevision {

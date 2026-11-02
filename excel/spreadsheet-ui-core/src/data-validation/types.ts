@@ -1,5 +1,5 @@
 import type { CellRange, SheetRef, SpreadsheetErrorSeverity } from '../shared'
-import type { ProjectionRequestId, ProjectionRevision } from '../backend'
+import type { ProjectionRequestId, ProjectionRevision } from '../contracts'
 
 export type ValidationRuleKind = 'list' | 'range' | 'regex' | 'formula'
 

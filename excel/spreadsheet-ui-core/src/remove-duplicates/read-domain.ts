@@ -4,7 +4,7 @@ import type {
   ProjectionRequestId,
   ProjectionRevision,
   RangeProjectionResult,
-} from '../backend/types'
+} from '../contracts/types'
 import {
   primarySelectionRegionAtom,
   selectionAuthorityWitnessAtom,

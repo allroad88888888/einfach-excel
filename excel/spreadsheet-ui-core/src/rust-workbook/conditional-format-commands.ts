@@ -1,7 +1,7 @@
 import type {
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '../backend/projection-contracts'
+} from '../contracts/projection-contracts'
 import type {
   NativeConditionalFormatRule,
   ConditionalFormatRuleEntry,

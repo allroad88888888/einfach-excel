@@ -7,7 +7,7 @@ import {
   type HistoryProducerReservation,
   type HistoryRecordResult,
 } from '../history'
-import type { ProjectionRequestId } from '../backend/types'
+import type { ProjectionRequestId } from '../contracts/types'
 import type {
   FilterSortAcknowledgementSnapshot,
   PhysicalSortAcknowledgement,

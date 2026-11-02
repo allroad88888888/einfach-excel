@@ -11,7 +11,7 @@ import { applyGoToTargetAtom } from '../go-to'
 import { goToReferenceAvailableAtom } from '../go-to/reference-command'
 import { scrollToCellAtom } from '../viewport/metrics'
 import { changeNativeNamedRangeAtom, nativeNameChangeBusyAtom } from './native-command'
-import type { ProjectionRevision } from '../backend'
+import type { ProjectionRevision } from '../contracts'
 import type { NamedRangeChange } from './native-types'
 
 interface Draft { name: string; targetSheetId: string; range: string }

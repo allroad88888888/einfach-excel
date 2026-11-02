@@ -3,7 +3,7 @@ import type {
   ProjectionRequestId,
   RangeProjectionRequest,
   VisibleProjectionRequest,
-} from '../backend'
+} from '../contracts'
 import type { SpreadsheetError } from '../shared'
 import { getProjectionRequestRange } from './contracts'
 import type {

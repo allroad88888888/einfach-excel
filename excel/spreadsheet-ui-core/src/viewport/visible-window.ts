@@ -54,47 +54,6 @@ export function getVisibleWindow(
   }
 }
 
-/** Returns the count of indices in [start, end] that are not hidden. */
-export function countVisibleIndices(start: number, end: number, hidden: number[]): number {
-  if (start > end) return 0
-  let hiddenCount = 0
-  for (const index of hidden) {
-    if (index < start) continue
-    if (index > end) break
-    hiddenCount += 1
-  }
-  return end - start + 1 - hiddenCount
-}
-
-/** Inflates a visible window so hidden indices do not reduce its painted span. */
-export function getVisibleWindowWithHidden(
-  metrics: ViewportMetrics,
-  hidden: { rows: number[]; cols: number[] },
-): VisibleWindow {
-  const base = getVisibleWindow(metrics)
-  const normalized = normalizeViewportMetrics(metrics)
-  if (normalized.rowCount === 0 || normalized.colCount === 0) return base
-
-  const targetRows = base.rowEnd - base.rowStart + 1
-  const targetCols = base.colEnd - base.colStart + 1
-  let rowEnd = base.rowStart - 1
-  let seenRows = 0
-  for (let row = base.rowStart; row < normalized.rowCount && seenRows < targetRows; row += 1) {
-    rowEnd = row
-    if (!hidden.rows.includes(row)) seenRows += 1
-  }
-  if (rowEnd < base.rowStart) rowEnd = Math.min(base.rowStart, normalized.rowCount - 1)
-
-  let colEnd = base.colStart - 1
-  let seenCols = 0
-  for (let col = base.colStart; col < normalized.colCount && seenCols < targetCols; col += 1) {
-    colEnd = col
-    if (!hidden.cols.includes(col)) seenCols += 1
-  }
-  if (colEnd < base.colStart) colEnd = Math.min(base.colStart, normalized.colCount - 1)
-  return { rowStart: base.rowStart, rowEnd, colStart: base.colStart, colEnd }
-}
-
 export function isCellInVisibleWindow(coord: CellCoord, visibleWindow: VisibleWindow): boolean {
   return (
     visibleWindow.rowStart <= visibleWindow.rowEnd &&

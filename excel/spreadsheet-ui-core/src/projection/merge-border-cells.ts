@@ -1,4 +1,4 @@
-import type { VisibleProjectionResult } from '../backend'
+import type { VisibleProjectionResult } from '../contracts'
 
 /** 窗口外逻辑边只有在中间全为隐藏轴时才与窗口边界重合。 */
 export function isCollapsedOutside(

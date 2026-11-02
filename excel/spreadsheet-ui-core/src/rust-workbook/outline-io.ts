@@ -3,7 +3,7 @@ import type {
   VisibleProjectionRequest,
   VisibleProjectionResult,
   ProjectionRevision,
-} from '../backend'
+} from '../contracts'
 import type { NativeOutlineAction } from '../outline/native-state'
 import type { RustWorkbookSheet, RustWorkbookSheetInput } from './commands'
 import type { WasmWorkbook } from './wasm-types'

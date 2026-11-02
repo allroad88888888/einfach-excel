@@ -8,7 +8,6 @@ import type {
 } from '../conditional-formatting/types'
 import type { ValidationMode, ValidationRule } from '../data-validation/types'
 import type { NamedRange } from '../named-ranges/types'
-import type { DisplayCellRichValue } from '../rich-types/types'
 import type { DisplayCell, SpreadsheetCellFormat } from './types'
 
 export type CellValueOperator = Extract<ConditionalFormatRule, { kind: 'cell-value' }>['operator']
@@ -138,20 +137,6 @@ export function normalizeFormat(
   return cloneFormat(format)
 }
 
-export function cloneRichValue(value: DisplayCellRichValue): DisplayCellRichValue {
-  switch (value.kind) {
-    case 'rich-text':
-      return {
-        kind: value.kind,
-        runs: value.runs.map((run) =>
-          run.format ? { text: run.text, format: { ...run.format } } : { text: run.text },
-        ),
-      }
-    default:
-      return { ...value }
-  }
-}
-
 export function cloneCell(cell: DisplayCell): DisplayCell {
   const clone: DisplayCell = {
     row: cell.row,
@@ -173,7 +158,6 @@ export function cloneCell(cell: DisplayCell): DisplayCell {
   if (cell.commentIndicator !== undefined) clone.commentIndicator = cell.commentIndicator
   if (cell.commentThreadId !== undefined) clone.commentThreadId = cell.commentThreadId
   if (cell.validation) clone.validation = { ...cell.validation }
-  if (cell.richValue) clone.richValue = cloneRichValue(cell.richValue)
   if (cell.mergedSpan) clone.mergedSpan = { ...cell.mergedSpan }
   if (cell.mergeAnchor) clone.mergeAnchor = { ...cell.mergeAnchor }
   return clone

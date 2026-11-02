@@ -7,7 +7,7 @@ import type {
   SheetListResult,
   SheetMutationResult,
   SpreadsheetSheetMetadata,
-} from '../backend'
+} from '../contracts'
 import type { WorkspaceActiveSheetAuthorityWitness } from '../workspace'
 
 export type SheetTabInteractionSource = 'pointer' | 'keyboard' | 'context-menu' | 'programmatic'

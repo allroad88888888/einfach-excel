@@ -179,7 +179,7 @@ export interface Cell {
 
 /**
  * Minimal format envelope. Mirrors `SpreadsheetCellFormat` in
- * `spreadsheet-ui-core/src/backend/types.ts` — keep field names aligned
+ * `spreadsheet-ui-core/src/contracts/types.ts` — keep field names aligned
  * so projection mapping stays mechanical.
  */
 export interface CellFormat {

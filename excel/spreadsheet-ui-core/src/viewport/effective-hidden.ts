@@ -1,5 +1,5 @@
 import { atom, type Atom } from '@einfach/core'
-import type { BackendStructuralShift } from '../backend/types'
+import type { BackendStructuralShift } from '../contracts/types'
 import { viewportHiddenAtom } from './hidden'
 import { remapIndexSetAfterStructuralShift } from './structural-remap'
 import type { ViewportFilterHiddenState, ViewportHiddenState } from './types'

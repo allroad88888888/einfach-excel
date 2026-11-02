@@ -1,6 +1,6 @@
 import type { CellCoord, CellRange, SheetRef } from '../shared'
 import type { SelectionState } from '../selection'
-import type { RangeProjectionRequest, RangeProjectionResult } from '../backend'
+import type { RangeProjectionRequest, RangeProjectionResult } from '../contracts'
 
 /**
  * The "simple" vs "special" panes of the Go To dialog.

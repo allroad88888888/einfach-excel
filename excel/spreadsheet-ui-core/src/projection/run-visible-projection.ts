@@ -1,5 +1,5 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
-import type { VisibleProjectionRequest } from '../backend'
+import type { VisibleProjectionRequest } from '../contracts'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import {
   beginProjectionAtom,

@@ -1,4 +1,4 @@
-import type { ProjectionViewport, VisibleProjectionResult } from '../backend'
+import type { ProjectionViewport, VisibleProjectionResult } from '../contracts'
 
 /** 在进入像素循环前拒绝 NaN、零尺寸及无界视口。 */
 export function validProjectionViewport(value: unknown): value is ProjectionViewport {

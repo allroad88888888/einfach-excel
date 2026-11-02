@@ -1,5 +1,5 @@
 import type { Getter, Setter } from '@einfach/core'
-import type { BackendStructuralShift } from '../backend/types'
+import type { BackendStructuralShift } from '../contracts/types'
 import type { HistoryLocalReplayPayload } from '../history'
 import {
   applyOutlineStructuralShiftAtom,

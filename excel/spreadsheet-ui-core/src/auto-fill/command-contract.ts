@@ -7,7 +7,7 @@ import type {
   ResolveDataEdgeRequest,
   ResolveDataEdgeResult,
   SetCellInputRequest,
-} from '../backend/types'
+} from '../contracts/types'
 import type { ContentMutationBlockReason } from '../editing/mutation-gateway'
 import type { HistoryEntryRecorder } from '../history'
 import type { CellRange, SheetRef } from '../shared'

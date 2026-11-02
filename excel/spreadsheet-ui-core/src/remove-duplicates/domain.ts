@@ -1,4 +1,4 @@
-import type { DisplayCell, ProjectionRequestId, ProjectionRevision } from '../backend/types'
+import type { DisplayCell, ProjectionRequestId, ProjectionRevision } from '../contracts/types'
 import type { CellRange } from '../shared'
 import { DEFAULT_REMOVE_DUPLICATES_TIMEOUT_MS } from './constants'
 import type {

@@ -1,4 +1,4 @@
-import type { ProjectionRequestId, ProjectionRevision } from '../backend/types'
+import type { ProjectionRequestId, ProjectionRevision } from '../contracts/types'
 
 export interface CellNote {
   text: string

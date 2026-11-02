@@ -18,7 +18,7 @@ import {
   viewportFilterHiddenAtom,
   viewportHiddenAtom,
 } from '../src/viewport'
-import type { BackendStructuralShift } from '../src/backend/types'
+import type { BackendStructuralShift } from '../src/contracts/types'
 
 describe('viewport filter-hidden source atom', () => {
   test('starts empty and reports no rows for any sheet', () => {

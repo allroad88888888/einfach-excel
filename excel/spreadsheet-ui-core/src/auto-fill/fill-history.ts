@@ -1,5 +1,5 @@
 import type { Setter } from '@einfach/core'
-import type { AutoFillMutationResult, ProjectionRevision } from '../backend/types'
+import type { AutoFillMutationResult, ProjectionRevision } from '../contracts/types'
 import {
   nextHistoryTransactionId,
   pushReservedHistoryAtom,

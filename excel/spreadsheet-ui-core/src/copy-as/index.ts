@@ -1,5 +1,5 @@
 import { atom, type Atom, type WritableAtom } from '@einfach/core'
-import type { DisplayCell } from '../backend/types'
+import type { DisplayCell } from '../contracts/types'
 import type { CopyAsError, CopyAsInput, CopyAsResult, CopyAsTextResult } from './types'
 import { encodeSelectionAsHtml } from './html-encoder'
 import { encodeSelectionAsMarkdown } from './markdown-encoder'

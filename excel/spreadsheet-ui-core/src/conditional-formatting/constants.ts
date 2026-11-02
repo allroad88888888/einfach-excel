@@ -1,4 +1,4 @@
-import type { SpreadsheetBorderSide } from '../backend'
+import type { SpreadsheetBorderSide } from '../contracts'
 import type { ConditionalFormatEditorState, ConditionalFormatRuleKind } from './types'
 
 export const CONDITIONAL_FORMAT_RULES_MAX = 200

@@ -1,4 +1,4 @@
-import type { ProjectionRevision } from '../backend/types'
+import type { ProjectionRevision } from '../contracts/types'
 import type { ToolbarMutationLifecycleState } from './types'
 import type { ToolbarMutationTicket } from './mutation-state'
 

@@ -218,7 +218,7 @@ P1 搭的是新阵容的骨架，本期把每页做成完整叙事：
 两层，都不手抄：
 
 1. **契约摄取**：build 时读取贴码契约渲染成页——
-   [`backend/types.ts`](../../spreadsheet-ui-core/src/backend/types.ts)（三个必选方法 +
+   [`contracts/types.ts`](../../spreadsheet-ui-core/src/contracts/types.ts)（三个必选方法 +
    全部可选 port 的注释即文档）、各 feature `README.md`（atom 分类表）、
    [`CUSTOM_FORMULAS.md`](../../rust/excel-core/src/CUSTOM_FORMULAS.md) 与
    custom-formulas 的 JS 侧 README。单一事实源留在代码旁，站点只是投影，

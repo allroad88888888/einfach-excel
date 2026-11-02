@@ -1,6 +1,6 @@
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
 import type { CellRange } from '../shared'
-import type { VisibleProjectionRequest, VisibleProjectionResult } from '../backend/projection-contracts'
+import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts/projection-contracts'
 import type { WorkerCommand } from '../rust-worker/types'
 import type { WasmWorkbook } from './wasm-types'
 

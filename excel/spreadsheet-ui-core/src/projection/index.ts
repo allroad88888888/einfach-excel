@@ -1,11 +1,11 @@
 import { atom, type Atom } from '@einfach/core'
-import { cloneFormat } from '../backend'
+import { cloneFormat } from '../contracts'
 import type {
   ProjectionRequestId,
   RangeProjectionRequest,
   SpreadsheetCellFormat,
   VisibleProjectionRequest,
-} from '../backend'
+} from '../contracts'
 import { selectionSnapshotAtom } from '../selection'
 import type { SpreadsheetError } from '../shared'
 import {

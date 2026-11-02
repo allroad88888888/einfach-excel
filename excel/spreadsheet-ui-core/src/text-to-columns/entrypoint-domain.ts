@@ -1,6 +1,6 @@
 import { atom } from '@einfach/core'
 import type { Getter } from '@einfach/core'
-import type { RangeProjectionResult } from '../backend/types'
+import type { RangeProjectionResult } from '../contracts/types'
 import { selectionAuthorityWitnessAtom, selectionSnapshotAtom } from '../selection'
 import { getFilterHiddenRowsForSheet, viewportFilterHiddenAtom } from '../viewport/effective-hidden'
 import { workspaceActiveSheetAuthorityWitnessAtom, workspaceSessionAtom } from '../workspace'

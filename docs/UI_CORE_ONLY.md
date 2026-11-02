@@ -57,5 +57,5 @@ React 的完整接法见 `excel/react-excel/src/app/App.tsx`。
 对象来做兼容。
 
 请求、结果和显示类型仍从包根导出，源码按职责位于
-`excel/spreadsheet-ui-core/src/backend/`。目录名表示引擎边界的数据合同，不代表存在
+`excel/spreadsheet-ui-core/src/contracts/`。目录名表示引擎边界的数据合同，不代表存在
 `SpreadsheetBackend` 接口。

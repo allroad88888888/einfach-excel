@@ -1,4 +1,4 @@
-import type { DisplayCell, VisibleProjectionResult } from '../backend'
+import type { DisplayCell, VisibleProjectionResult } from '../contracts'
 import type { CellCoord } from '../shared'
 
 /** undefined = 尚未投影；null = 已读取的空格。冻结区与滚动区使用同一份响应。 */

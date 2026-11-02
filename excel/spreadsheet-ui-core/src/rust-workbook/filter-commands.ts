@@ -1,4 +1,4 @@
-import type { VisibleProjectionRequest, VisibleProjectionResult } from '../backend'
+import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
 import type { WorkerCommand } from '../rust-worker'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import { validFilterCondition } from '../advanced-filter/contracts'

@@ -1,4 +1,4 @@
-import type { ProjectionRevision, VisibleProjectionRequest, VisibleProjectionResult } from '../../backend'
+import type { ProjectionRevision, VisibleProjectionRequest, VisibleProjectionResult } from '../../contracts'
 import type { CellRange } from '../../shared'
 import type { SheetProtectionState } from '../../protection/types'
 import type { WorkerCommand } from '../../rust-worker/types'

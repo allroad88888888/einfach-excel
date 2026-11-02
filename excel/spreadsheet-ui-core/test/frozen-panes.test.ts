@@ -4,8 +4,6 @@ import * as spreadsheetUiCore from '../src'
 import {
   applyViewportFreezeStructuralShiftAtom,
   DEFAULT_VIEWPORT_FREEZE_STATE,
-  getFrozenWindows,
-  getVisibleWindow,
   historyStackAtom,
   hydrateViewportFreezeAtom,
   remapFrozenLeadingBand,
@@ -18,7 +16,6 @@ import {
   type ReadFreezeConfigRequest,
   type SetFreezeConfigRequest,
   type ViewportFreezePersistencePort,
-  type ViewportMetrics,
 } from '../src'
 
 function deferred<T>() {
@@ -30,24 +27,6 @@ function deferred<T>() {
   })
   return { promise, resolve, reject }
 }
-
-function metrics(overrides: Partial<ViewportMetrics> = {}): ViewportMetrics {
-  return {
-    scrollTop: 0,
-    scrollLeft: 0,
-    viewportHeight: 100,
-    viewportWidth: 200,
-    rowHeight: 20,
-    colWidth: 50,
-    rowCount: 100,
-    colCount: 50,
-    overscanRows: 0,
-    overscanCols: 0,
-    ...overrides,
-  }
-}
-
-const EMPTY = { rowStart: 0, rowEnd: -1, colStart: 0, colEnd: -1 }
 
 function flushMicrotasks(times = 3): Promise<void> {
   let chain = Promise.resolve()
@@ -440,91 +419,5 @@ describe('freeze structural shift remap', () => {
       }),
     ).toBe(false)
     expect(store.getter(viewportFreezeAtom).rowsBySheet['S']).toBe(2)
-  })
-})
-
-describe('getFrozenWindows', () => {
-  test('freeze {rows:0, cols:0} — topLeft/topRight/bottomLeft empty, bottomRight equals getVisibleWindow', () => {
-    const m = metrics({ scrollTop: 40, scrollLeft: 100 })
-    const full = getVisibleWindow(m)
-    const result = getFrozenWindows(m, { rows: 0, cols: 0 })
-    expect(result.topLeft).toEqual(EMPTY)
-    expect(result.topRight).toEqual(EMPTY)
-    expect(result.bottomLeft).toEqual(EMPTY)
-    expect(result.bottomRight).toEqual(full)
-  })
-
-  test('freeze rows only — topLeft/bottomLeft empty, topRight has frozen rows', () => {
-    const m = metrics()
-    const result = getFrozenWindows(m, { rows: 2, cols: 0 })
-    expect(result.topLeft).toEqual(EMPTY)
-    expect(result.bottomLeft).toEqual(EMPTY)
-    expect(result.topRight.rowStart).toBe(0)
-    expect(result.topRight.rowEnd).toBe(1)
-  })
-
-  test('freeze cols only — topLeft/topRight empty, bottomLeft has frozen cols', () => {
-    const m = metrics()
-    const result = getFrozenWindows(m, { rows: 0, cols: 3 })
-    expect(result.topLeft).toEqual(EMPTY)
-    expect(result.topRight).toEqual(EMPTY)
-    expect(result.bottomLeft.colStart).toBe(0)
-    expect(result.bottomLeft.colEnd).toBe(2)
-  })
-
-  test('freeze rows=2, cols=3 — all four quadrants non-empty with correct boundaries', () => {
-    const m = metrics({ scrollTop: 100, scrollLeft: 200 })
-    const result = getFrozenWindows(m, { rows: 2, cols: 3 })
-
-    expect(result.topLeft).toEqual({ rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 2 })
-
-    expect(result.topRight.rowStart).toBe(0)
-    expect(result.topRight.rowEnd).toBe(1)
-    expect(result.topRight.colStart).toBeGreaterThanOrEqual(3)
-
-    expect(result.bottomLeft.rowStart).toBeGreaterThanOrEqual(2)
-    expect(result.bottomLeft.colStart).toBe(0)
-    expect(result.bottomLeft.colEnd).toBe(2)
-
-    expect(result.bottomRight.rowStart).toBeGreaterThanOrEqual(2)
-    expect(result.bottomRight.colStart).toBeGreaterThanOrEqual(3)
-  })
-
-  test('freeze covers entire visible area — bottomRight is empty', () => {
-    const m = metrics({ rowCount: 5, colCount: 5 })
-    const result = getFrozenWindows(m, { rows: 5, cols: 0 })
-    expect(result.bottomRight).toEqual(EMPTY)
-    expect(result.bottomLeft).toEqual(EMPTY)
-  })
-
-  test('freeze covers entire col range — bottomRight is empty', () => {
-    const m = metrics({ rowCount: 5, colCount: 5 })
-    const result = getFrozenWindows(m, { rows: 0, cols: 5 })
-    expect(result.bottomRight).toEqual(EMPTY)
-    expect(result.topRight).toEqual(EMPTY)
-  })
-
-  test('scroll offsets: frozen quadrants start at 0, scrolling quadrants start at scroll position', () => {
-    const m = metrics({ scrollTop: 60, scrollLeft: 150, overscanRows: 0, overscanCols: 0 })
-    const result = getFrozenWindows(m, { rows: 2, cols: 3 })
-
-    expect(result.topLeft.rowStart).toBe(0)
-    expect(result.topLeft.colStart).toBe(0)
-
-    const full = getVisibleWindow(m)
-    expect(result.bottomRight.rowStart).toBe(Math.max(2, full.rowStart))
-    expect(result.bottomRight.colStart).toBe(Math.max(3, full.colStart))
-    expect(result.bottomRight.rowEnd).toBe(full.rowEnd)
-    expect(result.bottomRight.colEnd).toBe(full.colEnd)
-  })
-
-  test('freeze rows=2 with scrollTop=0 — topRight and bottomRight share same col range', () => {
-    const m = metrics({ scrollTop: 0, scrollLeft: 0, overscanRows: 0, overscanCols: 0 })
-    const result = getFrozenWindows(m, { rows: 2, cols: 0 })
-    const full = getVisibleWindow(m)
-    expect(result.topRight.colStart).toBe(full.colStart)
-    expect(result.topRight.colEnd).toBe(full.colEnd)
-    expect(result.bottomRight.colStart).toBe(full.colStart)
-    expect(result.bottomRight.colEnd).toBe(full.colEnd)
   })
 })

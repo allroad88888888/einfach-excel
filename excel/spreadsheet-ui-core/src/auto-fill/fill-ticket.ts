@@ -1,5 +1,5 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
-import type { ProjectionRevision, RangeProjectionResult } from '../backend/types'
+import type { ProjectionRevision, RangeProjectionResult } from '../contracts/types'
 import { filterSortStateAtom } from '../filter-sort'
 import {
   releaseHistoryProducerReservationAtom,

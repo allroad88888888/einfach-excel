@@ -1,5 +1,5 @@
 import { atom, type Atom } from '@einfach/core'
-import type { DisplayCell } from '../backend/types'
+import type { DisplayCell } from '../contracts/types'
 import type {
   FillSeriesDetectionResult,
   FillSeriesKind,

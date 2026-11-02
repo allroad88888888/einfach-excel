@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest'
-import { cloneFilterSortState, filterSortHasEffect } from '../../src/backend/projection-helpers'
+import { cloneFilterSortState, filterSortHasEffect } from '../../src/contracts/projection-helpers'
 import { validateProjectionResult } from '../../src/projection/contracts'
 import { snapshotRustWorkbookDefinition } from '../../src/runtime/rust-workbook-definition'
 import { changeTable, importTables } from '../../src/rust-workbook/table-commands'

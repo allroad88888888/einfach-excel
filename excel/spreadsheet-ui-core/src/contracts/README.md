@@ -1,4 +1,4 @@
-# backend
+# contracts
 
 这里只定义框架无关的工作簿请求、结果和显示数据类型。目录名代表 Rust 引擎边界上的数据合同，
 不代表存在一个 backend 对象；本目录禁止依赖 Worker、WASM、DOM、Solid 或 React。

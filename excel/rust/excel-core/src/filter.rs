@@ -3,7 +3,7 @@
 //!
 //! This module is the Rust half of a CROSS-LANGUAGE PORT, not a fresh
 //! design. Every function here has a named TypeScript original in
-//! `excel/spreadsheet-ui-core/src/backend/projection-helpers.ts`, and the
+//! `excel/spreadsheet-ui-core/src/contracts/projection-helpers.ts`, and the
 //! contract of this slice is that the two agree on every input the product
 //! can produce. Where the original does something surprising it is copied
 //! surprise and all; the divergences worth naming are called out inline:

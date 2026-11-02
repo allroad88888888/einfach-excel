@@ -2,7 +2,7 @@ import type {
   SpreadsheetBorderSpec,
   SpreadsheetCellFormat,
   SpreadsheetNumberFormat,
-} from '../backend'
+} from '../contracts'
 import type { CellRange } from '../shared'
 import {
   ALIGNMENTS,

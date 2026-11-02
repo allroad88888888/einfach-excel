@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { applyVisibleFormats } from '../src/rust-workbook/format-projection'
-import { cloneCell } from '../src/backend/projection-helpers'
-import type { DisplayCell } from '../src/backend'
+import { cloneCell } from '../src/contracts/projection-helpers'
+import type { DisplayCell } from '../src/contracts'
 
 const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
 const source: DisplayCell = { row: 0, col: 0, displayValue: '-10', valueKind: 'number', numericValue: -10 }

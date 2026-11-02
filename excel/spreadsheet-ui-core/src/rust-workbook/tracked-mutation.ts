@@ -1,4 +1,4 @@
-import type { SetCellInputRequest, SetFormatRangeRequest } from '../backend'
+import type { SetCellInputRequest, SetFormatRangeRequest } from '../contracts'
 import type { RustClearRangeRequest, RustFillRangeRequest } from './commands'
 import { fillRange } from './fill-io'
 import { writeCellInput } from './cell-io'

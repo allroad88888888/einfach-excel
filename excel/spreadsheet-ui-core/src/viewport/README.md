@@ -90,7 +90,7 @@ structural backend history entries snapshot the manual hidden/freeze side payloa
 - Per-cell/per-row/per-col atom risk: no unbounded row/col atoms or dense dimension arrays;
   row/column size overrides are sparse records keyed only by user-adjusted rows/columns per sheet.
 - Tests: `test/viewport.test.ts`, `test/frozen-panes.test.ts`,
-  `test/hidden-rows-columns.test.ts`, `test/menu-hidden-context.test.ts`,
+  `test/hidden-rows-columns.test.ts`,
   `test/effective-hidden.test.ts`.
 
 ## Two hidden-row sets

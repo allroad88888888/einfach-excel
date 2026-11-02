@@ -51,7 +51,7 @@ import type {
   ImportCellChunksRequest,
   RangeProjectionRequest,
   RangeProjectionResult,
-} from '../src/backend/types'
+} from '../src/contracts/types'
 import { historyStackAtom, type HistoryEntryRecorder } from '../src/history'
 import { selectionAtom } from '../src/selection'
 import { hideRowsAtom, setViewportFilterHiddenRowsAtom } from '../src/viewport'

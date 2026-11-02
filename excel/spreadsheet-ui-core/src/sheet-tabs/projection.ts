@@ -1,5 +1,5 @@
 import type { Getter, Setter } from '@einfach/core'
-import type { ProjectionRevision, SpreadsheetSheetMetadata } from '../backend'
+import type { ProjectionRevision, SpreadsheetSheetMetadata } from '../contracts'
 import { selectCellAtom, selectionSnapshotAtom } from '../selection'
 import { setWorkspaceActiveSheetAtom, workspaceSessionAtom } from '../workspace'
 import { sheetTabsSheetStateAtom } from './state'

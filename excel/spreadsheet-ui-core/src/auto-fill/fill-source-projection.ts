@@ -1,4 +1,4 @@
-import type { DisplayCell, RangeProjectionResult } from '../backend/types'
+import type { DisplayCell, RangeProjectionResult } from '../contracts/types'
 import type { CellRange } from '../shared'
 import type { AutoFillIntent } from './command-contract'
 import { cellKey, sameRange } from './fill-range-geometry'

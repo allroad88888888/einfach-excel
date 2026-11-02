@@ -24,29 +24,18 @@ import {
   filterSortStateAtom,
   filterSortSyncTicketAtom,
   findReplacePanelAtom,
-  focusFormulaBarAtom,
-  formulaBarDraftAtom,
-  formulaBarStateAtom,
   formulaReferenceCaretAtom,
   formulaReferenceSessionAtom,
-  getDisplayCellText,
   historyStackAtom,
-  isHyperlinkValue,
   keyboardModeAtom,
-  menuStateAtom,
   nameRegistryCacheAtom,
   pointerSessionAtom,
-  presenceStateAtom,
   primarySelectionRegionAtom,
-  printConfigStateAtom,
   selectionAtom,
   selectionRegionsAtom,
   setCommentDraftAtom,
-  setFormulaBarDiagnosticAtom,
-  setFormulaBarErrorAtom,
   setFormulaReferenceCaretAtom,
   sheetProtectionAtom,
-  syncFormulaBarAtom,
   toolbarUiStateAtom,
   toggleFormulaBarAtom,
   toggleGridlinesAtom,
@@ -65,18 +54,6 @@ import { repositoryPath } from './support/repository-path'
 const SRC_ROOT = repositoryPath('excel/spreadsheet-ui-core/src')
 
 type AtomHasPublicWrite<Entity> = Entity extends { write: unknown } ? true : false
-
-const FORMULA_BAR_PUBLIC_STATE_IS_READ_ONLY: AtomHasPublicWrite<
-  typeof formulaBarStateAtom
-> = false
-
-const FORMULA_BAR_COMMANDS_ARE_WRITABLE: readonly [
-  AtomHasPublicWrite<typeof formulaBarDraftAtom>,
-  AtomHasPublicWrite<typeof focusFormulaBarAtom>,
-  AtomHasPublicWrite<typeof syncFormulaBarAtom>,
-  AtomHasPublicWrite<typeof setFormulaBarDiagnosticAtom>,
-  AtomHasPublicWrite<typeof setFormulaBarErrorAtom>,
-] = [true, true, true, true, true]
 
 const FILTER_SORT_PUBLIC_STATE_IS_READ_ONLY: readonly [
   AtomHasPublicWrite<typeof filterSortStateAtom>,
@@ -126,13 +103,11 @@ describe('package boundary', () => {
     expect(selectionAtom.debugLabel).toBe('spreadsheet.selection.state')
     expect(keyboardModeAtom.debugLabel).toBe('spreadsheet.keyboard.mode')
     expect(editingSessionAtom.debugLabel).toBe('spreadsheet.editing.session')
-    expect(formulaBarStateAtom.debugLabel).toBe('spreadsheet.formulaBar.state')
     expect(clipboardStateAtom.debugLabel).toBe('spreadsheet.clipboard.state')
     expect(formulaReferenceSessionAtom.debugLabel).toBe('spreadsheet.formulaReference.session')
     expect(formulaReferenceCaretAtom.debugLabel).toBe('spreadsheet.formulaReference.caret')
     expect(setFormulaReferenceCaretAtom.debugLabel).toBe('spreadsheet.formulaReference.setCaret')
     expect(pointerSessionAtom.debugLabel).toBe('spreadsheet.pointer.session')
-    expect(menuStateAtom.debugLabel).toBe('spreadsheet.menu.state')
     expect(toolbarUiStateAtom.debugLabel).toBe('spreadsheet.toolbar.ui')
     expect(diagnosticsAtom.debugLabel).toBe('spreadsheet.diagnostics.state')
     expect(viewportMetricsAtom.debugLabel).toBe('spreadsheet.viewport.metrics')
@@ -147,11 +122,7 @@ describe('package boundary', () => {
     expect(fillSeriesLocaleAtom.debugLabel).toBe('spreadsheet.autoFill.locale')
     expect(validationRuleEditorAtom.debugLabel).toBe('spreadsheet.validation.ruleEditor')
     expect(conditionalFormatEditorAtom.debugLabel).toBe('spreadsheet.conditionalFormat.editor')
-    expect(typeof getDisplayCellText).toBe('function')
-    expect(typeof isHyperlinkValue).toBe('function')
-    expect(printConfigStateAtom.debugLabel).toBe('spreadsheet.print.config')
     expect(findReplacePanelAtom.debugLabel).toBe('spreadsheet.findReplace.panel')
-    expect(presenceStateAtom.debugLabel).toBe('spreadsheet.presence.state')
     expect(filterSortStateAtom.debugLabel).toBe('spreadsheet.filterSort.state')
     expect(sheetProtectionAtom.debugLabel).toBe('spreadsheet.protection.state')
   })
@@ -243,25 +214,6 @@ describe('package boundary', () => {
     const source = readFileSync(join(SRC_ROOT, 'comments/index.ts'), 'utf8')
     expect(source).toMatch(/export const commentEditorDraftAtom: Atom<string>/)
     expect(source).not.toMatch(/set\(commentEditorDraftAtom\s*[,)]/)
-  })
-
-  test('keeps formula-bar product state read-only at the package boundary', () => {
-    expect('write' in formulaBarStateAtom).toBe(FORMULA_BAR_PUBLIC_STATE_IS_READ_ONLY)
-    expect(
-      [
-        formulaBarDraftAtom,
-        focusFormulaBarAtom,
-        syncFormulaBarAtom,
-        setFormulaBarDiagnosticAtom,
-        setFormulaBarErrorAtom,
-      ].map((commandAtom) => 'write' in commandAtom),
-    ).toEqual(FORMULA_BAR_COMMANDS_ARE_WRITABLE)
-
-    const source = readFileSync(join(SRC_ROOT, 'formula-bar/index.ts'), 'utf8')
-    expect(source).toMatch(
-      /export const formulaBarStateAtom: Atom<FormulaBarState>/,
-    )
-    expect(source).not.toMatch(/set\(formulaBarStateAtom\s*[,)]/)
   })
 
   test('keeps viewport hidden product state read-only at the package boundary', () => {

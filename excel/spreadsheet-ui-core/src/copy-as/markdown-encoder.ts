@@ -1,4 +1,4 @@
-import type { DisplayCell } from '../backend/types'
+import type { DisplayCell } from '../contracts/types'
 import type { CopyAsInput, CopyAsRect } from './types'
 import { copyAsVisibleRows } from './visible-rows'
 

@@ -4,7 +4,7 @@ import type {
   ProjectionRevision,
   RangeProjectionRequest,
   RangeProjectionResult,
-} from '../backend/types'
+} from '../contracts/types'
 import type { HistoryEntryRecorder } from '../history'
 import type { SelectionAuthorityWitness } from '../selection'
 import type { CellRange } from '../shared'

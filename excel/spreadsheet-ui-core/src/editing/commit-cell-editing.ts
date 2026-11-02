@@ -1,7 +1,7 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
 import type {
   ProjectionRevision, VisibleProjectionRequest, VisibleProjectionResult,
-} from '../backend'
+} from '../contracts'
 import { keyboardModeAtom } from '../keyboard'
 import { resetFormulaReferenceStateAtom } from '../formula-reference/state'
 import {

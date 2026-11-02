@@ -5,7 +5,7 @@ import type {
   DisplayCell,
   RangeProjectionRequest,
   RangeProjectionResult,
-} from '../src/backend/types'
+} from '../src/contracts/types'
 import { contentMutationLastBlockAtom } from '../src/editing/mutation-gateway'
 import {
   acquireHistoryProducerReservationAtom,

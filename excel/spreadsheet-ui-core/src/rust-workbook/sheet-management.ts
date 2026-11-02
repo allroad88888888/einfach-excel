@@ -1,4 +1,4 @@
-import type { VisibleProjectionRequest, VisibleProjectionResult } from '../backend'
+import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
 import type { WorkerCommand } from '../rust-worker/types'
 import type { RustWorkbookSheet } from './commands'
 import type { WasmWorkbook } from './wasm-types'

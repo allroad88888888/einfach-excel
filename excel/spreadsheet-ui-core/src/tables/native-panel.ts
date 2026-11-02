@@ -10,7 +10,7 @@ import { parseA1Cell, parseA1Range, rangeToA1 } from '../name-box/address'
 import { projectionSnapshotAtom } from '../projection'
 import { changeNativeTableAtom } from './native-change'
 import { nativeTableFeedbackAtom } from './native-feedback'
-import type { ProjectionRevision } from '../backend'
+import type { ProjectionRevision } from '../contracts'
 import { DEFAULT_NATIVE_TABLE_STYLE, NATIVE_TOTAL_FUNCTIONS, validNativeTableStyle,
   type NativeTable, type NativeTableStyle, type NativeTotalFunction, type TableChange } from './native-types'
 

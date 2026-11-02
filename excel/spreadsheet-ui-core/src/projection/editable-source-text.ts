@@ -1,4 +1,4 @@
-import type { VisibleProjectionResult } from '../backend'
+import type { VisibleProjectionResult } from '../contracts'
 import type { CellCoord } from '../shared'
 import { cellAtProjection } from './cell-at'
 import { atom } from '@einfach/core'

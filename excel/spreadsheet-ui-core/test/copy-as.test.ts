@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { createStore } from '@einfach/core'
-import type { DisplayCell } from '../src/backend/types'
+import type { DisplayCell } from '../src/contracts/types'
 import {
   copyAsErrorAtom,
   encodeSelectionAsHtml,

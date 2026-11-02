@@ -8,7 +8,7 @@ import type {
   RangeProjectionResult,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '../backend'
+} from '../contracts'
 import type { CellRange, SheetRef } from '../shared'
 import { validSheetVisibility } from '../viewport/hidden-state'
 import { validNativeNamedRanges } from '../named-ranges/native-types'

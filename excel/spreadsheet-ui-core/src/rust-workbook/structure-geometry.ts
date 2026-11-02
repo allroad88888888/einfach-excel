@@ -1,4 +1,4 @@
-import type { VisibleProjectionRequest } from '../backend'
+import type { VisibleProjectionRequest } from '../contracts'
 import type { RustWorkbookSheet } from './commands'
 
 export const STRUCTURE_ACTIONS = ['insert-rows', 'insert-columns', 'delete-rows', 'delete-columns'] as const

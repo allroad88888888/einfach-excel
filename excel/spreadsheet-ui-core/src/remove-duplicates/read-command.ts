@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { RangeProjectionRequest } from '../backend/types'
+import type { RangeProjectionRequest } from '../contracts/types'
 import {
   primarySelectionRegionAtom,
   selectionAuthorityWitnessAtom,

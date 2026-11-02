@@ -1,4 +1,4 @@
-import type { VisibleProjectionRequest } from '../../backend'
+import type { VisibleProjectionRequest } from '../../contracts'
 import type { WorkerCommand } from '../../rust-worker/types'
 import type { CellCoord, CellRange } from '../../shared'
 import type { RustWorkbookSheet } from '../commands'

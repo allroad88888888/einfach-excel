@@ -9,7 +9,7 @@ import {
 } from '../src'
 import { bindEditingMutation, startCellEdit } from './editing-test-support'
 import { readVisibleProjection } from '../src/rust-workbook/visible-projection'
-import { cloneCell } from '../src/backend/projection-helpers'
+import { cloneCell } from '../src/contracts/projection-helpers'
 import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 
 describe('editing input semantics', () => {

@@ -1,6 +1,6 @@
 import type {
   BackendMutationResult, VisibleProjectionResult, ViewportColumnWidth, ViewportRowHeight,
-} from '../backend'
+} from '../contracts'
 
 /** 一次写入的确认与同一 Rust 修订版可见区，不需要第二次刷新。 */
 export interface RustSetCellInputResult {

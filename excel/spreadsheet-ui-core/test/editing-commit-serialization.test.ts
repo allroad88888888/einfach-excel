@@ -7,7 +7,7 @@ import {
   editingSessionAtom,
   type EditingCommitRequest,
 } from '../src/editing'
-import type { BackendMutationResult } from '../src/backend'
+import type { BackendMutationResult } from '../src/contracts'
 import {
   bindEditingMutation,
   deferred,

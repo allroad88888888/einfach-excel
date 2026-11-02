@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { VisibleProjectionResult } from '../src/backend'
+import type { VisibleProjectionResult } from '../src/contracts'
 import { getSourceTextFromProjection } from '../src/projection/editable-source-text'
 
 const projection: VisibleProjectionResult = {

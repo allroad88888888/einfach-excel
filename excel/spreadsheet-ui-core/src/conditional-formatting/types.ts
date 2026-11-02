@@ -1,5 +1,5 @@
 import type { CellRange, SheetRef } from '../shared'
-import type { ProjectionRequestId, ProjectionRevision, SpreadsheetCellFormat } from '../backend'
+import type { ProjectionRequestId, ProjectionRevision, SpreadsheetCellFormat } from '../contracts'
 import type { ConditionalFormatThreshold, IconSetRule } from './advanced/types'
 export type { ConditionalFormatThreshold, IconSetRule, AdvancedVisualRule } from './advanced/types'
 

@@ -1,7 +1,7 @@
 import type { Getter, Setter } from '@einfach/core'
 import { nextHistoryTransactionId, pushHistoryAtom } from '../history'
 import type { HistoryEntry, HistoryRecordResult } from '../history'
-import type { ProjectionRevision } from '../backend/types'
+import type { ProjectionRevision } from '../contracts/types'
 import type { ToolbarBackendMutationResult, ToolbarMutationOutcome } from './types'
 import {
   TOOLBAR_MUTATION_ACKNOWLEDGEMENT_ERROR,

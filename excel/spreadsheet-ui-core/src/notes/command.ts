@@ -11,7 +11,7 @@ import { isCellInRange, validateProjectionResult } from '../projection/contracts
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import type { CellCoord } from '../shared'
-import type { ProjectionRevision } from '../backend'
+import type { ProjectionRevision } from '../contracts'
 import { validateNoteText } from './text'
 
 interface Panel {

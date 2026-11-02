@@ -1,4 +1,4 @@
-import type { ProjectionRevision, VisibleProjectionRequest, VisibleProjectionResult } from '../backend'
+import type { ProjectionRevision, VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
 import type { WorkerCommand } from '../rust-worker/types'
 import type { NativeTableAction, TableChange } from '../tables/native-types'
 import { validateProjectionRequest } from '../projection/contracts'

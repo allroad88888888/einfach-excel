@@ -1,4 +1,4 @@
-import type { ProjectionRequestId, ProjectionRevision, SetCellInputRequest } from '../backend/types'
+import type { ProjectionRequestId, ProjectionRevision, SetCellInputRequest } from '../contracts/types'
 import type { CellCoord } from '../shared'
 
 export type EditingInputSource = 'cell' | 'formula-bar' | 'keyboard' | 'paste'

@@ -19,17 +19,21 @@ fn area([r1, c1, r2, c2]: [u32; 4]) -> String {
     }
 }
 
-pub fn xml(names: &[NamedRange], sheets: &[String]) -> String {
+pub fn xml(names: &[NamedRange], sheets: &[String]) -> (String, usize) {
+    let mut broken = 0usize;
     let items: String = names.iter().map(|named| {
         let target = named.target.as_ref()
             .and_then(|t| sheets.get(t.sheet).map(|sheet| format!("'{}'!{}", sheet.replace('\'', "''"), area(t.range))))
-            .unwrap_or_else(|| "#REF!".into());
+            .unwrap_or_else(|| {
+                broken += 1;
+                "#REF!".into()
+            });
         format!(r#"<definedName name="{}">{}</definedName>"#, escape(&named.name), escape(&target))
     }).collect();
     if items.is_empty() {
-        String::new()
+        (String::new(), broken)
     } else {
-        format!("<definedNames>{items}</definedNames>")
+        (format!("<definedNames>{items}</definedNames>"), broken)
     }
 }
 

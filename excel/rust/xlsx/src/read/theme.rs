@@ -12,16 +12,42 @@ const SCHEME: [&[u8]; 12] = [
     b"accent6", b"hlink", b"folHlink",
 ];
 
-pub fn parse(xml: Option<&str>) -> Vec<String> {
+#[derive(Default)]
+pub struct Theme {
+    pub colors: Vec<String>,
+    pub custom_fonts: usize,
+}
+
+pub fn parse(xml: Option<&str>) -> Theme {
     let mut colors: Vec<String> = DEFAULT_THEME.iter().map(|c| c.to_string()).collect();
-    let Some(xml) = xml else { return colors };
+    let Some(xml) = xml else { return Theme { colors, custom_fonts: 0 } };
     let mut reader = Reader::from_str(xml);
     let mut slot: Option<usize> = None;
+    let mut in_font_scheme = false;
+    let mut custom_fonts = 0usize;
     loop {
         match reader.read_event() {
             Ok(Event::Start(e) | Event::Empty(e)) => {
                 let name = local_name(&e);
-                if let Some(index) = SCHEME.iter().position(|key| *key == name.as_slice()) {
+                if name == b"fontScheme" {
+                    in_font_scheme = true;
+                } else if in_font_scheme && name == b"latin" {
+                    if let Some(typeface) = attr(&e, "typeface") {
+                        if !typeface.is_empty()
+                            && !matches!(
+                                typeface.as_str(),
+                                "Calibri"
+                                    | "Calibri Light"
+                                    | "Cambria"
+                                    | "Aptos"
+                                    | "Aptos Display"
+                                    | "Aptos Narrow"
+                            )
+                        {
+                            custom_fonts += 1;
+                        }
+                    }
+                } else if let Some(index) = SCHEME.iter().position(|key| *key == name.as_slice()) {
                     slot = Some(index);
                 } else if let Some(index) = slot {
                     let rgb = match name.as_slice() {
@@ -35,9 +61,10 @@ pub fn parse(xml: Option<&str>) -> Vec<String> {
                     }
                 }
             }
+            Ok(Event::End(e)) if e.local_name().as_ref() == b"fontScheme" => in_font_scheme = false,
             Ok(Event::Eof) | Err(_) => break,
             _ => {}
         }
     }
-    colors
+    Theme { colors, custom_fonts }
 }

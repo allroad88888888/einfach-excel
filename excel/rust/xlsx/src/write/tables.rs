@@ -56,20 +56,25 @@ fn table_xml(table: &Table, id: usize) -> Option<String> {
 }
 
 /// 返回 `<tableParts>` 片段；`next_id` 是工作簿内递增的表编号（同时用作文件名）。
-pub fn build(tables: &[&Table], next_id: &mut usize, rels: &mut Rels, parts: &mut Vec<Part>) -> String {
+pub fn build(tables: &[&Table], next_id: &mut usize, rels: &mut Rels, parts: &mut Vec<Part>) -> (String, usize) {
     let mut refs = String::new();
+    let mut skipped = 0usize;
     for table in tables {
         let id = *next_id;
-        let Some(body) = table_xml(table, id) else { continue };
+        let Some(body) = table_xml(table, id) else {
+            skipped += 1;
+            continue;
+        };
         *next_id += 1;
         let path = format!("xl/tables/table{id}.xml");
         let rid = rels.add("table", &format!("../tables/table{id}.xml"), false);
         parts.push(Part { path, body, content_type: Some(TABLE_CONTENT_TYPE) });
         refs.push_str(&format!(r#"<tablePart r:id="{rid}"/>"#));
     }
-    if refs.is_empty() {
+    let xml = if refs.is_empty() {
         String::new()
     } else {
         format!(r#"<tableParts count="{}">{refs}</tableParts>"#, refs.matches("<tablePart ").count())
-    }
+    };
+    (xml, skipped)
 }

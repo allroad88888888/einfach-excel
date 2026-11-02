@@ -31,16 +31,23 @@ pub fn is_acceptable_url(url: &str) -> bool {
 /// 一条链接覆盖的区域超过这个格数就只挂在左上角，避免整列链接生成上百万条。
 const MAX_EXPANDED_CELLS: u64 = 256;
 
-pub fn parse(extras: &Node, rels: &[Relationship], sheet: usize) -> Vec<Hyperlink> {
-    let Some(links) = extras.child("hyperlinks") else { return Vec::new() };
+pub fn parse(extras: &Node, rels: &[Relationship], sheet: usize) -> (Vec<Hyperlink>, usize) {
+    let Some(links) = extras.child("hyperlinks") else { return (Vec::new(), 0) };
     let mut seen = HashSet::new();
     let mut out = Vec::new();
+    let mut skipped = 0usize;
     for link in links.each("hyperlink") {
         let Some(url) = link.attr("id")
             .and_then(|id| rels.iter().find(|rel| rel.id == id && rel.external))
             .map(|rel| rel.target.clone())
-            .filter(|url| is_acceptable_url(url)) else { continue };
-        let Some([r1, c1, r2, c2]) = link.attr("ref").and_then(parse_range) else { continue };
+            .filter(|url| is_acceptable_url(url)) else {
+            skipped += 1;
+            continue;
+        };
+        let Some([r1, c1, r2, c2]) = link.attr("ref").and_then(parse_range) else {
+            skipped += 1;
+            continue;
+        };
         let cells = u64::from(r2 - r1 + 1) * u64::from(c2 - c1 + 1);
         let (r2, c2) = if cells > MAX_EXPANDED_CELLS { (r1, c1) } else { (r2, c2) };
         for row in r1..=r2 {
@@ -51,5 +58,5 @@ pub fn parse(extras: &Node, rels: &[Relationship], sheet: usize) -> Vec<Hyperlin
             }
         }
     }
-    out
+    (out, skipped)
 }

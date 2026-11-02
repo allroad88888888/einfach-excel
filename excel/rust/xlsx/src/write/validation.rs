@@ -97,10 +97,18 @@ fn element(region: &ValidationRegion) -> Option<String> {
         range_name(region.range), escape(&formula1)))
 }
 
-pub fn xml(validations: &[&SheetValidation]) -> String {
-    let items: Vec<String> = validations.iter().flat_map(|sheet| &sheet.regions).filter_map(element).collect();
-    if items.is_empty() {
-        return String::new();
+pub fn xml(validations: &[&SheetValidation]) -> (String, usize) {
+    let regions: Vec<&ValidationRegion> = validations.iter().flat_map(|sheet| &sheet.regions).collect();
+    let mut items = Vec::new();
+    let mut skipped = 0usize;
+    for region in regions {
+        match element(region) {
+            Some(xml) => items.push(xml),
+            None => skipped += 1,
+        }
     }
-    format!(r#"<dataValidations count="{}">{}</dataValidations>"#, items.len(), items.concat())
+    if items.is_empty() {
+        return (String::new(), skipped);
+    }
+    (format!(r#"<dataValidations count="{}">{}</dataValidations>"#, items.len(), items.concat()), skipped)
 }

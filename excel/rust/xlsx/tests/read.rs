@@ -213,3 +213,77 @@ body</t></r><rPh><t>skip</t></rPh></text></comment><comment ref="C3" authorId="0
     let names: Vec<_> = book["namedRanges"].as_array().unwrap().iter().map(|n| (n["name"].clone(), n["target"]["range"].clone())).collect();
     assert_eq!(names, [("Rows".into(), serde_json::json!([1, 0, 2, 16383])), ("Cols".into(), serde_json::json!([0, 1, 1048575, 2]))]);
 }
+
+#[test]
+fn reports_clean_import_on_basic_fixture_and_skipped_items_on_features_fixture() {
+    let (_, basic_report) = einfach_xlsx::xlsx_to_native_with_report(
+        std::fs::read("tests/fixtures/basic.xlsx").unwrap(),
+        "basic",
+    ).unwrap();
+    assert!(basic_report.items.is_empty());
+    assert_eq!(basic_report.summary, "");
+
+    let (_, feat_report) = einfach_xlsx::xlsx_to_native_with_report(
+        std::fs::read("tests/fixtures/features.xlsx").unwrap(),
+        "features",
+    ).unwrap();
+    let kinds: Vec<_> = feat_report.items.iter().map(|i| (i.kind.as_str(), i.count)).collect();
+    assert_eq!(kinds, [("definedNames", 1), ("hyperlinks", 1)]);
+    assert_eq!(
+        feat_report.summary,
+        "Opened Excel workbook. Skipped: unsupported defined names, unsupported hyperlinks."
+    );
+}
+
+#[test]
+fn converts_1904_dates_and_reports_dropped_parts_from_edge_cases_fixture() {
+    let (text, report) = einfach_xlsx::xlsx_to_native_with_report(
+        std::fs::read("tests/fixtures/edge_cases.xlsx").unwrap(),
+        "edge_cases",
+    ).unwrap();
+    let file: Value = serde_json::from_str(&text).unwrap();
+    assert_eq!(cell(&file, 0, "A2").unwrap()["value"], "Bold plain");
+    assert_eq!(cell(&file, 0, "A4").unwrap()["value"], "Inline rich");
+    // 1904 serial 39813 + 1462 = 41275 (2013-01-01 in 1900 system); time cell C3 (0.5) is untouched.
+    assert_eq!(cell(&file, 0, "C2").unwrap()["value"], 41275.0);
+    assert_eq!(cell(&file, 0, "C3").unwrap()["value"], 0.5);
+
+    let kinds: Vec<&str> = report.items.iter().map(|i| i.kind.as_str()).collect();
+    for expected in [
+        "date1904", "charts", "threadedComments", "conditionalFormats", "dataValidations",
+        "definedNames", "hyperlinks", "richText", "sheetProtection", "autoFilter",
+        "outline", "printSetup", "macros",
+    ] {
+        assert!(kinds.contains(&expected), "expected {expected} in {kinds:?}");
+    }
+    assert!(report.summary.starts_with("Opened Excel workbook. Skipped: 1904 date system, charts, "));
+}
+
+#[test]
+fn reports_drawings_pivots_theme_fonts_and_external_links() {
+    let bytes = zip(&[
+        ("xl/workbook.xml", r#"<workbook xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><workbookPr date1904="true"/><sheets><sheet name="S" sheetId="1" r:id="rId1"/></sheets></workbook>"#),
+        ("xl/_rels/workbook.xml.rels", r#"<Relationships>
+            <Relationship Id="rId1" Type=".../worksheet" Target="worksheets/sheet1.xml"/>
+            <Relationship Id="rId2" Type=".../theme" Target="theme/theme1.xml"/>
+            <Relationship Id="rId3" Type=".../externalLink" Target="externalLinks/externalLink1.xml"/>
+            <Relationship Id="rId4" Type=".../pivotCacheDefinition" Target="pivotCache/pivotCacheDefinition1.xml"/>
+        </Relationships>"#),
+        ("xl/theme/theme1.xml", r#"<theme><themeElements><fontScheme name="Custom"><majorFont><latin typeface="Roboto"/></majorFont><minorFont><latin typeface="Open Sans"/></minorFont></fontScheme></themeElements></theme>"#),
+        ("xl/worksheets/sheet1.xml", r#"<worksheet xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetData><row r="1"><c r="A1"><v>1</v></c></row></sheetData><drawing r:id="rIdDrw"/></worksheet>"#),
+        ("xl/worksheets/_rels/sheet1.xml.rels", r#"<Relationships>
+            <Relationship Id="rIdDrw" Type=".../drawing" Target="../drawings/drawing1.xml"/>
+            <Relationship Id="rIdPvt" Type=".../pivotTable" Target="../pivotTables/pivotTable1.xml"/>
+        </Relationships>"#),
+        ("xl/drawings/_rels/drawing1.xml.rels", r#"<Relationships><Relationship Id="rIdImg" Type=".../image" Target="../media/image1.png"/></Relationships>"#),
+    ]);
+    let (_, report) = einfach_xlsx::xlsx_to_native_with_report(bytes, "Full").unwrap();
+    let kinds: Vec<_> = report.items.iter().map(|i| (i.kind.as_str(), i.count)).collect();
+    assert_eq!(kinds, [
+        ("date1904", 1),
+        ("drawings", 1),
+        ("pivotTables", 1),
+        ("themeFonts", 2),
+        ("externalLinks", 1),
+    ]);
+}

@@ -19,6 +19,7 @@ mod xml;
 
 use crate::address::{cell_name, parse_range};
 use crate::native::*;
+use crate::report::{ConversionReport, ReportBuilder};
 use crate::XlsxError;
 
 /// 引擎表名规则：1–31 字符、不含 `[]:*?/\`；重名或空名改成 SheetN。
@@ -35,8 +36,9 @@ fn sheet_name(name: &str, index: usize, used: &mut Vec<String>) -> String {
 }
 
 /// 表名在工作簿内唯一，同一张表里的 Table 不能重叠；违反的丢弃（引擎会整体拒绝这类文件）。
-fn keep_valid_tables(tables: &mut Vec<Table>) {
+fn keep_valid_tables(tables: &mut Vec<Table>) -> usize {
     let mut kept: Vec<Table> = Vec::new();
+    let mut dropped = 0usize;
     for table in tables.drain(..) {
         let area = parse_range(&table.range);
         let clash = kept.iter().any(|other| {
@@ -44,29 +46,39 @@ fn keep_valid_tables(tables: &mut Vec<Table>) {
                 (area, parse_range(&other.range)),
                 (Some([r1, c1, r2, c2]), Some([a1, b1, a2, b2])) if r1 <= a2 && a1 <= r2 && c1 <= b2 && b1 <= c2))
         });
-        if !clash {
+        if clash {
+            dropped += 1;
+        } else {
             kept.push(table);
         }
     }
     *tables = kept;
+    dropped
 }
 
-pub fn read(bytes: Vec<u8>, title: &str) -> Result<NativeFile, XlsxError> {
+pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport), XlsxError> {
     let mut archive = archive::Archive::open(bytes)?;
     let parts = archive.workbook_parts()?;
+    let mut report = ReportBuilder::default();
     if parts.date1904 {
-        return Err(XlsxError::new("Workbooks using the 1904 date system are not supported yet."));
+        report.add("date1904", 1);
     }
-    let strings = match &parts.shared_strings {
+    if parts.macros {
+        report.add("macros", 1);
+    }
+    report.add("externalLinks", parts.external_links);
+    let (strings, shared_rich) = match &parts.shared_strings {
         Some(path) => shared_strings::parse(&archive.read(path)?.unwrap_or_default())?,
-        None => Vec::new(),
+        None => (Vec::new(), 0),
     };
+    report.add("richText", shared_rich);
     let theme_xml = match &parts.theme { Some(path) => archive.read(path)?, None => None };
     let theme = theme::parse(theme_xml.as_deref());
+    report.add("themeFonts", theme.custom_fonts);
     let styles_xml = match &parts.styles { Some(path) => archive.read(path)?, None => None };
-    let xfs = styles::parse(styles_xml.as_deref(), &theme)?;
-    let dxfs = dxf::parse(styles_xml.as_deref(), &theme);
-    let shared = features::Shared { dxfs: &dxfs, theme: &theme };
+    let xfs = styles::parse(styles_xml.as_deref(), &theme.colors)?;
+    let dxfs = dxf::parse(styles_xml.as_deref(), &theme.colors);
+    let shared = features::Shared { dxfs: &dxfs, theme: &theme.colors, date1904: parts.date1904 };
 
     let mut workbook = Persistence { version: 1, ..Default::default() };
     let mut canvases = Vec::new();
@@ -75,18 +87,29 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<NativeFile, XlsxError> {
         let xml = archive.read(&part.path)?
             .ok_or_else(|| XlsxError::new(format!("Worksheet {} is missing from the file.", part.name)))?;
         let data = worksheet::parse(&xml, &strings)?;
+        report.add("richText", data.rich_text);
+        report.add("outline", data.outline);
         let name = sheet_name(&part.name, index, &mut used);
-        let extras = features::read_sheet(&mut archive, &part.path, &xml, index, &name, &shared);
-        workbook.sheets.push(SheetMeta { idx: index as u32, name });
+        let extras = features::read_sheet(&mut archive, &part.path, &xml, index, &name, &shared, &mut report);
+        workbook.sheets.push(SheetMeta { idx: index as u32, name, hidden: false, tab_color: None });
         canvases.push(Canvas { row_count: MAX_ROWS, col_count: MAX_COLS });
 
         let mut cell_styles = Vec::new();
         for cell in data.cells {
             let addr = cell_name(cell.row, cell.col);
-            if let Some(format) = xfs.get(cell.style as usize).filter(|f| **f != CellFormat::default()) {
+            let style = xfs.get(cell.style as usize);
+            let is_date = style
+                .and_then(|f| f.number_format.as_ref())
+                .is_some_and(|nf| nf.kind == "date");
+            if let Some(format) = style.filter(|f| **f != CellFormat::default()) {
                 cell_styles.push(CellStyle { addr: addr.clone(), format: format.clone() });
             }
-            if let Some((kind, value)) = cell.content {
+            if let Some((kind, mut value)) = cell.content {
+                if parts.date1904 && is_date && kind == "number" {
+                    if let CellValue::Number(ref mut n) = value {
+                        *n += 1462.0;
+                    }
+                }
                 workbook.cells.push(SparseCell {
                     sheet: index, addr, row: cell.row, col: cell.col, kind: kind.into(), value: Some(value),
                 });
@@ -131,14 +154,22 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<NativeFile, XlsxError> {
             });
         }
     }
-    keep_valid_tables(&mut workbook.tables);
+    if parts.pivot_caches > 0 && !report.has("pivotTables") {
+        report.add("pivotTables", parts.pivot_caches);
+    }
+    report.add("tables", keep_valid_tables(&mut workbook.tables));
     let sheet_names: Vec<String> = parts.sheets.iter().map(|part| part.name.clone()).collect();
     if let Some(root) = archive.read("xl/workbook.xml")?.and_then(|xml| dom::parse(&xml, &[])) {
-        workbook.named_ranges = defined_names::parse(&root, &sheet_names);
+        let (names, skipped_names) = defined_names::parse(&root, &sheet_names);
+        report.add("definedNames", skipped_names);
+        workbook.named_ranges = names;
+        let before = workbook.named_ranges.len();
         // 表名与定义名共用一个命名空间，冲突时保留表。
         workbook.named_ranges.retain(|named| {
             !workbook.tables.iter().any(|table| table.name.eq_ignore_ascii_case(&named.name))
         });
+        report.add("definedNames", before - workbook.named_ranges.len());
     }
-    Ok(NativeFile { format: FORMAT.into(), version: 1, title: title.into(), canvases, workbook })
+    let file = NativeFile { format: FORMAT.into(), version: 1, title: title.into(), canvases, workbook };
+    Ok((file, report.finish_import()))
 }

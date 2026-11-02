@@ -6,6 +6,7 @@ use super::rels::Rels;
 use super::styles::StyleTable;
 use super::{comments, conditional, hyperlinks, tables, validation, vml};
 use crate::native::NativeFile;
+use crate::report::ReportBuilder;
 
 const COMMENTS_CONTENT_TYPE: &str = "application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml";
 
@@ -21,7 +22,12 @@ pub struct SheetOut {
 }
 
 pub fn sheet(
-    file: &NativeFile, index: usize, styles: &mut StyleTable, counters: &mut Counters, parts: &mut Vec<Part>,
+    file: &NativeFile,
+    index: usize,
+    styles: &mut StyleTable,
+    counters: &mut Counters,
+    parts: &mut Vec<Part>,
+    report: &mut ReportBuilder,
 ) -> SheetOut {
     let book = &file.workbook;
     let mut rels = Rels::default();
@@ -30,11 +36,15 @@ pub fn sheet(
     let links: Vec<_> = book.hyperlinks.iter().filter(|l| l.sheet == index).collect();
     let sheet_tables: Vec<_> = book.tables.iter().filter(|t| t.sheet_index as usize == index).collect();
 
-    let mut tail = conditional::xml(&conditional_formats, styles);
-    tail.push_str(&validation::xml(&validations));
+    let (mut tail, skipped_cf) = conditional::xml(&conditional_formats, styles);
+    let (val_xml, skipped_val) = validation::xml(&validations);
+    tail.push_str(&val_xml);
     tail.push_str(&hyperlinks::xml(&links, &mut rels));
+    report.add("conditionalFormats", skipped_cf);
+    report.add("dataValidations", skipped_val);
 
-    let texts = comments::collect(index, &book.notes, &book.comments);
+    let (texts, downgraded) = comments::collect(index, &book.notes, &book.comments);
+    report.add("threadedCommentsAsNotes", downgraded);
     if !texts.is_empty() {
         let n = counters.comments;
         counters.comments += 1;
@@ -44,6 +54,8 @@ pub fn sheet(
         parts.push(Part { path: format!("xl/drawings/vmlDrawing{n}.vml"), body: vml::xml(&texts, index), content_type: None });
         tail.push_str(&format!(r#"<legacyDrawing r:id="{vml_id}"/>"#));
     }
-    tail.push_str(&tables::build(&sheet_tables, &mut counters.tables, &mut rels, parts));
+    let (table_xml, skipped_tables) = tables::build(&sheet_tables, &mut counters.tables, &mut rels, parts);
+    report.add("tables", skipped_tables);
+    tail.push_str(&table_xml);
     SheetOut { tail, rels }
 }

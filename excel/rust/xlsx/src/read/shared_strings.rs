@@ -6,29 +6,44 @@ use quick_xml::Reader;
 use super::xml::{local_name, text_of};
 use crate::XlsxError;
 
-pub fn parse(xml: &str) -> Result<Vec<String>, XlsxError> {
+pub fn parse(xml: &str) -> Result<(Vec<String>, usize), XlsxError> {
     let mut strings = Vec::new();
+    let mut rich_text = 0usize;
     let mut reader = Reader::from_str(xml);
     let mut current: Option<String> = None;
+    let mut current_rich = false;
     let mut in_text = false;
     // 注音（<rPh>）里的 <t> 不是正文。
     let mut phonetic = 0usize;
     loop {
         match reader.read_event() {
             Ok(Event::Start(e)) => match local_name(&e).as_slice() {
-                b"si" => current = Some(String::new()),
+                b"si" => {
+                    current = Some(String::new());
+                    current_rich = false;
+                }
+                b"rPr" => current_rich = true,
                 b"t" => in_text = phonetic == 0,
                 b"rPh" => phonetic += 1,
                 _ => {}
             },
-            Ok(Event::Empty(e)) if local_name(&e) == b"si" => strings.push(String::new()),
+            Ok(Event::Empty(e)) => match local_name(&e).as_slice() {
+                b"si" => strings.push(String::new()),
+                b"rPr" => current_rich = true,
+                _ => {}
+            },
             Ok(ref event @ (Event::Text(_) | Event::CData(_) | Event::GeneralRef(_))) if in_text => {
                 if let (Some(value), Some(text)) = (current.as_mut(), text_of(event)) {
                     value.push_str(&text);
                 }
             }
             Ok(Event::End(e)) => match e.local_name().as_ref() {
-                b"si" => strings.push(current.take().unwrap_or_default()),
+                b"si" => {
+                    strings.push(current.take().unwrap_or_default());
+                    if current_rich {
+                        rich_text += 1;
+                    }
+                }
                 b"t" => in_text = false,
                 b"rPh" => phonetic = phonetic.saturating_sub(1),
                 _ => {}
@@ -38,5 +53,5 @@ pub fn parse(xml: &str) -> Result<Vec<String>, XlsxError> {
             _ => {}
         }
     }
-    Ok(strings)
+    Ok((strings, rich_text))
 }

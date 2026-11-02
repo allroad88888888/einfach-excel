@@ -32,29 +32,51 @@ pub fn is_valid_name(name: &str) -> bool {
     upper != "R" && upper != "C" && !r1c1 && parse_cell(&upper).is_none()
 }
 
-pub fn parse(xml: &str, sheet_name: &str, sheet_index: usize) -> Option<Table> {
-    let root = dom::parse(xml, &[])?;
-    let name = root.attr("displayName").or(root.attr("name"))?.to_string();
-    let [r1, c1, r2, c2] = parse_range(root.attr("ref")?)?;
-    let has_headers = root.attr_u32("headerRowCount").unwrap_or(1) > 0;
-    let has_totals = root.attr_u32("totalsRowCount").unwrap_or(0) > 0;
-    let columns: Vec<String> = root.child("tableColumns")?.each("tableColumn")
-        .map(|c| c.attr("name").unwrap_or_default().to_string()).collect();
-    let min_rows = 1 + u32::from(has_headers) + u32::from(has_totals);
-    if !is_valid_name(&name) || columns.len() as u32 != c2 - c1 + 1 || r2 - r1 + 1 < min_rows {
-        return None;
+pub fn parse(xml: &str, sheet_name: &str, sheet_index: usize) -> (Option<Table>, usize) {
+    let Some(root) = dom::parse(xml, &[]) else { return (None, 1) };
+    let mut dropped = 0usize;
+    if let Some(af) = root.child("autoFilter") {
+        if !af.children.is_empty() {
+            dropped += 1;
+        }
     }
-    let style = root.child("tableStyleInfo").map(style_of).unwrap_or_default();
-    Some(Table {
-        name,
-        sheet: sheet_name.to_string(),
-        sheet_index: sheet_index as u32,
-        range: format!("{}:{}", cell_name(r1, c1), cell_name(r2, c2)),
-        has_headers,
-        has_totals,
-        columns,
-        style,
-    })
+    if let Some(cols) = root.child("tableColumns") {
+        for col in cols.each("tableColumn") {
+            if col.child("calculatedColumnFormula").is_some()
+                || col.child("totalsRowFormula").is_some()
+                || col.attr("totalsRowFunction").is_some_and(|f| f != "none")
+            {
+                dropped += 1;
+            }
+        }
+    }
+    let build = || -> Option<Table> {
+        let name = root.attr("displayName").or(root.attr("name"))?.to_string();
+        let [r1, c1, r2, c2] = parse_range(root.attr("ref")?)?;
+        let has_headers = root.attr_u32("headerRowCount").unwrap_or(1) > 0;
+        let has_totals = root.attr_u32("totalsRowCount").unwrap_or(0) > 0;
+        let columns: Vec<String> = root.child("tableColumns")?.each("tableColumn")
+            .map(|c| c.attr("name").unwrap_or_default().to_string()).collect();
+        let min_rows = 1 + u32::from(has_headers) + u32::from(has_totals);
+        if !is_valid_name(&name) || columns.len() as u32 != c2 - c1 + 1 || r2 - r1 + 1 < min_rows {
+            return None;
+        }
+        let style = root.child("tableStyleInfo").map(style_of).unwrap_or_default();
+        Some(Table {
+            name,
+            sheet: sheet_name.to_string(),
+            sheet_index: sheet_index as u32,
+            range: format!("{}:{}", cell_name(r1, c1), cell_name(r2, c2)),
+            has_headers,
+            has_totals,
+            columns,
+            style,
+        })
+    };
+    match build() {
+        Some(table) => (Some(table), dropped),
+        None => (None, dropped + 1),
+    }
 }
 
 fn style_of(info: &Node) -> TableStyle {

@@ -63,24 +63,37 @@ fn parse_area(cells: &str) -> Option<[u32; 4]> {
 }
 
 /// `sheet_names` 是 workbook.xml 里的原始表名（按工作表顺序）。
-pub fn parse(workbook: &Node, sheet_names: &[String]) -> Vec<NamedRange> {
-    let Some(names) = workbook.child("definedNames") else { return Vec::new() };
+pub fn parse(workbook: &Node, sheet_names: &[String]) -> (Vec<NamedRange>, usize) {
+    let Some(names) = workbook.child("definedNames") else { return (Vec::new(), 0) };
     let mut seen = HashSet::new();
     let mut out = Vec::new();
+    let mut skipped = 0usize;
     for entry in names.each("definedName") {
         let name = entry.attr("name").unwrap_or_default();
-        if entry.attr("localSheetId").is_some() || entry.attr_bool("hidden", false)
-            || name.starts_with("_xlnm") || !is_valid_name(name) {
+        if name.starts_with("_xlnm") {
             continue;
         }
-        let Some((sheet_name, cells)) = split_sheet(entry.text.trim()) else { continue };
-        let Some(sheet) = sheet_names.iter().position(|n| n.eq_ignore_ascii_case(&sheet_name)) else { continue };
-        let Some(range) = parse_area(cells) else { continue };
+        if entry.attr("localSheetId").is_some() || entry.attr_bool("hidden", false) || !is_valid_name(name) {
+            skipped += 1;
+            continue;
+        }
+        let Some((sheet_name, cells)) = split_sheet(entry.text.trim()) else {
+            skipped += 1;
+            continue;
+        };
+        let Some(sheet) = sheet_names.iter().position(|n| n.eq_ignore_ascii_case(&sheet_name)) else {
+            skipped += 1;
+            continue;
+        };
+        let Some(range) = parse_area(cells) else {
+            skipped += 1;
+            continue;
+        };
         if seen.insert(name.to_uppercase()) {
             out.push(NamedRange { name: name.to_string(), target: Some(NamedRangeTarget { sheet, range }) });
         }
     }
-    out
+    (out, skipped)
 }
 
 #[cfg(test)]

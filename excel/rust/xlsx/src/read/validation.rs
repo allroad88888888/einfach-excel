@@ -35,8 +35,11 @@ fn list_items(source: &str) -> Option<Vec<String>> {
     ok.then_some(items)
 }
 
-fn literal(kind: &str, text: &str) -> Option<Bound> {
-    let number: f64 = text.trim().parse().ok().filter(|n: &f64| n.is_finite())?;
+fn literal(kind: &str, text: &str, date1904: bool) -> Option<Bound> {
+    let mut number: f64 = text.trim().parse().ok().filter(|n: &f64| n.is_finite())?;
+    if kind == "date" && date1904 {
+        number += 1462.0;
+    }
     match kind {
         "date" => date_serial::serial_to_iso(number).map(Bound::Text),
         "time" => date_serial::fraction_to_clock(number).map(Bound::Text),
@@ -63,8 +66,8 @@ fn messages(rule: &mut ValidationRule, node: &Node) {
     }
 }
 
-fn rule_of(node: &Node, anchor: (u32, u32)) -> Option<ValidationRule> {
-    let kind = node.attr("type")?;
+fn rule_of(node: &Node, anchor: (u32, u32), date1904: bool) -> Option<ValidationRule> {
+    let kind = node.attr("type").unwrap_or("none");
     let formula1 = node.child("formula1").map(|n| n.text.trim().to_string()).unwrap_or_default();
     let formula2 = node.child("formula2").map(|n| n.text.trim().to_string()).unwrap_or_default();
     let mut rule = ValidationRule {
@@ -91,9 +94,9 @@ fn rule_of(node: &Node, anchor: (u32, u32)) -> Option<ValidationRule> {
                 "textLength" => "text-length",
                 other => other,
             }.into();
-            let min = literal(kind, &formula1)?;
+            let min = literal(kind, &formula1, date1904)?;
             let ranged = matches!(operator, "between" | "not-between");
-            let max = if ranged { literal(kind, &formula2)? } else { min.clone() };
+            let max = if ranged { literal(kind, &formula2, date1904)? } else { min.clone() };
             if ranged && bound_value(&min) > bound_value(&max) {
                 return None;
             }
@@ -116,19 +119,35 @@ fn bound_value(bound: &Bound) -> (f64, &str) {
     }
 }
 
-pub fn parse(extras: &Node) -> Vec<ValidationRegion> {
-    let Some(validations) = extras.child("dataValidations") else { return Vec::new() };
+pub fn parse(extras: &Node, date1904: bool) -> (Vec<ValidationRegion>, usize) {
+    let Some(validations) = extras.child("dataValidations") else { return (Vec::new(), 0) };
     let mut out = Vec::new();
+    let mut skipped = 0usize;
     for node in validations.each("dataValidation") {
         let ranges: Vec<[u32; 4]> = node.attr("sqref").unwrap_or_default()
             .split_whitespace().filter_map(parse_range).collect();
-        let Some(first) = ranges.first() else { continue };
-        let Some(rule) = rule_of(node, (first[0], first[1])) else { continue };
+        let Some(first) = ranges.first() else {
+            skipped += 1;
+            continue;
+        };
+        let Some(rule) = rule_of(node, (first[0], first[1]), date1904) else {
+            skipped += 1;
+            continue;
+        };
         for range in ranges {
             if out.len() < MAX_REGIONS {
                 out.push(ValidationRegion { range, rule: rule.clone() });
+            } else {
+                skipped += 1;
             }
         }
     }
-    out
+    for ext_list in extras.each("extLst") {
+        for ext in ext_list.each("ext") {
+            for dvs in ext.each("dataValidations") {
+                skipped += dvs.each("dataValidation").count();
+            }
+        }
+    }
+    (out, skipped)
 }

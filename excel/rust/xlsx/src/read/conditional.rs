@@ -140,19 +140,36 @@ fn rule_of(node: &Node, dxfs: &[Option<Value>], theme: &[String]) -> Option<Valu
     }
 }
 
-pub fn parse(extras: &Node, dxfs: &[Option<Value>], theme: &[String]) -> Vec<ConditionalEntry> {
+pub fn parse(extras: &Node, dxfs: &[Option<Value>], theme: &[String]) -> (Vec<ConditionalEntry>, usize) {
     let mut found: Vec<(i64, ConditionalScope, Value)> = Vec::new();
+    let mut skipped = 0usize;
     for group in extras.each("conditionalFormatting") {
-        let Some(scope) = group.attr("sqref").and_then(scope_of) else { continue };
+        let Some(scope) = group.attr("sqref").and_then(scope_of) else {
+            skipped += group.each("cfRule").count().max(1);
+            continue;
+        };
         for node in group.each("cfRule") {
             if let Some(rule) = rule_of(node, dxfs, theme) {
                 found.push((node.attr("priority").and_then(|p| p.parse().ok()).unwrap_or(i64::MAX), scope.clone(), rule));
+            } else {
+                skipped += 1;
+            }
+        }
+    }
+    // Elements inside <extLst> (e.g. x14:conditionalFormattings) are also unsupported rules.
+    for ext_list in extras.each("extLst") {
+        for ext in ext_list.each("ext") {
+            for cfs in ext.each("conditionalFormattings") {
+                for cf in cfs.each("conditionalFormatting") {
+                    skipped += cf.each("cfRule").count();
+                }
             }
         }
     }
     // 优先级数字小的在前；重新编号成连续整数，同值保持文档顺序。
     found.sort_by_key(|(priority, ..)| *priority);
-    found.into_iter().enumerate().map(|(index, (_, scope, rule))| ConditionalEntry {
+    let entries = found.into_iter().enumerate().map(|(index, (_, scope, rule))| ConditionalEntry {
         id: format!("conditional-format-{}", index + 1), scope, priority: index as i64, rule,
-    }).collect()
+    }).collect();
+    (entries, skipped)
 }

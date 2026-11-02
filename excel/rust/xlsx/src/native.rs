@@ -57,12 +57,26 @@ pub struct Persistence {
     pub data_validations: Vec<SheetValidation>,
     #[serde(default, rename = "namedRanges", skip_serializing_if = "Vec::is_empty")]
     pub named_ranges: Vec<NamedRange>,
+    #[serde(default, skip_serializing)]
+    pub protection: Vec<serde_json::Value>,
+    #[serde(default, skip_serializing)]
+    pub filters: Vec<serde_json::Value>,
+    #[serde(default, skip_serializing)]
+    pub outlines: Vec<serde_json::Value>,
+    #[serde(default, rename = "printConfigs", alias = "print_configs", skip_serializing)]
+    pub print_configs: Vec<serde_json::Value>,
+    #[serde(default, rename = "customFormulas", skip_serializing)]
+    pub custom_formulas: Vec<serde_json::Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SheetMeta {
     pub idx: u32,
     pub name: String,
+    #[serde(default, skip_serializing)]
+    pub hidden: bool,
+    #[serde(default, rename = "tabColor", skip_serializing)]
+    pub tab_color: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -160,6 +174,8 @@ pub struct CellFormat {
     pub wrap: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub indent: Option<u8>,
+    #[serde(default, skip_serializing)]
+    pub rotation: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub borders: Option<Borders>,
 }

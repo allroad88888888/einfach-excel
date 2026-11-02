@@ -110,3 +110,52 @@ fn exports_native_snapshots_written_by_the_engine() {
     assert_eq!(format["bold"], true);
     assert_eq!(format["numberFormat"]["pattern"], "\"¥\"#,##0.00");
 }
+
+#[test]
+fn reports_dropped_and_downgraded_features_on_export() {
+    let native = serde_json::json!({
+        "format": "einfach-workbook", "version": 1, "title": "ExportReport",
+        "canvases": [{"rowCount": 1048576, "colCount": 16384}],
+        "workbook": {
+            "version": 1,
+            "sheets": [{"idx": 0, "name": "S", "hidden": true, "tabColor": "#ff0000"}],
+            "cells": [],
+            "comments": [{"sheet": 0, "row": 0, "col": 0, "thread": {"resolved": false, "entries": [
+                {"kind": "message", "author": "Ann", "body": "hi", "createdAt": 1}]}}],
+            "conditionalFormats": [{"sheet": 0, "revision": 1, "rules": [
+                {"id": "1", "scope": {"range": {"rowStart": 0, "rowEnd": 1, "colStart": 0, "colEnd": 0}}, "priority": 0,
+                 "rule": {"kind": "icon-set", "iconSet": "3-arrows"}}]}],
+            "dataValidations": [{"sheet": 0, "regions": [
+                {"range": [0, 0, 1, 0], "rule": {"kind": "list", "items": ["a,b"], "ignoreBlank": true}}]}],
+            "namedRanges": [{"name": "Broken", "target": null}],
+            "tables": [{"name": "BadTable", "sheet": "S", "sheetIndex": 0, "range": "A1:B2", "columns": ["OnlyOne"]}],
+            "formats": [{"sheet": 0, "startRow": 0, "startCol": 0, "endRow": 10, "endCol": 10,
+                "cellStyles": [{"addr": "A1", "format": {"rotation": 45}}],
+                "rowStyles": [{"index": 0, "format": {"bold": true}}],
+                "columnStyles": []}],
+            "protection": [{"sheet": 0}],
+            "filters": [{"sheet": 0}],
+            "outlines": [{"sheet": 0}],
+            "printConfigs": [{"sheet": 0}],
+            "customFormulas": [{"name": "DOUBLE"}],
+        }
+    });
+    let (_, report) = einfach_xlsx::native_to_xlsx_with_report(&native.to_string()).unwrap();
+    let kinds: Vec<_> = report.items.iter().map(|i| (i.kind.as_str(), i.count)).collect();
+    assert_eq!(kinds, [
+        ("threadedCommentsAsNotes", 1),
+        ("conditionalFormats", 1),
+        ("dataValidations", 1),
+        ("definedNames", 1),
+        ("tables", 1),
+        ("rowColumnStyles", 1),
+        ("cellRotation", 1),
+        ("sheetProtection", 1),
+        ("autoFilter", 1),
+        ("outline", 1),
+        ("printSetup", 1),
+        ("customFormulas", 1),
+        ("sheetVisibilityOrColor", 1),
+    ]);
+    assert!(report.summary.starts_with("Download requested. Not exported to Excel: threaded comments exported as notes, "));
+}

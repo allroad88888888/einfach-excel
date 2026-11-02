@@ -104,3 +104,80 @@ other["A1"] = "Target"
 other["B2"] = 5
 wb.defined_names["Other"] = DefinedName("Other", attr_text="'Other Sheet'!$B$2")
 wb.save("features.xlsx")
+
+
+# ---- edge_cases.xlsx：富文本、inlineStr、各种未转换部件及 1904 日期系统 ----
+from io import BytesIO
+import zipfile
+from openpyxl.cell.rich_text import CellRichText, TextBlock
+from openpyxl.cell.text import InlineFont
+from openpyxl.chart import BarChart, Reference
+from openpyxl.formatting.rule import IconSetRule
+
+wb = Workbook()
+wb.iso_dates = False
+ws = wb.active
+ws.title = "RichAndUnsupported"
+ws["A1"] = "Metric"
+ws["B1"] = "Score"
+ws["C1"] = "Joined"
+ws["A2"] = CellRichText(TextBlock(InlineFont(b=True, color="FFFF0000"), "Bold "), "plain")
+ws["B2"] = 10
+ws["C2"] = 39813  # 2013-01-01 in 1904 date system (becomes 41275 in 1900 date system)
+ws["C2"].number_format = "yyyy-mm-dd"
+ws["A3"] = "Second"
+ws["B3"] = 25
+ws["C3"] = 0.5  # 12:00 time fraction (must NOT be shifted by +1462)
+ws["C3"].number_format = "h:mm"
+
+ws.protection.sheet = True
+ws.auto_filter.ref = "A1:C3"
+ws.row_dimensions.group(2, 3, outline_level=1)
+ws.page_setup.orientation = ws.ORIENTATION_LANDSCAPE
+
+ws.conditional_formatting.add("B2:B3", IconSetRule("3Arrows", "percent", [0, 33, 67]))
+dv_ref = DataValidation(type="list", formula1="=$A$2:$A$3", allow_blank=True)
+dv_ref.add("A4")
+ws.add_data_validation(dv_ref)
+wb.defined_names["FormulaName"] = DefinedName("FormulaName", attr_text="SUM(RichAndUnsupported!$B$2:$B$3)")
+ws["A3"].hyperlink = "#RichAndUnsupported!A1"
+
+chart = BarChart()
+chart.add_data(Reference(ws, min_col=2, min_row=1, max_row=3), titles_from_data=True)
+ws.add_chart(chart, "E2")
+
+buf = BytesIO()
+wb.save(buf)
+
+# Inject inlineStr, date1904="1", threadedComments, and vbaProject.bin so the fixture
+# covers Excel parts that openpyxl does not emit directly.
+with zipfile.ZipFile(buf, "r") as zin, zipfile.ZipFile("edge_cases.xlsx", "w", zipfile.ZIP_DEFLATED) as zout:
+    for item in zin.infolist():
+        data = zin.read(item.filename)
+        if item.filename == "xl/workbook.xml":
+            text = data.decode("utf-8")
+            if "workbookPr" in text:
+                text = text.replace("<workbookPr", '<workbookPr date1904="1"', 1)
+            else:
+                text = text.replace("<sheets>", '<workbookPr date1904="1"/><sheets>', 1)
+            data = text.encode("utf-8")
+        elif item.filename == "xl/worksheets/sheet1.xml":
+            text = data.decode("utf-8")
+            inline_row = '<row r="4"><c r="A4" t="inlineStr"><is><r><rPr><i/></rPr><t>Inline </t></r><r><t>rich</t></r><rPh><t>skip</t></rPh></is></c></row></sheetData>'
+            text = text.replace("</sheetData>", inline_row, 1)
+            data = text.encode("utf-8")
+        elif item.filename == "xl/worksheets/_rels/sheet1.xml.rels":
+            text = data.decode("utf-8")
+            rel = '<Relationship Id="rIdThreaded1" Type="http://schemas.microsoft.com/office/2017/10/relationships/threadedComment" Target="../threadedComments/threadedComment1.xml"/></Relationships>'
+            text = text.replace("</Relationships>", rel, 1)
+            data = text.encode("utf-8")
+        zout.writestr(item, data)
+    zout.writestr(
+        "xl/threadedComments/threadedComment1.xml",
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<ThreadedComments xmlns="http://schemas.microsoft.com/office/spreadsheetml/2018/threadedcomments">'
+        '<threadedComment ref="A2" personId="{00000000-0000-0000-0000-000000000001}" id="{00000000-0000-0000-0000-000000000002}">'
+        "<text>Threaded reply</text></threadedComment></ThreadedComments>",
+    )
+    zout.writestr("xl/vbaProject.bin", b"VBFakeMacroProject")
+

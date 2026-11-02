@@ -39,6 +39,10 @@ test.each([
   ['Math & statistics. Argument help is not available yet.', '数学与统计。暂未提供参数说明。'],
   ['This is not a valid .einfach.json workbook file. Current workbook kept.',
     '这不是有效的 .einfach.json 工作簿文件。 当前工作簿已保留。'],
+  ['Opened Excel workbook. Skipped: 1904 date system, charts, macros.',
+    '已打开 Excel 工作簿。已跳过：1904 日期系统, 图表, 宏。'],
+  ['Download requested. Not exported to Excel: threaded comments exported as notes, sheet protection.',
+    '已请求下载。未导出至 Excel 的内容：讨论式批注（已导出为备注）, 工作表保护。'],
 ])('translates existing Core feedback without altering its source: %s', (source, chinese) => {
   activateUiLocale('zh')
   expect(translateFeedback(i18n, source)).toBe(chinese)

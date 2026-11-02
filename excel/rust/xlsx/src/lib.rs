@@ -9,8 +9,11 @@ mod native_features;
 mod native_rules;
 mod number_format;
 mod read;
+mod report;
 mod units;
 mod write;
+
+pub use report::{ConversionReport, ReportItem};
 
 use std::fmt;
 
@@ -33,10 +36,19 @@ impl fmt::Display for XlsxError {
 
 impl std::error::Error for XlsxError {}
 
+/// XLSX 字节 → 原生工作簿文件文本与转换报告。`title` 一般取文件名去掉扩展名。
+pub fn xlsx_to_native_with_report(
+    bytes: Vec<u8>,
+    title: &str,
+) -> Result<(String, ConversionReport), XlsxError> {
+    let (file, report) = read::read(bytes, title)?;
+    let text = serde_json::to_string(&file).map_err(|error| XlsxError::new(error.to_string()))?;
+    Ok((text, report))
+}
+
 /// XLSX 字节 → 原生工作簿文件文本。`title` 一般取文件名去掉扩展名。
 pub fn xlsx_to_native(bytes: Vec<u8>, title: &str) -> Result<String, XlsxError> {
-    let file = read::read(bytes, title)?;
-    serde_json::to_string(&file).map_err(|error| XlsxError::new(error.to_string()))
+    xlsx_to_native_with_report(bytes, title).map(|(text, _)| text)
 }
 
 #[wasm_bindgen(js_name = xlsxToNative)]
@@ -44,8 +56,23 @@ pub fn xlsx_to_native_js(bytes: Vec<u8>, title: &str) -> Result<String, JsError>
     xlsx_to_native(bytes, title).map_err(|error| JsError::new(&error.to_string()))
 }
 
-/// 原生工作簿文件文本 → XLSX 字节。不认识的原生字段（保护、筛选、打印设置等）不会写出。
-pub fn native_to_xlsx(text: &str) -> Result<Vec<u8>, XlsxError> {
+#[wasm_bindgen(getter_with_clone)]
+pub struct XlsxImportOutput {
+    pub text: String,
+    pub report: String,
+}
+
+#[wasm_bindgen(js_name = xlsxToNativeWithReport)]
+pub fn xlsx_to_native_with_report_js(bytes: Vec<u8>, title: &str) -> Result<XlsxImportOutput, JsError> {
+    let (text, report) = xlsx_to_native_with_report(bytes, title)
+        .map_err(|error| JsError::new(&error.to_string()))?;
+    let report = serde_json::to_string(&report)
+        .map_err(|error| JsError::new(&error.to_string()))?;
+    Ok(XlsxImportOutput { text, report })
+}
+
+/// 原生工作簿文件文本 → XLSX 字节与转换报告。不认识的原生字段（保护、筛选、打印设置等）不会写出。
+pub fn native_to_xlsx_with_report(text: &str) -> Result<(Vec<u8>, ConversionReport), XlsxError> {
     let file: native::NativeFile = serde_json::from_str(text)
         .map_err(|_| XlsxError::new("This is not a valid .einfach.json workbook file."))?;
     if file.format != native::FORMAT || file.version != 1 {
@@ -54,7 +81,27 @@ pub fn native_to_xlsx(text: &str) -> Result<Vec<u8>, XlsxError> {
     write::write(&file)
 }
 
+/// 原生工作簿文件文本 → XLSX 字节。不认识的原生字段（保护、筛选、打印设置等）不会写出。
+pub fn native_to_xlsx(text: &str) -> Result<Vec<u8>, XlsxError> {
+    native_to_xlsx_with_report(text).map(|(bytes, _)| bytes)
+}
+
 #[wasm_bindgen(js_name = nativeToXlsx)]
 pub fn native_to_xlsx_js(text: &str) -> Result<Vec<u8>, JsError> {
     native_to_xlsx(text).map_err(|error| JsError::new(&error.to_string()))
+}
+
+#[wasm_bindgen(getter_with_clone)]
+pub struct XlsxExportOutput {
+    pub bytes: Vec<u8>,
+    pub report: String,
+}
+
+#[wasm_bindgen(js_name = nativeToXlsxWithReport)]
+pub fn native_to_xlsx_with_report_js(text: &str) -> Result<XlsxExportOutput, JsError> {
+    let (bytes, report) = native_to_xlsx_with_report(text)
+        .map_err(|error| JsError::new(&error.to_string()))?;
+    let report = serde_json::to_string(&report)
+        .map_err(|error| JsError::new(&error.to_string()))?;
+    Ok(XlsxExportOutput { bytes, report })
 }

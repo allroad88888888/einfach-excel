@@ -16,9 +16,14 @@ quick-xml = "0.39"
 zip = { version = "2.4", default-features = false, features = ["deflate"] }
 wasm-bindgen = "0.2"
 
+# 与 excel/rust/wasm 保持同一体积优化策略：单 codegen-unit + fat LTO + abort panic。
+# wasm-pack 启用 wasm-opt 时会尝试联网拉 binaryen，离线环境会失败；由 build:wasm 后置运行
+# scripts/strip-wasm-names.mjs 剥除 name / .debug* 自定义节。
 [profile.release]
 opt-level = "s"
-lto = true
+lto = "fat"
+codegen-units = 1
+panic = "abort"
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false

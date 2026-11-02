@@ -9,6 +9,7 @@ import {
   selectionRegionsAtom,
   selectionMutationFeedbackAtom,
   systemClipboardFeedbackAtom,
+  workbookFilePanelAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import './footer.css'
 import { WorkbookSheetTabs } from './WorkbookSheetTabs'
@@ -27,6 +28,8 @@ export function WorkbookFooter() {
   const mutation = useAtomValue(selectionMutationFeedbackAtom)
   const selectionError = useAtomValue(multiRangeSelectionFeedbackAtom)
   const dragMove = useAtomValue(dragMoveFeedbackAtom)
+  const filePanel = useAtomValue(workbookFilePanelAtom)
+  const fileNotice = !filePanel.open && !filePanel.busy && !filePanel.error ? filePanel.message : ''
 
   return (
     <footer className="workbook-footer">
@@ -43,6 +46,16 @@ export function WorkbookFooter() {
       </Trans></div>}
       <WorkbookSheetTabs />
       <div className="status-items">
+        {fileNotice && !clipboard.message && !painting && (
+          <div
+            className="clipboard-feedback"
+            role="status"
+            aria-label={t`Workbook file status`}
+            title={translateFeedback(i18n, fileNotice)}
+          >
+            {translateFeedback(i18n, fileNotice)}
+          </div>
+        )}
         {clipboard.message && !painting && (
           <div
             className="clipboard-feedback"

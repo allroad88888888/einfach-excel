@@ -21,21 +21,26 @@ fn comment_text(text: &Node) -> String {
     out
 }
 
-pub fn parse(xml: &str, sheet: usize) -> Vec<Note> {
-    let Some(root) = dom::parse(xml, &[]) else { return Vec::new() };
-    let Some(list) = root.child("commentList") else { return Vec::new() };
+pub fn parse(xml: &str, sheet: usize) -> (Vec<Note>, usize) {
+    let Some(root) = dom::parse(xml, &[]) else { return (Vec::new(), 0) };
+    let Some(list) = root.child("commentList") else { return (Vec::new(), 0) };
     let mut seen = HashSet::new();
     let mut out = Vec::new();
+    let mut threaded_placeholders = 0usize;
     for comment in list.each("comment") {
         let Some((row, col)) = comment.attr("ref").and_then(parse_cell) else { continue };
         let Some(text) = comment.child("text") else { continue };
         let text = comment_text(text).replace("\r\n", "\n").replace('\r', "\n").replace('\0', "");
+        if text.starts_with("[Threaded comment]") {
+            threaded_placeholders += 1;
+            continue;
+        }
         // Excel 的线程批注在旧部件里只留占位说明，不是用户写的备注。
-        if text.trim().is_empty() || text.starts_with("[Threaded comment]") || !seen.insert((row, col)) {
+        if text.trim().is_empty() || !seen.insert((row, col)) {
             continue;
         }
         let text: String = text.chars().take(MAX_NOTE_CHARACTERS).collect();
         out.push(Note { sheet, row, col, text });
     }
-    out
+    (out, threaded_placeholders)
 }

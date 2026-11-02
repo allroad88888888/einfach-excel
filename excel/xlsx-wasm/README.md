@@ -4,11 +4,22 @@ XLSX ⇄ einfach 原生工作簿文件（`.einfach.json`）转换器，Rust 源�
 编译成独立 WASM，宿主只在用户打开或导出 XLSX 时才加载，不增加工作簿主包体积。
 
 ```ts
-import init, { xlsxToNative, nativeToXlsx } from '@einfach-excel/xlsx'
+import init, {
+  xlsxToNative,
+  nativeToXlsx,
+  xlsxToNativeWithReport,
+  nativeToXlsxWithReport,
+} from '@einfach-excel/xlsx'
 
 await init()
 const native = xlsxToNative(new Uint8Array(await file.arrayBuffer()), 'Book') // 原生文件文本
 const bytes = nativeToXlsx(native) // Uint8Array
+
+// 如需同时拿到跳过/降级特性的结构化报告（ConversionReport JSON 字符串）：
+const imported = xlsxToNativeWithReport(new Uint8Array(await file.arrayBuffer()), 'Book')
+// imported.text: 原生 JSON 文本；imported.report: '{"items":[{"kind":"charts","count":1}],"summary":"Opened Excel workbook. Skipped: charts."}'
+const exported = nativeToXlsxWithReport(native)
+// exported.bytes: Uint8Array；exported.report: '{"items":[...],"summary":"..."}'
 ```
 
 当前转换范围（读 XLSX → 原生 / 写原生 → XLSX 双向）：
@@ -28,7 +39,9 @@ const bytes = nativeToXlsx(native) // Uint8Array
 - Excel Table：名称、范围、表头/汇总行、列名、四档样式（none/blue/green/gray ⇄ TableStyleMedium2/7/4）。
   筛选状态、计算列、汇总函数不转换。
 
-图片、图表、保护、打印设置、分组大纲等暂不转换；导出时这些原生内容会丢失。
-1904 日期系统的文件会被拒绝。
+- 1904 日期系统（`date1904`）：读入时把数字格式为日期（`kind == "date"`）的数值单元格与日期型数据验证边界自动加 `1462` 转为 1900 序列，并在报告中记录 `date1904` 提示；纯时间格式单元格保持不变。
+- 结构化转换报告（`xlsxToNativeWithReport` / `nativeToXlsxWithReport`）：
+  - 导入时检测并统计未转换内容：图片/绘图（`drawings`）、图表（`charts`）、数据透视表（`pivotTables`）、线程批注（`threadedComments`）、未支持的条件格式（`conditionalFormats`）、未支持的数据验证（`dataValidations`）、未支持的命名区域（`definedNames`）、非 http(s) 超链接（`hyperlinks`）、富文本局部样式（`richText`）、未支持的表特性（`tables`）、工作表保护（`sheetProtection`）、自动筛选（`autoFilter`）、大纲分组（`outline`）、打印设置（`printSetup`）、自定义主题字体（`themeFonts`）、外部链接（`externalLinks`）、VBA 宏（`macros`）。
+  - 导出时检测并统计未写出或降级的原生内容：降级为备注的线程批注（`threadedCommentsAsNotes`）、未导出的条件格式/数据验证/名称/表（`conditionalFormats` / `dataValidations` / `definedNames` / `tables`）、整行整列默认样式（`rowColumnStyles`）、文字旋转（`cellRotation`）、工作表保护（`sheetProtection`）、自动筛选（`autoFilter`）、大纲分组（`outline`）、打印设置（`printSetup`）、自定义公式定义（`customFormulas`）、隐藏工作表与标签颜色（`sheetVisibilityOrColor`）。
 
 尚未发布（`private: true`），发布时机见仓库进度说明。

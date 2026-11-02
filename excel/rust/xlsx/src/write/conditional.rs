@@ -151,16 +151,19 @@ fn rule_xml(entry: &ConditionalEntry, priority: usize, styles: &mut StyleTable) 
     }
 }
 
-pub fn xml(configs: &[&SheetConditional], styles: &mut StyleTable) -> String {
+pub fn xml(configs: &[&SheetConditional], styles: &mut StyleTable) -> (String, usize) {
     let mut entries: Vec<&ConditionalEntry> = configs.iter().flat_map(|config| &config.rules).collect();
     entries.sort_by_key(|entry| entry.priority);
     let mut out = String::new();
     let mut priority = 0;
+    let mut skipped = 0usize;
     for entry in entries {
         if let Some(rule) = rule_xml(entry, priority + 1, styles) {
             priority += 1;
             out.push_str(&format!(r#"<conditionalFormatting sqref="{}">{rule}</conditionalFormatting>"#, sqref(entry)));
+        } else {
+            skipped += 1;
         }
     }
-    out
+    (out, skipped)
 }

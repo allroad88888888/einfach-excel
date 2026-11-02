@@ -63,6 +63,16 @@ export function translateFeedback(i18n: I18n, message: string | null | undefined
     const category = translateFeedback(i18n, match[1])
     return t(i18n)`${category}. Argument help is not available yet.`
   }
+  match = /^Opened Excel workbook\. Skipped: (.+)\.$/.exec(message)
+  if (match) {
+    const items = match[1].split(', ').map((item) => translateFeedback(i18n, item)).join(', ')
+    return t(i18n)`Opened Excel workbook. Skipped: ${items}.`
+  }
+  match = /^Download requested\. Not exported to Excel: (.+)\.$/.exec(message)
+  if (match) {
+    const items = match[1].split(', ').map((item) => translateFeedback(i18n, item)).join(', ')
+    return t(i18n)`Download requested. Not exported to Excel: ${items}.`
+  }
   const kept = ' Current workbook kept.'
   if (message.endsWith(kept)) {
     const detail = translateFeedback(i18n, message.slice(0, -kept.length))

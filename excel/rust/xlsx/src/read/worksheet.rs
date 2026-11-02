@@ -32,6 +32,8 @@ pub struct SheetData {
     pub freeze: Option<(u32, u32)>,
     pub hidden_rows: Vec<u32>,
     pub hidden_cols: Vec<u32>,
+    pub rich_text: usize,
+    pub outline: usize,
 }
 
 #[derive(Default)]
@@ -42,6 +44,7 @@ struct PendingCell {
     kind: String,
     value: String,
     inline: String,
+    rich: bool,
     formula: Option<String>,
     shared: Option<String>,
     array_ref: Option<String>,
@@ -95,6 +98,9 @@ fn column_entries(e: &BytesStart, data: &mut SheetData) {
     if min == 0 || max < min {
         return;
     }
+    if attr_u32(e, "outlineLevel").is_some_and(|l| l > 0) || attr_bool(e, "collapsed", false) {
+        data.outline += 1;
+    }
     if attr_bool(e, "hidden", false) {
         data.hidden_cols.extend((min - 1)..max.min(crate::native::MAX_COLS));
         return;
@@ -116,6 +122,7 @@ pub fn parse(xml: &str, strings: &[String]) -> Result<SheetData, XlsxError> {
     let mut reader = Reader::from_str(xml);
     let mut cell: Option<PendingCell> = None;
     let mut text = Text::None;
+    let mut phonetic = 0usize;
     // 省略 r 的行按顺序递增，从第 0 行开始。
     let (mut row, mut next_col) = (u32::MAX, 0u32);
     loop {
@@ -126,6 +133,9 @@ pub fn parse(xml: &str, strings: &[String]) -> Result<SheetData, XlsxError> {
                 b"row" => {
                     row = attr_u32(&e, "r").map_or(row.wrapping_add(1), |r| r.saturating_sub(1));
                     next_col = 0;
+                    if attr_u32(&e, "outlineLevel").is_some_and(|l| l > 0) || attr_bool(&e, "collapsed", false) {
+                        data.outline += 1;
+                    }
                     if attr_bool(&e, "hidden", false) {
                         data.hidden_rows.push(row);
                     } else if attr_bool(&e, "customHeight", false) {
@@ -163,9 +173,11 @@ pub fn parse(xml: &str, strings: &[String]) -> Result<SheetData, XlsxError> {
             },
             Event::Start(e) => {
                 let pending = cell.as_mut().expect("inside <c>");
-                text = match local_name(&e).as_slice() {
-                    b"v" => Text::Value,
-                    b"t" => Text::Inline,
+                match local_name(&e).as_slice() {
+                    b"v" => text = Text::Value,
+                    b"t" => text = if phonetic == 0 { Text::Inline } else { Text::None },
+                    b"rPr" => pending.rich = true,
+                    b"rPh" => phonetic += 1,
                     b"f" => {
                         pending.formula = Some(String::new());
                         match attr(&e, "t").as_deref() {
@@ -173,15 +185,17 @@ pub fn parse(xml: &str, strings: &[String]) -> Result<SheetData, XlsxError> {
                             Some("array") => pending.array_ref = attr(&e, "ref"),
                             _ => {}
                         }
-                        Text::Formula
+                        text = Text::Formula;
                     }
-                    _ => Text::None,
-                };
+                    _ => {}
+                }
             }
-            Event::Empty(e) if local_name(&e) == b"f" => {
+            Event::Empty(e) => {
                 let pending = cell.as_mut().expect("inside <c>");
-                if attr(&e, "t").as_deref() == Some("shared") {
-                    pending.shared = attr(&e, "si");
+                match local_name(&e).as_slice() {
+                    b"f" if attr(&e, "t").as_deref() == Some("shared") => pending.shared = attr(&e, "si"),
+                    b"rPr" => pending.rich = true,
+                    _ => {}
                 }
             }
             ref piece @ (Event::Text(_) | Event::CData(_) | Event::GeneralRef(_)) => {
@@ -197,10 +211,15 @@ pub fn parse(xml: &str, strings: &[String]) -> Result<SheetData, XlsxError> {
             Event::End(e) => match e.local_name().as_ref() {
                 b"c" => {
                     if let Some(pending) = cell.take() {
+                        if pending.rich {
+                            data.rich_text += 1;
+                        }
                         data.cells.push(finish(pending, strings, &mut shared, &mut arrays));
                     }
+                    phonetic = 0;
                 }
                 b"v" | b"t" | b"f" => text = Text::None,
+                b"rPh" => phonetic = phonetic.saturating_sub(1),
                 _ => {}
             },
             Event::Eof => break,

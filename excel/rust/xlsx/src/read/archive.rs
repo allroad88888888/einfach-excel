@@ -28,6 +28,9 @@ pub struct WorkbookParts {
     pub styles: Option<String>,
     pub theme: Option<String>,
     pub date1904: bool,
+    pub external_links: usize,
+    pub pivot_caches: usize,
+    pub macros: bool,
 }
 
 impl Archive {
@@ -49,11 +52,24 @@ impl Archive {
         Ok(Some(text))
     }
 
+    pub fn has_part(&mut self, path: &str) -> bool {
+        self.zip.by_name(path.trim_start_matches('/')).is_ok()
+    }
+
+    pub fn count_prefix(&self, prefix: &str) -> usize {
+        self.zip.file_names().filter(|name| name.starts_with(prefix) && !name.contains("/_rels/")).count()
+    }
+
     pub fn workbook_parts(&mut self) -> Result<WorkbookParts, XlsxError> {
         let workbook = self.read("xl/workbook.xml")?
             .ok_or_else(|| XlsxError::new("The file has no xl/workbook.xml; it is not an Excel workbook."))?;
-        let rels: Vec<_> = rels::parse(&self.read("xl/_rels/workbook.xml.rels")?.unwrap_or_default(), "xl")
-            .into_iter().filter(|rel| !rel.external).collect();
+        let all_rels = rels::parse(&self.read("xl/_rels/workbook.xml.rels")?.unwrap_or_default(), "xl");
+        let external_links = all_rels.iter().filter(|rel| rel.kind.ends_with("/externalLink")).count()
+            .max(self.count_prefix("xl/externalLinks/"));
+        let pivot_caches = all_rels.iter().filter(|rel| rel.kind.ends_with("/pivotCacheDefinition")).count();
+        let macros = all_rels.iter().any(|rel| rel.kind.ends_with("/vbaProject"))
+            || self.has_part("xl/vbaProject.bin");
+        let rels: Vec<_> = all_rels.into_iter().filter(|rel| !rel.external).collect();
         let target = |id: &str| rels.iter().find(|rel| rel.id == id).map(|rel| rel.target.clone());
         let by_type = |suffix: &str| rels.iter()
             .find(|rel| rel.kind.ends_with(suffix))
@@ -88,6 +104,9 @@ impl Archive {
             styles: by_type("/styles"),
             theme: by_type("/theme"),
             date1904,
+            external_links,
+            pivot_caches,
+            macros,
         })
     }
 }

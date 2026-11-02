@@ -8,15 +8,17 @@ use super::xml::escape;
 use crate::address::cell_name;
 use crate::native::{CommentThread, Note};
 
-/// 单个工作表的批注文字，按 (行, 列) 排序。
-pub fn collect(sheet: usize, notes: &[Note], threads: &[CommentThread]) -> BTreeMap<(u32, u32), String> {
+/// 单个工作表的批注文字，按 (行, 列) 排序；同时返回折成备注的线程批注数。
+pub fn collect(sheet: usize, notes: &[Note], threads: &[CommentThread]) -> (BTreeMap<(u32, u32), String>, usize) {
     let mut out = BTreeMap::new();
+    let mut downgraded = 0usize;
     for thread in threads.iter().filter(|t| t.sheet == sheet) {
         let lines: Vec<String> = thread.thread.entries.iter()
             .filter(|entry| entry.kind == "message")
             .filter_map(|entry| entry.body.as_deref().map(|body| format!("{}: {body}", entry.author)))
             .collect();
         if !lines.is_empty() {
+            downgraded += 1;
             out.insert((thread.row, thread.col), lines.join("\n"));
         }
     }
@@ -24,7 +26,7 @@ pub fn collect(sheet: usize, notes: &[Note], threads: &[CommentThread]) -> BTree
     for note in notes.iter().filter(|n| n.sheet == sheet && !n.text.trim().is_empty()) {
         out.insert((note.row, note.col), note.text.clone());
     }
-    out
+    (out, downgraded)
 }
 
 pub fn xml(comments: &BTreeMap<(u32, u32), String>) -> String {

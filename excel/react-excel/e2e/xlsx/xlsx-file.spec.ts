@@ -68,4 +68,33 @@ test('an xlsx file keeps hyperlinks, hidden rows and tables when opened', async 
   // 第 4 行（索引 3）被隐藏，其余可见。
   await expect(cell(page, '3:0')).toHaveCount(0)
   await expect(cell(page, '4:0')).toHaveText('item5')
+  await expect(page.getByRole('status', { name: 'Workbook file status' })).toContainText(
+    'Opened Excel workbook. Skipped: unsupported defined names, unsupported hyperlinks.',
+  )
+})
+
+test('opening a 1904 xlsx file with unsupported parts converts dates and reports skipped features', async ({ page }) => {
+  await openXlsx(page, 'edge_cases.xlsx', await readFile(path.join(path.dirname(fixture), 'edge_cases.xlsx')))
+  await expect(page.getByRole('tab', { name: 'RichAndUnsupported', exact: true })).toBeVisible()
+  await expect(cell(page, '1:0')).toHaveText('Bold plain')
+  await expect(cell(page, '3:0')).toHaveText('Inline rich')
+  await expect(cell(page, '1:2')).toHaveText('2013-01-01')
+  const status = page.getByRole('status', { name: 'Workbook file status' })
+  await expect(status).toContainText('Opened Excel workbook. Skipped:')
+  await expect(status).toContainText('1904 date system')
+  await expect(status).toContainText('charts')
+  await expect(status).toContainText('macros')
+})
+
+test('downloading a workbook with non-exported features as Excel reports what was omitted', async ({ page }) => {
+  await openXlsx(page, 'basic.xlsx', await readFile(fixture))
+  await expectOrders(page)
+  await page.getByRole('combobox', { name: 'Text rotation', exact: true }).selectOption({ label: '45°' })
+  await page.getByRole('button', { name: 'File', exact: true }).click()
+  const download = page.waitForEvent('download')
+  await fileDialog(page).getByRole('button', { name: 'Download as Excel (.xlsx)' }).click()
+  await download
+  await expect(fileDialog(page).getByRole('status')).toContainText(
+    'Download requested. Not exported to Excel: text rotation.',
+  )
 })

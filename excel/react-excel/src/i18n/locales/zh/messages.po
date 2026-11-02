@@ -171,6 +171,10 @@ msgstr "* 表示任意文本，? 表示单个字符，~ 用于转义 *、? 或 ~
 msgid "1 = one day. [h] shows total hours; other styles repeat every 24 hours."
 msgstr "1 表示一天。[h] 显示累计小时数；其他格式每 24 小时循环。"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "1904 date system"
+msgstr "1904 日期系统"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "2 colors"
 msgstr "双色"
@@ -475,6 +479,10 @@ msgstr "小于或等于"
 msgid "Auto"
 msgstr "自动"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "auto filters"
+msgstr "自动筛选"
+
 #: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
 msgid "Auto sum"
 msgstr "自动求和"
@@ -591,6 +599,10 @@ msgstr "下框线"
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Break positions"
 msgstr "分隔位置"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "broken defined names"
+msgstr "失效的名称定义"
 
 #: src/workbook/chrome/footer/SelectionStatus.tsx
 msgid "Calculating selection…"
@@ -726,6 +738,10 @@ msgstr "仅修改整列。单元格内容、样式和行高保持不变。"
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Changing display text replaces the cell content with text. Leave it unchanged to keep its value or formula."
 msgstr "修改显示文字会将单元格内容替换为文本。保持不变则保留原值或公式。"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "charts"
+msgstr "图表"
 
 #. placeholder {0}: label.toLowerCase()
 #: src/workbook/chrome/ribbon/ColorTools.tsx
@@ -1388,6 +1404,10 @@ msgstr "自定义公式定义不能包含递归调用环。"
 msgid "Custom formula parameters must be unique."
 msgstr "自定义公式参数名称不可重复。"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "custom formulas"
+msgstr "自定义公式"
+
 #: src/workbook/custom-formulas/CustomFormulaTools.tsx
 msgid "Custom formulas"
 msgstr "自定义公式"
@@ -1751,6 +1771,10 @@ msgstr "下载为 Excel (.xlsx)"
 #: src/i18n/feedback-messages.ts
 msgid "Download requested. Keep the file to save your work."
 msgstr "已请求下载，请保留文件以保存工作。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Download requested. Not exported to Excel: {items}."
+msgstr "已请求下载。未导出至 Excel 的内容：{items}。"
 
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "Download workbook"
@@ -2138,6 +2162,10 @@ msgstr "此处需要图标集规则。"
 msgid "Extending series…"
 msgstr "正在扩展序列…"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "external links"
+msgstr "外部链接"
+
 #: src/workbook/chrome/ribbon/TextColumnTypes.tsx
 msgid "Field "
 msgstr "字段"
@@ -2316,6 +2344,10 @@ msgstr "筛选未生效，请重试。"
 #: src/i18n/feedback-messages.ts
 msgid "Filtering…"
 msgstr "正在筛选…"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "filters"
+msgstr "筛选"
 
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Filters the worksheet’s used rows, not just the selection. Row 1 stays visible."
@@ -2807,6 +2839,10 @@ msgstr "忽略空白单元格"
 msgid "Ignore case"
 msgstr "忽略大小写"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "images or drawings"
+msgstr "图片或绘图"
+
 #: src/workbook/formula-help/FormulaParameterHelp.tsx
 msgid "Implementation limits"
 msgstr "实现限制"
@@ -3187,6 +3223,10 @@ msgstr "图标下限阈值数值"
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 msgid "Lowest value"
 msgstr "最低值"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "macros"
+msgstr "宏"
 
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
@@ -3698,6 +3738,10 @@ msgstr "打开此文件并替换当前工作簿？请先下载以保留未保存
 msgid "Open workbook"
 msgstr "打开工作簿"
 
+#: src/i18n/translate-feedback.ts
+msgid "Opened Excel workbook. Skipped: {items}."
+msgstr "已打开 Excel 工作簿。已跳过：{items}。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Opening workbook…"
 msgstr "正在打开工作簿…"
@@ -3742,6 +3786,10 @@ msgstr "其他分隔字符"
 #: src/workbook/chrome/footer/SelectionStatus.tsx
 msgid "Out of range"
 msgstr "超出范围"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "outline grouping"
+msgstr "大纲分组"
 
 #: src/workbook/chrome/ribbon/OutlineTools.tsx
 msgid "Outline groups"
@@ -3907,6 +3955,10 @@ msgstr "百分比"
 msgid "Percentile"
 msgstr "百分位"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "pivot tables"
+msgstr "数据透视表"
+
 #: src/workbook/notes/NoteTools.tsx
 msgid "Plain text, up to {NOTE_MAX_CHARACTERS} characters. Use Delete note to remove it."
 msgstr "纯文本，最多 {NOTE_MAX_CHARACTERS} 个字符。请使用“删除备注”移除。"
@@ -3966,6 +4018,10 @@ msgstr "上一页"
 #: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
 msgid "Previous sheet"
 msgstr "上一张工作表"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "print settings"
+msgstr "打印设置"
 
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "Protect worksheet"
@@ -4418,6 +4474,10 @@ msgstr "反转图标顺序"
 msgid "Reverses the logical value of its argument."
 msgstr "返回参数逻辑值的相反值。"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "rich text formatting"
+msgstr "富文本局部样式"
+
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Right"
@@ -4452,6 +4512,10 @@ msgstr "行列显隐"
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Row height"
 msgstr "行高"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "row or column styles"
+msgstr "整行或整列样式"
 
 #: src/workbook/grid/viewport/OutlineGutters.tsx
 msgid "Row outline"
@@ -4915,6 +4979,14 @@ msgstr "工作表名称"
 msgid "Sheet name cannot be empty"
 msgstr "工作表名称不能为空。"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "sheet protection"
+msgstr "工作表保护"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "sheet visibility or tab colors"
+msgstr "工作表显隐或标签颜色"
+
 #: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Shift cells down"
 msgstr "活动单元格下移"
@@ -5195,6 +5267,10 @@ msgstr "已清除表格 {table} 的筛选，手动隐藏的行保持不变。"
 msgid "Table {table}. {rows} rows filtered out in this worksheet."
 msgstr "表格 {table}，此工作表已筛除 {rows} 行。"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "table filters or totals"
+msgstr "表格筛选或汇总"
+
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Table name"
 msgstr "表格名称"
@@ -5272,6 +5348,10 @@ msgstr "文本编号"
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Text qualifier"
 msgstr "文本限定符"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "text rotation"
+msgstr "文字旋转"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Text rotation"
@@ -5659,6 +5739,10 @@ msgstr "工作表尺寸已在历史记录之外更改。"
 msgid "The worksheet no longer exists."
 msgstr "工作表已不存在。"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "theme fonts"
+msgstr "主题字体"
+
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Then by ({0})"
@@ -5795,6 +5879,14 @@ msgstr "千位分隔格式"
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Thousands separator"
 msgstr "千位分隔符"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "threaded comments"
+msgstr "讨论式批注"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "threaded comments exported as notes"
+msgstr "讨论式批注（已导出为备注）"
 
 #: src/workbook/advanced-conditional-format/AdvancedConditionalFormatFields.tsx
 msgid "Three arrows"
@@ -6042,9 +6134,29 @@ msgstr "插入或删除行列前，请先取消工作表保护。"
 msgid "Unprotect worksheet"
 msgstr "取消工作表保护"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "unsupported conditional formats"
+msgstr "不支持的条件格式"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "unsupported data validations"
+msgstr "不支持的数据验证"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "unsupported defined names"
+msgstr "不支持的名称定义"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "unsupported hyperlinks"
+msgstr "不支持的超链接"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Unsupported rule (not editable yet)"
 msgstr "不支持的规则（暂不可编辑）"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "unsupported tables"
+msgstr "不支持的表格"
 
 #: src/i18n/feedback-messages.ts
 msgid "Unsupported workbook file. Choose an .einfach.json file exported by this app."
@@ -6307,6 +6419,10 @@ msgstr "工作簿内显示名"
 #: src/page/WorkbookRuntimeProvider.tsx
 msgid "Workbook failed to open"
 msgstr "无法打开工作簿"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Workbook file status"
+msgstr "工作簿文件状态"
 
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "Workbook files"

@@ -3,8 +3,14 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { initializeWorkbookDocumentAtom, startEditingAtom,
   type RustWorkbookConnection } from '@einfach-excel/spreadsheet-ui-core'
+import { WorkbookPresentationProvider } from '../../src/page/WorkbookPresentationProvider'
 import { WorkbookStoreProvider } from '../../src/page/WorkbookStoreProvider'
 import { WorkbookHeader } from '../../src/workbook/chrome/header/WorkbookHeader'
+import {
+  convertNativeToXlsx,
+  convertXlsxToNative,
+  type XlsxConverter,
+} from '../../src/workbook/xlsx/xlsx-converter'
 
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 function setup() {
@@ -114,4 +120,94 @@ test('File stays disabled while a cell draft is being edited', () => {
   })
 })
   expect(screen.getByRole('button', { name: 'File' })).toBeDisabled()
+})
+
+test('convertXlsxToNative and convertNativeToXlsx support both report-enabled and legacy converters', () => {
+  const legacy: XlsxConverter = {
+    xlsxToNative: () => '{"legacy":true}',
+    nativeToXlsx: () => new Uint8Array([1, 2]),
+  }
+  expect(convertXlsxToNative(legacy, new Uint8Array([9]), 'Book')).toEqual({
+    text: '{"legacy":true}',
+    report: { items: [], summary: '' },
+    message: '',
+  })
+  expect(convertNativeToXlsx(legacy, '{}')).toEqual({
+    bytes: new Uint8Array([1, 2]),
+    report: { items: [], summary: '' },
+    message: '',
+  })
+
+  const modern: XlsxConverter = {
+    ...legacy,
+    xlsxToNativeWithReport: () => ({
+      text: '{"modern":true}',
+      report: JSON.stringify({
+        items: [{ kind: 'charts', count: 1 }],
+        summary: 'Opened Excel workbook. Skipped: charts.',
+      }),
+    }),
+    nativeToXlsxWithReport: () => ({
+      bytes: new Uint8Array([3, 4]),
+      report: JSON.stringify({
+        items: [{ kind: 'sheetProtection', count: 1 }],
+        summary: 'Download requested. Not exported to Excel: sheet protection.',
+      }),
+    }),
+  }
+  expect(convertXlsxToNative(modern, new Uint8Array([9]), 'Book')).toEqual({
+    text: '{"modern":true}',
+    report: {
+      items: [{ kind: 'charts', count: 1 }],
+      summary: 'Opened Excel workbook. Skipped: charts.',
+    },
+    message: 'Opened Excel workbook. Skipped: charts.',
+  })
+  expect(convertNativeToXlsx(modern, '{}')).toEqual({
+    bytes: new Uint8Array([3, 4]),
+    report: {
+      items: [{ kind: 'sheetProtection', count: 1 }],
+      summary: 'Download requested. Not exported to Excel: sheet protection.',
+    },
+    message: 'Download requested. Not exported to Excel: sheet protection.',
+  })
+})
+
+test('Download as Excel (.xlsx) displays the export conversion report summary', async () => {
+  vi.useFakeTimers()
+  const store = createStore()
+  store.setter(initializeWorkbookDocumentAtom, {
+    title: 'Book',
+    sheets: [{ id: 's', index: 0, name: 'Sheet', rowCount: 10, colCount: 4 }],
+  })
+  const request = vi.fn(async () => ({ text: '{"native":true}', filename: 'Book.einfach.json' }))
+  vi.stubGlobal('URL', { createObjectURL: () => 'blob:xlsx', revokeObjectURL: () => {} })
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+  const xlsx = async (): Promise<XlsxConverter> => ({
+    xlsxToNative: () => '{}',
+    nativeToXlsx: () => new Uint8Array([1]),
+    nativeToXlsxWithReport: () => ({
+      bytes: new Uint8Array([1, 2, 3]),
+      report: JSON.stringify({
+        items: [{ kind: 'sheetProtection', count: 1 }],
+        summary: 'Download requested. Not exported to Excel: sheet protection.',
+      }),
+    }),
+  })
+  render(
+    <WorkbookStoreProvider
+      store={store}
+      connection={{ request: request as RustWorkbookConnection['request'], dispose() {} }}
+    >
+      <WorkbookPresentationProvider xlsx={xlsx}>
+        <WorkbookHeader />
+      </WorkbookPresentationProvider>
+    </WorkbookStoreProvider>,
+  )
+  await click('File')
+  await click('Download as Excel (.xlsx)')
+  expect(screen.getByRole('status')).toHaveTextContent(
+    'Download requested. Not exported to Excel: sheet protection.',
+  )
+  await vi.runAllTimersAsync()
 })

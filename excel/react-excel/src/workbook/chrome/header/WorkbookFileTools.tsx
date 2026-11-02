@@ -8,7 +8,13 @@ import { cycleDialogFocus } from '../ribbon/dialog-focus'
 import { WorkbookPresentationContext } from '../../../page/WorkbookPresentationProvider'
 import { downloadFile } from './download-file'
 import {
-  isXlsxFile, loadXlsxConverter, workbookTitleOf, XLSX_MIME_TYPE, xlsxFilename,
+  convertNativeToXlsx,
+  convertXlsxToNative,
+  isXlsxFile,
+  loadXlsxConverter,
+  workbookTitleOf,
+  XLSX_MIME_TYPE,
+  xlsxFilename,
 } from '../../xlsx/xlsx-converter'
 
 /** 原生文件入口：DOM 负责文件选择、替换确认、下载与模态焦点。 */
@@ -48,7 +54,9 @@ export function WorkbookFileTools() {
       {xlsx && <button type="button" disabled={state.busy} onClick={() => void run({
         action: 'download', write: async ({ text, filename }) => {
           const converter = await loadXlsxConverter(xlsx)
-          downloadFile(converter.nativeToXlsx(text), xlsxFilename(filename), XLSX_MIME_TYPE)
+          const output = convertNativeToXlsx(converter, text)
+          downloadFile(output.bytes, xlsxFilename(filename), XLSX_MIME_TYPE)
+          return { message: output.message }
         },
       })}><Trans>Download as Excel (.xlsx)</Trans></button>}
       <label className="workbook-file-picker"><Trans>Open workbook</Trans>
@@ -60,8 +68,11 @@ export function WorkbookFileTools() {
             if (!file) return
             const confirmed = window.confirm(t`Open this file and replace the current workbook? Download first to keep unsaved changes.`)
             const read = xlsx && isXlsxFile(file)
-              ? async () => (await loadXlsxConverter(xlsx)).xlsxToNative(
-                new Uint8Array(await file.arrayBuffer()), workbookTitleOf(file))
+              ? async () => convertXlsxToNative(
+                await loadXlsxConverter(xlsx),
+                new Uint8Array(await file.arrayBuffer()),
+                workbookTitleOf(file),
+              )
               : () => file.text()
             void run({ action: 'open', confirmed, size: file.size, read })
           }} />

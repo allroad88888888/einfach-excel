@@ -13,20 +13,25 @@ interface WorkbookFilePanel {
   readonly message: string
 }
 const stateAtom = atom<WorkbookFilePanel>({ open: false, busy: false, error: false, message: '' })
+stateAtom.debugLabel = 'spreadsheet.workbookFile.state'
 
 export const workbookFilePanelAtom = atom((get) => ({
   ...get(stateAtom),
   disabled: !get(rustWorkbookConnectionAtom) || get(editingSessionAtom).source !== null,
 }))
+workbookFilePanelAtom.debugLabel = 'spreadsheet.workbookFile.panel'
+
+type FileReadResult = string | { readonly text: string; readonly message?: string }
+type FileWriteResult = void | { readonly message?: string }
 
 type FileAction =
   | { readonly action: 'show' | 'close' }
   | { readonly action: 'new'; readonly confirmed: boolean }
   | { readonly action: 'open'; readonly confirmed: boolean; readonly size: number;
-      readonly read: () => Promise<string> }
+      readonly read: () => Promise<FileReadResult> }
   | { readonly action: 'download'; readonly write: (file: {
       readonly text: string; readonly filename: string
-    }) => Promise<void> }
+    }) => Promise<FileWriteResult> }
 
 /** 一次文件手势一个命令；浏览器只提供读文件／下载，工作簿内容不进入 UI atom。 */
 export const runWorkbookFileAtom = atom(null, async (
@@ -49,20 +54,29 @@ export const runWorkbookFileAtom = atom(null, async (
     message: input.action === 'download' ? 'Preparing download…' : 'Opening workbook…' }
   set(stateAtom, pending)
   let replaced = false
+  let doneMessage =
+    input.action === 'download' ? 'Download requested. Keep the file to save your work.' : ''
   try {
     if (input.action === 'download') {
       const file = await connection.request('workbook.exportFile', {
         title: get(workbookDocumentAtom).title,
       })
       if (get(rustWorkbookConnectionAtom) !== connection) return false
-      await input.write(file)
+      const result = await input.write(file)
+      if (result?.message) doneMessage = result.message
     } else {
       let text: string | null = null
       if (input.action === 'open') {
         if (!Number.isSafeInteger(input.size) || input.size <= 0 ||
           input.size > WORKBOOK_FILE_MAX_BYTES)
           throw new Error('Choose a non-empty workbook file no larger than 64 MiB.')
-        text = await input.read()
+        const readResult = await input.read()
+        if (typeof readResult === 'string') {
+          text = readResult
+        } else {
+          text = readResult.text
+          doneMessage = readResult.message ?? ''
+        }
       }
       if (get(rustWorkbookConnectionAtom) !== connection) return false
       replaced = await set(replaceRustWorkbookRuntimeAtom, text)
@@ -73,7 +87,7 @@ export const runWorkbookFileAtom = atom(null, async (
       }
     }
     set(stateAtom, { open: input.action === 'download', busy: false, error: false,
-      message: input.action === 'download' ? 'Download requested. Keep the file to save your work.' : '' })
+      message: doneMessage })
     return true
   } catch (error) {
     if (get(rustWorkbookConnectionAtom) === connection || replaced)
@@ -84,3 +98,4 @@ export const runWorkbookFileAtom = atom(null, async (
     if (get(stateAtom) === pending) set(stateAtom, { ...state, busy: false })
   }
 })
+runWorkbookFileAtom.debugLabel = 'spreadsheet.workbookFile.run'

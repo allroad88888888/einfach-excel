@@ -273,3 +273,32 @@ test('pending browser download blocks replacement until it settles, then new wor
   expect(await store.setter(runWorkbookFileAtom, { action: 'new', confirmed: true })).toBe(true)
   expect(store.getter(workbookDocumentAtom).title).toBe('Untitled workbook')
 })
+
+test('open and download propagate conversion report messages from read and write callbacks', async () => {
+  const { store } = await setup()
+  const write = vi.fn(async () => ({
+    message: 'Download requested. Not exported to Excel: sheet protection.',
+  }))
+  expect(await store.setter(runWorkbookFileAtom, { action: 'download', write })).toBe(true)
+  expect(store.getter(workbookFilePanelAtom)).toMatchObject({
+    open: true,
+    busy: false,
+    error: false,
+    message: 'Download requested. Not exported to Excel: sheet protection.',
+  })
+  expect(
+    await store.setter(runWorkbookFileAtom, {
+      ...open,
+      read: async () => ({
+        text: 'native-json',
+        message: 'Opened Excel workbook. Skipped: charts, macros (VBA).',
+      }),
+    }),
+  ).toBe(true)
+  expect(store.getter(workbookFilePanelAtom)).toMatchObject({
+    open: false,
+    busy: false,
+    error: false,
+    message: 'Opened Excel workbook. Skipped: charts, macros (VBA).',
+  })
+})

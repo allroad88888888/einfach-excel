@@ -1,0 +1,77 @@
+/* Issue progress extends the imported tree's existing visual language. */
+:root {
+  --progress-ink: #49405f;
+  --progress-muted: #665c74;
+  --progress-border: #ded9ed;
+  --progress-done: #17653e;
+}
+
+.delivery-summary { align-items: center; color: var(--progress-ink); }
+.delivery-boundary { color: var(--progress-muted); font-size: 12px; }
+.summary-filter {
+  border: 1px solid var(--progress-border);
+  border-radius: 6px;
+  padding: 6px 9px;
+  background: #faf9fd;
+  color: var(--progress-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.summary-filter[data-stage='done'] { color: var(--progress-done); background: #eaf7ef; }
+.summary-filter:hover { border-color: #8976a8; }
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 2px solid #6654a4;
+  outline-offset: 3px;
+}
+.issue-link-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 10px 0; }
+.issue-link { font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.delivery-detail h4:not(:first-child) { margin-top: 18px; }
+.delivery-tag, .completed-tag { font-size: 11px; }
+.delivery-tag[data-stage='open'] { background: #f0edf4; color: #62556f; }
+.delivery-tag[data-stage='cancelled'], .delivery-tag[data-stage='excluded'] { background: #f3eeee; color: #725a5a; }
+.node-label { min-width: 0; font-size: 12px; }
+.tree .row { flex-wrap: wrap; }
+.tree .row .node-label { flex: 1; }
+.tree .row .delivery-tag, .tree .row .completed-tag { margin-left: auto; }
+.tree .row.completed .node-label { color: var(--progress-done); }
+header p, .notice, .source-links { font-size: 12px; color: var(--progress-muted); }
+.meta, .delivery-scope { color: var(--progress-muted); font-size: 12px; }
+a, .source-links a { color: #6654a4; }
+.count, .leaf-count, .breadcrumb, .legend { color: var(--progress-muted); }
+.badge { color: #6654a4; }
+.clear, .control, .tree .row .toggle:not(:disabled), .tree .row .leaf-count {
+  color: var(--progress-muted);
+}
+.tree .row .leaf-count { font-size: 11px; }
+.tree .row.deferred .node-label { color: #746346; }
+.delivery-tag[data-stage='unmapped'] { color: #62556f; }
+.deferred-tag { color: #885e20; }
+.estimate-total, .estimate-split { display: none; }
+.show-estimates .estimate-total, .show-estimates .estimate-split { display: block; }
+
+@media (max-width: 600px) {
+  h1 { font-size: 20px; }
+  .toolbar { align-items: stretch; }
+  .toolbar .search { flex-basis: 100%; }
+  .toolbar select { flex: 1; max-width: none; min-width: 0; }
+  .node-label { font-size: 13px; }
+  .toggle { width: 24px; min-height: 30px; }
+  .detail-body { padding: 16px; }
+  .tree ul ul { padding-left: 8px; margin-left: 5px; }
+  .levels { flex-wrap: wrap; }
+}
+/* Excel 分类较多：沿用原模板卡片，宽屏增加列数。 */
+@media(min-width:1280px){.tree>.root-list>.root>ul{columns:5;column-gap:10px}.row{min-height:22px}.tree>.root-list>.root>ul>li{margin-bottom:7px;padding:3px 5px}}
+/* Univer 证据状态：保留原模板的五列密度。 */
+:root{--univer-oss:#17653e;--univer-pro:#365e9c;--univer-partial:#885c17;--univer-limit:#9a3f47;--univer-muted:#71687e}
+.univer-summary{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 24px 8px;font-size:11px;color:var(--progress-ink)}
+.univer-summary strong{margin-right:3px}.univer-stat{font:inherit;border:1px solid transparent;border-radius:5px;padding:2px 7px;background:#eeedf5;cursor:pointer}.univer-stat[aria-pressed=true]{border-color:currentColor}.univer-summary-note{margin-left:auto;color:var(--progress-muted)}
+.univer-tag{flex:none;font:10px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;white-space:nowrap;border-radius:4px;padding:1px 4px;background:#f0edf4;color:var(--univer-muted)}
+[data-state=oss]{color:var(--univer-oss);background:#eaf5ee}[data-state=pro]{color:var(--univer-pro);background:#edf2fc}[data-state=partial]{color:var(--univer-partial);background:#fbf2e1}[data-state=unsupported]{color:var(--univer-limit);background:#faedef}[data-state=unknown]{color:var(--univer-muted);background:#f0edf4}[data-state=mixed]{color:#5b5071;background:#f0edf7}
+.tree .row{flex-wrap:nowrap}.tree .row .node-label{font-size:11px}.tree .row .leaf-count{font-size:10px}.tree .row .univer-tag{margin-left:3px}.univer-detail{border-top:1px solid #e8e3ef;border-bottom:1px solid #e8e3ef;padding-bottom:10px;margin-top:15px}.univer-detail h4{margin:15px 0 8px}.univer-detail .univer-tag{font-size:12px;padding:4px 8px}.univer-note,.univer-boundary{font-size:12px;line-height:1.9;color:#554b65}.univer-method{white-space:pre-line;font-size:11px;line-height:1.8;color:var(--progress-muted);margin-top:16px}.univer-source{font-size:12px;overflow-wrap:anywhere}.univer-doc-link{display:inline-block;margin-left:9px}
+@media(max-width:800px){.univer-summary{margin:0 12px 8px}.univer-summary-note{margin-left:0;flex-basis:100%}.tree .row .node-label{font-size:12px}.tree .row{flex-wrap:wrap}.toolbar select{max-width:160px}}
+@media print{.univer-summary{margin:5px 0}.univer-summary-note{display:none}.univer-tag{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+[data-state=notfound]{color:#686070;background:#f0edf4}
+.univer-audit{font-size:11px;line-height:1.8;overflow-wrap:anywhere;margin-top:12px;color:#686070}.univer-audit summary{cursor:pointer;color:#66547f}.univer-audit p{margin:8px 0}
+.project-summary{display:contents}.project-summary strong{margin-right:2px}.project-stat{font:inherit;border:1px solid #d5dfdf;border-radius:5px;padding:3px 6px;background:#f5f9f8;color:#435651;cursor:pointer}.project-stat[aria-pressed=true]{outline:2px solid #4d8475;outline-offset:1px}.project-tag{flex:none;font-size:9px;line-height:16px;border:1px solid #cddbd6;border-radius:4px;padding:0 3px;white-space:nowrap;color:#376353;background:#edf6f1}.project-tag[data-project-state=partial]{color:#8a641c;background:#fff7df;border-color:#e9d8a8}.project-tag[data-project-state=core]{color:#536c9a;background:#eff3ff;border-color:#d1daf0}.project-tag[data-project-state=deferred]{color:#7c668b;background:#f5eff9;border-color:#dfd4e5}.project-tag[data-project-state=notfound]{color:#85858b;background:#f3f3f5;border-color:#e0e0e5}.project-detail{margin-top:16px;padding-bottom:14px;border-bottom:1px solid var(--line,#ddd);line-height:1.65}.project-source,.project-tests p{overflow-wrap:anywhere}.project-tests small{display:block;color:#777}.project-method{font-size:11px;color:#7a7b84;white-space:pre-line}.project-status{font-size:12px;margin-left:7px}.univer-summary{gap:5px}.project-summary+strong{border-left:1px solid #d9d9df;padding-left:9px;margin-left:4px}

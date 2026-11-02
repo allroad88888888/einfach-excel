@@ -1,21 +1,32 @@
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
-  calculationAvailableAtom, calculationFeedbackAtom, recalculateAtom,
+  calculationAvailableAtom, calculationFeedbackAtom, calculationModeAtom,
+  recalculateAtom, setCalculationModeAtom,
   formulaViewAvailableAtom, showFormulasAtom, toggleFormulaViewAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { Trans, useLingui } from '@lingui/react/macro'
 
-/** 计算范围由用户选择；显示公式是独立的当前表视图开关。 */
+/** 计算模式与计算范围由用户选择；显示公式是独立的当前表视图开关。 */
 export function CalculationTools() {
   const { i18n, t } = useLingui()
   const calculate = useSetAtom(recalculateAtom)
+  const mode = useAtomValue(calculationModeAtom)
+  const setMode = useSetAtom(setCalculationModeAtom)
   const available = useAtomValue(calculationAvailableAtom)
   const feedback = useAtomValue(calculationFeedbackAtom)
   const show = useAtomValue(showFormulasAtom)
   const toggle = useSetAtom(toggleFormulaViewAtom)
   const viewAvailable = useAtomValue(formulaViewAvailableAtom)
   return <>
+    <select className="tool-select paste-options-select" aria-label={t`Calculation mode`} value={mode}
+      disabled={!available} onChange={(event) => {
+        const next = event.currentTarget.value
+        if (next === 'automatic' || next === 'manual') void setMode(next)
+      }}>
+      <option value="automatic"><Trans>Automatic</Trans></option>
+      <option value="manual"><Trans>Manual</Trans></option>
+    </select>
     <select className="tool-select paste-options-select" aria-label={t`Recalculate`} value="" disabled={!available}
       onChange={(event) => {
         const scope = event.currentTarget.value

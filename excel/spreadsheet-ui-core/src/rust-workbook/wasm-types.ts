@@ -77,6 +77,8 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   change_hyperlink?: (sheet: number, row: number, col: number,
     url?: string, text?: string) => boolean
   recalculate?: (sheet?: number) => number
+  get_calculation_mode?: () => 'automatic' | 'manual'
+  set_calculation_mode?: (mode: 'automatic' | 'manual') => boolean
   snapshot_persistence_v1?: () => unknown
   restore_persistence_v1?: (value: unknown) => unknown
   free?: () => void

@@ -849,6 +849,8 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | CALC-043 | 打开原生函数选择器 | `editing/function-dialog.spec.ts` | Open function dialog preserves native formulas fonts and redo at 1280px |
 | CALC-044 | 函数选择器 Tab 循环 | `editing/function-dialog.spec.ts` | Tab function dialog preserves native formulas fonts and redo at 1280px |
 | CALC-045 | 函数选择器 Shift+Tab 循环 | `editing/function-dialog.spec.ts` | Shift+Tab function dialog preserves native formulas fonts and redo at 1280px |
+| CALC-048 | 自动与手动计算模式切换 | `editing/manual-calculation-mode.spec.ts` | manual calculation mode keeps dependent formulas cached when inputs change until recalculate or automatic |
+| CALC-049 | F9 与 Shift+F9 快捷键重算 | `editing/manual-calculation-mode.spec.ts` | pressing F9 recalculates the workbook and Shift+F9 recalculates the current worksheet in manual mode |
 | STAT-001 | 整列统计包含视口外记录 | `selection/statistics-actions.spec.ts` | column statistics include all offscreen native records at 1280px |
 | STAT-002 | 恢复全部统计默认显示 | `selection/statistics-preferences.spec.ts` | restore default statistics resets all six without changing redo at 1280px |
 | STAT-003 | 复制求和完整精度 | `selection/statistics-actions.spec.ts` | copies full precision to the real system clipboard and pastes as a scalar |

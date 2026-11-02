@@ -195,6 +195,21 @@ impl<'a> BulkLoader<'a> {
         // fresh bulk imports still do zero formula evaluation here.
         self.sheet
             .recompute_array_formulas_in(&array_formulas_to_reproject);
+        if self.sheet.interior.manual_calculation.get() {
+            let mut formula_touched: Vec<CellAddress> = touched
+                .iter()
+                .copied()
+                .filter(|addr| {
+                    self.sheet.interior.formula_cells.borrow().contains_key(addr)
+                        || self.sheet.interior.needs_parse.borrow().contains(addr)
+                })
+                .collect();
+            formula_touched.sort_unstable_by_key(|addr| (addr.row, addr.col));
+            for addr in formula_touched {
+                let _ = self.sheet.peek_value(addr);
+            }
+            self.sheet.store.settle_pending_reads();
+        }
 
         // AUDIT B-5 — with zero address subscriptions the reattach loop
         // and the touched notify loop below are pure

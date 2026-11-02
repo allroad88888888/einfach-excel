@@ -39,6 +39,13 @@ export function getKeyboardCommandIntent(
     return { type: 'repeat.last' }
   }
 
+  if (input.key === 'F9' && !input.ctrlKey && !input.metaKey && !input.altKey) {
+    return {
+      type: 'calculation.recalculate',
+      scope: input.shiftKey ? 'sheet' : 'workbook',
+    }
+  }
+
   const commandIntent = getCommandShortcutIntent(input, state)
   if (commandIntent.type !== 'none') {
     return commandIntent

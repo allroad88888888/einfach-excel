@@ -492,6 +492,7 @@ msgid "Auto sum (review in formula bar)"
 msgstr "自动求和（在公式栏中确认）"
 
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
 msgid "Automatic"
 msgstr "自动"
 
@@ -607,6 +608,18 @@ msgstr "失效的名称定义"
 #: src/workbook/chrome/footer/SelectionStatus.tsx
 msgid "Calculating selection…"
 msgstr "正在计算选区…"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Calculation mode"
+msgstr "计算模式"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Calculation mode set to Automatic."
+msgstr "计算模式已设为自动。"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Calculation mode set to Manual."
+msgstr "计算模式已设为手动。"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Call only built-in functions or registered custom formulas in custom formula expressions."
@@ -2968,6 +2981,10 @@ msgstr "内部竖框线"
 msgid "Interface language"
 msgstr "界面语言"
 
+#: src/i18n/next-version-feedback.ts
+msgid "Invalid calculation mode."
+msgstr "计算模式无效。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Invalid comment display name."
 msgstr "批注显示名无效。"
@@ -3227,6 +3244,10 @@ msgstr "最低值"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "macros"
 msgstr "宏"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Manual"
+msgstr "手动"
 
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
@@ -4120,7 +4141,9 @@ msgstr "引用以应用区域左上角为基准。公式必须返回 TRUE。"
 msgid "Refers to"
 msgstr "引用位置"
 
+#: src/workbook/chrome/formula-bar/FormulaBar.tsx
 #: src/workbook/chrome/ribbon/SpillTools.tsx
+#: src/workbook/grid/editor/CellEditor.tsx
 msgid "Refresh"
 msgstr "刷新"
 
@@ -4535,6 +4558,10 @@ msgstr "第 {0}–{1} 行"
 msgid "Rule type"
 msgstr "规则类型"
 
+#: src/i18n/next-version-feedback.ts
+msgid "Rust calculation mode is unavailable."
+msgstr "原生引擎计算模式不可用。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust comment editing is unavailable."
 msgstr "原生批注编辑不可用。"
@@ -4578,6 +4605,10 @@ msgstr "原生引擎返回的保护结果不匹配。"
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust returned a mismatched validation confirmation result."
 msgstr "原生引擎返回的验证确认结果不匹配。"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Rust returned an invalid calculation mode result."
+msgstr "原生引擎返回的计算模式结果无效。"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust returned an invalid comment thread."

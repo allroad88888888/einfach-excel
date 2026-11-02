@@ -31,4 +31,10 @@ export const nextVersionFeedback: Readonly<Record<string, MessageDescriptor>> = 
     msg`Unmerge the source and destination before moving cells between sheets. No cells were moved.`,
   'Move cells outside Excel Tables before cutting between sheets. No cells were moved.':
     msg`Move cells outside Excel Tables before cutting between sheets. No cells were moved.`,
+  'Calculation mode set to Manual.': msg`Calculation mode set to Manual.`,
+  'Calculation mode set to Automatic.': msg`Calculation mode set to Automatic.`,
+  'Rust calculation mode is unavailable.': msg`Rust calculation mode is unavailable.`,
+  'Rust returned an invalid calculation mode result.':
+    msg`Rust returned an invalid calculation mode result.`,
+  'Invalid calculation mode.': msg`Invalid calculation mode.`,
 }

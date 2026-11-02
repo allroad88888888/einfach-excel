@@ -145,6 +145,15 @@ impl Sheet {
                     next
                 })
                 .collect();
+        let new_manual_formula_cache: HashMap<CellAddress, Value> =
+            std::mem::take(&mut *self.interior.manual_formula_cache.borrow_mut())
+                .into_iter()
+                .filter_map(|(addr, value)| {
+                    let next = f(addr);
+                    (next.row < EXCEL_MAX_ROWS && next.col < EXCEL_MAX_COLS)
+                        .then_some((next, value))
+                })
+                .collect();
         // Phase 6 — formats follow the same shift as cells so a format set
         // on A1 survives a row insert above and re-emerges on A2. Entries
         // mapped onto the invalid sentinel (deleted band) are dropped; for
@@ -169,6 +178,7 @@ impl Sheet {
         *self.interior.formula_texts.borrow_mut() = new_formula_texts;
         *self.interior.formula_source.borrow_mut() = new_formula_source;
         *self.interior.needs_parse.borrow_mut() = new_needs_parse;
+        *self.interior.manual_formula_cache.borrow_mut() = new_manual_formula_cache;
         self.cell_styles = new_cell_styles;
         self.hyperlinks = std::mem::take(&mut self.hyperlinks).into_iter()
             .filter_map(|(addr, url)| {

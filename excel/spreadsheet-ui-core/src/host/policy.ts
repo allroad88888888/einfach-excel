@@ -7,7 +7,7 @@ export const DEFAULT_HOST_CONTROLS: HostControls = Object.freeze({
 // 白名单只读命令；新命令默认视作持久写入，防止新增功能旁路宿主策略。
 const NON_PERSISTENT = new Set([
   'host.configure', 'host.readRanges', 'workbook.initialize', 'workbook.openFile',
-  'workbook.importCells', 'formula.catalog', 'formula.awaitAsync', 'formula.recalculate',
+  'workbook.importCells', 'formula.catalog', 'formula.awaitAsync', 'formula.recalculate', 'formula.setCalculationMode',
   'customFormula.read', 'notes.read', 'comments.read', 'protection.read', 'formula.inspectSpill',
   'workbook.exportFile', 'validation.read', 'formula.suggest', 'duplicates.preview',
   'textColumns.preview', 'format.preview', 'sheet.filterValues', 'selection.aggregate',

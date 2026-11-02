@@ -9,6 +9,7 @@ import type { EditingCommitOutcome } from './types'
 import { clearSelectionAtom } from '../toolbar/selection-mutation-command'
 import { runRustHistoryAtom, rustHistoryStateAtom } from '../history/rust-history-command'
 import { repeatLastActionAtom } from '../repeat/command'
+import { recalculateAtom } from '../calculation/command'
 import { fillSelectionAtom } from '../auto-fill/directional-command'
 import { exitFormulaReferenceAtom } from '../formula-reference'
 import { dispatchTableTabAtom } from '../tables/tab-navigation'
@@ -38,6 +39,10 @@ export const dispatchGridCellKeyboardInputAtom = atom(
     // 历史操作不读取旧画面的单元格；保留帧只禁止就地编辑，不吞撤销／重做。
     if (intent.type === 'repeat.last' && input.allowEditing) {
       void set(repeatLastActionAtom)
+      return intent
+    }
+    if (intent.type === 'calculation.recalculate' && input.allowEditing !== false) {
+      void set(recalculateAtom, intent.scope)
       return intent
     }
     // Ctrl/⌘+Y：有可重做项就重做，否则等同 F4 重复上一个动作（Excel 行为）。

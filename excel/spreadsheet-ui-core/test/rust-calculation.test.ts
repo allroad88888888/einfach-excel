@@ -9,12 +9,20 @@ async function runtime() {
   vi.stubGlobal('self', {
     location: { origin: 'http://localhost' }, addEventListener: (_: string, callback: typeof receive) => { receive = callback }, postMessage: post })
   const recalculate = vi.fn(() => 3)
+  let calcMode: 'automatic' | 'manual' = 'automatic'
+  const setCalcMode = vi.fn((mode: string) => {
+    if (mode !== 'automatic' && mode !== 'manual') return false
+    calcMode = mode
+    return true
+  })
   const read = vi.fn(() => [])
   const begin = vi.fn()
   class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     rename_sheet() { return true }
     sheet_name() { return 'Orders' }
     recalculate = recalculate
+    get_calculation_mode = () => calcMode
+    set_calculation_mode = setCalcMode
     read_sparse_range = read
     history_begin = begin
     snapshot_format_range = () => ({ cellStyles: [], rowStyles: [], columnStyles: [] })
@@ -25,7 +33,7 @@ async function runtime() {
     return post.mock.lastCall![0]
   }
   await call('workbook.initialize', { sheets: [{ id: 's', name: 'Orders', rowCount: 100, colCount: 8 }] })
-  return { call, recalculate, read, begin }
+  return { call, recalculate, setCalcMode, read, begin }
 }
 const projection = { kind: 'visible-window', sheetId: 's', requestId: 1,
   window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 7 } }
@@ -47,3 +55,14 @@ test('invalid scope, missing sheet and native failure do not advance revision or
   expect((await call('formula.recalculate', { scope: 'sheet', projection })).result.projection.revision).toBe(1)
   expect(begin).not.toHaveBeenCalled()
 })
+test('formula.setCalculationMode updates calculation mode and publishes bundled projection', async () => {
+  const { call, setCalcMode, begin } = await runtime()
+  expect(await call('formula.setCalculationMode', { mode: 'manual', projection })).toMatchObject({
+    ok: true,
+    result: { mode: 'manual', projection: { revision: 1, sheetId: 's', calculationMode: 'manual' } },
+  })
+  expect(setCalcMode).toHaveBeenCalledWith('manual')
+  expect((await call('formula.setCalculationMode', { mode: 'bogus', projection })).ok).toBe(false)
+  expect(begin).not.toHaveBeenCalled()
+})
+

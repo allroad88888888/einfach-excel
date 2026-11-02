@@ -9,6 +9,13 @@ import {
 } from '../projection'
 import { validateProjectionResult } from '../projection/contracts'
 import type { RustWorkbookConnection } from '../rust-workbook/commands'
+import {
+  calculationModeStateAtom,
+  hydrateCalculationModeAtom,
+  type CalculationMode,
+} from './mode-state'
+
+export type { CalculationMode } from './mode-state'
 
 type Scope = 'sheet' | 'workbook'
 const EMPTY = { busy: false, error: null as string | null, message: null as string | null }
@@ -17,6 +24,7 @@ export const calculationFeedbackAtom = atom((get) => {
   const state = get(feedbackAtom)
   return state.connection === get(rustWorkbookConnectionAtom) ? state : EMPTY
 })
+calculationFeedbackAtom.debugLabel = 'spreadsheet.calculation.feedback'
 export const calculationAvailableAtom = atom((get) => {
   const projection = get(projectionSnapshotAtom)
   const feedback = get(feedbackAtom)
@@ -25,6 +33,22 @@ export const calculationAvailableAtom = atom((get) => {
     projection.status === 'ready' &&
     projection.request?.sheetId === get(activeWorkbookSheetAtom)?.id
 })
+calculationAvailableAtom.debugLabel = 'spreadsheet.calculation.available'
+
+export const calculationModeAtom = atom((get): CalculationMode => {
+  const saved = get(calculationModeStateAtom)
+  const connection = get(rustWorkbookConnectionAtom)
+  if (saved && saved.connection === connection) return saved.mode
+  const result = get(projectionSnapshotAtom).result
+  if (
+    result?.kind === 'visible-window' &&
+    (result.calculationMode === 'automatic' || result.calculationMode === 'manual')
+  ) {
+    return result.calculationMode
+  }
+  return 'automatic'
+})
+calculationModeAtom.debugLabel = 'spreadsheet.calculation.mode'
 
 /** 一次原生重算返回当前投影；没有第二次刷新，也不触碰编辑草稿或历史。 */
 export const recalculateAtom = atom(null, async (get, set, scope: Scope): Promise<boolean> => {
@@ -61,3 +85,59 @@ export const recalculateAtom = atom(null, async (get, set, scope: Scope): Promis
     if (get(feedbackAtom) === pending) set(feedbackAtom, { ...EMPTY, connection })
   }
 })
+recalculateAtom.debugLabel = 'spreadsheet.calculation.recalculate'
+
+/** 切换工作簿计算模式（Automatic / Manual），随单次投影返回最新求值状态。 */
+export const setCalculationModeAtom = atom(
+  null,
+  async (get, set, mode: CalculationMode): Promise<boolean> => {
+    if (!get(calculationAvailableAtom) || !['automatic', 'manual'].includes(mode)) return false
+    const connection = get(rustWorkbookConnectionAtom)!
+    const witness = get(projectionSnapshotAtom)
+    const visible = witness.request
+    if (visible?.kind !== 'visible-window') return false
+    const requestId = set(issueProjectionRequestIdAtom)
+    if (requestId === null) return false
+    const projection = createVisibleProjectionRequest({
+      sheetId: visible.sheetId,
+      window: visible.window,
+      viewport: visible.viewport,
+      requestId,
+      reason: 'toolbar',
+    })
+    const pending = { ...EMPTY, connection, busy: true }
+    set(feedbackAtom, pending)
+    try {
+      const response = connection.request('formula.setCalculationMode', { mode, projection })
+      await Promise.resolve()
+      if (get(rustWorkbookConnectionAtom) === connection) set(feedbackAtom, pending)
+      const result = await response
+      if (get(rustWorkbookConnectionAtom) !== connection) return false
+      if (
+        (result.mode !== 'automatic' && result.mode !== 'manual') ||
+        !validateProjectionResult(result.projection, { request: projection }).ok
+      ) {
+        throw new Error('Rust returned an invalid calculation mode result.')
+      }
+      set(hydrateCalculationModeAtom, result.mode)
+      set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
+      set(feedbackAtom, {
+        ...EMPTY,
+        connection,
+        message: `Calculation mode set to ${result.mode === 'manual' ? 'Manual' : 'Automatic'}.`,
+      })
+      return true
+    } catch (cause) {
+      if (get(rustWorkbookConnectionAtom) !== connection) return false
+      set(feedbackAtom, {
+        ...EMPTY,
+        connection,
+        error: cause instanceof Error ? cause.message : String(cause),
+      })
+      return false
+    } finally {
+      if (get(feedbackAtom) === pending) set(feedbackAtom, { ...EMPTY, connection })
+    }
+  },
+)
+setCalculationModeAtom.debugLabel = 'spreadsheet.calculation.setMode'

@@ -1,7 +1,9 @@
 //! 真正失效缓存的证据：宿主值变化不发送写入，只有手动重算才能读到新值。
 use einfach_core::{Value, ValueError};
 use einfach_excel_core::workbook_history::WorkbookHistory;
-use einfach_excel_core::{CellAddress, CellRange, CustomFunctionRegistry, Workbook};
+use einfach_excel_core::{
+    CalculationMode, CellAddress, CellRange, CustomFunctionRegistry, Workbook,
+};
 use std::collections::HashMap;
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
@@ -164,4 +166,66 @@ fn shrinking_blocked_spill_clears_error_without_overwriting_the_obstruction() {
     book.recalculate(None).unwrap();
     assert_eq!(book.get_cell("Sheet1", "A2"), Value::Number(2.0));
     assert_eq!(book.get_cell("Sheet1", "A3"), Value::Text("keep".into()));
+}
+
+#[test]
+fn manual_calculation_mode_freezes_existing_formulas_until_recalculate_or_automatic() {
+    let mut book = Workbook::new();
+    book.add_sheet("Summary");
+    book.set_cell(0, "A1", Value::Number(10.0));
+    book.set_formula(0, "B1", "=A1*2");
+    book.set_formula(0, "C1", "=B1+5");
+    book.set_formula(1, "A1", "=Sheet1!B1+100");
+    assert_eq!(book.calculation_mode(), CalculationMode::Automatic);
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(20.0));
+    assert_eq!(book.get_cell("Sheet1", "C1"), Value::Number(25.0));
+    assert_eq!(book.get_cell("Summary", "A1"), Value::Number(120.0));
+
+    assert!(book.set_calculation_mode(CalculationMode::Manual));
+    assert_eq!(book.calculation_mode(), CalculationMode::Manual);
+    assert!(!book.set_calculation_mode(CalculationMode::Manual));
+
+    // Modifying literal input in Manual mode keeps existing formulas at cached values.
+    book.set_cell(0, "A1", Value::Number(30.0));
+    assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(30.0));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(20.0));
+    assert_eq!(book.get_cell("Sheet1", "C1"), Value::Number(25.0));
+    assert_eq!(book.get_cell("Summary", "A1"), Value::Number(120.0));
+
+    // Newly entered or edited formula evaluates once upon commit and caches its result,
+    // without recalculating existing formulas on the sheet.
+    book.set_formula(0, "D1", "=A1+1");
+    assert_eq!(book.get_cell("Sheet1", "D1"), Value::Number(31.0));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(20.0));
+
+    book.set_cell(0, "A1", Value::Number(50.0));
+    assert_eq!(book.get_cell("Sheet1", "D1"), Value::Number(31.0));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(20.0));
+
+    // Sheet-scoped recalculate (Shift+F9) refreshes Sheet1 formulas while Summary stays cached.
+    assert_eq!(book.recalculate(Some(0)), Ok(3));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(100.0));
+    assert_eq!(book.get_cell("Sheet1", "C1"), Value::Number(105.0));
+    assert_eq!(book.get_cell("Sheet1", "D1"), Value::Number(51.0));
+    assert_eq!(book.get_cell("Summary", "A1"), Value::Number(120.0));
+
+    // Workbook-scoped recalculate (F9) refreshes all sheets.
+    book.set_cell(0, "A1", Value::Number(60.0));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(100.0));
+    assert_eq!(book.recalculate(None), Ok(4));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(120.0));
+    assert_eq!(book.get_cell("Sheet1", "C1"), Value::Number(125.0));
+    assert_eq!(book.get_cell("Sheet1", "D1"), Value::Number(61.0));
+    assert_eq!(book.get_cell("Summary", "A1"), Value::Number(220.0));
+
+    // Switching back to Automatic recalculates stale formulas immediately.
+    book.set_cell(0, "A1", Value::Number(7.0));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(120.0));
+    assert_eq!(book.get_cell("Summary", "A1"), Value::Number(220.0));
+    assert!(book.set_calculation_mode(CalculationMode::Automatic));
+    assert_eq!(book.calculation_mode(), CalculationMode::Automatic);
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(14.0));
+    assert_eq!(book.get_cell("Sheet1", "C1"), Value::Number(19.0));
+    assert_eq!(book.get_cell("Sheet1", "D1"), Value::Number(8.0));
+    assert_eq!(book.get_cell("Summary", "A1"), Value::Number(114.0));
 }

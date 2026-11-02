@@ -8,15 +8,20 @@ import { CalculationTools } from '../../../src/workbook/chrome/ribbon/Calculatio
 import { SpreadsheetGrid } from '@einfach-excel/react-cells'
 
 type Input = RustWorkbookCommands['formula.recalculate']['payload']
+type ModeInput = RustWorkbookCommands['formula.setCalculationMode']['payload']
 const window = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 1 }
 const cells = [{ row: 0, col: 0, displayValue: '50%', formula: '=1/2' },
   { row: 0, col: 1, displayValue: '=literal', inputText: "'=literal" }]
 async function setup() {
   const calculate = vi.fn(async (input: Input) => ({ formulaCount: 2,
     projection: { ...input.projection, cells, revision: 2 } }))
-  const request = vi.fn(async (command: string, input: unknown) => command === 'formula.recalculate'
-    ? calculate(input as Input)
-    : { ...(input as { request: VisibleProjectionRequest }).request, cells, revision: 1 })
+  const setMode = vi.fn(async (input: ModeInput) => ({ mode: input.mode,
+    projection: { ...input.projection, calculationMode: input.mode, cells, revision: 2 } }))
+  const request = vi.fn(async (command: string, input: unknown) => {
+    if (command === 'formula.recalculate') return calculate(input as Input)
+    if (command === 'formula.setCalculationMode') return setMode(input as ModeInput)
+    return { ...(input as { request: VisibleProjectionRequest }).request, calculationMode: 'automatic', cells, revision: 1 }
+  })
   const { store } = createSpreadsheetUi({ connection: {
     request: request as RustWorkbookConnection['request'], dispose() {},
   } })
@@ -27,7 +32,7 @@ async function setup() {
   const rendered = render(<WorkbookStoreProvider store={store}>
     <CalculationTools /><SpreadsheetGrid window={window} cells={cells} />
   </WorkbookStoreProvider>)
-  return { store, calculate, request, ...rendered }
+  return { store, calculate, setMode, request, ...rendered }
 }
 
 test.each(['sheet', 'workbook'])('%s select dispatches one calculation with accessible success feedback', async (scope) => {
@@ -65,3 +70,14 @@ test('draft disables both controls; native error is visible and retry succeeds',
   await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
   expect(screen.getByRole('status')).toHaveTextContent('Workbook recalculated')
 })
+test('calculation mode select switches between Automatic and Manual', async () => {
+  const { setMode } = await setup()
+  const modeSelect = screen.getByRole('combobox', { name: 'Calculation mode' })
+  expect(modeSelect).toHaveValue('automatic')
+  fireEvent.change(modeSelect, { target: { value: 'manual' } })
+  await waitFor(() => expect(modeSelect).toHaveValue('manual'))
+  expect(setMode).toHaveBeenCalledOnce()
+  expect(setMode.mock.lastCall![0].mode).toBe('manual')
+  expect(screen.getByRole('status')).toHaveTextContent('Calculation mode set to Manual.')
+})
+

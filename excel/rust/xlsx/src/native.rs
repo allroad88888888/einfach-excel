@@ -57,6 +57,8 @@ pub struct Persistence {
     pub data_validations: Vec<SheetValidation>,
     #[serde(default, rename = "namedRanges", skip_serializing_if = "Vec::is_empty")]
     pub named_ranges: Vec<NamedRange>,
+    #[serde(default, rename = "calculationMode", skip_serializing_if = "Option::is_none")]
+    pub calculation_mode: Option<String>,
     #[serde(default, skip_serializing)]
     pub protection: Vec<serde_json::Value>,
     #[serde(default, skip_serializing)]

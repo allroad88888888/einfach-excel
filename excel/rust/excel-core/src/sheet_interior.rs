@@ -95,4 +95,6 @@ pub(crate) struct SheetInterior {
     /// today. Same D7 borrow rule as the other interior fields (borrow → copy
     /// out → release; never hold across a `store.*` call).
     pub(crate) col_widths: RefCell<BTreeMap<u32, u32>>,
+    pub(crate) manual_calculation: Cell<bool>,
+    pub(crate) manual_formula_cache: RefCell<HashMap<CellAddress, Value>>,
 }

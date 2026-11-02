@@ -25,6 +25,8 @@ impl Sheet {
                 formula_source: RefCell::new(RowMajorMap::new()),
                 needs_parse: RefCell::new(HashSet::new()),
                 col_widths: RefCell::new(BTreeMap::new()),
+                manual_calculation: Cell::new(false),
+                manual_formula_cache: RefCell::new(HashMap::new()),
             }),
             slot_epoch_family: Rc::new(RefCell::new(AtomFamily::new())),
             cell_facade_family: Rc::new(RefCell::new(AtomFamily::new())),

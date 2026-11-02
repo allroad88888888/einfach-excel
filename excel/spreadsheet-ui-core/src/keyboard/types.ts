@@ -99,6 +99,12 @@ export interface RepeatKeyboardIntent {
   type: 'repeat.last'
 }
 
+/** F9 / Shift+F9：导航态下分别重算整个工作簿或当前工作表。 */
+export interface RecalculateKeyboardIntent {
+  type: 'calculation.recalculate'
+  scope: 'sheet' | 'workbook'
+}
+
 export type FormatToggleField = 'bold' | 'italic' | 'underline'
 
 export interface FormatToggleIntent {
@@ -160,6 +166,7 @@ export type KeyboardCommandIntent =
   | SheetNavigationIntent
   | HistoryIntent
   | RepeatKeyboardIntent
+  | RecalculateKeyboardIntent
   | { type: 'range.fill'; direction: 'down' | 'right' }
   | FormatToggleIntent
   | ClearCellsIntent

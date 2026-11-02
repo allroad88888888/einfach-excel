@@ -38,13 +38,18 @@ pub fn root_rels() -> String {
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="{REL}/officeDocument" Target="xl/workbook.xml"/></Relationships>"#)
 }
 
-pub fn workbook(names: &[String], defined_names: &str) -> String {
+pub fn workbook(names: &[String], defined_names: &str, manual_calculation: bool) -> String {
     let sheets: String = names.iter().enumerate()
         .map(|(index, name)| format!(r#"<sheet name="{}" sheetId="{}" r:id="rId{}"/>"#, escape(name), index + 1, index + 1))
         .collect();
-    // 公式只写源文本不写缓存值，让 Excel 打开时全量重算。
+    let calc_pr = if manual_calculation {
+        r#"<calcPr calcId="191029" calcMode="manual"/>"#
+    } else {
+        r#"<calcPr calcId="191029" calcMode="auto" fullCalcOnLoad="1"/>"#
+    };
+    // 公式只写源文本不写缓存值，按计算模式写出 calcPr。
     format!(r#"{HEADER}
-<workbook xmlns="{MAIN}" xmlns:r="{REL}"><workbookPr/><bookViews><workbookView/></bookViews><sheets>{sheets}</sheets>{defined_names}<calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>"#)
+<workbook xmlns="{MAIN}" xmlns:r="{REL}"><workbookPr/><bookViews><workbookView/></bookViews><sheets>{sheets}</sheets>{defined_names}{calc_pr}</workbook>"#)
 }
 
 pub fn workbook_rels(sheets: usize) -> String {

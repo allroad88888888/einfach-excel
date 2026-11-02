@@ -64,6 +64,11 @@ mod conditional_format_structure;
 mod conditional_format_scope;
 #[path = "workbook_bulk.rs"]
 mod workbook_bulk;
+#[path = "workbook_auditing.rs"]
+mod workbook_auditing;
+pub use self::workbook_auditing::{
+    AuditingRef, FormulaEvalStep, FormulaEvaluationTrace, WatchedCellSnapshot,
+};
 #[path = "workbook_calculation.rs"]
 mod workbook_calculation;
 #[path = "workbook_bulk_types.rs"]

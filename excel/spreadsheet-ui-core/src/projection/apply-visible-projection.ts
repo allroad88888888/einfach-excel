@@ -18,6 +18,7 @@ import { applySheetVisibility } from '../viewport/hidden-state'
 import { setSheetProtectionAtom } from '../protection'
 import { hydrateCustomFormulaDefinitionsAtom } from '../custom-formulas/expression-catalog'
 import { hydrateCalculationModeAtom } from '../calculation/mode-state'
+import { syncWatchedCellsAtom } from '../formula-auditing/watch-command'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 
 /** Publishes the projection bundled with a mutation without opening a second read lane. */
@@ -68,6 +69,7 @@ export const applyVisibleProjectionAtom = atom(
           connection,
           definitions: result.customFormulaDefinitions,
         })
+      void set(syncWatchedCellsAtom)
       return Object.freeze({ status: 'applied' })
     } catch (cause) {
       const error = projectionErrorFrom(cause)

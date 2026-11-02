@@ -3,6 +3,12 @@ import type { WasmWorkbook } from '../rust-workbook/wasm-types'
 import type { WorkerRequestWire } from '../rust-worker/types'
 import { rpcError } from '../rust-worker/transport'
 import { takeValidationErrorDetail } from '../rust-workbook/validation-error-detail'
+import {
+  runFormulaAuditingEvaluate,
+  runFormulaAuditingTrace,
+  runFormulaAuditingWatch,
+} from '../formula-auditing/worker-io'
+import type { RustFormulaAuditingTraceRequest } from '../formula-auditing/types'
 import { assertHostCommandAllowed, DEFAULT_HOST_CONTROLS, isPersistentHostCommand, validateHostControls } from './policy'
 import type { HostControls, NativeMutationState, NativeWriteWorkbookCellsResult,
   ReadWorkbookRangesInput,
@@ -137,6 +143,18 @@ export function installHostWorkerGateway(context: WorkerHostContext,
       const result = message.command === 'host.configure' ? undefined :
         message.command === 'host.readRanges' ? readHostRanges(context, message.payload as ReadWorkbookRangesInput) :
         message.command === 'host.writeCells' ? writeHostCells(context, message.payload as WriteWorkbookCellsInput) :
+        message.command === 'formulaAuditing.trace'
+          ? runFormulaAuditingTrace(context, message.payload as RustFormulaAuditingTraceRequest) :
+        message.command === 'formulaAuditing.evaluate'
+          ? runFormulaAuditingEvaluate(
+              context,
+              message.payload as { sheetId: string; row: number; col: number },
+            ) :
+        message.command === 'formulaAuditing.watch'
+          ? runFormulaAuditingWatch(
+              context,
+              message.payload as { targets: { sheetId: string; row: number; col: number }[] },
+            ) :
         await dispatch(message.command as keyof RustWorkbookCommands, message.payload)
       if (message.command === 'host.writeCells') nativeWrite = result as NativeWriteWorkbookCellsResult
       // 提交先于投影展示；事件即使展示失败也必须可供宿主保存已经落地的修改。

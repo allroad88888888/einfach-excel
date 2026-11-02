@@ -13,6 +13,7 @@ const NON_PERSISTENT = new Set([
   'textColumns.preview', 'format.preview', 'sheet.filterValues', 'selection.aggregate',
   'workbook.locate', 'workbook.find', 'selection.visibleBlocks', 'selection.currentRegion', 'clipboard.export', 'clipboard.capture',
   'clipboard.finishCapture', 'projection.readVisible',
+  'formulaAuditing.trace', 'formulaAuditing.evaluate', 'formulaAuditing.watch',
 ])
 const STRUCTURAL = new Set([
   'sheet.editStructure', 'workbook.changeSheets', 'workbook.editSheet',

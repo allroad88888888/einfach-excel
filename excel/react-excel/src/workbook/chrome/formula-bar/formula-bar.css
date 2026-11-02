@@ -106,11 +106,18 @@
 
 /* 公式栏与格内编辑共用提交状态；错误行留在网格外，窄屏也不会被裁掉。 */
 :where(.einfach-spreadsheet) .formula-edit-feedback {
+  display: flex;
   flex: none;
+  align-items: center;
+  gap: 8px;
   margin: 0;
   padding: 6px 8px;
   border-bottom: 1px solid #c93c3c;
   color: #8e2525;
   background: #fff5f5;
   font-size: 12px;
+}
+
+:where(.einfach-spreadsheet) .formula-edit-feedback button {
+  flex: none;
 }

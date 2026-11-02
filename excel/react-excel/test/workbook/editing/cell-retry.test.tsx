@@ -130,4 +130,38 @@ describe('Rust workbook cell retry', () => {
       .toEqual(['=SUM(', 'Corrected value'])
     expect(controlled.readVisibleProjection).toHaveBeenCalledTimes(1)
   })
+
+  it('reconciles an outcome-unknown commit via Refresh and unlocks subsequent edits', async () => {
+    const controlled = createControlledCellEditingConnection()
+    controlled.setCellInput.mockImplementationOnce(async (request) => ({
+      sheetId: request.sheetId,
+      requestId: request.requestId + 1,
+      revision: 1,
+    }))
+    const store = renderSalesOrdersEditingWorksheet(controlled)
+    const first = await firstEditingCell()
+    fireEvent.doubleClick(first)
+    const editor = await focusedCellEditor()
+    fireEvent.change(editor, { target: { value: 'Unconfirmed edit' } })
+    fireEvent.keyDown(editor, { key: 'Enter' })
+
+    await waitFor(() =>
+      expect(store.getter(editingCommitLifecycleAtom).status).toBe('outcome-unknown'),
+    )
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'This edit was not confirmed — it may or may not have been saved.',
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }))
+
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Cell editor' })).toBeNull())
+    expect(store.getter(editingCommitLifecycleAtom).status).toBe('ready')
+    expect(controlled.readVisibleProjection).toHaveBeenCalledTimes(2)
+
+    fireEvent.doubleClick(first)
+    const nextEditor = await focusedCellEditor()
+    fireEvent.change(nextEditor, { target: { value: 'Confirmed edit' } })
+    fireEvent.keyDown(nextEditor, { key: 'Enter' })
+    await waitFor(() => expect(first).toHaveTextContent('Confirmed edit'))
+    expect(controlled.setCellInput).toHaveBeenCalledTimes(2)
+  })
 })

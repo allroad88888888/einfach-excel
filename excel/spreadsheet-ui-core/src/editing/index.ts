@@ -17,7 +17,7 @@ export {
   editingSessionAtom,
   startEditingAtom,
 } from './session-atoms'
-export { commitCellEditingAtom } from './commit-cell-editing'
+export { commitCellEditingAtom, reconcileCellEditingAtom } from './commit-cell-editing'
 export * from './commit-feedback'
 export * from './formula-input-commands'
 export * from './locked-edit-feedback'

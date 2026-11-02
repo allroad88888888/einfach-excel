@@ -2,6 +2,7 @@ import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   commitCellEditingAtom,
+  reconcileCellEditingAtom,
   activeWorkbookSheetAtom,
   dispatchEditorKeyboardInputAtom,
   editingCommitFeedback,
@@ -47,6 +48,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const viewportMetrics = useAtomValue(viewportMetricsAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
+  const reconcileEditing = useSetAtom(reconcileCellEditingAtom)
   const dispatchEditorKeyboard = useSetAtom(dispatchEditorKeyboardInputAtom)
   const setDraft = useSetAtom(updateFormulaDraftAtom)
   const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
@@ -119,6 +121,16 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
     try {
       const outcome = await commitEditing()
       if (restoreKeyboardFocus) restoreFocus(outcome)
+    } finally {
+      committingRef.current = false
+    }
+  }
+  const reconcileOnce = async () => {
+    if (committingRef.current) return
+    committingRef.current = true
+    try {
+      const outcome = await reconcileEditing()
+      if (outcome === 'completed') focusGrid()
     } finally {
       committingRef.current = false
     }
@@ -223,8 +235,13 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       />
       <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="cell" />
       {feedback && (
-        <div className="cell-editor-feedback" id={`${fieldIdentity}-feedback`} role="alert">
-          <span>{translateFeedback(i18n, feedback.message)}</span>
+        <div className="cell-editor-feedback" role="alert">
+          <span id={`${fieldIdentity}-feedback`}>{translateFeedback(i18n, feedback.message)}</span>
+          {lifecycle.status === 'outcome-unknown' && (
+            <button type="button" onClick={() => void reconcileOnce()}>
+              {t`Refresh`}
+            </button>
+          )}
         </div>
       )}
     </div>

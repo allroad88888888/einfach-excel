@@ -128,6 +128,7 @@ impl WasmWorkbook :: [] :: pub fn delete_row(&mut self, sheet_idx: u32, at: u32,
 impl WasmWorkbook :: [] :: pub fn duplicate_sheet(&mut self, idx: u32) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn edit_sheet(&mut self, index: Option<u32>, name: &str) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn edit_structure( &mut self, sheet: u32, action: &str, at: u32, count: u32, ) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn evaluate_formula_steps( &self, sheet: usize, row: u32, col: u32, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn filter_values(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn find_cells(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn find_fill_down_end( &self, sheet: u32, source: JsValue, row_limit: u32, ) -> Result<Option<u32>, JsValue>
@@ -149,6 +150,7 @@ impl WasmWorkbook :: [] :: pub fn host_read_ranges(&self, targets: JsValue) -> R
 impl WasmWorkbook :: [] :: pub fn host_write_cells(&mut self, cells: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn insert_col(&mut self, sheet_idx: u32, at: u32, count: u32)
 impl WasmWorkbook :: [] :: pub fn insert_row(&mut self, sheet_idx: u32, at: u32, count: u32)
+impl WasmWorkbook :: [] :: pub fn inspect_watched_cells(&self, targets: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn is_error(&self, sheet_idx: u32, addr: &str) -> bool
 impl WasmWorkbook :: [] :: pub fn list_named_ranges(&self) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn list_non_empty_cells(&self) -> Result<JsValue, JsValue>
@@ -218,4 +220,6 @@ impl WasmWorkbook :: [] :: pub fn snapshot_viewport_sizes( &self, sheet_idx: u32
 impl WasmWorkbook :: [] :: pub fn split_text_columns( &mut self, request: JsValue, overwrite: bool, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn subscribe_cell(&mut self, sheet_name: &str, addr: &str, cb: js_sys::Function) -> u32
 impl WasmWorkbook :: [] :: pub fn suggest_quick_formula(&self, request: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn trace_dependents(&self, sheet: usize, row: u32, col: u32) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn trace_precedents(&self, sheet: usize, row: u32, col: u32) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn unsubscribe_cell(&mut self, token: u32)

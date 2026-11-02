@@ -1,4 +1,5 @@
 pub mod auto_fill;
+mod auditing_eval;
 mod auto_fit_dimensions;
 pub mod bulk_import_trace;
 pub mod cell;
@@ -100,4 +101,5 @@ pub use workbook::{
     MergeAction, PrintConfig, PrintConfigError, PrintConfigSnapshot, PrintOrientation, PrintScale,
     SheetFilterState, SheetHiddenRows, TableEntry, TableError, TableRegistrySnapshot,
     TotalsFunction, Workbook, WorkbookError,
+    AuditingRef, FormulaEvalStep, FormulaEvaluationTrace, WatchedCellSnapshot,
 };

@@ -49,6 +49,7 @@ import {
   hydrateCalculationModeAtom,
   hydrateIterativeCalculationAtom,
 } from '../calculation/mode-state'
+import { syncWatchedCellsAtom } from '../formula-auditing/watch-command'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { cellAtProjection } from './cell-at'
 
@@ -327,6 +328,7 @@ export const resolveProjectionAtom = atom(
           connection,
           definitions: result.customFormulaDefinitions,
         })
+      if (result.kind === 'visible-window') void set(syncWatchedCellsAtom)
       return Object.freeze({ status: 'accepted', result })
     }
 

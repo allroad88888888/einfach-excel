@@ -40,6 +40,7 @@ import { NoteTools } from '../../notes/NoteTools'
 import { CommentTools } from '../../comments/CommentTools'
 import { ProtectionTools } from '../../protection/ProtectionTools'
 import { CustomFormulaTools } from '../../custom-formulas/CustomFormulaTools'
+import { FormulaAuditingToolbar } from '../../../components/formula-auditing'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { RibbonTabs, ribbonTabLabels } from './RibbonTabs'
@@ -254,6 +255,7 @@ export function WorkbookRibbon() {
             <CustomFormulaTools />
             <CalculationTools />
             <SpillTools />
+            <FormulaAuditingToolbar />
             <NamedRangeTools />
           </div>
           <div className="toolbar-spacer" />

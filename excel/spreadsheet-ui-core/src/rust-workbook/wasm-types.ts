@@ -35,6 +35,7 @@ import type { WasmCommentQueries } from './comments/command'
 import type { WasmProtectionQueries } from './protection/commands'
 import type { WasmCustomFormulaQueries } from './custom-formulas/command'
 import type { WasmAsyncFormulaQueries } from './async-formulas/commands'
+import type { WasmFormulaAuditingQueries } from '../formula-auditing/types'
 import type { HostWasmCommands } from '../host/types'
 
 export interface RustCellSnapshot {
@@ -80,7 +81,7 @@ export interface RustFormatRangeSnapshot {
 export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   WasmFindQueries, WasmSelectSpecialQueries, WasmCustomFormulaQueries,
   WasmNoteQueries, WasmCommentQueries, WasmProtectionQueries, WasmAsyncFormulaQueries,
-  WasmDragMoveQueries {
+  WasmFormulaAuditingQueries, WasmDragMoveQueries {
   change_hyperlink?: (sheet: number, row: number, col: number,
     url?: string, text?: string) => boolean
   recalculate?: (sheet?: number) => number

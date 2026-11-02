@@ -152,7 +152,9 @@ export const activeSheetFormulaReferenceTokensAtom = atom((get) => {
     get(editingSessionAtom).source?.sheetId ??
     null
   if (activeSheetId === null) return []
-  return tokens.filter((token) => token.sheetId === activeSheetId)
+  return tokens.filter((token) =>
+    token.sheetIds ? token.sheetIds.includes(activeSheetId) : token.sheetId === activeSheetId,
+  )
 })
 activeSheetFormulaReferenceTokensAtom.debugLabel =
   'spreadsheet.formulaReference.activeSheetTokens'

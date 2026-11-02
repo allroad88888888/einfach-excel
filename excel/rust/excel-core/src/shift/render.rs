@@ -3,7 +3,7 @@
 use super::edit::is_invalid;
 use super::render_number::render_number;
 use super::render_ref::{render_abs_addr, render_range_body, renderable_shape};
-use crate::formula::{push_sheet_name, BinOperator, Expr, TableArea};
+use crate::formula::{push_sheet_name, push_sheet_span, BinOperator, Expr, TableArea};
 
 /// Render an AST back to a formula string (for paste-and-store flows that
 /// need text representation). Round-trip: parse(render(parse(s))) == parse(s).
@@ -65,6 +65,35 @@ fn render_into(expr: &Expr, out: &mut String) {
         } => match renderable_shape(*start, *end, *unbounded) {
             Some(shape) => {
                 push_sheet_name(out, sheet);
+                out.push('!');
+                render_range_body(*start, *end, shape, *abs, out)
+            }
+            None => out.push_str("#REF!"),
+        },
+        Expr::Sheet3DRef {
+            start_sheet,
+            end_sheet,
+            addr,
+            abs,
+        } => {
+            if is_invalid(*addr) {
+                out.push_str("#REF!");
+            } else {
+                push_sheet_span(out, start_sheet, end_sheet);
+                out.push('!');
+                render_abs_addr(*addr, *abs, out);
+            }
+        }
+        Expr::Sheet3DRange {
+            start_sheet,
+            end_sheet,
+            start,
+            end,
+            unbounded,
+            abs,
+        } => match renderable_shape(*start, *end, *unbounded) {
+            Some(shape) => {
+                push_sheet_span(out, start_sheet, end_sheet);
                 out.push('!');
                 render_range_body(*start, *end, shape, *abs, out)
             }

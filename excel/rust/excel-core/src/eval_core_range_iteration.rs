@@ -1,4 +1,5 @@
 use super::*;
+use crate::shift::contains_invalid_ref;
 
 /// Stream values produced by a function argument. For `Range` args this
 /// goes through `provider.for_each_range_cell` (sparse-aware); for any
@@ -80,6 +81,62 @@ pub(super) fn for_each_arg_value_indexed(
             }
             return None;
         }
+    }
+    match arg {
+        Expr::Sheet3DRef {
+            start_sheet,
+            end_sheet,
+            addr,
+            ..
+        } => {
+            if addr.row == REF_INVALID_ROW || addr.col == REF_INVALID_COL {
+                f(None, 1, Value::Error(ValueError::InvalidRef));
+                return None;
+            }
+            let range = CellRange::new(*addr, *addr);
+            let mut pos = 0u64;
+            let sheet_count = provider.for_each_sheet_3d_range_cell(
+                start_sheet,
+                end_sheet,
+                range,
+                &mut |cell_addr, v| {
+                    pos += 1;
+                    f(Some(cell_addr), pos, v);
+                },
+            )?;
+            return Some(sheet_count as u64);
+        }
+        Expr::Sheet3DRange {
+            start_sheet,
+            end_sheet,
+            start,
+            end,
+            ..
+        } => {
+            if contains_invalid_ref(arg) {
+                f(None, 1, Value::Error(ValueError::InvalidRef));
+                return None;
+            }
+            let r = RuntimeRef {
+                sheet: None,
+                range: CellRange::new(*start, *end),
+                materialized: None,
+            };
+            let shape = r.bounded_shape();
+            let cells_per_sheet = shape.map(|(rows, cols)| rows as u64 * cols as u64);
+            let mut pos = 0u64;
+            let sheet_count = provider.for_each_sheet_3d_range_cell(
+                start_sheet,
+                end_sheet,
+                r.range,
+                &mut |cell_addr, v| {
+                    pos += 1;
+                    f(Some(cell_addr), pos, v);
+                },
+            )?;
+            return cells_per_sheet.map(|c| c * sheet_count as u64);
+        }
+        _ => {}
     }
     match runtime_ref_from_expr(arg, provider) {
         Ok(r) => for_each_ref_value_indexed(&r, provider, f),

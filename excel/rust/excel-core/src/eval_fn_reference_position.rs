@@ -115,7 +115,9 @@ pub(super) fn eval_fn_reference_position(
                 Expr::CellRef(..)
                 | Expr::Range { .. }
                 | Expr::SheetRef { .. }
-                | Expr::SheetRange { .. } => Value::Number(1.0),
+                | Expr::SheetRange { .. }
+                | Expr::Sheet3DRef { .. }
+                | Expr::Sheet3DRange { .. } => Value::Number(1.0),
                 _ => Value::Error(ValueError::WrongType),
             }
         }

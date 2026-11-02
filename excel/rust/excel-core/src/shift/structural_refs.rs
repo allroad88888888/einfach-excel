@@ -135,15 +135,20 @@ fn rewrite_scoped(
     match expr {
         Expr::CellRef(..)
         | Expr::SheetRef { .. }
+        | Expr::Sheet3DRef { .. }
         | Expr::Range { .. }
-        | Expr::SheetRange { .. } => {
+        | Expr::SheetRange { .. }
+        | Expr::Sheet3DRange { .. } => {
             if let Some((first, last)) = band {
                 let rows = !edit.is_row_edit();
                 let covered = match expr {
-                    Expr::CellRef(addr, _) | Expr::SheetRef { addr, .. } =>
+                    Expr::CellRef(addr, _)
+                    | Expr::SheetRef { addr, .. }
+                    | Expr::Sheet3DRef { addr, .. } =>
                         (first..=last).contains(if rows { &addr.row } else { &addr.col }),
                     Expr::Range { start, end, unbounded, .. }
-                    | Expr::SheetRange { start, end, unbounded, .. } => {
+                    | Expr::SheetRange { start, end, unbounded, .. }
+                    | Expr::Sheet3DRange { start, end, unbounded, .. } => {
                         let (a, b, open) = if rows {
                             (start.row, end.row, unbounded.rows_unbounded())
                         } else {
@@ -173,6 +178,21 @@ fn rewrite_scoped(
                         false
                     }
                 }
+                Expr::Sheet3DRef {
+                    start_sheet,
+                    end_sheet,
+                    addr,
+                    ..
+                } if start_sheet.eq_ignore_ascii_case(target)
+                    || end_sheet.eq_ignore_ascii_case(target) =>
+                {
+                    if let Some(next) = shift_cell(*addr, edit) {
+                        *addr = next;
+                        true
+                    } else {
+                        false
+                    }
+                }
                 Expr::Range {
                     start,
                     end,
@@ -186,6 +206,18 @@ fn rewrite_scoped(
                     unbounded,
                     ..
                 } if sheet.eq_ignore_ascii_case(target) => {
+                    shift_range(start, end, *unbounded, edit)
+                }
+                Expr::Sheet3DRange {
+                    start_sheet,
+                    end_sheet,
+                    start,
+                    end,
+                    unbounded,
+                    ..
+                } if start_sheet.eq_ignore_ascii_case(target)
+                    || end_sheet.eq_ignore_ascii_case(target) =>
+                {
                     shift_range(start, end, *unbounded, edit)
                 }
                 _ => true,

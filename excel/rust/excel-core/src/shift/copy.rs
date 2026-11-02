@@ -103,6 +103,36 @@ pub fn shift_copy_formula(expr: &Expr, drow: i64, dcol: i64) -> Result<Expr, ()>
                 abs: *abs,
             })
             .unwrap_or_else(|| Expr::Error(einfach_core::ValueError::InvalidRef)),
+        Expr::Sheet3DRef {
+            start_sheet,
+            end_sheet,
+            addr,
+            abs,
+        } => shift_ref(*addr, *abs, drow, dcol)
+            .map(|addr| Expr::Sheet3DRef {
+                start_sheet: start_sheet.clone(),
+                end_sheet: end_sheet.clone(),
+                addr,
+                abs: *abs,
+            })
+            .unwrap_or_else(|| Expr::Error(einfach_core::ValueError::InvalidRef)),
+        Expr::Sheet3DRange {
+            start_sheet,
+            end_sheet,
+            start,
+            end,
+            unbounded,
+            abs,
+        } => shift_range(*start, *end, *unbounded, *abs, drow, dcol)
+            .map(|(start, end)| Expr::Sheet3DRange {
+                start_sheet: start_sheet.clone(),
+                end_sheet: end_sheet.clone(),
+                start,
+                end,
+                unbounded: *unbounded,
+                abs: *abs,
+            })
+            .unwrap_or_else(|| Expr::Error(einfach_core::ValueError::InvalidRef)),
         Expr::Negate(inner) => Expr::Negate(Box::new(shift_copy_formula(inner, drow, dcol)?)),
         Expr::Percent(inner) => Expr::Percent(Box::new(shift_copy_formula(inner, drow, dcol)?)),
         Expr::BinOp { op, left, right } => Expr::BinOp {

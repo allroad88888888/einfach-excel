@@ -13,6 +13,16 @@ fn quoted(name: &str) -> String {
 fn sheet_of(formula: &str) -> Option<String> {
     match parse_formula(formula)? {
         Expr::SheetRef { sheet, .. } | Expr::SheetRange { sheet, .. } => Some(sheet),
+        Expr::Sheet3DRef {
+            start_sheet,
+            end_sheet,
+            ..
+        }
+        | Expr::Sheet3DRange {
+            start_sheet,
+            end_sheet,
+            ..
+        } => Some(format!("{start_sheet}:{end_sheet}")),
         _ => None,
     }
 }

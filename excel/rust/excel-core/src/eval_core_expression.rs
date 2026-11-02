@@ -1,4 +1,5 @@
 use super::*;
+use crate::shift::contains_invalid_ref;
 
 struct AtomEvalProvider<'a> {
     get: &'a dyn Fn(AtomId) -> Value,
@@ -124,6 +125,35 @@ pub fn eval_expr_with_provider(expr: &Expr, provider: &dyn EvalProvider) -> Valu
             // Formula-inner evaluation owns the workbook-scoped runtime cycle
             // guard, so recursing into an on-stack cell surfaces CyclicRef.
             provider.sheet_cell(sheet, *addr)
+        }
+
+        Expr::Sheet3DRef {
+            start_sheet,
+            end_sheet,
+            addr,
+            ..
+        } => {
+            if addr.row == REF_INVALID_ROW || addr.col == REF_INVALID_COL {
+                return Value::Error(ValueError::InvalidRef);
+            }
+            if provider.sheet_span_count(start_sheet, end_sheet).is_none() {
+                return Value::Error(ValueError::InvalidRef);
+            }
+            Value::Error(ValueError::WrongType)
+        }
+
+        Expr::Sheet3DRange {
+            start_sheet,
+            end_sheet,
+            ..
+        } => {
+            if contains_invalid_ref(expr) {
+                return Value::Error(ValueError::InvalidRef);
+            }
+            if provider.sheet_span_count(start_sheet, end_sheet).is_none() {
+                return Value::Error(ValueError::InvalidRef);
+            }
+            Value::Error(ValueError::WrongType)
         }
 
         Expr::Name(name) => {

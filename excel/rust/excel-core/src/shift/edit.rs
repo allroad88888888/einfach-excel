@@ -64,8 +64,14 @@ pub fn contains_invalid_ref(expr: &Expr) -> bool {
             unbounded,
             ..
         } => range_has_invalid_ref(*start, *end, *unbounded),
-        Expr::SheetRef { addr, .. } => is_invalid(*addr),
+        Expr::SheetRef { addr, .. } | Expr::Sheet3DRef { addr, .. } => is_invalid(*addr),
         Expr::SheetRange {
+            start,
+            end,
+            unbounded,
+            ..
+        }
+        | Expr::Sheet3DRange {
             start,
             end,
             unbounded,

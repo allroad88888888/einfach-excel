@@ -144,8 +144,38 @@ impl WorkbookAtomContext {
     pub(super) fn resolve_sheet(&self, name: &str, args: &ReadArgs) -> Option<(usize, FacadeCtx)> {
         self.depend_topology(args);
         let topology = self.topology.borrow();
-        let idx = topology.by_name.get(name).copied()?;
+        let idx = topology.by_name.get(name).copied().or_else(|| {
+            topology.sheets.iter().position(|(s, _)| {
+                s.eq_ignore_ascii_case(name) || s.to_lowercase() == name.to_lowercase()
+            })
+        })?;
         Some((idx, topology.sheets.get(idx)?.1.clone()))
+    }
+
+    pub(super) fn resolve_sheet_span(
+        &self,
+        start_sheet: &str,
+        end_sheet: &str,
+        args: &ReadArgs,
+    ) -> Option<Vec<(usize, FacadeCtx)>> {
+        self.depend_topology(args);
+        let topology = self.topology.borrow();
+        let find_idx = |target: &str| -> Option<usize> {
+            topology.by_name.get(target).copied().or_else(|| {
+                topology.sheets.iter().position(|(s, _)| {
+                    s.eq_ignore_ascii_case(target) || s.to_lowercase() == target.to_lowercase()
+                })
+            })
+        };
+        let idx_a = find_idx(start_sheet)?;
+        let idx_b = find_idx(end_sheet)?;
+        let low = idx_a.min(idx_b);
+        let high = idx_a.max(idx_b);
+        Some(
+            (low..=high)
+                .filter_map(|idx| topology.sheets.get(idx).map(|(_, ctx)| (idx, ctx.clone())))
+                .collect(),
+        )
     }
 
     pub(super) fn sheet_count(&self, args: &ReadArgs) -> usize {

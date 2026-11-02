@@ -278,6 +278,32 @@ pub trait EvalProvider {
         None
     }
 
+    /// Resolve a 3D sheet span `start_sheet:end_sheet` to the number of sheets
+    /// in the inclusive tab-order slice `min(idx_a, idx_b)..=max(idx_a, idx_b)`.
+    /// Returns `None` when either endpoint sheet is missing or the provider
+    /// lacks workbook context.
+    fn sheet_span_count(&self, _start_sheet: &str, _end_sheet: &str) -> Option<usize> {
+        None
+    }
+
+    /// Iterate a 3D range `start_sheet:end_sheet!range` across every worksheet
+    /// in the inclusive tab-order slice `min(idx_a, idx_b)..=max(idx_a, idx_b)`.
+    /// Returns `Some(sheet_count)` on success, or `None` after emitting `#REF!`
+    /// if either endpoint sheet does not exist.
+    fn for_each_sheet_3d_range_cell(
+        &self,
+        _start_sheet: &str,
+        _end_sheet: &str,
+        range: CellRange,
+        f: &mut dyn FnMut(CellAddress, Value),
+    ) -> Option<usize> {
+        f(
+            range.normalize().start,
+            Value::Error(ValueError::InvalidRef),
+        );
+        None
+    }
+
     // ===== EVAL_PROVIDER TRAIT METHODS: ADD NEW METHODS BEFORE THIS LINE =====
     // Sentinel for parallel-agent merges — when a new feature needs a new
     // EvalProvider hook, add it BEFORE this marker (with a sensible default)

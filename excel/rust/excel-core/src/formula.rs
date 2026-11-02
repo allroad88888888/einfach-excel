@@ -29,7 +29,7 @@ mod refs;
 mod table_ref;
 
 pub use ast::{BinOperator, Expr, RangeAbs, RangeBounds, RefAbs, TableArea};
-pub(crate) use quoted_name::push_sheet_name;
+pub(crate) use quoted_name::{push_sheet_name, push_sheet_span};
 
 use lexer::Parser;
 

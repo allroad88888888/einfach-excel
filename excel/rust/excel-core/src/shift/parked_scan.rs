@@ -24,6 +24,23 @@ pub(super) fn scan_ident_end(b: &[u8], mut i: usize) -> usize {
     i
 }
 
+/// 若 `i` 处是 `:EndSheet!`（三维引用的后半段表名，支持不带引号或带单引号），
+/// 返回 `!` 所在的字节下标。
+pub(super) fn scan_3d_sheet_second_end(b: &[u8], i: usize) -> Option<usize> {
+    if b.get(i) != Some(&b':') {
+        return None;
+    }
+    let next = i + 1;
+    let end = match b.get(next)? {
+        b'\'' => scan_quoted_name_end(b, next)?,
+        c if c.is_ascii_alphanumeric() || *c == b'_' || *c == b'\\' || *c >= 0x80 => {
+            scan_ident_end(b, next)
+        }
+        _ => return None,
+    };
+    (end > next && b.get(end) == Some(&b'!')).then_some(end)
+}
+
 /// 跳过一个 `'…'` 带引号表名（`i` 必须指向开引号），返回**闭合引号之后**的
 /// 位置；引号未闭合返回 `None`。
 ///

@@ -146,14 +146,24 @@ pub(super) fn eval_fn_information_classification(
             if args.len() != 1 {
                 return Value::Error(ValueError::WrongArgCount);
             }
-            let is_ref = matches!(
-                &args[0],
+            let is_ref = match &args[0] {
                 Expr::CellRef(..)
-                    | Expr::Range { .. }
-                    | Expr::SheetRef { .. }
-                    | Expr::SheetRange { .. }
-                    | Expr::MultiArea(_)
-            );
+                | Expr::Range { .. }
+                | Expr::SheetRef { .. }
+                | Expr::SheetRange { .. }
+                | Expr::MultiArea(_) => true,
+                Expr::Sheet3DRef {
+                    start_sheet,
+                    end_sheet,
+                    ..
+                }
+                | Expr::Sheet3DRange {
+                    start_sheet,
+                    end_sheet,
+                    ..
+                } => provider.sheet_span_count(start_sheet, end_sheet).is_some(),
+                _ => false,
+            };
             Value::Boolean(is_ref)
         }
 

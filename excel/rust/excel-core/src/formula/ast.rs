@@ -202,6 +202,24 @@ pub enum Expr {
         unbounded: RangeBounds,
         abs: RangeAbs,
     },
+    /// 3D cross-sheet single-cell reference: `Sheet1:Sheet3!A1`, `'Jan:Mar'!C5`,
+    /// or `'Sheet 1':'Sheet 3'!$A$1`.
+    Sheet3DRef {
+        start_sheet: String,
+        end_sheet: String,
+        addr: CellAddress,
+        abs: RefAbs,
+    },
+    /// 3D cross-sheet rectangular range: `Sheet1:Sheet3!A1:B2`, `Sheet1:Sheet3!A:C`,
+    /// `Sheet1:Sheet3!1:5`.
+    Sheet3DRange {
+        start_sheet: String,
+        end_sheet: String,
+        start: CellAddress,
+        end: CellAddress,
+        unbounded: RangeBounds,
+        abs: RangeAbs,
+    },
     /// Dynamic-array spill reference: `A1#` / `Sheet1!A1#`. The anchor is
     /// restricted to a single-cell reference at parse time.
     SpillRef(Box<Expr>),

@@ -134,6 +134,69 @@ impl Parser {
         })
     }
 
+    /// `StartSheet:EndSheet!` 之后的引用尾巴，`!` 已经被吃掉。
+    pub(super) fn finish_sheet_3d_qualified_ref(
+        &mut self,
+        start_sheet: String,
+        end_sheet: String,
+    ) -> Option<Expr> {
+        if let Some((start, start_abs)) = self.scan_abs_cell_addr() {
+            return self.finish_sheet_3d_ref_tail(start_sheet, end_sheet, start, start_abs);
+        }
+        let whole_axis = match self.try_scan_whole_col_range() {
+            Some(expr) => expr,
+            None => self.try_parse_whole_row_range()?,
+        };
+        let Expr::Range {
+            start,
+            end,
+            unbounded,
+            abs,
+        } = whole_axis
+        else {
+            return None;
+        };
+        Some(Expr::Sheet3DRange {
+            start_sheet,
+            end_sheet,
+            start,
+            end,
+            unbounded,
+            abs,
+        })
+    }
+
+    fn finish_sheet_3d_ref_tail(
+        &mut self,
+        start_sheet: String,
+        end_sheet: String,
+        start: CellAddress,
+        start_abs: RefAbs,
+    ) -> Option<Expr> {
+        self.skip_whitespace();
+        if self.peek() == Some(':') {
+            self.advance();
+            self.skip_whitespace();
+            if let Some((end, end_abs)) = self.scan_abs_cell_addr() {
+                return Some(Expr::Sheet3DRange {
+                    start_sheet,
+                    end_sheet,
+                    start,
+                    end,
+                    unbounded: RangeBounds::None,
+                    abs: RangeAbs::new(start_abs, end_abs),
+                });
+            }
+            return None;
+        }
+        Some(Expr::Sheet3DRef {
+            start_sheet,
+            end_sheet,
+            addr: start,
+            abs: start_abs,
+        })
+    }
+
     /// Whole-column range `[$]A:[$]C`. Both corners are column letters with
     /// an optional `$`; the range spans every row. Returns `None` (restoring
     /// position) when the shape is not a whole-column range — in particular

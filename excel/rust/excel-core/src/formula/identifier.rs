@@ -74,6 +74,27 @@ impl Parser {
             return self.finish_sheet_qualified_ref(ident);
         }
 
+        // 3D cross-sheet reference: `Sheet1:Sheet3!A1`, `Jan:Mar!C5`, `Q1:Q4!A1:B2`,
+        // or `Sheet1:'Sheet 3'!A1`. Checked BEFORE cell/column range scanning so
+        // sheet names that look like column letters (`Jan`, `Mar`) or cell coords
+        // (`Q1`, `Q4`) are not misparsed when followed by `!`.
+        if self.peek() == Some(':') {
+            let saved = self.pos;
+            self.advance();
+            let end_sheet = if self.peek() == Some('\'') {
+                self.scan_quoted_name()
+            } else {
+                self.scan_unquoted_sheet_name()
+            };
+            if let Some(end_sheet) = end_sheet {
+                if !end_sheet.is_empty() && self.peek() == Some('!') {
+                    self.advance();
+                    return self.finish_sheet_3d_qualified_ref(ident, end_sheet);
+                }
+            }
+            self.pos = saved;
+        }
+
         // Same-sheet reference (cell ref, bounded / dynamic range, or
         // whole-column range), `$`-aware. Rewind to the identifier start:
         // the identifier read above only served to rule out the function-
@@ -108,6 +129,22 @@ impl Parser {
         // above rewound to the identifier start).
         self.pos = name_fallback_pos;
         Some(Expr::Name(ident))
+    }
+
+    pub(super) fn scan_unquoted_sheet_name(&mut self) -> Option<String> {
+        let first = self.peek()?;
+        if !(first.is_alphanumeric() || first == '_' || first == '\\') {
+            return None;
+        }
+        let start = self.pos;
+        while let Some(c) = self.peek() {
+            if c.is_alphanumeric() || c == '_' || c == '.' || (self.pos == start && c == '\\') {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+        Some(self.chars[start..self.pos].iter().collect())
     }
 }
 

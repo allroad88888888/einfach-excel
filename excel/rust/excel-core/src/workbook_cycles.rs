@@ -123,64 +123,59 @@ impl Workbook {
                 }
             }
             Expr::SheetRef { sheet, addr, .. } => {
-                if let Some(&sheet_idx) = self.by_name.get(sheet) {
+                if let Some(sheet_idx) = self.sheet_index_ci(sheet) {
                     if (sheet_idx, *addr) == target {
                         return true;
                     }
                     out.push((sheet_idx, *addr));
                 }
             }
-            Expr::SheetRange {
-                sheet,
-                start,
-                end,
-                unbounded,
-                ..
-            } => {
-                if let Some(&sheet_idx) = self.by_name.get(sheet) {
+            Expr::SheetRange { sheet, start, end, unbounded, .. } => {
+                if let Some(sheet_idx) = self.sheet_index_ci(sheet) {
                     if self.collect_cycle_range_refs(
-                        sheet_idx,
-                        CellRange::new(*start, *end),
-                        *unbounded,
-                        target,
-                        out,
-                        detect_unbounded_target,
-                        overlay,
+                        sheet_idx, CellRange::new(*start, *end), *unbounded,
+                        target, out, detect_unbounded_target, overlay,
                     ) {
                         return true;
                     }
                 }
             }
-            Expr::BinOp { left, right, .. } => {
+            Expr::Sheet3DRef { start_sheet, end_sheet, addr, .. } => {
+                if let Some(span) = self.resolve_sheet_span_indices(start_sheet, end_sheet) {
+                    for sheet_idx in span {
+                        if (sheet_idx, *addr) == target {
+                            return true;
+                        }
+                        out.push((sheet_idx, *addr));
+                    }
+                }
+            }
+            Expr::Sheet3DRange { start_sheet, end_sheet, start, end, unbounded, .. } => {
+                if let Some(span) = self.resolve_sheet_span_indices(start_sheet, end_sheet) {
+                    let range = CellRange::new(*start, *end);
+                    for sheet_idx in span {
+                        if self.collect_cycle_range_refs(
+                            sheet_idx, range, *unbounded,
+                            target, out, detect_unbounded_target, overlay,
+                        ) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            Expr::BinOp { left, right, .. }
+            | Expr::DynamicRange { start: left, end: right } => {
                 if self.collect_workbook_cycle_refs(
-                    left,
-                    current_idx,
-                    target,
-                    out,
-                    visiting_names,
-                    detect_unbounded_target,
-                    overlay,
+                    left, current_idx, target, out, visiting_names, detect_unbounded_target, overlay,
                 ) || self.collect_workbook_cycle_refs(
-                    right,
-                    current_idx,
-                    target,
-                    out,
-                    visiting_names,
-                    detect_unbounded_target,
-                    overlay,
+                    right, current_idx, target, out, visiting_names, detect_unbounded_target, overlay,
                 ) {
                     return true;
                 }
             }
             Expr::Negate(inner) | Expr::Percent(inner) | Expr::SpillRef(inner) => {
                 if self.collect_workbook_cycle_refs(
-                    inner,
-                    current_idx,
-                    target,
-                    out,
-                    visiting_names,
-                    detect_unbounded_target,
-                    overlay,
+                    inner, current_idx, target, out, visiting_names, detect_unbounded_target, overlay,
                 ) {
                     return true;
                 }
@@ -245,73 +240,28 @@ impl Workbook {
                 }
                 for arg in args {
                     if self.collect_workbook_cycle_refs(
-                        arg,
-                        current_idx,
-                        target,
-                        out,
-                        visiting_names,
-                        detect_unbounded_target,
-                        overlay,
+                        arg, current_idx, target, out, visiting_names, detect_unbounded_target, overlay,
                     ) {
                         return true;
                     }
                 }
             }
-            Expr::DynamicRange { start, end } => {
-                if self.collect_workbook_cycle_refs(
-                    start,
-                    current_idx,
-                    target,
-                    out,
-                    visiting_names,
-                    detect_unbounded_target,
-                    overlay,
-                ) || self.collect_workbook_cycle_refs(
-                    end,
-                    current_idx,
-                    target,
-                    out,
-                    visiting_names,
-                    detect_unbounded_target,
-                    overlay,
-                ) {
-                    return true;
-                }
-            }
             Expr::Name(name) => {
                 if self.collect_named_cycle_refs(
-                    name,
-                    current_idx,
-                    target,
-                    out,
-                    visiting_names,
-                    detect_unbounded_target,
-                    overlay,
+                    name, current_idx, target, out, visiting_names, detect_unbounded_target, overlay,
                 ) {
                     return true;
                 }
             }
             Expr::Call(callee, args) => {
                 if self.collect_workbook_cycle_refs(
-                    callee,
-                    current_idx,
-                    target,
-                    out,
-                    visiting_names,
-                    detect_unbounded_target,
-                    overlay,
+                    callee, current_idx, target, out, visiting_names, detect_unbounded_target, overlay,
                 ) {
                     return true;
                 }
                 for arg in args {
                     if self.collect_workbook_cycle_refs(
-                        arg,
-                        current_idx,
-                        target,
-                        out,
-                        visiting_names,
-                        detect_unbounded_target,
-                        overlay,
+                        arg, current_idx, target, out, visiting_names, detect_unbounded_target, overlay,
                     ) {
                         return true;
                     }
@@ -320,13 +270,7 @@ impl Workbook {
             Expr::ArrayLit { data, .. } | Expr::MultiArea(data) => {
                 for item in data {
                     if self.collect_workbook_cycle_refs(
-                        item,
-                        current_idx,
-                        target,
-                        out,
-                        visiting_names,
-                        detect_unbounded_target,
-                        overlay,
+                        item, current_idx, target, out, visiting_names, detect_unbounded_target, overlay,
                     ) {
                         return true;
                     }

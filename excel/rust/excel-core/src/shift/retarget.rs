@@ -34,7 +34,10 @@ pub fn map_addrs(expr: &Expr, f: &dyn Fn(CellAddress) -> CellAddress) -> Expr {
             }
         }
         // Cross-sheet refs aren't shifted by within-sheet structural edits.
-        Expr::SheetRef { .. } | Expr::SheetRange { .. } => expr.clone(),
+        Expr::SheetRef { .. }
+        | Expr::SheetRange { .. }
+        | Expr::Sheet3DRef { .. }
+        | Expr::Sheet3DRange { .. } => expr.clone(),
         Expr::SpillRef(anchor) => Expr::SpillRef(Box::new(map_addrs(anchor, f))),
         Expr::DynamicRange { start, end } => Expr::DynamicRange {
             start: Box::new(map_addrs(start, f)),

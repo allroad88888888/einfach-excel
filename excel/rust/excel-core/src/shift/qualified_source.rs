@@ -1,6 +1,7 @@
 //! 只扫描带表名前缀的静态引用；未求值公式保持源码态，不解析整条公式或建立计算依赖。
 use super::parked_scan::{
-    scan_cross_sheet_ref_end, scan_ident_end, scan_quoted_name_end, skip_ascii_ws,
+    scan_3d_sheet_second_end, scan_cross_sheet_ref_end, scan_ident_end, scan_quoted_name_end,
+    skip_ascii_ws,
 };
 use super::{render_formula, rewrite_structural_refs, ShiftEdit};
 use crate::formula::parse_formula;
@@ -51,7 +52,7 @@ pub(crate) fn rewrite_qualified_source(
             continue;
         }
         let start = index;
-        let end = if bytes[index] == b'\'' {
+        let mut end = if bytes[index] == b'\'' {
             scan_quoted_name_end(bytes, index).unwrap_or(index + 1)
         } else if bytes[index].is_ascii_alphabetic()
             || bytes[index] == b'_'
@@ -63,6 +64,9 @@ pub(crate) fn rewrite_qualified_source(
             index += 1;
             continue;
         };
+        if let Some(end2) = scan_3d_sheet_second_end(bytes, end) {
+            end = end2;
+        }
         index = end;
         if bytes.get(end) != Some(&b'!') {
             continue;

@@ -132,6 +132,37 @@ impl<'a, 'r> EvalProvider for AtomFormulaProvider<'a, 'r> {
         self.for_each_range_in(&ctx, range, f);
     }
 
+    fn sheet_span_count(&self, start_sheet: &str, end_sheet: &str) -> Option<usize> {
+        let span = self
+            .workbook_context()?
+            .resolve_sheet_span(start_sheet, end_sheet, self.args)?;
+        Some(span.len())
+    }
+
+    fn for_each_sheet_3d_range_cell(
+        &self,
+        start_sheet: &str,
+        end_sheet: &str,
+        range: CellRange,
+        f: &mut dyn FnMut(CellAddress, Value),
+    ) -> Option<usize> {
+        let Some(span) = self
+            .workbook_context()
+            .and_then(|context| context.resolve_sheet_span(start_sheet, end_sheet, self.args))
+        else {
+            f(
+                range.normalize().start,
+                Value::Error(ValueError::InvalidRef),
+            );
+            return None;
+        };
+        let count = span.len();
+        for (_, ctx) in &span {
+            self.for_each_range_in(ctx, range, f);
+        }
+        Some(count)
+    }
+
     fn current_cell(&self) -> Option<CellAddress> {
         self.current_cell.get()
     }

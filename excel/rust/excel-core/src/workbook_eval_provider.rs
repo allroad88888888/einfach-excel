@@ -8,6 +8,26 @@ impl Default for Workbook {
     }
 }
 
+impl Workbook {
+    pub(crate) fn sheet_index_ci(&self, name: &str) -> Option<usize> {
+        self.by_name.get(name).copied().or_else(|| {
+            self.names.iter().position(|s| {
+                s.eq_ignore_ascii_case(name) || s.to_lowercase() == name.to_lowercase()
+            })
+        })
+    }
+
+    pub(crate) fn resolve_sheet_span_indices(
+        &self,
+        start_sheet: &str,
+        end_sheet: &str,
+    ) -> Option<std::ops::RangeInclusive<usize>> {
+        let idx_a = self.sheet_index_ci(start_sheet)?;
+        let idx_b = self.sheet_index_ci(end_sheet)?;
+        Some(idx_a.min(idx_b)..=idx_a.max(idx_b))
+    }
+}
+
 pub(crate) struct WorkbookEvalProvider<'a> {
     pub(crate) wb: &'a Workbook,
     pub(crate) current: Cell<usize>,
@@ -47,7 +67,7 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
     }
 
     fn sheet_cell(&self, sheet: &str, addr: CellAddress) -> Value {
-        let Some(idx) = self.wb.by_name.get(sheet).copied() else {
+        let Some(idx) = self.wb.sheet_index_ci(sheet) else {
             return Value::Error(ValueError::InvalidRef);
         };
         self.with_current(idx, || {
@@ -63,7 +83,7 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
     }
 
     fn raw_sheet_cell(&self, sheet: &str, addr: CellAddress) -> Value {
-        let Some(idx) = self.wb.by_name.get(sheet).copied() else {
+        let Some(idx) = self.wb.sheet_index_ci(sheet) else {
             return Value::Error(ValueError::InvalidRef);
         };
         self.with_current(idx, || {
@@ -94,7 +114,7 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
         range: CellRange,
         f: &mut dyn FnMut(CellAddress, Value),
     ) {
-        let Some(idx) = self.wb.by_name.get(sheet).copied() else {
+        let Some(idx) = self.wb.sheet_index_ci(sheet) else {
             f(
                 range.normalize().start,
                 Value::Error(ValueError::InvalidRef),
@@ -113,6 +133,43 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
                 f,
             );
         });
+    }
+
+    fn sheet_span_count(&self, start_sheet: &str, end_sheet: &str) -> Option<usize> {
+        let span = self.wb.resolve_sheet_span_indices(start_sheet, end_sheet)?;
+        Some(span.end() - span.start() + 1)
+    }
+
+    fn for_each_sheet_3d_range_cell(
+        &self,
+        start_sheet: &str,
+        end_sheet: &str,
+        range: CellRange,
+        f: &mut dyn FnMut(CellAddress, Value),
+    ) -> Option<usize> {
+        let Some(span) = self.wb.resolve_sheet_span_indices(start_sheet, end_sheet) else {
+            f(
+                range.normalize().start,
+                Value::Error(ValueError::InvalidRef),
+            );
+            return None;
+        };
+        let count = span.end() - span.start() + 1;
+        for idx in span {
+            self.with_current(idx, || {
+                let target_sheet = &self.wb.sheets[idx];
+                target_sheet.for_each_sparse_cell_with(
+                    range,
+                    &|sheet, addr| {
+                        crate::sheet::collapse_array_for_eval(
+                            sheet.peek_value_with_provider(addr, self),
+                        )
+                    },
+                    f,
+                );
+            });
+        }
+        Some(count)
     }
 
     fn current_cell(&self) -> Option<CellAddress> {
@@ -176,7 +233,7 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
     }
 
     fn sheet_cell_has_formula(&self, sheet: &str, addr: CellAddress) -> bool {
-        let Some(idx) = self.wb.by_name.get(sheet).copied() else {
+        let Some(idx) = self.wb.sheet_index_ci(sheet) else {
             return false;
         };
         self.wb
@@ -198,7 +255,7 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
 
     /// Cross-sheet variant: resolve the sheet by name first.
     fn sheet_cell_formula_text(&self, sheet: &str, addr: CellAddress) -> Option<String> {
-        let idx = self.wb.by_name.get(sheet).copied()?;
+        let idx = self.wb.sheet_index_ci(sheet)?;
         let target = self.wb.sheets.get(idx)?;
         target.formula_text_at(addr)
     }
@@ -208,7 +265,7 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
     }
 
     fn sheet_index_of(&self, name: &str) -> Option<usize> {
-        self.wb.by_name.get(name).copied()
+        self.wb.sheet_index_ci(name)
     }
 
     fn hidden_rows(&self, sheet_index: Option<usize>) -> Option<Rc<HashSet<u32>>> {

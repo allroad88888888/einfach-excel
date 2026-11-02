@@ -164,6 +164,8 @@ impl Sheet {
             }
             Expr::SheetRef { .. }
             | Expr::SheetRange { .. }
+            | Expr::Sheet3DRef { .. }
+            | Expr::Sheet3DRange { .. }
             | Expr::Number(_)
             | Expr::Text(_)
             | Expr::Bool(_)
@@ -232,6 +234,8 @@ impl Sheet {
             Expr::CellRef(..)
             | Expr::SheetRef { .. }
             | Expr::SheetRange { .. }
+            | Expr::Sheet3DRef { .. }
+            | Expr::Sheet3DRange { .. }
             | Expr::Number(_)
             | Expr::Text(_)
             | Expr::Bool(_)

@@ -13,6 +13,31 @@ pub(crate) fn rewrite_sheet_refs(expr: &mut Expr, old: &str, new: Option<&str>) 
                 }
             }
         }
+        Expr::Sheet3DRef {
+            start_sheet,
+            end_sheet,
+            ..
+        }
+        | Expr::Sheet3DRange {
+            start_sheet,
+            end_sheet,
+            ..
+        } => {
+            let start_matches = start_sheet.eq_ignore_ascii_case(old);
+            let end_matches = end_sheet.eq_ignore_ascii_case(old);
+            if start_matches || end_matches {
+                if let Some(name) = new {
+                    if start_matches {
+                        *start_sheet = name.to_string();
+                    }
+                    if end_matches {
+                        *end_sheet = name.to_string();
+                    }
+                } else {
+                    *expr = Expr::Error(ValueError::InvalidRef);
+                }
+            }
+        }
         Expr::Negate(inner) | Expr::Percent(inner) | Expr::SpillRef(inner) => {
             rewrite_sheet_refs(inner, old, new);
         }

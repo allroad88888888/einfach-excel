@@ -23,8 +23,27 @@ impl Parser {
     /// 变成 `#VALUE!`。
     pub(super) fn parse_quoted_primary(&mut self) -> Option<Expr> {
         let name = self.scan_quoted_name()?;
+        if self.peek() == Some(':') {
+            let saved = self.pos;
+            self.advance();
+            let end_sheet = if self.peek() == Some('\'') {
+                self.scan_quoted_name()
+            } else {
+                self.scan_unquoted_sheet_name()
+            };
+            if let Some(end_sheet) = end_sheet {
+                if !name.is_empty() && !end_sheet.is_empty() && self.peek() == Some('!') {
+                    self.advance();
+                    return self.finish_sheet_3d_qualified_ref(name, end_sheet);
+                }
+            }
+            self.pos = saved;
+        }
         if self.peek() == Some('!') {
             self.advance();
+            if let Some((start_sheet, end_sheet)) = split_quoted_3d_sheet_span(&name) {
+                return self.finish_sheet_3d_qualified_ref(start_sheet, end_sheet);
+            }
             // `!` 之后的尾巴与不带引号的跨表引用**完全同一族语法**，所以直接
             // 交给同一个收尾函数 —— 单格 / 有界区间 / 整列 / 整行 / 动态右角
             // 一条都不用在这里重写。带引号与不带引号的差别只在「表名怎么取」。
@@ -41,7 +60,7 @@ impl Parser {
     ///
     /// 引号未闭合返回 `None` 且**不回卷**位置 —— 调用方一律就此让整条公式
     /// 解析失败（TS 侧同形，走 `tokenizer-error`）。
-    fn scan_quoted_name(&mut self) -> Option<String> {
+    pub(super) fn scan_quoted_name(&mut self) -> Option<String> {
         self.advance(); // 开引号
         let mut out = String::new();
         loop {
@@ -55,6 +74,16 @@ impl Parser {
             }
         }
     }
+}
+
+fn split_quoted_3d_sheet_span(name: &str) -> Option<(String, String)> {
+    let mut parts = name.split(':');
+    let start = parts.next()?;
+    let end = parts.next()?;
+    if parts.next().is_some() || start.is_empty() || end.is_empty() {
+        return None;
+    }
+    Some((start.to_string(), end.to_string()))
 }
 
 /// 把表名写成 `Sheet!` 前缀的表名部分（**不含** `!`）：需要引号时加引号，
@@ -71,6 +100,31 @@ pub(crate) fn push_sheet_name(out: &mut String, name: &str) {
     }
     out.push('\'');
     for ch in name.chars() {
+        if ch == '\'' {
+            out.push('\'');
+        }
+        out.push(ch);
+    }
+    out.push('\'');
+}
+
+/// 把三维引用表区间写成 `Sheet1:Sheet3` 或 `'Sheet 1:Sheet 3'` 前缀（**不含** `!`）。
+pub(crate) fn push_sheet_span(out: &mut String, start_sheet: &str, end_sheet: &str) {
+    if is_bare_sheet_name(start_sheet) && is_bare_sheet_name(end_sheet) {
+        out.push_str(start_sheet);
+        out.push(':');
+        out.push_str(end_sheet);
+        return;
+    }
+    out.push('\'');
+    for ch in start_sheet.chars() {
+        if ch == '\'' {
+            out.push('\'');
+        }
+        out.push(ch);
+    }
+    out.push(':');
+    for ch in end_sheet.chars() {
         if ch == '\'' {
             out.push('\'');
         }

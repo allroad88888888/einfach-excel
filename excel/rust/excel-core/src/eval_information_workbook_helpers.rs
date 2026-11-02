@@ -76,6 +76,19 @@ pub(super) fn fn_sheets(args: &[Expr], provider: &dyn EvalProvider) -> Value {
             | Expr::Range { .. }
             | Expr::SheetRef { .. }
             | Expr::SheetRange { .. } => Value::Number(1.0),
+            Expr::Sheet3DRef {
+                start_sheet,
+                end_sheet,
+                ..
+            }
+            | Expr::Sheet3DRange {
+                start_sheet,
+                end_sheet,
+                ..
+            } => match provider.sheet_span_count(start_sheet, end_sheet) {
+                Some(count) => Value::Number(count as f64),
+                None => Value::Error(ValueError::InvalidRef),
+            },
             _ => Value::Error(ValueError::InvalidValue),
         }
     }

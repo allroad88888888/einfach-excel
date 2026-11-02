@@ -14,6 +14,8 @@ export interface FormulaReferenceToken {
   text: string
   /** Sheet id this token refers to, or null when no explicit prefix is present. */
   sheetId: string | null
+  /** For 3D references (e.g. Sheet1:Sheet3!A1:B2), all sheet ids in the inclusive span. */
+  sheetIds?: readonly string[]
   /** Resolved 0-based range. Single-cell tokens use rowStart=rowEnd, colStart=colEnd. */
   range: CellRange
   /** Stable color slot, assigned in document order. Hosts can map to a palette. */
@@ -43,13 +45,26 @@ function parseA1(token: string): { row: number; col: number } | null {
   return { row: rowOneBased - 1, col }
 }
 
-// Matches one A1 / A1:B2 / Sheet!A1 / 'Quoted sheet'!A1:B2 reference.
-// Group 1: optional sheet prefix (unquoted)
-// Group 2: optional sheet prefix (single-quoted, unescaped)
-// Group 3: start cell
-// Group 4: optional ":endCell"
-// eslint-disable-next-line max-len
-const TOKEN_RE = /"(?:[^"]|"")*"?|(?:(?:([A-Za-z_][\w]*)|'((?:[^']|'')+)')!)?(\$?[A-Z]+\$?\d+)(?::(\$?[A-Z]+\$?\d+))?/gi
+const SHEET_IDENT_PART = '([A-Za-z_][\\w.]*)|\'((?:[^\']|\'\')+)\''
+const SHEET_PREFIX_PART = `(?:(?:${SHEET_IDENT_PART})(?::(?:${SHEET_IDENT_PART}))?!)`
+const CELL_COORD_PART = '(\\$?[A-Z]+\\$?\\d+)'
+const TOKEN_RE = new RegExp(
+  `"(?:[^"]|"")*"?|${SHEET_PREFIX_PART}?${CELL_COORD_PART}(?::${CELL_COORD_PART})?`,
+  'gi',
+)
+
+function findSheetIndex(
+  rawSheet: string,
+  sheets: readonly FormulaReferenceSheetIdentity[],
+): number {
+  const normalized = rawSheet.toLowerCase()
+  return sheets.findIndex(
+    (sheet) =>
+      sheet.id === rawSheet ||
+      sheet.name.toLowerCase() === normalized ||
+      sheet.id.toLowerCase() === normalized,
+  )
+}
 
 function resolveFormulaReferenceSheetId(
   rawSheet: string | undefined,
@@ -58,26 +73,56 @@ function resolveFormulaReferenceSheetId(
 ): string | null {
   if (rawSheet !== undefined) {
     if (sheets && sheets.length > 0) {
-      const normalized = rawSheet.toLowerCase()
-      const matched = sheets.find(
-        (sheet) =>
-          sheet.name.toLowerCase() === normalized || sheet.id.toLowerCase() === normalized,
-      )
-      return matched?.id ?? rawSheet
+      const idx = findSheetIndex(rawSheet, sheets)
+      return idx >= 0 ? sheets[idx].id : rawSheet
     }
     return rawSheet
   }
   if (currentSheetId !== null && sheets && sheets.length > 0) {
-    const normalized = currentSheetId.toLowerCase()
-    const matched = sheets.find(
-      (sheet) =>
-        sheet.id === currentSheetId ||
-        sheet.name.toLowerCase() === normalized ||
-        sheet.id.toLowerCase() === normalized,
-    )
-    return matched?.id ?? currentSheetId
+    const idx = findSheetIndex(currentSheetId, sheets)
+    return idx >= 0 ? sheets[idx].id : currentSheetId
   }
   return currentSheetId
+}
+
+function splitQuoted3DSpan(rawSheet: string): [string, string] | null {
+  const parts = rawSheet.split(':')
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return null
+  return [parts[0], parts[1]]
+}
+
+function resolveFormulaReference3DSpan(
+  startSheet: string,
+  endSheet: string,
+  currentSheetId: string | null,
+  sheets?: readonly FormulaReferenceSheetIdentity[],
+): { sheetId: string | null; sheetIds: readonly string[]; spanKey: string } {
+  const resolvedCurrent = resolveFormulaReferenceSheetId(undefined, currentSheetId, sheets)
+  if (sheets && sheets.length > 0) {
+    const idxA = findSheetIndex(startSheet, sheets)
+    const idxB = findSheetIndex(endSheet, sheets)
+    if (idxA >= 0 && idxB >= 0) {
+      const low = Math.min(idxA, idxB)
+      const high = Math.max(idxA, idxB)
+      const sheetIds = sheets.slice(low, high + 1).map((sheet) => sheet.id)
+      const sheetId =
+        resolvedCurrent !== null && sheetIds.includes(resolvedCurrent)
+          ? resolvedCurrent
+          : (sheetIds[0] ?? `${startSheet}:${endSheet}`)
+      return { sheetId, sheetIds, spanKey: `3d:${sheetIds.join(':')}` }
+    }
+  }
+  const sheetIds =
+    startSheet.toLowerCase() === endSheet.toLowerCase() ? [startSheet] : [startSheet, endSheet]
+  const matchesCurrent =
+    resolvedCurrent !== null &&
+    sheetIds.some((name) => name.toLowerCase() === resolvedCurrent.toLowerCase())
+  const sheetId = matchesCurrent ? resolvedCurrent : `${startSheet}:${endSheet}`
+  return {
+    sheetId,
+    sheetIds,
+    spanKey: `3d:${startSheet.toLowerCase()}:${endSheet.toLowerCase()}`,
+  }
 }
 
 /**
@@ -110,7 +155,15 @@ export function parseFormulaReferences(
 
   TOKEN_RE.lastIndex = 0
   for (let match: RegExpExecArray | null; (match = TOKEN_RE.exec(draft)) !== null; ) {
-    const [full, sheetUnquoted, sheetQuoted, startRaw, endRaw] = match
+    const [
+      full,
+      sheetUnquoted,
+      sheetQuoted,
+      endSheetUnquoted,
+      endSheetQuoted,
+      startRaw,
+      endRaw,
+    ] = match
     if (full.startsWith('"')) continue
     const start = match.index
     const end = start + full.length
@@ -118,8 +171,41 @@ export function parseFormulaReferences(
     if (/[\p{L}\p{N}_.]/u.test(draft[start - 1] ?? '') ||
       /[\p{L}\p{N}_.(]/u.test(draft[end] ?? '')) continue
 
-    const rawSheet = sheetUnquoted ?? sheetQuoted?.replace(/''/g, "'")
-    const sheetId = resolveFormulaReferenceSheetId(rawSheet, currentSheetId, sheets)
+    const rawFirstSheet = sheetUnquoted ?? sheetQuoted?.replace(/''/g, "'")
+    const rawSecondSheet = endSheetUnquoted ?? endSheetQuoted?.replace(/''/g, "'")
+    const quotedSpan =
+      rawSecondSheet === undefined && sheetQuoted !== undefined && rawFirstSheet !== undefined
+        ? splitQuoted3DSpan(rawFirstSheet)
+        : null
+
+    let sheetId: string | null
+    let sheetIds: readonly string[] | undefined
+    let sheetKey: string
+    if (rawFirstSheet !== undefined && rawSecondSheet !== undefined) {
+      const resolved = resolveFormulaReference3DSpan(
+        rawFirstSheet,
+        rawSecondSheet,
+        currentSheetId,
+        sheets,
+      )
+      sheetId = resolved.sheetId
+      sheetIds = resolved.sheetIds
+      sheetKey = resolved.spanKey
+    } else if (quotedSpan !== null) {
+      const resolved = resolveFormulaReference3DSpan(
+        quotedSpan[0],
+        quotedSpan[1],
+        currentSheetId,
+        sheets,
+      )
+      sheetId = resolved.sheetId
+      sheetIds = resolved.sheetIds
+      sheetKey = resolved.spanKey
+    } else {
+      sheetId = resolveFormulaReferenceSheetId(rawFirstSheet, currentSheetId, sheets)
+      sheetKey = sheetId ?? '<active>'
+    }
+
     const startCoord = parseA1(startRaw.replace(/\$/g, ''))
     if (!startCoord) continue
     const endCoord = endRaw ? parseA1(endRaw.replace(/\$/g, '')) : startCoord
@@ -133,7 +219,7 @@ export function parseFormulaReferences(
     }
 
     const key =
-      `${sheetId ?? '<active>'}:${range.rowStart}:${range.colStart}:${range.rowEnd}:${range.colEnd}`
+      `${sheetKey}:${range.rowStart}:${range.colStart}:${range.rowEnd}:${range.colEnd}`
     let colorIndex = colorByKey.get(key)
     if (colorIndex === undefined) {
       colorIndex = nextColor
@@ -146,6 +232,7 @@ export function parseFormulaReferences(
       end,
       text: full,
       sheetId,
+      ...(sheetIds ? { sheetIds } : {}),
       range,
       colorIndex,
     })

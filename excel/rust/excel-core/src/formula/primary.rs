@@ -17,6 +17,8 @@ fn is_ref_expr(expr: &Expr) -> bool {
             | Expr::Range { .. }
             | Expr::SheetRef { .. }
             | Expr::SheetRange { .. }
+            | Expr::Sheet3DRef { .. }
+            | Expr::Sheet3DRange { .. }
             | Expr::SpillRef(_)
             | Expr::DynamicRange { .. }
     )

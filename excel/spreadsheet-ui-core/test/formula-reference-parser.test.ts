@@ -7,6 +7,7 @@ import {
   formulaReferenceTokensAtom,
   initializeWorkbookDocumentAtom,
   parseFormulaReferences,
+  setWorkspaceActiveSheetAtom,
   startEditingAtom,
   updateFormulaDraftAtom,
 } from '../src'
@@ -154,5 +155,70 @@ describe('parseFormulaReferences', () => {
 
     store.setter(cancelEditingAtom)
     expect(store.getter(formulaReferenceTokensAtom)).toEqual([])
+  })
+
+  it('parses 3D sheet-span references and highlights when active sheet is within the span', () => {
+    const sheets = [
+      { id: 's-jan', name: 'Jan' },
+      { id: 's-feb', name: 'Feb' },
+      { id: 's-mar', name: 'Mar' },
+      { id: 's-summary', name: 'Summary' },
+    ]
+    const tokens = parseFormulaReferences(
+      "=SUM(Jan:Mar!A1:B2)+AVERAGE('Jan:Mar'!$C$5)+MAX('Jan':'Mar'!D1:D3)",
+      's-feb',
+      sheets,
+    )
+    expect(tokens).toHaveLength(3)
+    expect(tokens[0]).toMatchObject({
+      text: 'Jan:Mar!A1:B2',
+      sheetId: 's-feb',
+      sheetIds: ['s-jan', 's-feb', 's-mar'],
+      range: { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 },
+      colorIndex: 0,
+    })
+    expect(tokens[1]).toMatchObject({
+      text: "'Jan:Mar'!$C$5",
+      sheetId: 's-feb',
+      sheetIds: ['s-jan', 's-feb', 's-mar'],
+      range: { rowStart: 4, rowEnd: 4, colStart: 2, colEnd: 2 },
+      colorIndex: 1,
+    })
+    expect(tokens[2]).toMatchObject({
+      text: "'Jan':'Mar'!D1:D3",
+      sheetId: 's-feb',
+      sheetIds: ['s-jan', 's-feb', 's-mar'],
+      range: { rowStart: 0, rowEnd: 2, colStart: 3, colEnd: 3 },
+      colorIndex: 2,
+    })
+
+    const store = createStore()
+    store.setter(initializeWorkbookDocumentAtom, {
+      title: 'Test 3D',
+      sheets: [
+        { id: 's-jan', name: 'Jan', index: 0, rowCount: 100, colCount: 16 },
+        { id: 's-feb', name: 'Feb', index: 1, rowCount: 100, colCount: 16 },
+        { id: 's-mar', name: 'Mar', index: 2, rowCount: 100, colCount: 16 },
+        { id: 's-summary', name: 'Summary', index: 3, rowCount: 100, colCount: 16 },
+      ],
+    })
+    store.setter(startEditingAtom, {
+      sheetId: 's-summary',
+      cell: { row: 0, col: 0 },
+      source: 'cell',
+      draft: '=SUM(Jan:Mar!A1:B2)',
+    })
+    // Active sheet is Summary (outside Jan:Mar) -> not highlighted on Summary
+    store.setter(setWorkspaceActiveSheetAtom, { sheetId: 's-summary' })
+    expect(store.getter(activeSheetFormulaReferenceTokensAtom)).toEqual([])
+
+    // Switching active sheet to Feb (inside Jan:Mar) -> highlighted!
+    store.setter(setWorkspaceActiveSheetAtom, { sheetId: 's-feb' })
+    expect(store.getter(activeSheetFormulaReferenceTokensAtom)).toEqual([
+      expect.objectContaining({
+        text: 'Jan:Mar!A1:B2',
+        range: { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 },
+      }),
+    ])
   })
 })

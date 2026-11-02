@@ -4,8 +4,8 @@
 use super::edit::ShiftEdit;
 use super::parked_band::{try_shift_whole_col, try_shift_whole_row};
 use super::parked_scan::{
-    next_non_ws, scan_abs_addr_token, scan_cross_sheet_ref_end, scan_ident_end,
-    scan_quoted_name_end,
+    next_non_ws, scan_3d_sheet_second_end, scan_abs_addr_token, scan_cross_sheet_ref_end,
+    scan_ident_end, scan_quoted_name_end,
 };
 use crate::cell::push_abs_addr;
 use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
@@ -116,7 +116,10 @@ pub fn rewrite_parked_source(src: &str, edit: ShiftEdit) -> SourceRewrite {
             // 引号未闭合（用户输入到一半就停泊）时按普通标点前进**一**字节：
             // 不吞尾、不跑飞，见 `scan_quoted_name_end`。
             i = scan_quoted_name_end(b, i).unwrap_or(i + 1);
-            prev = b'\'';
+            if let Some(end2) = scan_3d_sheet_second_end(b, i) {
+                i = end2;
+            }
+            prev = b[i - 1];
             continue;
         }
         // A token that immediately follows a sheet `!` is a cross-sheet
@@ -140,6 +143,11 @@ pub fn rewrite_parked_source(src: &str, edit: ShiftEdit) -> SourceRewrite {
             if identifier {
                 let start = i;
                 i = scan_ident_end(b, i);
+                if let Some(end2) = scan_3d_sheet_second_end(b, i) {
+                    i = end2;
+                    prev = b[i - 1];
+                    continue;
+                }
                 match next_non_ws(b, i) {
                     Some(b'(') | Some(b'!') => {
                         // Function name or sheet name — never a same-sheet ref.

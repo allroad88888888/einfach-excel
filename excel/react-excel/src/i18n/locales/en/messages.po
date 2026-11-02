@@ -58,6 +58,10 @@ msgstr "(Empty)"
 msgid "(Whitespace: {0})"
 msgstr "(Whitespace: {0})"
 
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "[Group]"
+msgstr "[Group]"
+
 #. placeholder {0}: sheet.name
 #: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
 msgid "{0} — double-click or F2 to rename"
@@ -4120,7 +4124,9 @@ msgstr "References are relative to the top left cell of Applies to. The formula 
 msgid "Refers to"
 msgstr "Refers to"
 
+#: src/workbook/chrome/formula-bar/FormulaBar.tsx
 #: src/workbook/chrome/ribbon/SpillTools.tsx
+#: src/workbook/grid/editor/CellEditor.tsx
 msgid "Refresh"
 msgstr "Refresh"
 
@@ -4748,6 +4754,10 @@ msgstr "Select all cells"
 #: src/workbook/advanced-filter/FilterSearchSelection.tsx
 msgid "Select all search matches"
 msgstr "Select all search matches"
+
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Select all sheets"
+msgstr "Select all sheets"
 
 #: src/i18n/feedback-messages.ts
 msgid "Select an editable range and wait for the worksheet to finish loading."
@@ -6019,6 +6029,10 @@ msgstr "Ungroup selected columns"
 #: src/workbook/chrome/ribbon/OutlineTools.tsx
 msgid "Ungroup selected rows"
 msgstr "Ungroup selected rows"
+
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Ungroup sheets"
+msgstr "Ungroup sheets"
 
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Unhide"

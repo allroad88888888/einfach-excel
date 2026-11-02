@@ -13,13 +13,18 @@ export function writeTrackedMutation(
   sheet: number,
   request:
     | SetCellInputRequest | SetFormatRangeRequest | RustClearRangeRequest | RustFillRangeRequest,
+  resolveSheet?: (sheetId: string) => number,
 ) {
+  const sheets =
+    resolveSheet && 'sheetIds' in request && request.sheetIds && request.sheetIds.length > 1
+      ? request.sheetIds.map(resolveSheet)
+      : undefined
   if ('direction' in request) return fillRange(workbook, sheet, request)
-  if ('mode' in request) return clearRange(workbook, sheet, request)
+  if ('mode' in request) return clearRange(workbook, sheet, request, sheets)
   // 稀疏格式与边框都由 Rust 记录一次历史，不能外套 JS 事务。
   if (('writeMode' in request && request.writeMode === 'patch') ||
     ('borderPatch' in request && request.borderPatch))
-    return writeRangeFormat(workbook, sheet, request)
+    return writeRangeFormat(workbook, sheet, request, sheets)
   if ('row' in request) {
     const range = {
       rowStart: request.row,
@@ -28,8 +33,16 @@ export function writeTrackedMutation(
       colEnd: request.col,
     }
     // Rust 根据输入位置决定普通编辑或表头改名，并在原生侧记录一条完整历史。
-    writeCellInput(workbook, sheet, request.row, request.col, request.input,
-      request.expandTables, request.validationConfirmation)
+    writeCellInput(
+      workbook,
+      sheet,
+      request.row,
+      request.col,
+      request.input,
+      request.expandTables,
+      request.validationConfirmation,
+      sheets,
+    )
     return range
   }
   const range = historyFormatRange(request.range, request.scope ?? 'cell')
@@ -39,7 +52,7 @@ export function writeTrackedMutation(
     range,
     'Format selection',
     false,
-    () => writeRangeFormat(workbook, sheet, request),
+    () => writeRangeFormat(workbook, sheet, request, sheets),
   )
   return { ...request.range }
 }

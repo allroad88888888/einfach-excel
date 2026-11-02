@@ -233,6 +233,13 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   set_cell_input_with_table_expansion?: (
     sheet: number, address: string, input: string, expandTables: boolean,
   ) => void
+  set_cell_input_sheets?: (
+    sheets: readonly number[],
+    address: string,
+    input: string,
+    expandTables: boolean,
+    confirmed: boolean,
+  ) => void
   capture_clipboard?: (
     sheet: number,
     startRow: number,
@@ -282,6 +289,7 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   bulk_import_cells(cells: readonly RustImportCell[]): RustImportStats
   clear_selection?: (request: {
     sheet: number
+    sheets?: readonly number[]
     mode: RustClearRangeRequest['mode']
     targets: NonNullable<RustClearRangeRequest['targets']>
   }) => CellRange
@@ -295,12 +303,13 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   ) => number
   patch_format_selection?: (request: {
     sheet: number
+    sheets?: readonly number[]
     targets: NonNullable<SetFormatRangeRequest['targets']>
     patch: Readonly<Record<string, unknown>>
   }) => CellRange
   patch_range_borders?: (
     sheet: number, startRow: number, startCol: number, endRow: number, endCol: number,
-    patch: RangeBorderPatch,
+    patch: RangeBorderPatch & { readonly sheets?: readonly number[] },
   ) => number
   snapshot_format_range?: (
     sheet: number,

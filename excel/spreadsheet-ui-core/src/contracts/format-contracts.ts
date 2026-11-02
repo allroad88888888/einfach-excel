@@ -14,6 +14,8 @@ export interface SetFormatRangeRequest extends SheetRef {
   kind: 'set-format-range'
   range: CellRange
   format: SpreadsheetCellFormat | null
+  /** 工作表分组激活时，同一次原子事务要应用格式的全部工作表 ID。 */
+  sheetIds?: readonly string[]
   /** 缺省保持旧的完整格式写入；React 工具栏使用稀疏 patch。 */
   writeMode?: 'patch'
   /** patch 最终写入 cellStyle、rowStyle 或 columnStyle。 */

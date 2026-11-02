@@ -4,10 +4,21 @@ struct BorderRangeJSON {
     preset: String,
     style: String,
     color: String,
+    #[serde(default)]
+    sheets: Vec<usize>,
 }
 
 impl BorderRangeJSON {
-    fn parse(self) -> Result<(einfach_excel_core::sheet::BorderPreset, BorderSpec), String> {
+    fn parse(
+        self,
+    ) -> Result<
+        (
+            einfach_excel_core::sheet::BorderPreset,
+            BorderSpec,
+            Vec<usize>,
+        ),
+        String,
+    > {
         use einfach_excel_core::sheet::BorderPreset;
         let preset = match self.preset.as_str() {
             "all" => BorderPreset::All,
@@ -41,6 +52,7 @@ impl BorderRangeJSON {
                 color: Some(self.color),
             }
             .into_spec(),
+            self.sheets,
         ))
     }
 }
@@ -59,13 +71,20 @@ impl WasmWorkbook {
     ) -> Result<u32, JsValue> {
         let parsed: BorderRangeJSON = serde_wasm_bindgen::from_value(input)
             .map_err(|err| JsValue::from_str(&format!("invalid border request: {err}")))?;
-        let (preset, border) = parsed.parse().map_err(|err| JsValue::from_str(&err))?;
+        let (preset, border, sheets) = parsed.parse().map_err(|err| JsValue::from_str(&err))?;
         let range = CellRange::new(
             CellAddress::new(start_row, start_col),
             CellAddress::new(end_row, end_col),
         );
         self.history
-            .patch_range_borders(&mut self.workbook, sheet_idx as usize, range, preset, border)
+            .patch_range_borders_sheets(
+                &mut self.workbook,
+                sheet_idx as usize,
+                &sheets,
+                range,
+                preset,
+                border,
+            )
             .map(|count| count as u32)
             .map_err(JsValue::from_str)
     }
@@ -94,8 +113,9 @@ mod border_request_tests {
                     preset: preset.into(),
                     style: style.into(),
                     color: "#Ab12Cd".into(),
+                    sheets: Vec::new(),
                 };
-                let (_, border) = request.parse().unwrap();
+                let (_, border, _) = request.parse().unwrap();
                 assert_eq!(border.color.as_deref(), Some("#Ab12Cd"));
                 assert_ne!(border.style, BorderStyle::None);
             }
@@ -117,7 +137,8 @@ mod border_request_tests {
             assert!(BorderRangeJSON {
                 preset: preset.into(),
                 style: style.into(),
-                color: color.into()
+                color: color.into(),
+                sheets: Vec::new(),
             }
             .parse()
             .is_err());

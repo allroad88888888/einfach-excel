@@ -15,15 +15,22 @@ export function writeRangeFormat(
   workbook: WasmWorkbook,
   sheet: number,
   request: SetFormatRangeRequest,
+  sheets?: readonly number[],
 ) {
   const range = request.range
+  const extraSheets = sheets && sheets.length > 1 ? { sheets } : {}
   if (request.targets?.length !== undefined && request.targets.length !== 1 &&
     (request.borderPatch || request.writeMode !== 'patch'))
     throw new Error('This format command requires one continuous range.')
   if (request.borderPatch) {
     if (!workbook.patch_range_borders) throw new Error('WasmWorkbook.patch_range_borders is unavailable')
     workbook.patch_range_borders(
-      sheet, range.rowStart, range.colStart, range.rowEnd, range.colEnd, request.borderPatch,
+      sheet,
+      range.rowStart,
+      range.colStart,
+      range.rowEnd,
+      range.colEnd,
+      sheets && sheets.length > 1 ? { ...request.borderPatch, sheets } : request.borderPatch,
     )
     return range
   }
@@ -38,7 +45,9 @@ export function writeRangeFormat(
     const patch: Record<string, unknown> = { ...request.format }
     for (const field of request.clearFormatFields ?? []) patch[field] = null
     return patchSelection.call(workbook, {
-      sheet, patch,
+      sheet,
+      ...extraSheets,
+      patch,
       targets: request.targets ?? [{ ...range, scope: request.scope ?? 'cell' }],
     })
   }

@@ -18,6 +18,7 @@ import {
   publishWorkbookSheetStructureAtom,
   workbookDocumentAtom,
 } from '../runtime/workbook-document'
+import { groupedSheetIdsBackingAtom } from '../runtime/sheet-view-state'
 import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
@@ -118,9 +119,15 @@ export async function runSheetManagement(
     const sheets = get(workbookDocumentAtom).sheets
     if (spec.payload.command === 'workbook.duplicateSheet') {
       const copy = sheets.find((sheet) => sheet.id === result.sheetId)
-      if (copy) set(activateWorkbookSheetAtom, copy)
+      if (copy) {
+        set(groupedSheetIdsBackingAtom, [copy.id])
+        set(activateWorkbookSheetAtom, copy)
+      }
     } else if (leaves) {
-      const next = nearestVisibleSheet(sheets, target.index, target.id)
+      const remaining = get(groupedSheetIdsBackingAtom)
+      const next =
+        sheets.find((sheet) => !sheet.hidden && remaining.includes(sheet.id)) ??
+        nearestVisibleSheet(sheets, target.index, target.id)
       if (next) set(activateWorkbookSheetAtom, next)
     }
     if (projection && result.projection)

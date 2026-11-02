@@ -25,6 +25,25 @@ impl WasmWorkbook {
             .map_err(|error| JsValue::from_str(&error))
     }
 
+    /// 多表分组编辑：预检全部组内工作表后作为一个原生撤销步骤写入。
+    pub fn set_cell_input_sheets(
+        &mut self,
+        sheets: JsValue,
+        addr: &str,
+        input: &str,
+        expand_tables: bool,
+        confirmed: bool,
+    ) -> Result<(), JsValue> {
+        let sheets: Vec<usize> = serde_wasm_bindgen::from_value(sheets)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?;
+        let history = &mut self.history;
+        self.workbook
+            .with_validation_confirmation(confirmed, |workbook| {
+                history.set_cell_input_sheets(workbook, &sheets, addr, input, expand_tables)
+            })
+            .map_err(|error| JsValue::from_str(&error))
+    }
+
     pub fn set_cell_number(&mut self, sheet_idx: usize, addr: &str, value: f64) {
         self.workbook
             .set_cell(sheet_idx, addr, Value::Number(value));

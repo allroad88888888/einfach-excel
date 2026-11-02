@@ -571,7 +571,9 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
           colWidths = readSizes(current, sheetIndex(request.sheetId), affectedRange).colWidths
         if (!request.painter && internal && clipboard?.cut) clipboard.consumed = true
       } else {
-        affectedRange = writeTrackedMutation(current, sheetIndex(request.sheetId), request)
+        affectedRange = writeTrackedMutation(
+          current, sheetIndex(request.sheetId), request, sheetIndex,
+        )
       }
       revision += 1
       const acknowledgement: BackendMutationResult = {

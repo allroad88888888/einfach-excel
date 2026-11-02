@@ -1,6 +1,10 @@
 import { atom, type Atom } from '@einfach/core'
 import { DEFAULT_SELECTION_BOUNDS, selectCellAtom, setSelectionBoundsAtom } from '../selection'
-import { EMPTY_SHEET_VIEWS, sheetViewsBackingAtom } from './sheet-view-state'
+import {
+  EMPTY_SHEET_VIEWS,
+  groupedSheetIdsBackingAtom,
+  sheetViewsBackingAtom,
+} from './sheet-view-state'
 import { activateSheetTabAtom, setSheetTabsSheetsAtom } from '../sheet-tabs/basic-commands'
 import { resetWorkspaceSessionAtom, workspaceSessionAtom } from '../workspace'
 import { DEFAULT_SHEET_TABS_STATE, sheetTabsAtom } from '../sheet-tabs/state'
@@ -69,6 +73,7 @@ export const initializeWorkbookDocumentAtom = atom(
     const firstSheet = sheets.find((sheet) => !sheet.hidden) ?? sheets[0]
     if (firstSheet === undefined) return
     set(sheetViewsBackingAtom, EMPTY_SHEET_VIEWS)
+    set(groupedSheetIdsBackingAtom, [firstSheet.id])
     set(nativeOutlineProjectionBackingAtom, {})
     set(sheetHiddenRowsBackingAtom, {})
     set(viewportHiddenColsBackingAtom, {})
@@ -134,6 +139,11 @@ export const publishWorkbookSheetStructureAtom = atom(
     set(setSheetTabsSheetsAtom, { sheets })
     // 删除的表不再保留投影尺寸；其它表以稳定 ID 存储，无需跟随索引重写。
     const ids = new Set(sheets.map((sheet) => sheet.id))
+    const visibleIds = new Set(sheets.filter((sheet) => !sheet.hidden).map((sheet) => sheet.id))
+    set(
+      groupedSheetIdsBackingAtom,
+      get(groupedSheetIdsBackingAtom).filter((id) => visibleIds.has(id)),
+    )
     set(nativeOutlineProjectionBackingAtom, Object.fromEntries(
       Object.entries(get(nativeOutlineProjectionBackingAtom)).filter(([id]) => ids.has(id))))
     const views = get(sheetViewsBackingAtom)
@@ -175,6 +185,7 @@ export const syncWorkbookCanvasAtom = atom(null, (get, set): void => {
 export const clearWorkbookDocumentAtom = atom(null, (_get, set): void => {
   set(nativeOutlineProjectionBackingAtom, {})
   set(sheetViewsBackingAtom, EMPTY_SHEET_VIEWS)
+  set(groupedSheetIdsBackingAtom, [])
   set(workbookDocumentBackingAtom, EMPTY_WORKBOOK_DOCUMENT)
   set(sheetTabsAtom, DEFAULT_SHEET_TABS_STATE)
   set(setSheetTabsSheetsAtom, { sheets: [] })

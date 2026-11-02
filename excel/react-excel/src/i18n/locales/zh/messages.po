@@ -58,6 +58,10 @@ msgstr "（空）"
 msgid "(Whitespace: {0})"
 msgstr "（空白字符：{0}）"
 
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "[Group]"
+msgstr "[工作表组]"
+
 #. placeholder {0}: sheet.name
 #: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
 msgid "{0} — double-click or F2 to rename"
@@ -4120,7 +4124,9 @@ msgstr "引用以应用区域左上角为基准。公式必须返回 TRUE。"
 msgid "Refers to"
 msgstr "引用位置"
 
+#: src/workbook/chrome/formula-bar/FormulaBar.tsx
 #: src/workbook/chrome/ribbon/SpillTools.tsx
+#: src/workbook/grid/editor/CellEditor.tsx
 msgid "Refresh"
 msgstr "刷新"
 
@@ -4748,6 +4754,10 @@ msgstr "选中所有单元格"
 #: src/workbook/advanced-filter/FilterSearchSelection.tsx
 msgid "Select all search matches"
 msgstr "全选搜索匹配项"
+
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Select all sheets"
+msgstr "全选工作表"
 
 #: src/i18n/feedback-messages.ts
 msgid "Select an editable range and wait for the worksheet to finish loading."
@@ -6019,6 +6029,10 @@ msgstr "取消选中列分组"
 #: src/workbook/chrome/ribbon/OutlineTools.tsx
 msgid "Ungroup selected rows"
 msgstr "取消选中行分组"
+
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Ungroup sheets"
+msgstr "取消工作表分组"
 
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Unhide"

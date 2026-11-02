@@ -12,6 +12,7 @@ import {
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { applyProjectionSizes } from '../projection/projection-sizes'
 import type { RustClearRangeMode, RustClearRangeRequest, RustWorkbookConnection } from '../rust-workbook/commands'
+import { groupedSheetIdsAtom } from '../sheet-management/grouping'
 import { selectionRegionsAtom, selectionRangesAtom, selectionSnapshotAtom } from '../selection'
 import { recordRepeatIntentAtom } from '../repeat/state'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
@@ -65,21 +66,38 @@ export const runSelectionMutationAtom = atom(
       fail('Select cells on one worksheet before changing them.')
       return 'blocked'
     }
+    const grouped = get(groupedSheetIdsAtom)
+    const targetSheetIds =
+      grouped.length > 1 && grouped.includes(selection.selection.sheetId)
+        ? grouped
+        : [selection.selection.sheetId]
     const ranges = get(selectionRangesAtom)
     const targets: NonNullable<RustClearRangeRequest['targets']>[number][] = []
     for (const [index, region] of regions.entries()) {
-      const resolution = set(resolveContentMutationAtom, {
-        kind: input.kind === 'format' ? 'set-format-range' : 'clear-range',
-        sheetId: selection.selection.sheetId, range: ranges[index],
-      })
-      if (resolution.status === 'blocked') {
-        fail(resolution.diagnostic.message)
-        return 'blocked'
+      for (const targetSheetId of targetSheetIds) {
+        const resolution = set(resolveContentMutationAtom, {
+          kind: input.kind === 'format' ? 'set-format-range' : 'clear-range',
+          sheetId: targetSheetId,
+          range: ranges[index],
+        })
+        if (resolution.status === 'blocked') {
+          fail(resolution.diagnostic.message)
+          return 'blocked'
+        }
+        if (targetSheetId === selection.selection.sheetId) {
+          const range = resolution.ranges?.[0]
+          if (!range) return 'blocked'
+          targets.push({
+            ...range,
+            scope:
+              region.kind === 'row'
+                ? 'row'
+                : region.kind === 'column'
+                  ? 'column'
+                  : 'cell',
+          })
+        }
       }
-      const range = resolution.ranges?.[0]
-      if (!range) return 'blocked'
-      targets.push({ ...range, scope: region.kind === 'row' ? 'row'
-        : region.kind === 'column' ? 'column' : 'cell' })
     }
     const range = selection.range
     const requestId = set(issueProjectionRequestIdAtom)
@@ -87,6 +105,7 @@ export const runSelectionMutationAtom = atom(
 
     const base = {
       sheetId: selection.selection.sheetId,
+      ...(targetSheetIds.length > 1 ? { sheetIds: targetSheetIds } : {}),
       requestId,
       range: { ...range },
       scope:

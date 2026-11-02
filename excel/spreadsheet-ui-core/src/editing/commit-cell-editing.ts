@@ -22,6 +22,7 @@ import { createEditingSessionState } from './session-domain'
 import { returnToEditingSource } from './session-atoms'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { sheetViewsBackingAtom } from '../runtime/sheet-view-state'
+import { groupedSheetIdsAtom } from '../sheet-management/grouping'
 import { selectionAuthorityWitnessAtom } from '../selection'
 import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import { offerNativeValidationConfirmationAtom } from '../data-validation/advanced/confirmation-state'
@@ -42,15 +43,11 @@ function isCommittedRevision(value: ProjectionRevision | undefined): value is Pr
 }
 
 function responseAcknowledgesRequest(
-  response: RustSetCellInputResult,
-  request: EditingCommitRequest,
+  response: RustSetCellInputResult, request: EditingCommitRequest,
 ): boolean {
-  const acknowledgement = response.acknowledgement
-  return (
-    acknowledgement.sheetId === request.sheetId &&
-    acknowledgement.requestId === request.requestId &&
-    isCommittedRevision(acknowledgement.revision)
-  )
+  const ack = response.acknowledgement
+  return ack.sheetId === request.sheetId && ack.requestId === request.requestId &&
+    isCommittedRevision(ack.revision)
 }
 
 function rejectCommit(set: Setter, detail: string): EditingCommitOutcome {
@@ -65,26 +62,16 @@ function blockCommit(set: Setter, detail: string): EditingCommitOutcome {
 }
 
 function authorityIsCurrent(
-  get: Getter,
-  session: EditingSessionState,
-  projection: ProjectionSnapshot,
+  get: Getter, session: EditingSessionState, projection: ProjectionSnapshot,
 ): boolean {
-  return (
-    get(activeEditingCommitTicketAtom) === null &&
-    get(editingSessionBackingAtom) === session &&
-    get(projectionSnapshotAtom) === projection
-  )
+  return get(activeEditingCommitTicketAtom) === null &&
+    get(editingSessionBackingAtom) === session && get(projectionSnapshotAtom) === projection
 }
 
 function completeAcceptedCommit(
-  get: Getter,
-  set: Setter,
-  session: EditingSessionState,
-  browsingSheetId: string | undefined,
-  selectionWitness: unknown,
-  projectionWitness: ProjectionSnapshot,
-  projectionRequest: VisibleProjectionRequest,
-  result: VisibleProjectionResult,
+  get: Getter, set: Setter, session: EditingSessionState, browsingSheetId: string | undefined,
+  selectionWitness: unknown, projectionWitness: ProjectionSnapshot,
+  projectionRequest: VisibleProjectionRequest, result: VisibleProjectionResult,
   returnToSource: boolean | undefined,
 ): EditingCommitOutcome {
   // A newer viewport wins. Otherwise use the projection bundled with this exact mutation.
@@ -132,31 +119,45 @@ export const commitCellEditingAtom = atom(
       return blockCommit(set, 'The current edit or visible projection is unavailable.')
     }
 
-    const resolution = set(resolveContentMutationAtom, {
-      kind: 'set-cell-input',
-      sheetId: session.source.sheetId,
-      cell: session.source.cell,
-    })
-    if (!authorityIsCurrent(get, session, projectionWitness)) return 'blocked'
-    if (resolution.status === 'blocked') return blockCommit(set, resolution.diagnostic.message)
+    const grouped = get(groupedSheetIdsAtom)
+    const targetSheetIds =
+      grouped.length > 1 && grouped.includes(session.source.sheetId)
+        ? grouped
+        : [session.source.sheetId]
+    let resolvedCell = session.source.cell
+    for (const targetSheetId of targetSheetIds) {
+      const resolution = set(resolveContentMutationAtom, {
+        kind: 'set-cell-input',
+        sheetId: targetSheetId,
+        cell: session.source.cell,
+      })
+      if (!authorityIsCurrent(get, session, projectionWitness)) return 'blocked'
+      if (resolution.status === 'blocked') return blockCommit(set, resolution.diagnostic.message)
+      if (targetSheetId === session.source.sheetId && resolution.cell) {
+        resolvedCell = resolution.cell
+      }
+    }
 
     // One Worker command needs one correlation id; mutation ACK and projection share it.
     const requestId = set(issueProjectionRequestIdAtom)
     if (requestId === null) return blockCommit(set, 'Editing request identity space is exhausted.')
 
-    const target = resolution.cell ?? session.source.cell
+    const target = resolvedCell
+    const protection = get(sheetProtectionAtom)
+    const anyProtected = targetSheetIds.some(
+      (id) => getSheetProtection(protection, id).mode === 'protected',
+    )
     const request: EditingCommitRequest = Object.freeze({
       kind: 'set-cell-input',
       sheetId: session.source.sheetId,
+      ...(targetSheetIds.length > 1 ? { sheetIds: targetSheetIds } : {}),
       row: target.row,
       col: target.col,
       input: session.draft,
       ...(input?.validationConfirmation === 'continue' ? {
         validationConfirmation: 'continue', validationRevision: input.validationRevision,
       } : {}),
-      ...(getSheetProtection(get(sheetProtectionAtom), session.source.sheetId).mode === 'protected'
-        ? { expandTables: false }
-        : {}),
+      ...(anyProtected ? { expandTables: false } : {}),
       requestId,
     })
     const projectionRequest = Object.freeze(createVisibleProjectionRequest({

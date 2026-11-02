@@ -13,6 +13,8 @@ import {
   formulaReferenceActiveAtom,
   openSheetTabMenuAtom,
   switchAdjacentSheetAtom,
+  groupedSheetIdsAtom,
+  isSheetGroupActiveAtom,
   adjacentVisibleSheet,
   visibleSheets,
 } from '@einfach-excel/spreadsheet-ui-core'
@@ -33,6 +35,8 @@ export function WorkbookSheetTabs() {
   const editing = useAtomValue(editingSessionAtom)
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
   const picking = useAtomValue(formulaReferenceActiveAtom)
+  const grouped = useAtomValue(groupedSheetIdsAtom)
+  const isGroupActive = useAtomValue(isSheetGroupActiveAtom)
   const run = useSetAtom(runWorkbookSheetCommandAtom)
   const openMenu = useSetAtom(openSheetTabMenuAtom)
   const switchAdjacent = useSetAtom(switchAdjacentSheetAtom)
@@ -96,36 +100,56 @@ export function WorkbookSheetTabs() {
           ＋
         </button>
         <div className="sheet-tab-list" role="tablist" aria-label={t`Workbook sheets`} ref={tabsRef}>
-          {visible.map((sheet) => (
-            <button
-              className={sheet.id === active?.id ? 'sheet-tab active' : 'sheet-tab'}
-              key={sheet.id}
-              type="button"
-              role="tab"
-              aria-selected={sheet.id === active?.id}
-              data-tab-color={sheet.tabColor}
-              style={sheet.tabColor ? ({ '--tab-color': sheet.tabColor } as CSSProperties) : undefined}
-              onContextMenu={(event) => {
-                event.preventDefault()
-                void openMenu({ sheetId: sheet.id, x: event.clientX, y: event.clientY })
-              }}
-              title={t`${sheet.name} — double-click or F2 to rename`}
-              disabled={busy}
-              onPointerDown={(event) => event.preventDefault()}
-              onClick={() => void run({ operation: 'switch', sheetId: sheet.id })}
-              onDoubleClick={() => void run({ operation: 'begin-rename', sheetId: sheet.id })}
-              onKeyDown={(event) => {
-                if (event.key === 'F2') {
+          {visible.map((sheet) => {
+            const isActive = sheet.id === active?.id
+            const isGrouped = isGroupActive && grouped.includes(sheet.id)
+            return (
+              <button
+                className={`sheet-tab${isActive ? ' active' : ''}${isGrouped ? ' grouped' : ''}`}
+                key={sheet.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                data-grouped={isGrouped ? 'true' : undefined}
+                data-tab-color={sheet.tabColor}
+                style={sheet.tabColor ? ({ '--tab-color': sheet.tabColor } as CSSProperties) : undefined}
+                onContextMenu={(event) => {
                   event.preventDefault()
-                  void run({ operation: 'begin-rename', sheetId: sheet.id })
+                  if (event.button === 0 && event.ctrlKey) {
+                    void run({ operation: 'switch', sheetId: sheet.id, mode: 'toggle' })
+                    return
+                  }
+                  void openMenu({ sheetId: sheet.id, x: event.clientX, y: event.clientY })
+                }}
+                title={t`${sheet.name} — double-click or F2 to rename`}
+                disabled={busy}
+                onPointerDown={(event) => event.preventDefault()}
+                onClick={(event) =>
+                  void run({
+                    operation: 'switch',
+                    sheetId: sheet.id,
+                    mode: event.ctrlKey || event.metaKey ? 'toggle' : event.shiftKey ? 'range' : 'single',
+                  })
                 }
-              }}
-            >
-              <span aria-hidden="true" />
-              {sheet.name}
-            </button>
-          ))}
+                onDoubleClick={() => void run({ operation: 'begin-rename', sheetId: sheet.id })}
+                onKeyDown={(event) => {
+                  if (event.key === 'F2') {
+                    event.preventDefault()
+                    void run({ operation: 'begin-rename', sheetId: sheet.id })
+                  }
+                }}
+              >
+                <span aria-hidden="true" />
+                {sheet.name}
+              </button>
+            )
+          })}
         </div>
+        {isGroupActive && (
+          <span className="sheet-group-badge" data-sheet-group-badge>
+            <Trans>[Group]</Trans>
+          </span>
+        )}
         <button
           className="rename-sheet"
           type="button"

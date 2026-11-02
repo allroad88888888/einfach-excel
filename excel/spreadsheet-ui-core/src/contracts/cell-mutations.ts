@@ -7,6 +7,8 @@ export interface SetCellInputRequest extends SheetRef {
   row: number
   col: number
   input: string
+  /** 工作表分组激活时，同一次原子事务要写入的全部工作表 ID。 */
+  sheetIds?: readonly string[]
   /** 保护表仍允许解锁格的普通输入，但不能隐式改变 Table 范围。 */
   expandTables?: boolean
   /** 仅用户明确继续 Warning/Information 后发送，默认仍拒绝无效输入。 */

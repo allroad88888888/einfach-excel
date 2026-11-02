@@ -115,7 +115,7 @@ DOM 事件 → 一个 UI Core command atom → 一次 Rust 请求 → 发布结�
 - `src/host/`：宿主经同一 Einfach store 读写原始值/公式、接收成功修改事件。
 
 ui-core 的 exports：`.`（无副作用的 atom、类型、connection factory）、`./rust-worker`、`./rust-runtime`。
-`package-boundary.test.ts` 约束根入口不引入视图框架和内联 WASM。
+`test/source-runtime-boundary.test.ts` 约束源码不引入视图框架和内联 WASM。
 
 **编辑示例**：`commitCellEditingAtom → setRustCellInputAtom → connection.request('cell.setInput')`，
 一次 RPC 返回严格 ACK + 同修订版可见区投影，`applyVisibleProjectionAtom` 直接发布。UI 不预测计算结果、
@@ -188,5 +188,5 @@ ui-core 的 exports：`.`（无副作用的 atom、类型、connection factory�
 
 - 无分号、单引号、100 字符行宽（Prettier）；strict TS + `isolatedModules`；类型导入用 `type`。
 - ESLint 禁 console。
-- 普通文件 ≤300 行；`spreadsheet-ui-core` 里有不少存量超限文件（如 `auto-fill/command.ts`、
-  `operations/index.ts`、`selection/index.ts`），不得继续往里扩写，按职责拆。
+- 普通文件 ≤300 行；`spreadsheet-ui-core` 里有不少存量超限文件（如 `operations/format/numberFormatParser.ts`、
+  `viewport/hidden.ts`、`auto-fill/detector.ts`、`outline/index.ts`、`rust-workbook/runtime.ts`），不得继续往里扩写，按职责拆。

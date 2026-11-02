@@ -1,8 +1,10 @@
 # Performance Benchmarks
 
-Criterion-based benchmarks for the Rust core. They exist so the LAZY refactor
-(`docs/archive/LAZY_FORMULA_EVAL.md`, Steps 1–5 —— 已归档) has a stable baseline to measure
-against — not to prove absolute thresholds, which vary by machine.
+Criterion-based benchmarks for the Rust core. They exist so the lazy / sparse
+engine architecture (`docs/ON_DEMAND_EVALUATION.md`,
+`docs/RANGE_DEPENDENCY_TIERS.md`, `docs/SPARSE_STORAGE_MODEL.md`; historical
+plan in `excel/rust/docs/archive/LAZY_FORMULA_EVAL.md`) has a stable baseline to
+measure against — not to prove absolute thresholds, which vary by machine.
 
 ## Running
 
@@ -43,7 +45,7 @@ cargo bench -- --baseline before
 ```
 
 Criterion will annotate each row with the delta and flag statistically
-significant regressions. Use this for any LAZY step that claims a perf win.
+significant regressions.
 
 ## What each benchmark measures
 
@@ -51,18 +53,18 @@ significant regressions. Use this for any LAZY step that claims a perf win.
 
 | Bench | What it measures | Gates / motivation |
 |---|---|---|
-| `store/atom_write_throughput/set_10k_primitives` | Bare `Store::set` cost on primitive atoms with no subscribers. The floor for every other write path. | Any LAZY step that touches `Store::set` (e.g. Step 3's dirty-marking restructure) must not regress this beyond noise. |
-| `store/formula_chain_propagation/chain_100_propagate` | One full top-down recompute over a 100-deep linear chain after a single set at the head. Worst case for the eager dependency walker. | Step 3 (lazy invalidation) should leave this roughly flat when readers exist on the tail; Step 4 (range streaming) shouldn't touch it at all. A regression here means the propagator itself got slower. |
+| `store/atom_write_throughput/set_10k_primitives` | Bare `Store::set` cost on primitive atoms with no subscribers. The floor for every other write path. | Changes to `Store::set` or dependency invalidation must not regress this beyond noise. |
+| `store/formula_chain_propagation/chain_100_propagate` | One full top-down recompute over a 100-deep linear chain after a single set at the head. Worst case for dependency propagation when the tail is read. | Ensures `Store` dependency propagation stays linear and low-overhead when readers observe the tail. |
 
 ### `excel/rust/excel-core/benches/sheet_bench.rs`
 
 | Bench | What it measures | Gates / motivation |
 |---|---|---|
-| `sheet/bulk_set_cell/set_10k_numbers` | Throughput of `Sheet::set_cell` for 10k primitive values, no formulas, no subscribers. Captures the cost of address parsing + `ensure_cell` + `store.set`. | Floor for the sheet write path. Any LAZY step that restructures `Sheet` internals (e.g. adding lazy flags per cell) must not regress this. |
-| `sheet/sum_range_eval/sum_a1_a10000` | Per-call cost of `get_cell("B1")` where `B1 = SUM(A1:A10000)`. Today the derived atom value is cached after the first eval, so this measures the cached-read path — not the SUM walk itself. | LAZY Step 4 (range streaming / lazy SUM aggregator) lives here. Once Step 4 lands, this bench should be expanded to also measure the *cold* path (first read after invalidation), since the cached-read number alone won't tell you whether the streaming aggregator works. |
-| `sheet/lazy_import_no_eval/import_10k_formulas` | Throughput of importing 10k formulas via `set_formula` without reading any of them. | LAZY Step 2 (deferred formula eval). When Step 2 lands, the bench should also assert `Store::debug_recompute_count() == 0` after import — failing loudly if any formula evaluated eagerly. The `assert_eq!` is staged as a comment in the bench source; un-comment it once the `#[doc(hidden)] debug_recompute_count` accessor exists. |
-| `sheet/range_dep_registration/{10,100,1000}` | `set_formula(=SUM(A1:A1000))` N times, measure time. Each call expands the range into 1000 `cell_dependents` entries; total work is O(N × range size). | LAZY Step 5 (range dependency interval index). Today registration is roughly constant per-formula (~100 µs) since each expansion is 1000 HashMap inserts; Step 5 should make this O(1) per formula and rely on interval lookup at dirty time. |
-| `sheet/range_dirty_lookup/{10,100,1000}` | After registering N range formulas that all contain A1, time `set_cell("A1", …)`. Measures the fan-out cost when a hotspot cell wakes many range deps. | Same Step 5 gate. Today this scales linearly with N (≈ 50 µs at N = 1000); Step 5's interval tree should keep cost bounded by *intervals-containing-A1*, not total range-formula count. |
+| `sheet/bulk_set_cell/set_10k_numbers` | Throughput of `Sheet::set_cell` for 10k primitive values, no formulas, no subscribers. Captures the cost of address parsing + slot update + `store.set`. | Floor for the single-cell sheet write path. |
+| `sheet/sum_range_eval/sum_a1_a10000` | Per-call cost of `get_cell("B1")` where `B1 = SUM(A1:A10000)`. After the first evaluation, the derived formula-inner atom value is cached in `Store`, so repeated calls measure the settled read path. | Guards the hot `Sheet::get_cell` + `Store::settle_pending_reads` read boundary on a range formula. |
+| `sheet/lazy_import_no_eval/import_10k_formulas` | Throughput of installing 10k scalar formulas via `Sheet::set_formula` without reading any of them. | Scalar `set_formula` parses and installs the `FormulaRecord` and lazy `formula-inner` derived atom without eagerly evaluating it. (`Store::debug_recompute_count` in `excel/rust/core/src/store.rs` and `Sheet::debug_recompute_count` / `Sheet::debug_formula_eval_count` in `excel/rust/excel-core/src/sheet_debug_atoms.rs` provide the exact evaluation counters used by behavioral tests.) |
+| `sheet/range_dep_registration/{10,100,1000}` | `set_formula(=SUM(A1:A1000))` N times, measure time. Because `A1:A1000` exceeds `RANGE_TIER_A_CELL_LIMIT` (`256`), it uses Tier-B row-band geometry epochs (`sheet_range_tiers.rs`, `sheet_facade_range_context.rs`) when evaluated rather than expanding 1,000 per-cell dependency edges at registration time. | Catches accidental reintroduction of eager O(range_size) per-cell dependency expansion during formula registration. |
+| `sheet/range_dirty_lookup/{10,100,1000}` | After registering and initial-reading N `=SUM(A1:A1000)` formulas that all depend on `A1`'s Tier-B row-band geometry root, time `set_cell("A1", …)`. | Measures single-cell write invalidation across N range-formula consumers via `Store` geometry epochs (`sheet_facade.rs`, `sheet_facade_range_context.rs`). |
 
 ### `excel/rust/excel-core/benches/scale_bench.rs`
 
@@ -72,9 +74,9 @@ lazy / sparse 契约成立 —— 如果实现退化成 eager 或 O(总坐标空
 
 | Bench | What it measures | Gates / motivation |
 |---|---|---|
-| `bulk_load_100k_formulas` | 经 `bulk_load` 导入 10 万条公式，须在有界时间内完成 | 导入路径的隐式惰性检查：eager 求值会让耗时爆掉 |
+| `bulk_load_100k_formulas` | 经 `bulk_load` 导入 10 万条公式，须在有界时间内完成 | 导入路径的惰性检查：公式停留在 `formula_source` / `needs_parse` 而不求值 |
 | `sparse_1m_grid_read_window` | 100 万单元格坐标空间、仅 1 万个已物化，读一个 50×27 视口矩形 | 必须是 O(可见)，不是 O(坐标空间总量) |
-| `dirty_lookup_100k_ranges` | 10 万区间公式下的脏查找 fan-out | 区间依赖查找的规模行为 |
+| `dirty_lookup_100k_ranges` | 10 万区间公式下的脏查找 fan-out | Tier 分层区间依赖（`sheet_range_tiers.rs`）在规模下的失效传播行为 |
 | `cross_sheet_store_propagation_10k` | 万级跨表传播 | 跨表依赖走同一个 workbook 级 Store 图后的传播成本 |
 
 ```bash
@@ -82,39 +84,38 @@ cd excel/rust/excel-core && cargo bench --bench scale_bench
 cd excel/rust/excel-core && cargo bench --bench scale_bench --no-run   # 只验编译
 ```
 
-完整执行是**分钟级**，不适合放进 pre-commit；`--no-run` 适合。
+完整执行是**分钟级**，不适合放进 pre-commit；`--no-run` 适合（已在 CI `rust` job 中作为编译门禁运行）。
 
-#### Step 5 deferral note
+## Debug & Telemetry Counters in `Store` and `Sheet`
 
-The two `range_*` benches above are the empirical justification for *not*
-landing Step 5 yet:
+Behavioral assertions for lazy evaluation and dependency bounds live in standard
+`cargo test` suites (such as `excel/rust/excel-core/tests/lazy_bulk_load.rs` and
+`excel/rust/excel-core/src/sheet_tests/range_store_edges.rs`) using the
+`#[doc(hidden)]` counters:
 
-- **Registration**: ~100 µs / formula. Even 1000 range formulas (a heavy
-  dashboard) costs ~100 ms once on load.
-- **Dirty lookup**: 50 µs / cell-write at N = 1000. Imperceptible for
-  interactive editing.
+- `Store::debug_recompute_count(&self) -> usize` and
+  `Store::debug_flush_visit_count(&self) -> usize` in
+  `excel/rust/core/src/store.rs`
+- `Sheet::debug_recompute_count(&self) -> usize`,
+  `Sheet::debug_formula_eval_count(&self) -> usize`,
+  `Sheet::debug_total_atom_count(&self) -> usize`, and
+  `Sheet::debug_dirty_count(&self) -> usize` in
+  `excel/rust/excel-core/src/sheet_debug_atoms.rs`
 
-Step 5 becomes urgent if a future workload pushes N range formulas past
-~10k (the "10 万" gate from `docs/archive/LAZY_FORMULA_EVAL.md` Step 5).
-The benches will catch the regression — re-run them when adding any
-demo or feature that bulk-creates range formulas.
+## Workflow for performance-sensitive changes
 
-## Workflow for LAZY refactor steps
-
-1. Check out the pre-refactor commit.
-2. `cargo bench -- --save-baseline pre-step-N`.
-3. Apply the refactor.
-4. `cargo bench -- --baseline pre-step-N`.
-5. Record the deltas + the criterion report path in the step's PR description.
+1. Check out the pre-change commit.
+2. `cargo bench -- --save-baseline before`.
+3. Apply the change.
+4. `cargo bench -- --baseline before`.
+5. Record the deltas + the criterion report path in the PR description.
    Do NOT promise specific wall-clock numbers in the doc — only deltas vs a
    named baseline on the same hardware are meaningful.
 
 ## What's intentionally NOT here
 
 - **WASM bench harness.** `wasm-pack bench` is a different ecosystem and out
-  of scope for the LAZY work, which is all native-Rust.
+  of scope for native Criterion benchmarks.
 - **Absolute thresholds (e.g. "must be < 50 ms").** Hardware-dependent; we
-  rely on relative deltas instead.
-- **`debug_recompute_count` assertions.** Staged in the bench source as
-  comments. They go live the moment the LAZY Step 2 accessor lands; they're
-  inert today because no such counter exists in `Store` yet.
+  rely on relative deltas for timing and deterministic counter assertions in
+  `cargo test` for algorithmic invariants.

@@ -38,7 +38,8 @@ the row-band-root limit, and Tier D only after exceeding both geometry limits.
 This is the implementation's dependency-selection order, not a statement
 about evaluation cost.
 
-Source: `excel/rust/excel-core/src/sheet.rs:1474-1502,1642-1658`.
+Source: `excel/rust/excel-core/src/sheet_facade_range_context.rs:24-52` (`FacadeCtx::depend_range_geometry_epochs`);
+`excel/rust/excel-core/src/sheet_atom_formula_provider.rs:54-74` (`AtomFormulaProvider::for_each_range_in`).
 
 ## Invalidation roots
 
@@ -49,8 +50,9 @@ column root, and the sheet root. A missing root is not created just to be
 bumped. The normal write paths call this check only when the address's range
 membership changes.
 
-Source: `excel/rust/excel-core/src/sheet.rs:1456-1472,2014-2040`;
-`excel/rust/excel-core/src/sheet_facade.rs:84-119`;
+Source: `excel/rust/excel-core/src/sheet_facade_range_context.rs:6-22` (`FacadeCtx::range_band_epoch_of`, `FacadeCtx::range_column_epoch_of`, `FacadeCtx::range_sheet_epoch`);
+`excel/rust/excel-core/src/sheet_dependency_graph.rs:89-116` (`Sheet::store_root_range_geometry_atoms_for_addr_into`);
+`excel/rust/excel-core/src/sheet_facade.rs:84-120` (`Sheet::bump_range_geometry_epochs_touching`, `Sheet::bump_range_epochs_if_membership_changed`);
 `excel/rust/excel-core/src/sheet_write_value.rs:97-100`.
 
 ## Checked evidence

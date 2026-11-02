@@ -29,8 +29,8 @@ becomes `#VALUE!` when it is first hydrated, rather than at storage install.
 | `BulkLoader::set_formula_pre_parsed` | The caller's parsed expression is discarded and only source is parked.           |
 | `Sheet::bulk_install_storage`        | Source is parked without parse validation.                                       |
 
-Source: `excel/rust/excel-core/src/sheet_bulk_formula.rs:22-132`;
-`excel/rust/excel-core/src/sheet.rs:270-310`;
+Source: `excel/rust/excel-core/src/sheet_bulk_formula.rs:23-150` (`BulkLoader::set_formula_at`, `BulkLoader::set_formula_pre_parsed`, `BulkLoader::set_formula_lazy`);
+`excel/rust/excel-core/src/sheet_interior.rs:16-85` (`SheetInterior::formula_source`, `SheetInterior::needs_parse`);
 `excel/rust/excel-core/src/sheet_bulk_install.rs:76-83,158-177`.
 
 ## What triggers hydration
@@ -52,8 +52,8 @@ Formula-text and formula-presence queries are different observation paths:
 accepts `needs_parse`. They can report a parked formula without hydrating or
 evaluating it.
 
-Source: `excel/rust/excel-core/src/sheet.rs:2520-2553,2586-2612`;
-`excel/rust/excel-core/src/workbook_read.rs:6-54`;
+Source: `excel/rust/excel-core/src/sheet_read.rs:10-105` (`Sheet::get_cell`, `Sheet::peek_value`, `Sheet::peek_value_with_provider`, `Sheet::get_formula`, `Sheet::has_formula_at`);
+`excel/rust/excel-core/src/workbook_read.rs:6-61`;
 `excel/rust/excel-core/src/workbook_eval_provider.rs:41-115`.
 
 ## Hydration boundary
@@ -72,8 +72,9 @@ formula read is consequently observed when that formula evaluates for the
 first time. Replacing or clearing an unhydrated formula drains its parked state
 so that old source cannot hydrate later.
 
-Source: `excel/rust/excel-core/src/sheet_hydrate.rs:13-163`;
-`excel/rust/excel-core/src/sheet.rs:281-310,2534-2553`;
+Source: `excel/rust/excel-core/src/sheet_hydrate.rs:32-149` (`Sheet::hydrate_formula`);
+`excel/rust/excel-core/src/sheet_interior.rs:53-85` (`SheetInterior::formula_source`, `SheetInterior::needs_parse`);
+`excel/rust/excel-core/src/sheet_read.rs:32-50` (`Sheet::peek_value_with_provider`);
 `excel/rust/excel-core/tests/lazy_bulk_load.rs:21-221`.
 
 ## Dynamic-array boundary

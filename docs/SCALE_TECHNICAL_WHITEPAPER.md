@@ -33,7 +33,7 @@ corresponding ownership model. Together, they describe four distinct layers.
 | Sparse storage        | Stored cell and formula records are indexed separately from geometric blanks.                            | [Sparse storage model](SPARSE_STORAGE_MODEL.md)                 |
 | Range dependencies    | A formula range selects member, row-band, column, or sheet invalidation roots from normalized geometry.  | [Range dependency tiers](RANGE_DEPENDENCY_TIERS.md)             |
 | Display projection    | A validated request/result rectangle carries display data without becoming workbook state.               | [Projection boundary contract](PROJECTION_BOUNDARY_CONTRACT.md) |
-| Range-native commands | An oversized selection retains its rectangle for a supported backend operation or is explicitly refused. | [Boundedness contracts](BOUNDEDNESS_CONTRACTS.md)               |
+| Range-native commands | Range operations pass explicit rectangles to the Rust Worker and enforce explicit caps on export payloads. | [Scale facts](SCALE_FACTS.md), [boundedness contracts (archived)](archive/BOUNDEDNESS_CONTRACTS.md) |
 
 These layers have separate ownership. Sparse storage chooses which records are
 present; dependency selection chooses observation roots; projection owns a

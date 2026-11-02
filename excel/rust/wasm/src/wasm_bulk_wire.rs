@@ -280,6 +280,16 @@ struct WorkbookPersistenceV1JSON {
     named_ranges: Vec<NamedRangeJSON>,
     #[serde(default, rename = "calculationMode", skip_serializing_if = "Option::is_none")]
     calculation_mode: Option<String>,
+    #[serde(default, rename = "iterativeCalculation", skip_serializing_if = "Option::is_none")]
+    iterative_calculation: Option<IterativeCalculationJSON>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct IterativeCalculationJSON {
+    enabled: bool,
+    max_iterations: u32,
+    max_change: f64,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

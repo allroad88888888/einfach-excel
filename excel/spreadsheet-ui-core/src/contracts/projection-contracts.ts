@@ -38,6 +38,12 @@ export interface RangeProjectionRequest extends SheetRef {
   cancelToken?: ProjectionCancelToken
 }
 
+export interface IterativeCalculationConfig {
+  readonly enabled: boolean
+  readonly maxIterations: number
+  readonly maxChange: number
+}
+
 export interface VisibleProjectionResult extends SheetRef {
   /** Table 目录与可见单元格来自同一次 Rust 读取。 */
   tables?: readonly NativeTable[]
@@ -81,6 +87,8 @@ export interface VisibleProjectionResult extends SheetRef {
   frozen?: FrozenProjection
   /** 工作簿公式计算模式（automatic / manual）。 */
   calculationMode?: 'automatic' | 'manual'
+  /** 工作簿迭代计算配置（启用 / 最大迭代次数 / 最大误差）。 */
+  iterativeCalculation?: IterativeCalculationConfig
   truncated?: boolean
 }
 

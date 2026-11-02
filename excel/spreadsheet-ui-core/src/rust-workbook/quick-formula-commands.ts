@@ -1,8 +1,16 @@
 import type { CellCoord, CellRange } from '../shared'
 import type { WorkerCommand } from '../rust-worker'
 import type { NativeFunctionCatalog } from '../formula-functions/types'
-import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
-import type { CalculationMode } from '../calculation/mode-state'
+import type {
+  IterativeCalculationConfig,
+  VisibleProjectionRequest,
+  VisibleProjectionResult,
+} from '../contracts'
+import {
+  normalizeIterativeCalculation,
+  validIterativeCalculation,
+  type CalculationMode,
+} from '../calculation/mode-state'
 import type { WasmWorkbook } from './wasm-types'
 import { readVisibleProjection } from './visible-projection'
 
@@ -32,6 +40,14 @@ export interface RustQuickFormulaCommands {
     {
       readonly changed: boolean
       readonly mode: CalculationMode
+      readonly projection: VisibleProjectionResult
+    }
+  >
+  readonly 'formula.setIterativeCalculation': WorkerCommand<
+    IterativeCalculationConfig & { readonly projection: VisibleProjectionRequest },
+    {
+      readonly changed: boolean
+      readonly iterativeCalculation: IterativeCalculationConfig
       readonly projection: VisibleProjectionResult
     }
   >
@@ -85,6 +101,41 @@ export function setWorkbookCalculationMode(
     reply: {
       changed,
       mode,
+      projection: readVisibleProjection(workbook, index, input.projection, nextRevision),
+    },
+  }
+}
+
+export function setWorkbookIterativeCalculation(
+  workbook: WasmWorkbook,
+  sheetIndex: (sheetId: string) => number,
+  input: RustQuickFormulaCommands['formula.setIterativeCalculation']['payload'],
+  revision: number,
+): {
+  readonly nextRevision: number
+  readonly reply: RustQuickFormulaCommands['formula.setIterativeCalculation']['result']
+} {
+  if (typeof input?.enabled !== 'boolean')
+    throw new Error('Invalid iterative calculation configuration.')
+  const config = normalizeIterativeCalculation(input)
+  const index = sheetIndex(input.projection.sheetId)
+  if (!workbook.set_iterative_calculation)
+    throw new Error('Rust iterative calculation is unavailable.')
+  const changed = workbook.set_iterative_calculation(
+    config.enabled,
+    config.maxIterations,
+    config.maxChange,
+  )
+  const nextRevision = changed ? revision + 1 : revision
+  const raw = workbook.get_iterative_calculation?.()
+  const iterativeCalculation = validIterativeCalculation(raw)
+    ? normalizeIterativeCalculation(raw)
+    : config
+  return {
+    nextRevision,
+    reply: {
+      changed,
+      iterativeCalculation,
       projection: readVisibleProjection(workbook, index, input.projection, nextRevision),
     },
   }

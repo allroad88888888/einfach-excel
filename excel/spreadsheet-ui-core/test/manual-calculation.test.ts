@@ -3,22 +3,42 @@ import {
   createSpreadsheetUi, initializeWorkbookDocumentAtom, runVisibleProjectionAtom,
   projectionSnapshotAtom, setRustWorkbookConnectionAtom, setSheetProtectionAtom,
   calculationAvailableAtom, calculationFeedbackAtom, calculationModeAtom,
-  recalculateAtom, setCalculationModeAtom, dispatchGridCellKeyboardInputAtom,
+  iterativeCalculationAtom, recalculateAtom, setCalculationModeAtom,
+  setIterativeCalculationAtom, dispatchGridCellKeyboardInputAtom,
   startEditingAtom, editingSessionAtom,
   type RustWorkbookCommands, type RustWorkbookConnection, type VisibleProjectionRequest,
 } from '../src'
 
 type Input = RustWorkbookCommands['formula.recalculate']['payload']
 type ModeInput = RustWorkbookCommands['formula.setCalculationMode']['payload']
+type IterativeInput = RustWorkbookCommands['formula.setIterativeCalculation']['payload']
 const result = (input: Input) => ({ formulaCount: 3,
   projection: { ...input.projection, cells: [{ row: 0, col: 0, displayValue: '8', formula: '=RAND()' }], revision: 2 } })
 async function setup() {
   const calculate = vi.fn(async (input: Input) => result(input))
   const setMode = vi.fn(async (input: ModeInput) => ({ mode: input.mode,
     projection: { ...input.projection, calculationMode: input.mode, cells: [{ row: 0, col: 0, displayValue: '8', formula: '=RAND()' }], revision: 2 } }))
+  const setIterative = vi.fn(async (input: IterativeInput) => {
+    const iterativeCalculation = {
+      enabled: input.enabled,
+      maxIterations: input.maxIterations,
+      maxChange: input.maxChange,
+    }
+    return {
+      changed: true,
+      iterativeCalculation,
+      projection: {
+        ...input.projection,
+        iterativeCalculation,
+        cells: [{ row: 0, col: 0, displayValue: input.enabled ? '10' : '#CYCLE!', formula: '=A1+1' }],
+        revision: 2,
+      },
+    }
+  })
   const request = vi.fn(async (command: string, input: unknown) => {
     if (command === 'formula.recalculate') return calculate(input as Input)
     if (command === 'formula.setCalculationMode') return setMode(input as ModeInput)
+    if (command === 'formula.setIterativeCalculation') return setIterative(input as IterativeInput)
     return { ...(input as { request: VisibleProjectionRequest }).request, calculationMode: 'automatic', cells: [], revision: 1 }
   })
   const connection = { request: request as RustWorkbookConnection['request'], dispose() {} }
@@ -28,7 +48,7 @@ async function setup() {
   ] })
   await store.setter(runVisibleProjectionAtom, { sheetId: 's', reason: 'viewport',
     window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 7 } })
-  return { store, calculate, setMode, request }
+  return { store, calculate, setMode, setIterative, request }
 }
 
 test.each(['sheet', 'workbook'] as const)('%s makes one native request and publishes bundled projection on a protected sheet', async (scope) => {
@@ -90,6 +110,38 @@ test('setCalculationModeAtom switches between automatic and manual and syncs cal
   expect(await store.setter(setCalculationModeAtom, 'automatic')).toBe(true)
   expect(store.getter(calculationModeAtom)).toBe('automatic')
   expect(store.getter(calculationFeedbackAtom).message).toBe('Calculation mode set to Automatic.')
+})
+
+test('setIterativeCalculationAtom normalizes config, syncs iterativeCalculationAtom and publishes projection', async () => {
+  const { store, setIterative } = await setup()
+  expect(store.getter(iterativeCalculationAtom)).toEqual({
+    enabled: false,
+    maxIterations: 100,
+    maxChange: 0.001,
+  })
+  expect(await store.setter(setIterativeCalculationAtom, {
+    enabled: true,
+    maxIterations: 10,
+    maxChange: 0.01,
+  })).toBe(true)
+  expect(setIterative).toHaveBeenCalledOnce()
+  expect(store.getter(iterativeCalculationAtom)).toEqual({
+    enabled: true,
+    maxIterations: 10,
+    maxChange: 0.01,
+  })
+  expect(store.getter(projectionSnapshotAtom).result?.cells[0]?.displayValue).toBe('10')
+  expect(store.getter(calculationFeedbackAtom).message).toBe(
+    'Iterative calculation enabled (max 10 iterations, delta 0.01).',
+  )
+  expect(await store.setter(setIterativeCalculationAtom, {
+    enabled: false,
+    maxIterations: 10,
+    maxChange: 0.01,
+  })).toBe(true)
+  expect(store.getter(iterativeCalculationAtom).enabled).toBe(false)
+  expect(store.getter(projectionSnapshotAtom).result?.cells[0]?.displayValue).toBe('#CYCLE!')
+  expect(store.getter(calculationFeedbackAtom).message).toBe('Iterative calculation disabled.')
 })
 
 test('F9 and Shift+F9 trigger workbook and sheet recalculation in grid navigation mode only', async () => {

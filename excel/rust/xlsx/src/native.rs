@@ -59,6 +59,8 @@ pub struct Persistence {
     pub named_ranges: Vec<NamedRange>,
     #[serde(default, rename = "calculationMode", skip_serializing_if = "Option::is_none")]
     pub calculation_mode: Option<String>,
+    #[serde(default, rename = "iterativeCalculation", skip_serializing_if = "Option::is_none")]
+    pub iterative_calculation: Option<IterativeCalculation>,
     #[serde(default, skip_serializing)]
     pub protection: Vec<serde_json::Value>,
     #[serde(default, skip_serializing)]
@@ -69,6 +71,14 @@ pub struct Persistence {
     pub print_configs: Vec<serde_json::Value>,
     #[serde(default, rename = "customFormulas", skip_serializing)]
     pub custom_formulas: Vec<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IterativeCalculation {
+    pub enabled: bool,
+    pub max_iterations: u32,
+    pub max_change: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

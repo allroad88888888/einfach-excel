@@ -193,8 +193,12 @@ impl Workbook {
         let visibility = self.sheet_visibility(source)?;
         let copy = &mut self.sheets[target];
         copy.restore_format_range_snapshot(formats);
-        rows.into_iter().for_each(|(row, height)| drop(copy.set_row_height(row, height)));
-        cols.into_iter().for_each(|(col, width)| drop(copy.set_col_width(col, width)));
+        rows.into_iter().for_each(|(row, height)| {
+            let _ = copy.set_row_height(row, height);
+        });
+        cols.into_iter().for_each(|(col, width)| {
+            let _ = copy.set_col_width(col, width);
+        });
         copy.restore_merged_ranges(merges)?;
         copy.set_frozen_panes(freeze)?;
         for region in validations {

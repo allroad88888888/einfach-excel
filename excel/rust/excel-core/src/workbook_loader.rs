@@ -73,6 +73,7 @@ impl<'a> WorkbookLoader<'a> {
         if sheet_idx >= self.wb.sheets.len() {
             return;
         }
+        self.wb.cyclic_formulas.remove(&(sheet_idx, addr));
         self.ops_by_sheet
             .entry(sheet_idx)
             .or_default()
@@ -103,6 +104,7 @@ impl<'a> WorkbookLoader<'a> {
         // Parse failure still records a SetFormula op so the sheet flush writes
         // `#VALUE!` through the normal formula API.
         let Some(expr) = parse_formula(source) else {
+            self.wb.cyclic_formulas.remove(&(sheet_idx, addr));
             self.ops_by_sheet
                 .entry(sheet_idx)
                 .or_default()
@@ -115,14 +117,24 @@ impl<'a> WorkbookLoader<'a> {
         };
 
         if self.wb.closes_workbook_cycle(sheet_idx, addr, &expr) {
-            self.ops_by_sheet
-                .entry(sheet_idx)
-                .or_default()
-                .push(WorkbookOp::SetCell {
-                    addr,
-                    value: Value::Error(ValueError::CyclicRef),
-                });
-            return false;
+            if self.wb.iterative_calculation.enabled {
+                self.wb.cyclic_formulas.remove(&(sheet_idx, addr));
+                self.wb.atom_context.mark_installed_cycles();
+            } else {
+                self.wb
+                    .cyclic_formulas
+                    .insert((sheet_idx, addr), source.to_string());
+                self.ops_by_sheet
+                    .entry(sheet_idx)
+                    .or_default()
+                    .push(WorkbookOp::SetCell {
+                        addr,
+                        value: Value::Error(ValueError::CyclicRef),
+                    });
+                return false;
+            }
+        } else {
+            self.wb.cyclic_formulas.remove(&(sheet_idx, addr));
         }
         self.ops_by_sheet
             .entry(sheet_idx)
@@ -154,6 +166,7 @@ impl<'a> WorkbookLoader<'a> {
         if sheet_idx >= self.wb.sheets.len() {
             return;
         }
+        self.wb.cyclic_formulas.remove(&(sheet_idx, addr));
         self.ops_by_sheet
             .entry(sheet_idx)
             .or_default()

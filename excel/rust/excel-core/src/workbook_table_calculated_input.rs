@@ -214,7 +214,11 @@ impl Workbook {
         // 所有源码已落地，现有静态检查才能同时看到本次新增的依赖边。
         for (cell, expr) in cells.iter().zip(&parsed) {
             if self.closes_workbook_cycle(sheet, cell.addr, expr) {
-                return Err("FORMULA_CYCLE");
+                if self.iterative_calculation.enabled {
+                    self.atom_context.mark_installed_cycles();
+                } else {
+                    return Err("FORMULA_CYCLE");
+                }
             }
         }
         self.sheets[sheet].project_bulk_spill_anchors(cells.iter().map(|cell| cell.addr).collect());

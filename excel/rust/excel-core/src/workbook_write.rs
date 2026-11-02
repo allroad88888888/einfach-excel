@@ -24,6 +24,7 @@ impl Workbook {
             let expr = match parse_formula(formula_text) {
                 Some(e) => e,
                 None => {
+                    book.cyclic_formulas.remove(&(sheet_idx, addr));
                     book.sheets[sheet_idx].set_formula(addr_str, formula_text);
                     book.recompute_array_formula_groups(array_dependents);
                     return false;
@@ -31,9 +32,18 @@ impl Workbook {
             };
 
             if book.closes_workbook_cycle(sheet_idx, addr, &expr) {
-                book.sheets[sheet_idx].write_error(addr, ValueError::CyclicRef);
-                book.recompute_array_formula_groups(array_dependents);
-                return false;
+                if book.iterative_calculation.enabled {
+                    book.cyclic_formulas.remove(&(sheet_idx, addr));
+                    book.atom_context.mark_installed_cycles();
+                } else {
+                    book.cyclic_formulas
+                        .insert((sheet_idx, addr), formula_text.to_string());
+                    book.sheets[sheet_idx].write_error(addr, ValueError::CyclicRef);
+                    book.recompute_array_formula_groups(array_dependents);
+                    return false;
+                }
+            } else {
+                book.cyclic_formulas.remove(&(sheet_idx, addr));
             }
 
             let ok = book.sheets[sheet_idx].set_formula(addr_str, formula_text);
@@ -68,6 +78,7 @@ impl Workbook {
         if !rows.is_empty() && !matches!(value, Value::Null)
             && self.ensure_workbook_unprotected().is_err() { return; }
         self.write_with_insert_rows(rows, |book| {
+            book.cyclic_formulas.remove(&(sheet_idx, addr));
             let array_dependents = book.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
             book.sheets[sheet_idx].set_cell(addr_str, value);
             book.recompute_array_formula_groups(array_dependents);
@@ -89,6 +100,7 @@ impl Workbook {
         if self.ensure_range_editable(sheet_idx, CellRange::single(addr)).is_err() {
             return;
         }
+        self.cyclic_formulas.remove(&(sheet_idx, addr));
         let array_dependents = self.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
         self.sheets[sheet_idx].clear_cell(addr_str);
         self.recompute_array_formula_groups(array_dependents);
@@ -120,6 +132,7 @@ impl Workbook {
             self.ensure_workbook_unprotected().map_err(|_| SheetError::ProtectedCell)?;
         }
         self.write_with_insert_rows(rows, |book| {
+            book.cyclic_formulas.remove(&(sheet_idx, addr));
             let array_dependents = book.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
             book.sheets[sheet_idx].try_set_cell(addr_str, value)?;
             book.recompute_array_formula_groups(array_dependents);
@@ -141,6 +154,7 @@ impl Workbook {
         let addr = CellAddress::parse(addr_str).ok_or(SheetError::InvalidAddress)?;
         self.ensure_range_editable(sheet_idx, CellRange::single(addr))
             .map_err(|_| SheetError::ProtectedCell)?;
+        self.cyclic_formulas.remove(&(sheet_idx, addr));
         let array_dependents = self.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
         self.sheets[sheet_idx].try_clear_cell(addr_str)?;
         self.recompute_array_formula_groups(array_dependents);

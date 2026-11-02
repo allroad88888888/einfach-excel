@@ -225,3 +225,36 @@ fn wasm_workbook_snapshot_viewport_sizes_filters_window() {
     assert_eq!(snapshot.col_widths.len(), 1);
     assert_eq!(snapshot.col_widths[0].col_index, 2);
 }
+
+#[test]
+fn wasm_workbook_snapshot_persistence_v1_roundtrips_iterative_calculation() {
+    let mut source = WasmWorkbook::new();
+    assert!(source
+        .set_iterative_calculation(true, 40, 0.0005)
+        .expect("set iterative calculation"));
+    assert!(source.set_formula(0, "A1", "=B1*0.5"));
+    assert!(source.set_formula(0, "B1", "=100-A1"));
+
+    let envelope = source.snapshot_persistence_v1_json();
+    assert_eq!(
+        envelope.iterative_calculation,
+        Some(IterativeCalculationJSON {
+            enabled: true,
+            max_iterations: 40,
+            max_change: 0.0005,
+        })
+    );
+
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(envelope).unwrap();
+    assert_eq!(
+        restored.workbook.iterative_calculation(),
+        einfach_excel_core::IterativeConfig {
+            enabled: true,
+            max_iterations: 40,
+            max_change: 0.0005,
+        }
+    );
+    assert!((restored.get_number(0, "A1") - 100.0 / 3.0).abs() < 0.01);
+    assert!((restored.get_number(0, "B1") - 200.0 / 3.0).abs() < 0.01);
+}

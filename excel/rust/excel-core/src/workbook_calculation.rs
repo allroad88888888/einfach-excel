@@ -10,9 +10,84 @@ pub enum CalculationMode {
     Manual,
 }
 
+/// 工作簿迭代计算配置（Excel 默认值：禁用、最大迭代次数 100、最大误差 0.001）。
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct IterativeConfig {
+    pub enabled: bool,
+    pub max_iterations: u32,
+    pub max_change: f64,
+}
+
+impl Default for IterativeConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            max_iterations: 100,
+            max_change: 0.001,
+        }
+    }
+}
+
+impl IterativeConfig {
+    pub fn normalized(self) -> Self {
+        let max_iterations = self.max_iterations.clamp(1, 32_767);
+        let max_change = if self.max_change.is_finite() && self.max_change >= 0.0 {
+            self.max_change
+        } else {
+            0.0
+        };
+        Self {
+            enabled: self.enabled,
+            max_iterations,
+            max_change,
+        }
+    }
+}
+
 impl Workbook {
     pub fn calculation_mode(&self) -> CalculationMode {
         self.calculation_mode
+    }
+
+    pub fn iterative_calculation(&self) -> IterativeConfig {
+        self.iterative_calculation
+    }
+
+    /// 更新工作簿迭代计算配置：`false -> true` 恢复并收敛循环公式；`true -> false` 恢复 `#CYCLE!`。
+    pub fn set_iterative_calculation(&mut self, config: IterativeConfig) -> bool {
+        if self.is_inside_custom_call() {
+            return false;
+        }
+        let config = config.normalized();
+        if self.iterative_calculation == config {
+            return false;
+        }
+        self.iterative_calculation = config;
+        self.atom_context.set_iterative_config(config);
+        self.atom_context.clear_iterative_values();
+        if config.enabled {
+            self.atom_context.mark_installed_cycles();
+            if !self.cyclic_formulas.is_empty() {
+                let drained: Vec<_> = self.cyclic_formulas.drain().collect();
+                for sheet_idx in 0..self.sheets.len() {
+                    let entries: Vec<_> = drained
+                        .iter()
+                        .filter_map(|((s_idx, addr), src)| {
+                            (*s_idx == sheet_idx).then_some((*addr, src.as_str()))
+                        })
+                        .collect();
+                    if !entries.is_empty() {
+                        self.sheets[sheet_idx].restore_formula_sources(entries);
+                    }
+                }
+            }
+            for sheet in &mut self.sheets {
+                sheet.restore_hydrated_cyclic_formulas();
+            }
+        }
+        self.atom_context.bump_iterative_epoch();
+        let _ = self.recalculate(None);
+        true
     }
 
     /// 切换工作簿计算模式：`Automatic -> Manual` 冻结当前公式结果；`Manual -> Automatic` 立即全表重算。
@@ -99,8 +174,12 @@ impl Workbook {
             })
             .collect();
         let dependents = self.store.reverse_dependents(&roots);
+        self.atom_context.clear_iterative_converged();
         let store = self.store.clone();
         store.batch(|_| {
+            if self.iterative_calculation.enabled {
+                self.atom_context.bump_iterative_epoch();
+            }
             for (index, addrs) in &selected {
                 self.sheets[*index].invalidate_calculation(addrs);
             }

@@ -169,12 +169,35 @@ impl FacadeCtx {
     /// the reader.
     pub(super) fn formula_expr_for(&self, addr: CellAddress) -> Option<Rc<Expr>> {
         if let Some(expr) = self.interior.formula_exprs.borrow().get(&addr) {
-            return Some(Rc::clone(expr));
+            if !(self.is_iterative_enabled()
+                && matches!(expr.as_ref(), Expr::Error(ValueError::CyclicRef)))
+            {
+                return Some(Rc::clone(expr));
+            }
         }
-        let source = self.interior.formula_source.borrow().get(&addr).cloned()?;
-        let expr =
-            parse_formula(source.source.as_ref()).unwrap_or(Expr::Error(ValueError::InvalidValue));
-        Some(Rc::new(expr))
+        if let Some(source) = self.interior.formula_source.borrow().get(&addr).cloned() {
+            let expr = parse_formula(source.source.as_ref())
+                .unwrap_or(Expr::Error(ValueError::InvalidValue));
+            return Some(Rc::new(expr));
+        }
+        if self.is_iterative_enabled() {
+            let text = self.interior.formula_texts.borrow().get(&addr).cloned()?;
+            let expr = parse_formula(&text).unwrap_or(Expr::Error(ValueError::InvalidValue));
+            return Some(Rc::new(expr));
+        }
+        None
+    }
+
+    pub(super) fn eval_single_pass(&self, addr: CellAddress, expr: &Expr, args: &ReadArgs) -> Value {
+        let provider = AtomFormulaProvider {
+            args,
+            ctx: self.clone(),
+            current_cell: Cell::new(Some(addr)),
+        };
+        let value = normalize_formula_cell_result(eval_expr_with_provider(expr, &provider));
+        self.formula_eval_count
+            .set(self.formula_eval_count.get() + 1);
+        value
     }
 
     /// The per-address formula-inner derived atom (lazy, one per formula
@@ -217,21 +240,52 @@ impl FacadeCtx {
                 return value;
             }
         }
-        let _guard = InFlightGuard::enter(self, addr);
-        let provider = AtomFormulaProvider {
-            args,
-            ctx: self.clone(),
-            current_cell: Cell::new(Some(addr)),
+        let value = if let Some((context, sheet_idx)) = self.workbook_scope() {
+            if !context.iterative_solving.get() && context.iterative_config().enabled {
+                if context
+                    .iterative_converged
+                    .borrow_mut()
+                    .remove(&(sheet_idx, addr))
+                {
+                    if let Some(scc) = context.cycle_scc_for(sheet_idx, addr) {
+                        context.depend_iterative(args);
+                        let _scc_guard = ActiveSccGuard::enter(&context, &scc);
+                        let _ = self.eval_single_pass(addr, &expr, args);
+                        context.iterative_value_or_seed(sheet_idx, addr)
+                    } else {
+                        let _guard = InFlightGuard::enter(self, addr);
+                        self.eval_single_pass(addr, &expr, args)
+                    }
+                } else if let Some(scc) = context.cycle_scc_for(sheet_idx, addr) {
+                    self.solve_iterative_scc(&context, sheet_idx, addr, &expr, &scc, args)
+                } else {
+                    let _guard = InFlightGuard::enter(self, addr);
+                    self.eval_single_pass(addr, &expr, args)
+                }
+            } else if !context.iterative_solving.get() && context.has_installed_cycles.get() {
+                if let Some(scc) = context.cycle_scc_for(sheet_idx, addr) {
+                    context.depend_iterative(args);
+                    let _scc_guard = ActiveSccGuard::enter(&context, &scc);
+                    let _ = self.eval_single_pass(addr, &expr, args);
+                    Value::Error(ValueError::CyclicRef)
+                } else {
+                    let _guard = InFlightGuard::enter(self, addr);
+                    self.eval_single_pass(addr, &expr, args)
+                }
+            } else {
+                let _guard = InFlightGuard::enter(self, addr);
+                self.eval_single_pass(addr, &expr, args)
+            }
+        } else {
+            let _guard = InFlightGuard::enter(self, addr);
+            self.eval_single_pass(addr, &expr, args)
         };
-        let value = normalize_formula_cell_result(eval_expr_with_provider(&expr, &provider));
         if self.interior.manual_calculation.get() && !args.is_faulted() {
             self.interior
                 .manual_formula_cache
                 .borrow_mut()
                 .insert(addr, value.clone());
         }
-        self.formula_eval_count
-            .set(self.formula_eval_count.get() + 1);
         value
     }
 }

@@ -18,7 +18,11 @@ import { shiftCells } from './shift-cells-io'
 import { changeFreeze } from './freeze-io'
 import { changeOutline } from './outline-io'
 import { changeNamedRange } from './named-range-commands'
-import { recalculateWorkbook, setWorkbookCalculationMode } from './quick-formula-commands'
+import {
+  recalculateWorkbook,
+  setWorkbookCalculationMode,
+  setWorkbookIterativeCalculation,
+} from './quick-formula-commands'
 import { changeTable, importTables } from './table-commands'
 import { editWorkbookSheet } from './sheet-edit'
 import {
@@ -207,6 +211,10 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     }
     if (command === 'formula.setCalculationMode') {
       const out = setWorkbookCalculationMode(current, sheetIndex, payload as never, revision)
+      revision = out.nextRevision; return out.reply
+    }
+    if (command === 'formula.setIterativeCalculation') {
+      const out = setWorkbookIterativeCalculation(current, sheetIndex, payload as never, revision)
       revision = out.nextRevision; return out.reply
     }
     if (command === 'workbook.exportFile') {

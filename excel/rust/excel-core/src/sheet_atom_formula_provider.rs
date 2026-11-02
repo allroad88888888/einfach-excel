@@ -32,7 +32,21 @@ impl<'a, 'r> AtomFormulaProvider<'a, 'r> {
     /// tests).
     fn read_facade_from(&self, ctx: &FacadeCtx, addr: CellAddress) -> Value {
         let facade = ctx.get_or_create_facade(addr);
-        if ctx.is_in_flight(addr) {
+        if let Some((context, sheet_idx)) = ctx.workbook_scope() {
+            if context.is_in_active_scc(sheet_idx, addr) {
+                self.args.depend(ctx.epoch_of(addr));
+                return context.iterative_value_or_seed(sheet_idx, addr);
+            }
+            if ctx.is_in_flight(addr) {
+                context.depend_iterative(self.args);
+                self.args.depend(ctx.epoch_of(addr));
+                if context.iterative_config().enabled {
+                    return context.iterative_value_or_seed(sheet_idx, addr);
+                }
+                self.args.depend(facade);
+                return Value::Error(ValueError::CyclicRef);
+            }
+        } else if ctx.is_in_flight(addr) {
             self.args.depend(facade);
             return Value::Error(ValueError::CyclicRef);
         }

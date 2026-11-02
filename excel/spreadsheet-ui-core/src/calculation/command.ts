@@ -10,12 +10,26 @@ import {
 import { validateProjectionResult } from '../projection/contracts'
 import type { RustWorkbookConnection } from '../rust-workbook/commands'
 import {
+  DEFAULT_ITERATIVE_CALCULATION,
   calculationModeStateAtom,
   hydrateCalculationModeAtom,
+  hydrateIterativeCalculationAtom,
+  iterativeCalculationStateAtom,
+  normalizeIterativeCalculation,
+  validIterativeCalculation,
   type CalculationMode,
+  type IterativeCalculationConfig,
 } from './mode-state'
 
-export type { CalculationMode } from './mode-state'
+export {
+  DEFAULT_ITERATIVE_CALCULATION,
+  hydrateCalculationModeAtom,
+  hydrateIterativeCalculationAtom,
+  normalizeIterativeCalculation,
+  validIterativeCalculation,
+  type CalculationMode,
+  type IterativeCalculationConfig,
+} from './mode-state'
 
 type Scope = 'sheet' | 'workbook'
 const EMPTY = { busy: false, error: null as string | null, message: null as string | null }
@@ -49,6 +63,18 @@ export const calculationModeAtom = atom((get): CalculationMode => {
   return 'automatic'
 })
 calculationModeAtom.debugLabel = 'spreadsheet.calculation.mode'
+
+export const iterativeCalculationAtom = atom((get): IterativeCalculationConfig => {
+  const saved = get(iterativeCalculationStateAtom)
+  const connection = get(rustWorkbookConnectionAtom)
+  if (saved && saved.connection === connection) return saved.config
+  const result = get(projectionSnapshotAtom).result
+  if (result?.kind === 'visible-window' && validIterativeCalculation(result.iterativeCalculation)) {
+    return normalizeIterativeCalculation(result.iterativeCalculation)
+  }
+  return DEFAULT_ITERATIVE_CALCULATION
+})
+iterativeCalculationAtom.debugLabel = 'spreadsheet.calculation.iterative'
 
 /** 一次原生重算返回当前投影；没有第二次刷新，也不触碰编辑草稿或历史。 */
 export const recalculateAtom = atom(null, async (get, set, scope: Scope): Promise<boolean> => {
@@ -141,3 +167,65 @@ export const setCalculationModeAtom = atom(
   },
 )
 setCalculationModeAtom.debugLabel = 'spreadsheet.calculation.setMode'
+
+/** 配置工作簿迭代计算（启用 / 最大迭代次数 / 最大误差），随单次投影返回最新求值状态。 */
+export const setIterativeCalculationAtom = atom(
+  null,
+  async (get, set, input: IterativeCalculationConfig): Promise<boolean> => {
+    if (!get(calculationAvailableAtom) || typeof input?.enabled !== 'boolean') return false
+    const config = normalizeIterativeCalculation(input)
+    const connection = get(rustWorkbookConnectionAtom)!
+    const witness = get(projectionSnapshotAtom)
+    const visible = witness.request
+    if (visible?.kind !== 'visible-window') return false
+    const requestId = set(issueProjectionRequestIdAtom)
+    if (requestId === null) return false
+    const projection = createVisibleProjectionRequest({
+      sheetId: visible.sheetId,
+      window: visible.window,
+      viewport: visible.viewport,
+      requestId,
+      reason: 'toolbar',
+    })
+    const pending = { ...EMPTY, connection, busy: true }
+    set(feedbackAtom, pending)
+    try {
+      const response = connection.request('formula.setIterativeCalculation', {
+        ...config,
+        projection,
+      })
+      await Promise.resolve()
+      if (get(rustWorkbookConnectionAtom) === connection) set(feedbackAtom, pending)
+      const result = await response
+      if (get(rustWorkbookConnectionAtom) !== connection) return false
+      if (
+        !validIterativeCalculation(result.iterativeCalculation) ||
+        !validateProjectionResult(result.projection, { request: projection }).ok
+      ) {
+        throw new Error('Rust returned an invalid iterative calculation result.')
+      }
+      set(hydrateIterativeCalculationAtom, result.iterativeCalculation)
+      set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
+      const resolved = result.iterativeCalculation
+      set(feedbackAtom, {
+        ...EMPTY,
+        connection,
+        message: resolved.enabled
+          ? `Iterative calculation enabled (max ${resolved.maxIterations} iterations, delta ${resolved.maxChange}).`
+          : 'Iterative calculation disabled.',
+      })
+      return true
+    } catch (cause) {
+      if (get(rustWorkbookConnectionAtom) !== connection) return false
+      set(feedbackAtom, {
+        ...EMPTY,
+        connection,
+        error: cause instanceof Error ? cause.message : String(cause),
+      })
+      return false
+    } finally {
+      if (get(feedbackAtom) === pending) set(feedbackAtom, { ...EMPTY, connection })
+    }
+  },
+)
+setIterativeCalculationAtom.debugLabel = 'spreadsheet.calculation.setIterative'

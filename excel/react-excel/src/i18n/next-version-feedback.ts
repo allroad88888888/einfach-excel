@@ -37,4 +37,10 @@ export const nextVersionFeedback: Readonly<Record<string, MessageDescriptor>> = 
   'Rust returned an invalid calculation mode result.':
     msg`Rust returned an invalid calculation mode result.`,
   'Invalid calculation mode.': msg`Invalid calculation mode.`,
+  'Iterative calculation disabled.': msg`Iterative calculation disabled.`,
+  'Rust iterative calculation is unavailable.': msg`Rust iterative calculation is unavailable.`,
+  'Rust returned an invalid iterative calculation result.':
+    msg`Rust returned an invalid iterative calculation result.`,
+  'Invalid iterative calculation configuration.':
+    msg`Invalid iterative calculation configuration.`,
 }

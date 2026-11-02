@@ -34,3 +34,4 @@ export {
   resetToolbarMutationAtom,
 } from './mutation-commands'
 export { isToolbarDropdownKind, isToolbarPaletteKind } from './surface-kinds'
+export * from './calculation-tools'

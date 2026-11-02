@@ -68,6 +68,7 @@ fn invalid_print_config_persistence_does_not_replace_the_live_workbook() {
         protection: vec![],
         custom_formulas: vec![],
         calculation_mode: None,
+        iterative_calculation: None,
     };
 
     assert!(workbook.restore_persistence_v1_json(payload).is_err());

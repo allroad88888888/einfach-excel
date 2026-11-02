@@ -45,6 +45,11 @@ export function translateFeedback(i18n: I18n, message: string | null | undefined
     return match[1] === 'Worksheet' ? t(i18n)`Worksheet recalculated (${count} formulas).`
       : t(i18n)`Workbook recalculated (${count} formulas).`
   }
+  match = /^Iterative calculation enabled \(max (\d+) iterations, delta ([0-9.eE+-]+)\)\.$/.exec(message)
+  if (match) {
+    const [, maxIterations, maxChange] = match
+    return t(i18n)`Iterative calculation enabled (max ${maxIterations} iterations, delta ${maxChange}).`
+  }
   match = /^Copied (Count|Numerical count|Sum|Average|Min|Max)\.$/.exec(message)
   if (match) { const label = translateFeedback(i18n, match[1]); return t(i18n)`Copied ${label}.` }
   match = /^(Filling|Filled) (down|right)(…|\.)$/.exec(message)

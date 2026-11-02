@@ -175,6 +175,7 @@ impl Sheet {
         if ghost_of.is_some() && matches!(value, Value::Null) {
             return Ok(());
         }
+        self.facade_ctx().clear_iterative_on_write(addr);
         let collapsed_anchor = ghost_of;
         // ADR 0006 stage 2 — anchors that are currently `#SPILL!` because
         // something occupies this address. Sampled BEFORE the write so the

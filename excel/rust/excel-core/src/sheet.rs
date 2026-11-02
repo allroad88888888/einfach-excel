@@ -156,6 +156,8 @@ mod subscribe;
 mod workbook_async_context;
 #[path = "sheet_workbook_context.rs"]
 mod workbook_context;
+#[path = "sheet_workbook_iterative.rs"]
+mod workbook_iterative;
 #[path = "sheet_workbook_hidden_context.rs"]
 mod workbook_hidden_context;
 #[path = "sheet_workbook_sync_context.rs"]
@@ -184,6 +186,7 @@ use self::row_major_map::*;
 use self::scan::*;
 use self::subscribe::*;
 pub(crate) use self::workbook_context::WorkbookAtomContext;
+use self::workbook_iterative::*;
 use self::workbook_topology::*;
 
 pub(crate) use self::array_gate::{expr_may_produce_array, source_may_produce_array};

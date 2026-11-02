@@ -173,6 +173,9 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
     if parts.manual_calculation {
         workbook.calculation_mode = Some("manual".into());
     }
+    if let Some(iterative) = parts.iterative_calculation {
+        workbook.iterative_calculation = Some(iterative);
+    }
     let file = NativeFile { format: FORMAT.into(), version: 1, title: title.into(), canvases, workbook };
     Ok((file, report.finish_import()))
 }

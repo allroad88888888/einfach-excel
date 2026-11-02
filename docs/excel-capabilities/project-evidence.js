@@ -1,10 +1,10 @@
 // Generated/updated project capability evidence
 window.PROJECT_EVIDENCE = {
   "checkedAt": "2026-11-02",
-  "revision": "cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872",
+  "revision": "0b16b59e",
   "scope": "本项目维护主线：React → spreadsheet-ui-core → Rust Worker/WASM。旧 Solid/Vue/TS 实现不自动计入；当前未发布能力与已发布版本分开理解。",
   "method": "本次静态核对界面入口、命令接线、Rust 实现及 E2E 登记；未重新运行产品完整回归。已实现仅指本条说明内的对应能力，不代表 Office 全兼容。关联测试是现有登记，不是本次通过报告。",
-  "featureBindings": 1083,
+  "featureBindings": 1090,
   "functionCountFull": 502,
   "functionCountLite": 499,
   "sources": {
@@ -29,16 +29,16 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/react-excel/docs/current-capabilities.md",
       "url": "../excel/react-excel/docs/current-capabilities.md",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/docs/current-capabilities.md",
-      "sha256": "3b6b2796a8fedb0289692b5f36d84df58916dd80af8a097505ed29b5b4f76052",
-      "bytes": 41966
+      "sha256": "92a45dd238d98c4f542f3c1e1892b1f85831fa32799b9882548c0439dc8a4c13",
+      "bytes": 42181
     },
     "excel/react-excel/FEATURE_PROGRESS.md": {
       "label": "excel/react-excel/FEATURE_PROGRESS.md",
       "path": "excel/react-excel/FEATURE_PROGRESS.md",
       "url": "../excel/react-excel/FEATURE_PROGRESS.md",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/FEATURE_PROGRESS.md",
-      "sha256": "bca03b1f0f3b942279bb792a29f20b88a92aad3bab56db2725c320410b89d8ac",
-      "bytes": 7004
+      "sha256": "fd005fa4aa2edc8a5381653995346ed1d5901f2996ef838f516f59f1c396f435",
+      "bytes": 7140
     },
     "excel/react-excel/src/workbook/xlsx/xlsx-converter.ts": {
       "label": "excel/react-excel/src/workbook/xlsx/xlsx-converter.ts",
@@ -132,9 +132,9 @@ window.PROJECT_EVIDENCE = {
       "label": "excel/react-excel/src/workbook/chrome/footer/WorkbookSheetTabs.tsx",
       "path": "excel/react-excel/src/workbook/chrome/footer/WorkbookSheetTabs.tsx",
       "url": "../excel/react-excel/src/workbook/chrome/footer/WorkbookSheetTabs.tsx",
-      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/src/workbook/chrome/footer/WorkbookSheetTabs.tsx",
-      "sha256": "73a921461111549b39d0bfc119e54d5fda8396b806c695bb1401cb8f9c697c58",
-      "bytes": 8530
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/react-excel/src/workbook/chrome/footer/WorkbookSheetTabs.tsx",
+      "sha256": "818f03acc42178a2bc889cc72d0666d3acfa759b8c3bd20cdb3c66130243d31a",
+      "bytes": 9531
     },
     "excel/spreadsheet-ui-core/src/rust-workbook/sheet-structure.ts": {
       "label": "excel/spreadsheet-ui-core/src/rust-workbook/sheet-structure.ts",
@@ -148,17 +148,17 @@ window.PROJECT_EVIDENCE = {
       "label": "excel/react-excel/src/workbook/sheet-management/SheetTabContextMenu.tsx",
       "path": "excel/react-excel/src/workbook/sheet-management/SheetTabContextMenu.tsx",
       "url": "../excel/react-excel/src/workbook/sheet-management/SheetTabContextMenu.tsx",
-      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/src/workbook/sheet-management/SheetTabContextMenu.tsx",
-      "sha256": "ea13428efacf4fa87a8bb75ebbd177ed832aa66e53ab0246f539ce81b863b051",
-      "bytes": 4649
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/react-excel/src/workbook/sheet-management/SheetTabContextMenu.tsx",
+      "sha256": "7742bc26357c4ef36931aa5532a1edf033b0352db05b9d016b3f04492a1d0ba5",
+      "bytes": 5499
     },
     "excel/spreadsheet-ui-core/src/sheet-management/index.ts": {
       "label": "excel/spreadsheet-ui-core/src/sheet-management/index.ts",
       "path": "excel/spreadsheet-ui-core/src/sheet-management/index.ts",
       "url": "../excel/spreadsheet-ui-core/src/sheet-management/index.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/sheet-management/index.ts",
-      "sha256": "11c94c8b226de9953a19e902439c8f0bef5943a0ce965cc03df264a44c43c96d",
-      "bytes": 536
+      "sha256": "64578de7ebf2da88a8b5d4950101e53549516090af246357982e466fc37482ae",
+      "bytes": 708
     },
     "excel/rust/excel-core/src/workbook_sheet_duplicate.rs": {
       "label": "excel/rust/excel-core/src/workbook_sheet_duplicate.rs",
@@ -509,8 +509,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/react-excel/src/workbook/grid/editor/CellEditor.tsx",
       "url": "../excel/react-excel/src/workbook/grid/editor/CellEditor.tsx",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/src/workbook/grid/editor/CellEditor.tsx",
-      "sha256": "89e9b3651f9f8111c27a6d3cc390b2504e4d7e984dd6f0ac29d098c353390b4c",
-      "bytes": 9914
+      "sha256": "dd20738e6120900161e66f5d2c30a30a3095d3196d64dc1e4ae0334baee20f71",
+      "bytes": 10557
     },
     "excel/spreadsheet-ui-core/src/editing/index.ts": {
       "label": "excel/spreadsheet-ui-core/src/editing/index.ts",
@@ -557,8 +557,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/spreadsheet-ui-core/src/editing/cell-keyboard-commands.ts",
       "url": "../excel/spreadsheet-ui-core/src/editing/cell-keyboard-commands.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/editing/cell-keyboard-commands.ts",
-      "sha256": "676f157eef40d5c096428f6d13582234b51dadb010313157f028e851fb3a88e0",
-      "bytes": 3963
+      "sha256": "edbcb18a8aeac75b36c38b201c36738ef7994b5b13db98e9917e3179e576827f",
+      "bytes": 4177
     },
     "excel/spreadsheet-ui-core/src/rust-workbook/clipboard-commands.ts": {
       "label": "excel/spreadsheet-ui-core/src/rust-workbook/clipboard-commands.ts",
@@ -621,8 +621,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/spreadsheet-ui-core/src/rust-workbook/clear-io.ts",
       "url": "../excel/spreadsheet-ui-core/src/rust-workbook/clear-io.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/rust-workbook/clear-io.ts",
-      "sha256": "74589d3c2ca1cdf8a67cee76478fa49b8d52a88e2842dd3408672e4c1959bdd8",
-      "bytes": 545
+      "sha256": "471c4a4b23a352448a9d7232863da05c8ba04946b30e1862ac7075b29bae2360",
+      "bytes": 640
     },
     "excel/react-excel/src/workbook/chrome/ribbon/PasteSpecialTools.tsx": {
       "label": "excel/react-excel/src/workbook/chrome/ribbon/PasteSpecialTools.tsx",
@@ -701,8 +701,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/spreadsheet-ui-core/src/rust-workbook/format-io.ts",
       "url": "../excel/spreadsheet-ui-core/src/rust-workbook/format-io.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/rust-workbook/format-io.ts",
-      "sha256": "9fa06e82659ca7a457fc2380566cc435b7819e9d044f9ea238835e02ddf41f4f",
-      "bytes": 1919
+      "sha256": "6477c03186cecebfdd58018ebb2dffb5db41cc674824ac57e395bafad045478d",
+      "bytes": 2142
     },
     "excel/react-excel/src/workbook/chrome/ribbon/NumberFormatTools.tsx": {
       "label": "excel/react-excel/src/workbook/chrome/ribbon/NumberFormatTools.tsx",
@@ -821,8 +821,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/spreadsheet-ui-core/src/formula-reference/index.ts",
       "url": "../excel/spreadsheet-ui-core/src/formula-reference/index.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/formula-reference/index.ts",
-      "sha256": "5e82f719f355d084a0dea33f715eca9e66fb82f42f17b5b66a6cb58dd582980f",
-      "bytes": 9027
+      "sha256": "cb06b80d2bb462b10fed21d27c5a008f64d2f087c71f2e9787973d35904ab11f",
+      "bytes": 9848
     },
     "excel/rust/excel-core/src/shift.rs": {
       "label": "excel/rust/excel-core/src/shift.rs",
@@ -901,16 +901,16 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
       "url": "../excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
-      "sha256": "1ae3faf67ce0c0e46b427a193141da34da59e124e9b5b344ad251abc4ffc9ad7",
-      "bytes": 1861
+      "sha256": "7f969c58a20766fb12a9ed9c2cbabe514d27d52b76ae4e5f1085e70e61280a1a",
+      "bytes": 2450
     },
     "excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts": {
       "label": "excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts",
       "path": "excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts",
       "url": "../excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts",
-      "sha256": "38963e8cfea8ad8f615d335f0d1d0758750a20bbc2ee0635d59be4cede3742d9",
-      "bytes": 1326
+      "sha256": "230918d3230721cdfbbe39768f0153c6b6037f04f5c7f120e48f2a0dc74421e9",
+      "bytes": 3591
     },
     "excel/react-excel/src/workbook/custom-formulas/CustomFormulaTools.tsx": {
       "label": "excel/react-excel/src/workbook/custom-formulas/CustomFormulaTools.tsx",
@@ -1573,8 +1573,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/react-excel/src/workbook/grid/viewport/WorkbookGrid.tsx",
       "url": "../excel/react-excel/src/workbook/grid/viewport/WorkbookGrid.tsx",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/src/workbook/grid/viewport/WorkbookGrid.tsx",
-      "sha256": "121a05cc3e98c5fe7a6b959f9f9a21edbe289c6ab6fa369d8d273bd36ec44eac",
-      "bytes": 9680
+      "sha256": "8f10ff6e71f029b9fd75ed262fc4dd4e7d9bb51f8517e34d75090a82e41776dd",
+      "bytes": 9808
     },
     "excel/spreadsheet-ui-core/src/viewport/index.ts": {
       "label": "excel/spreadsheet-ui-core/src/viewport/index.ts",
@@ -1717,8 +1717,8 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/react-excel/e2e/FEATURES.md",
       "url": "../excel/react-excel/e2e/FEATURES.md",
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/react-excel/e2e/FEATURES.md",
-      "sha256": "f11a7f7b73cbae974929f47a742ee7dbb1688ef8bdab1cedbd3d12eac5c3f030",
-      "bytes": 169976
+      "sha256": "f919b75925e4dd7cb7b153f6f161d9fccd90c39944891b3fbd786564662bea9c",
+      "bytes": 171518
     },
     "excel/spreadsheet-ui-core/src/toolbar/index.ts": {
       "label": "excel/spreadsheet-ui-core/src/toolbar/index.ts",
@@ -1727,6 +1727,54 @@ window.PROJECT_EVIDENCE = {
       "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/cd70a4fa3f7d6e61c9deaf263fb1b52227ea6872/excel/spreadsheet-ui-core/src/toolbar/index.ts",
       "sha256": "5f14c67c09da24f24072627e88ff294e8c2ab14dd4d8bcfd143932daa8013b8f",
       "bytes": 1016
+    },
+    "excel/spreadsheet-ui-core/src/sheet-management/grouping.ts": {
+      "label": "excel/spreadsheet-ui-core/src/sheet-management/grouping.ts",
+      "path": "excel/spreadsheet-ui-core/src/sheet-management/grouping.ts",
+      "url": "../excel/spreadsheet-ui-core/src/sheet-management/grouping.ts",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/spreadsheet-ui-core/src/sheet-management/grouping.ts",
+      "sha256": "9ded581f315f0d9880913e8f006a48980e12db9899075a00d790fae69f469f02",
+      "bytes": 4339
+    },
+    "excel/react-excel/src/workbook/formula-reference/FormulaReferenceHighlight.tsx": {
+      "label": "excel/react-excel/src/workbook/formula-reference/FormulaReferenceHighlight.tsx",
+      "path": "excel/react-excel/src/workbook/formula-reference/FormulaReferenceHighlight.tsx",
+      "url": "../excel/react-excel/src/workbook/formula-reference/FormulaReferenceHighlight.tsx",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/react-excel/src/workbook/formula-reference/FormulaReferenceHighlight.tsx",
+      "sha256": "0e43d0faae54c132bf188615cb419a6fd78d026e216cc05376ba9f9e96fbd6eb",
+      "bytes": 2211
+    },
+    "excel/react-excel/src/workbook/formula-reference/FormulaReferenceOverlay.tsx": {
+      "label": "excel/react-excel/src/workbook/formula-reference/FormulaReferenceOverlay.tsx",
+      "path": "excel/react-excel/src/workbook/formula-reference/FormulaReferenceOverlay.tsx",
+      "url": "../excel/react-excel/src/workbook/formula-reference/FormulaReferenceOverlay.tsx",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/react-excel/src/workbook/formula-reference/FormulaReferenceOverlay.tsx",
+      "sha256": "6145dab9fbd854fd8756b8fb3fe09e75e8391a852d68591f7b684f9a7bf6df22",
+      "bytes": 4195
+    },
+    "excel/spreadsheet-ui-core/src/formula-reference/parser.ts": {
+      "label": "excel/spreadsheet-ui-core/src/formula-reference/parser.ts",
+      "path": "excel/spreadsheet-ui-core/src/formula-reference/parser.ts",
+      "url": "../excel/spreadsheet-ui-core/src/formula-reference/parser.ts",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/spreadsheet-ui-core/src/formula-reference/parser.ts",
+      "sha256": "971886f9ac5ebc01a0cf768606577f9c8513f2d46e4b3a550d8a3dceef9bccfa",
+      "bytes": 5588
+    },
+    "excel/spreadsheet-ui-core/src/calculation/command.ts": {
+      "label": "excel/spreadsheet-ui-core/src/calculation/command.ts",
+      "path": "excel/spreadsheet-ui-core/src/calculation/command.ts",
+      "url": "../excel/spreadsheet-ui-core/src/calculation/command.ts",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/spreadsheet-ui-core/src/calculation/command.ts",
+      "sha256": "00396c1e6e26d63a423dcd4943c47e39fc5b771602dbdad6d12b289520bfede0",
+      "bytes": 6576
+    },
+    "excel/rust/excel-core/src/workbook_calculation.rs": {
+      "label": "excel/rust/excel-core/src/workbook_calculation.rs",
+      "path": "excel/rust/excel-core/src/workbook_calculation.rs",
+      "url": "../excel/rust/excel-core/src/workbook_calculation.rs",
+      "snapshot": "https://github.com/allroad88888888/einfach-excel/blob/0b16b59e/excel/rust/excel-core/src/workbook_calculation.rs",
+      "sha256": "3bbb797d2b6c25d2db004cdfafba8c634f3eda589bb9e58eec89e20183c94541",
+      "bytes": 7114
     }
   },
   "tests": {
@@ -3013,6 +3061,55 @@ window.PROJECT_EVIDENCE = {
       "path": "excel/react-excel/e2e/zoom/zoom.spec.ts",
       "title": "each sheet keeps its own zoom level",
       "registryLine": 1070
+    },
+    "SHEETMGMT-009": {
+      "label": "SHEETMGMT-009 · Ctrl/Shift 点击工作表分组与取消分组",
+      "path": "excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
+      "title": "Ctrl/Cmd+Click and Shift+Click group worksheet tabs, and Ungroup sheets or clicking an ungrouped tab ungroups them",
+      "registryLine": 1099
+    },
+    "SHEETMGMT-010": {
+      "label": "SHEETMGMT-010 · 右键全选可见工作表分组",
+      "path": "excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
+      "title": "Select all sheets from the tab context menu groups all visible sheets",
+      "registryLine": 1100
+    },
+    "SHEETMGMT-011": {
+      "label": "SHEETMGMT-011 · 工作表分组同步输入、格式、清除与单步撤销",
+      "path": "excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
+      "url": "../excel/react-excel/e2e/sheet-management/worksheet-grouping.spec.ts",
+      "title": "Editing a cell, formatting, or clearing while sheets are grouped writes to all grouped sheets and undoes in one step",
+      "registryLine": 1101
+    },
+    "CALC-046": {
+      "label": "CALC-046 · 编辑公式时引用文本与网格区域同色高亮",
+      "path": "excel/react-excel/e2e/editing/formula-reference-coloring.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/formula-reference-coloring.spec.ts",
+      "title": "CALC-046 editing a formula in the cell editor or formula bar colors each reference token and highlights referenced cells on the grid",
+      "registryLine": 852
+    },
+    "CALC-047": {
+      "label": "CALC-047 · 重复引用复用同色且跨表引用在目标表高亮",
+      "path": "excel/react-excel/e2e/editing/formula-reference-coloring.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/formula-reference-coloring.spec.ts",
+      "title": "CALC-047 duplicate references share the same color and cross-sheet references highlight when viewing the target sheet",
+      "registryLine": 853
+    },
+    "CALC-048": {
+      "label": "CALC-048 · 自动与手动计算模式切换",
+      "path": "excel/react-excel/e2e/editing/manual-calculation-mode.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/manual-calculation-mode.spec.ts",
+      "title": "manual calculation mode keeps dependent formulas cached when inputs change until recalculate or automatic",
+      "registryLine": 854
+    },
+    "CALC-049": {
+      "label": "CALC-049 · F9 与 Shift+F9 快捷键重算",
+      "path": "excel/react-excel/e2e/editing/manual-calculation-mode.spec.ts",
+      "url": "../excel/react-excel/e2e/editing/manual-calculation-mode.spec.ts",
+      "title": "pressing F9 recalculates the workbook and Shift+F9 recalculates the current worksheet in manual mode",
+      "registryLine": 855
     }
   },
   "functionGroups": [
@@ -4752,13 +4849,18 @@ window.PROJECT_EVIDENCE = {
         "工作表管理",
         "工作表分组"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/workbook/chrome/footer/WorkbookSheetTabs.tsx",
+        "excel/react-excel/src/workbook/sheet-management/SheetTabContextMenu.tsx",
+        "excel/spreadsheet-ui-core/src/sheet-management/grouping.ts"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "支持 Ctrl/Cmd+单击与 Shift+单击多选分组、右键菜单全选可见工作表；分组下单元格输入、清除与格式原子同步到组内工作表并合并为单步 Undo/Redo。",
+      "tests": [
+        "SHEETMGMT-009",
+        "SHEETMGMT-010",
+        "SHEETMGMT-011"
+      ]
     },
     {
       "path": [
@@ -4766,13 +4868,17 @@ window.PROJECT_EVIDENCE = {
         "工作表管理",
         "取消工作表分组"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/workbook/chrome/footer/WorkbookSheetTabs.tsx",
+        "excel/react-excel/src/workbook/sheet-management/SheetTabContextMenu.tsx",
+        "excel/spreadsheet-ui-core/src/sheet-management/grouping.ts"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "支持右键菜单取消工作表分组或普通单击未分组标签自动解组。",
+      "tests": [
+        "SHEETMGMT-009",
+        "SHEETMGMT-011"
+      ]
     },
     {
       "path": [
@@ -8487,13 +8593,17 @@ window.PROJECT_EVIDENCE = {
         "公式编辑辅助",
         "引用区域着色"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/workbook/formula-reference/FormulaReferenceHighlight.tsx",
+        "excel/react-excel/src/workbook/formula-reference/FormulaReferenceOverlay.tsx",
+        "excel/spreadsheet-ui-core/src/formula-reference/parser.ts"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "格内与公式栏编辑公式时按 6 色调色板对引用 token 着色（相同引用复用同色），并在当前浏览工作表滚动区与冻结区同步绘制同色引用高亮框。",
+      "tests": [
+        "CALC-046",
+        "CALC-047"
+      ]
     },
     {
       "path": [
@@ -8551,15 +8661,16 @@ window.PROJECT_EVIDENCE = {
         "计算控制",
         "自动计算"
       ],
-      "state": "partial",
+      "state": "done",
       "sources": [
         "excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
-        "excel/spreadsheet-ui-core/src/rust-workbook/quick-formula-commands.ts",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/spreadsheet-ui-core/src/calculation/command.ts",
+        "excel/rust/excel-core/src/workbook_calculation.rs"
       ],
-      "note": "Rust 依赖驱动按需计算并在 Worker 中运行；未提供 Excel 自动/手动模式或计算线程数量设置。",
+      "note": "默认自动计算模式由 Rust Store 依赖驱动按需重算；支持在 Automatic 与 Manual 模式间切换并随 .einfach.json / .xlsx 往返持久化。",
       "tests": [
-        "CALC-001"
+        "CALC-001",
+        "CALC-048"
       ]
     },
     {
@@ -8568,13 +8679,17 @@ window.PROJECT_EVIDENCE = {
         "计算控制",
         "手动计算"
       ],
-      "state": "notfound",
+      "state": "done",
       "sources": [
-        "excel/react-excel/FEATURE_PROGRESS.md",
-        "excel/react-excel/docs/current-capabilities.md"
+        "excel/react-excel/src/workbook/chrome/ribbon/CalculationTools.tsx",
+        "excel/spreadsheet-ui-core/src/calculation/command.ts",
+        "excel/rust/excel-core/src/workbook_calculation.rs"
       ],
-      "note": "本次在当前 React → UI Core → Rust/WASM 主线未找到该完整用户功能；旧 Solid/TS 路径、类型定义或计划项不作为已实现依据。",
-      "tests": []
+      "note": "手动计算模式下修改源单元格保留已有下游公式缓存值，直至点击 Recalculate、按 F9（全工作簿）/ Shift+F9（当前表）或切回自动计算。",
+      "tests": [
+        "CALC-048",
+        "CALC-049"
+      ]
     },
     {
       "path": [

@@ -129,6 +129,7 @@ impl Sheet {
         // Lazy parking from any previous bulk load.
         *self.interior.formula_source.borrow_mut() = RowMajorMap::new();
         self.interior.needs_parse.borrow_mut().clear();
+        self.interior.manual_formula_cache.borrow_mut().clear();
 
         // With storage empty, peel every old-world AtomFamily component that
         // Store proves is unobserved. A facade retained by an external Store

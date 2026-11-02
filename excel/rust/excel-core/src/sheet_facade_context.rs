@@ -203,6 +203,20 @@ impl FacadeCtx {
             // an empty cell rather than trapping the reader.
             None => return Value::Null,
         };
+        if self.interior.manual_calculation.get() {
+            let cached = self.interior.manual_formula_cache.borrow().get(&addr).cloned();
+            if let Some(value) = cached {
+                let existing = self.formula_inner_family.borrow().get(&addr);
+                if let Some(inner_id) = existing {
+                    for dep in self.store.direct_dependencies(inner_id) {
+                        if self.store.has_atom(dep) {
+                            args.depend(dep);
+                        }
+                    }
+                }
+                return value;
+            }
+        }
         let _guard = InFlightGuard::enter(self, addr);
         let provider = AtomFormulaProvider {
             args,
@@ -210,6 +224,12 @@ impl FacadeCtx {
             current_cell: Cell::new(Some(addr)),
         };
         let value = normalize_formula_cell_result(eval_expr_with_provider(&expr, &provider));
+        if self.interior.manual_calculation.get() && !args.is_faulted() {
+            self.interior
+                .manual_formula_cache
+                .borrow_mut()
+                .insert(addr, value.clone());
+        }
         self.formula_eval_count
             .set(self.formula_eval_count.get() + 1);
         value

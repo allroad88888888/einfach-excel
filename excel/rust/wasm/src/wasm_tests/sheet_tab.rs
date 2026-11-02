@@ -49,3 +49,29 @@ fn duplicate_sheet_is_one_history_step_with_independent_content() {
     assert_eq!(wb.workbook_value(1, "B1"), Value::Number(20.0));
     assert_eq!(wb.workbook_value(0, "B1"), Value::Number(6.0));
 }
+
+#[test]
+fn calculation_mode_round_trips_through_persistence_v1() {
+    let mut source = WasmWorkbook::new();
+    source.set_number(0, "A1", 10.0);
+    source.set_formula(0, "B1", "=A1*2");
+    assert_eq!(source.get_calculation_mode(), "automatic");
+    let auto_saved = serde_json::to_value(source.snapshot_persistence_v1_json()).unwrap();
+    assert!(auto_saved.get("calculationMode").is_none());
+
+    assert!(source.set_calculation_mode("manual").ok().unwrap());
+    assert_eq!(source.get_calculation_mode(), "manual");
+    let manual_saved = serde_json::to_value(source.snapshot_persistence_v1_json()).unwrap();
+    assert_eq!(manual_saved["calculationMode"], "manual");
+
+    let mut restored = WasmWorkbook::new();
+    restored
+        .restore_persistence_v1_json(serde_json::from_value(manual_saved).unwrap())
+        .unwrap();
+    assert_eq!(restored.get_calculation_mode(), "manual");
+    assert_eq!(restored.workbook_value(0, "B1"), Value::Number(20.0));
+    restored.set_number(0, "A1", 50.0);
+    assert_eq!(restored.workbook_value(0, "B1"), Value::Number(20.0));
+    restored.recalculate(None).unwrap();
+    assert_eq!(restored.workbook_value(0, "B1"), Value::Number(100.0));
+}

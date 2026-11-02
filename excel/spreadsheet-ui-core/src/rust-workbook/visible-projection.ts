@@ -37,8 +37,12 @@ export function readVisibleProjection(
     ? readFrozenProjection(workbook, sheetIndex, request, freeze, visibility)
     : undefined
   const customFormulaDefinitions = customDirectory(workbook, revision)
+  const rawCalcMode = workbook.get_calculation_mode?.()
+  const calculationMode = rawCalcMode === 'manual' || rawCalcMode === 'automatic'
+    ? rawCalcMode : undefined
   return {
     kind: 'visible-window',
+    ...(calculationMode ? { calculationMode } : {}),
     ...(workbook.listTables ? { tables: workbook.listTables() } : {}),
     ...(freeze ? { freeze } : {}),
     ...(frozen ? { frozen } : {}),

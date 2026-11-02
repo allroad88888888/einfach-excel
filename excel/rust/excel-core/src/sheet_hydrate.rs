@@ -158,6 +158,7 @@ impl Sheet {
         // first read.
         let parked = self.interior.formula_source.borrow_mut().remove(&addr);
         self.interior.needs_parse.borrow_mut().remove(&addr);
+        self.interior.manual_formula_cache.borrow_mut().remove(&addr);
         let record = self.interior.formula_cells.borrow_mut().remove(&addr);
         if record.is_some() {
             self.interior.formula_exprs.borrow_mut().remove(&addr);

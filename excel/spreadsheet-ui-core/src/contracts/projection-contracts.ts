@@ -79,6 +79,8 @@ export interface VisibleProjectionResult extends SheetRef {
   freeze?: { readonly rows: number; readonly cols: number }
   /** 与滚动区同一修订版的冻结数据，不混进普通 cells 的窗口契约。 */
   frozen?: FrozenProjection
+  /** 工作簿公式计算模式（automatic / manual）。 */
+  calculationMode?: 'automatic' | 'manual'
   truncated?: boolean
 }
 

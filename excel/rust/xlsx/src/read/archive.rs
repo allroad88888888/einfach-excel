@@ -28,6 +28,7 @@ pub struct WorkbookParts {
     pub styles: Option<String>,
     pub theme: Option<String>,
     pub date1904: bool,
+    pub manual_calculation: bool,
     pub external_links: usize,
     pub pivot_caches: usize,
     pub macros: bool,
@@ -77,6 +78,7 @@ impl Archive {
 
         let mut sheets = Vec::new();
         let mut date1904 = false;
+        let mut manual_calculation = false;
         let mut reader = Reader::from_str(&workbook);
         loop {
             match reader.read_event() {
@@ -88,6 +90,10 @@ impl Archive {
                         }
                     }
                     b"workbookPr" => date1904 = attr(&e, "date1904").is_some_and(|v| v == "1" || v == "true"),
+                    b"calcPr" => {
+                        manual_calculation = attr(&e, "calcMode")
+                            .is_some_and(|mode| mode.eq_ignore_ascii_case("manual"));
+                    }
                     _ => {}
                 },
                 Ok(Event::Eof) => break,
@@ -104,6 +110,7 @@ impl Archive {
             styles: by_type("/styles"),
             theme: by_type("/theme"),
             date1904,
+            manual_calculation,
             external_links,
             pivot_caches,
             macros,

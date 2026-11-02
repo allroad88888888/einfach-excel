@@ -18,6 +18,7 @@ import { shiftCells } from './shift-cells-io'
 import { changeFreeze } from './freeze-io'
 import { changeOutline } from './outline-io'
 import { changeNamedRange } from './named-range-commands'
+import { recalculateWorkbook, setWorkbookCalculationMode } from './quick-formula-commands'
 import { changeTable, importTables } from './table-commands'
 import { editWorkbookSheet } from './sheet-edit'
 import {
@@ -201,14 +202,12 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return { inspection: inspectSpill(current, sheetIndex(input.sheetId), input.cell), revision }
     }
     if (command === 'formula.recalculate') {
-      const input = payload as RustWorkbookCommands[typeof command]['payload']
-      if (!['sheet', 'workbook'].includes(input.scope)) throw new Error('Invalid calculation scope.')
-      const index = sheetIndex(input.projection.sheetId)
-      if (!current.recalculate) throw new Error('Rust recalculation is unavailable.')
-      const formulaCount = current.recalculate(input.scope === 'sheet' ? index : undefined)
-      if (formulaCount > 0) revision += 1
-      return { formulaCount,
-        projection: readVisibleProjection(current, index, input.projection, revision) }
+      const out = recalculateWorkbook(current, sheetIndex, payload as never, revision)
+      revision = out.nextRevision; return out.reply
+    }
+    if (command === 'formula.setCalculationMode') {
+      const out = setWorkbookCalculationMode(current, sheetIndex, payload as never, revision)
+      revision = out.nextRevision; return out.reply
     }
     if (command === 'workbook.exportFile') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']

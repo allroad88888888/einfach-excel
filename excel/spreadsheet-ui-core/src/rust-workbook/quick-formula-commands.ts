@@ -2,6 +2,9 @@ import type { CellCoord, CellRange } from '../shared'
 import type { WorkerCommand } from '../rust-worker'
 import type { NativeFunctionCatalog } from '../formula-functions/types'
 import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
+import type { CalculationMode } from '../calculation/mode-state'
+import type { WasmWorkbook } from './wasm-types'
+import { readVisibleProjection } from './visible-projection'
 
 export type QuickFormula = 'sum' | 'average' | 'count'
 export interface RustQuickFormulaRequest {
@@ -24,8 +27,65 @@ export interface RustQuickFormulaCommands {
     { readonly scope: 'sheet' | 'workbook'; readonly projection: VisibleProjectionRequest },
     { readonly formulaCount: number; readonly projection: VisibleProjectionResult }
   >
+  readonly 'formula.setCalculationMode': WorkerCommand<
+    { readonly mode: CalculationMode; readonly projection: VisibleProjectionRequest },
+    {
+      readonly changed: boolean
+      readonly mode: CalculationMode
+      readonly projection: VisibleProjectionResult
+    }
+  >
   readonly 'formula.catalog': WorkerCommand<Record<string, never>, NativeFunctionCatalog>
   readonly 'formula.suggest': WorkerCommand<
     RustQuickFormulaRequest, QuickFormulaSuggestion & { readonly revision: number }
   >
+}
+
+export function recalculateWorkbook(
+  workbook: WasmWorkbook,
+  sheetIndex: (sheetId: string) => number,
+  input: RustQuickFormulaCommands['formula.recalculate']['payload'],
+  revision: number,
+): {
+  readonly nextRevision: number
+  readonly reply: RustQuickFormulaCommands['formula.recalculate']['result']
+} {
+  if (!['sheet', 'workbook'].includes(input.scope)) throw new Error('Invalid calculation scope.')
+  const index = sheetIndex(input.projection.sheetId)
+  if (!workbook.recalculate) throw new Error('Rust recalculation is unavailable.')
+  const formulaCount = workbook.recalculate(input.scope === 'sheet' ? index : undefined)
+  const nextRevision = formulaCount > 0 ? revision + 1 : revision
+  return {
+    nextRevision,
+    reply: {
+      formulaCount,
+      projection: readVisibleProjection(workbook, index, input.projection, nextRevision),
+    },
+  }
+}
+
+export function setWorkbookCalculationMode(
+  workbook: WasmWorkbook,
+  sheetIndex: (sheetId: string) => number,
+  input: RustQuickFormulaCommands['formula.setCalculationMode']['payload'],
+  revision: number,
+): {
+  readonly nextRevision: number
+  readonly reply: RustQuickFormulaCommands['formula.setCalculationMode']['result']
+} {
+  if (input.mode !== 'automatic' && input.mode !== 'manual')
+    throw new Error('Invalid calculation mode.')
+  const index = sheetIndex(input.projection.sheetId)
+  if (!workbook.set_calculation_mode) throw new Error('Rust calculation mode is unavailable.')
+  const changed = workbook.set_calculation_mode(input.mode)
+  const nextRevision = changed ? revision + 1 : revision
+  const mode = workbook.get_calculation_mode?.() ?? input.mode
+  return {
+    nextRevision,
+    reply: {
+      changed,
+      mode,
+      projection: readVisibleProjection(workbook, index, input.projection, nextRevision),
+    },
+  }
 }

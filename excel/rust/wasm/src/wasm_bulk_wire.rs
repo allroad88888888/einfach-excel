@@ -278,6 +278,8 @@ struct WorkbookPersistenceV1JSON {
     data_validations: Vec<SheetDataValidationJSON>,
     #[serde(default, rename = "namedRanges", skip_serializing_if = "Vec::is_empty")]
     named_ranges: Vec<NamedRangeJSON>,
+    #[serde(default, rename = "calculationMode", skip_serializing_if = "Option::is_none")]
+    calculation_mode: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

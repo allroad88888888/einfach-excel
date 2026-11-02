@@ -200,6 +200,7 @@ pub use workbook_merge::MergeAction;
 
 pub(crate) use self::workbook_bulk_types::CustomCallScope;
 pub use self::workbook_bulk_types::{BulkInstallStats, InstallError};
+pub use self::workbook_calculation::CalculationMode;
 pub use self::workbook_conditional_format_types::{
     ConditionalFormatConfigSnapshot, ConditionalFormatError, ConditionalFormatRuleAction,
     ConditionalFormatRuleEntry,
@@ -237,6 +238,7 @@ pub struct Workbook {
     pub(crate) validation_confirmation: Rc<Cell<bool>>,
     pub(crate) validation_failure: std::cell::RefCell<Option<advanced_validation::ValidationFailure>>,
     pub(crate) custom_call_depth: Rc<Cell<usize>>,
+    pub(super) calculation_mode: CalculationMode,
     pub(super) content_revision: u64,
     pub(super) tables: BTreeMap<String, TableEntry>,
     pub(super) tables_epoch: u64,

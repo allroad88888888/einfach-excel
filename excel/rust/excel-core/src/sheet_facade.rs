@@ -152,4 +152,24 @@ impl Sheet {
             self.invalidate_formula_value(*addr);
         }
     }
+
+    pub(crate) fn set_manual_calculation(&self, manual: bool) {
+        self.interior.manual_calculation.set(manual);
+        if !manual {
+            self.interior.manual_formula_cache.borrow_mut().clear();
+        }
+    }
+
+    pub(crate) fn capture_manual_calculation_cache(&self, addrs: &[CellAddress]) {
+        self.interior.manual_calculation.set(false);
+        let mut snapshot = HashMap::with_capacity(addrs.len());
+        for &addr in addrs {
+            self.hydrate_formula(addr);
+            let inner = self.facade_ctx().formula_inner_of(addr);
+            let value = self.store.get(inner);
+            snapshot.insert(addr, value);
+        }
+        *self.interior.manual_formula_cache.borrow_mut() = snapshot;
+        self.interior.manual_calculation.set(true);
+    }
 }

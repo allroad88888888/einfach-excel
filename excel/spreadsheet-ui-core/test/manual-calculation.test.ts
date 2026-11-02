@@ -2,19 +2,25 @@ import { expect, test, vi } from 'vitest'
 import {
   createSpreadsheetUi, initializeWorkbookDocumentAtom, runVisibleProjectionAtom,
   projectionSnapshotAtom, setRustWorkbookConnectionAtom, setSheetProtectionAtom,
-  calculationAvailableAtom, calculationFeedbackAtom, recalculateAtom,
+  calculationAvailableAtom, calculationFeedbackAtom, calculationModeAtom,
+  recalculateAtom, setCalculationModeAtom, dispatchGridCellKeyboardInputAtom,
   startEditingAtom, editingSessionAtom,
   type RustWorkbookCommands, type RustWorkbookConnection, type VisibleProjectionRequest,
 } from '../src'
 
 type Input = RustWorkbookCommands['formula.recalculate']['payload']
+type ModeInput = RustWorkbookCommands['formula.setCalculationMode']['payload']
 const result = (input: Input) => ({ formulaCount: 3,
   projection: { ...input.projection, cells: [{ row: 0, col: 0, displayValue: '8', formula: '=RAND()' }], revision: 2 } })
 async function setup() {
   const calculate = vi.fn(async (input: Input) => result(input))
-  const request = vi.fn(async (command: string, input: unknown) => command === 'formula.recalculate'
-    ? calculate(input as Input)
-    : { ...(input as { request: VisibleProjectionRequest }).request, cells: [], revision: 1 })
+  const setMode = vi.fn(async (input: ModeInput) => ({ mode: input.mode,
+    projection: { ...input.projection, calculationMode: input.mode, cells: [{ row: 0, col: 0, displayValue: '8', formula: '=RAND()' }], revision: 2 } }))
+  const request = vi.fn(async (command: string, input: unknown) => {
+    if (command === 'formula.recalculate') return calculate(input as Input)
+    if (command === 'formula.setCalculationMode') return setMode(input as ModeInput)
+    return { ...(input as { request: VisibleProjectionRequest }).request, calculationMode: 'automatic', cells: [], revision: 1 }
+  })
   const connection = { request: request as RustWorkbookConnection['request'], dispose() {} }
   const { store } = createSpreadsheetUi({ connection })
   store.setter(initializeWorkbookDocumentAtom, { title: 'Book', sheets: [
@@ -22,7 +28,7 @@ async function setup() {
   ] })
   await store.setter(runVisibleProjectionAtom, { sheetId: 's', reason: 'viewport',
     window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 7 } })
-  return { store, calculate, request }
+  return { store, calculate, setMode, request }
 }
 
 test.each(['sheet', 'workbook'] as const)('%s makes one native request and publishes bundled projection on a protected sheet', async (scope) => {
@@ -73,3 +79,46 @@ test('errors and malformed metadata preserve projection and permit retry', async
   expect(store.getter(projectionSnapshotAtom)).toBe(before)
   expect(await store.setter(recalculateAtom, 'workbook')).toBe(true)
 })
+
+test('setCalculationModeAtom switches between automatic and manual and syncs calculationModeAtom', async () => {
+  const { store, setMode } = await setup()
+  expect(store.getter(calculationModeAtom)).toBe('automatic')
+  expect(await store.setter(setCalculationModeAtom, 'manual')).toBe(true)
+  expect(setMode).toHaveBeenCalledOnce()
+  expect(store.getter(calculationModeAtom)).toBe('manual')
+  expect(store.getter(calculationFeedbackAtom).message).toBe('Calculation mode set to Manual.')
+  expect(await store.setter(setCalculationModeAtom, 'automatic')).toBe(true)
+  expect(store.getter(calculationModeAtom)).toBe('automatic')
+  expect(store.getter(calculationFeedbackAtom).message).toBe('Calculation mode set to Automatic.')
+})
+
+test('F9 and Shift+F9 trigger workbook and sheet recalculation in grid navigation mode only', async () => {
+  const { store, calculate } = await setup()
+  expect(store.setter(dispatchGridCellKeyboardInputAtom, {
+    sheetId: 's',
+    cell: { row: 0, col: 0 },
+    keyboard: { key: 'F9' },
+    allowEditing: true,
+  })).toEqual({ type: 'calculation.recalculate', scope: 'workbook' })
+  await vi.waitFor(() => expect(store.getter(calculationAvailableAtom)).toBe(true))
+  expect(calculate).toHaveBeenLastCalledWith(expect.objectContaining({ scope: 'workbook' }))
+
+  expect(store.setter(dispatchGridCellKeyboardInputAtom, {
+    sheetId: 's',
+    cell: { row: 0, col: 0 },
+    keyboard: { key: 'F9', shiftKey: true },
+    allowEditing: true,
+  })).toEqual({ type: 'calculation.recalculate', scope: 'sheet' })
+  await vi.waitFor(() => expect(store.getter(calculationAvailableAtom)).toBe(true))
+  expect(calculate).toHaveBeenLastCalledWith(expect.objectContaining({ scope: 'sheet' }))
+
+  store.setter(startEditingAtom, { sheetId: 's', cell: { row: 0, col: 0 }, source: 'cell', draft: '=A1' })
+  expect(store.setter(dispatchGridCellKeyboardInputAtom, {
+    sheetId: 's',
+    cell: { row: 0, col: 0 },
+    keyboard: { key: 'F9' },
+    allowEditing: true,
+  })).toEqual({ type: 'none', reason: 'editing-text-navigation' })
+  expect(calculate).toHaveBeenCalledTimes(2)
+})
+

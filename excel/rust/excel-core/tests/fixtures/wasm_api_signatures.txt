@@ -133,6 +133,7 @@ impl WasmWorkbook :: [] :: pub fn find_cells(&self, request: JsValue) -> Result<
 impl WasmWorkbook :: [] :: pub fn find_fill_down_end( &self, sheet: u32, source: JsValue, row_limit: u32, ) -> Result<Option<u32>, JsValue>
 impl WasmWorkbook :: [] :: pub fn finish_clipboard_capture(&mut self, commit: bool)
 impl WasmWorkbook :: [] :: pub fn frozen_panes(&self, sheet: u32) -> Result<Vec<u32>, JsValue>
+impl WasmWorkbook :: [] :: pub fn get_calculation_mode(&self) -> String
 impl WasmWorkbook :: [] :: pub fn get_display(&self, sheet_idx: u32, addr: &str) -> String
 impl WasmWorkbook :: [] :: pub fn get_formula(&self, sheet_idx: u32, addr: &str) -> String
 impl WasmWorkbook :: [] :: pub fn get_number(&self, sheet_idx: u32, addr: &str) -> f64
@@ -180,6 +181,7 @@ impl WasmWorkbook :: [] :: pub fn restore_sparse(&mut self, cells: JsValue) -> R
 impl WasmWorkbook :: [] :: pub fn select_current_region(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn select_visible_cells(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn set_boolean(&mut self, sheet_idx: u32, addr: &str, value: bool)
+impl WasmWorkbook :: [] :: pub fn set_calculation_mode(&mut self, mode: &str) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn set_cell_boolean(&mut self, sheet_idx: usize, addr: &str, value: bool)
 impl WasmWorkbook :: [] :: pub fn set_cell_error(&mut self, sheet_idx: usize, addr: &str, value: &str)
 impl WasmWorkbook :: [] :: pub fn set_cell_input( &mut self, sheet_idx: usize, addr: &str, input: &str, ) -> Result<(), JsValue>

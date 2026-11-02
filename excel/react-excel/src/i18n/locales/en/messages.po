@@ -496,6 +496,7 @@ msgid "Auto sum (review in formula bar)"
 msgstr "Auto sum (review in formula bar)"
 
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
 msgid "Automatic"
 msgstr "Automatic"
 
@@ -611,6 +612,18 @@ msgstr "broken defined names"
 #: src/workbook/chrome/footer/SelectionStatus.tsx
 msgid "Calculating selection…"
 msgstr "Calculating selection…"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Calculation mode"
+msgstr "Calculation mode"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Calculation mode set to Automatic."
+msgstr "Calculation mode set to Automatic."
+
+#: src/i18n/next-version-feedback.ts
+msgid "Calculation mode set to Manual."
+msgstr "Calculation mode set to Manual."
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Call only built-in functions or registered custom formulas in custom formula expressions."
@@ -2972,6 +2985,10 @@ msgstr "Inside vertical"
 msgid "Interface language"
 msgstr "Interface language"
 
+#: src/i18n/next-version-feedback.ts
+msgid "Invalid calculation mode."
+msgstr "Invalid calculation mode."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Invalid comment display name."
 msgstr "Invalid comment display name."
@@ -3231,6 +3248,10 @@ msgstr "Lowest value"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "macros"
 msgstr "macros"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Manual"
+msgstr "Manual"
 
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
@@ -4541,6 +4562,10 @@ msgstr "rows {0}–{1}"
 msgid "Rule type"
 msgstr "Rule type"
 
+#: src/i18n/next-version-feedback.ts
+msgid "Rust calculation mode is unavailable."
+msgstr "Rust calculation mode is unavailable."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust comment editing is unavailable."
 msgstr "Rust comment editing is unavailable."
@@ -4584,6 +4609,10 @@ msgstr "Rust returned a mismatched protection result."
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust returned a mismatched validation confirmation result."
 msgstr "Rust returned a mismatched validation confirmation result."
+
+#: src/i18n/next-version-feedback.ts
+msgid "Rust returned an invalid calculation mode result."
+msgstr "Rust returned an invalid calculation mode result."
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust returned an invalid comment thread."

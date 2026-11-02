@@ -22,6 +22,7 @@ impl Workbook {
             validation_confirmation: Rc::new(Cell::new(false)),
             validation_failure: std::cell::RefCell::new(None),
             custom_call_depth,
+            calculation_mode: CalculationMode::Automatic,
             content_revision: 0,
             tables: BTreeMap::new(),
             tables_epoch: 0,
@@ -36,12 +37,14 @@ impl Workbook {
     }
 
     pub(crate) fn sync_atom_topology(&mut self) {
+        let is_manual = self.calculation_mode == CalculationMode::Manual;
         let arrays = self.named_array_dependents();
         let sheets = self
             .sheets
             .iter()
             .enumerate()
             .map(|(idx, sheet)| {
+                sheet.set_manual_calculation(is_manual);
                 sheet.attach_workbook_context(&self.atom_context, idx);
                 (self.names[idx].clone(), sheet.facade_ctx())
             })

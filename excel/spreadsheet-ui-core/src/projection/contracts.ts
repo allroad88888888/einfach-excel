@@ -254,6 +254,9 @@ export function validateProjectionResult(
       freeze.rows >= 1_048_576 || freeze.cols >= 16_384)
       return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust freeze projection.')
   }
+  if (result.kind === 'visible-window' && result.calculationMode !== undefined &&
+    result.calculationMode !== 'automatic' && result.calculationMode !== 'manual')
+    return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust calculation mode projection.')
   const requestValidation = validateProjectionRange(
     result.sheetId,
     result.requestId,

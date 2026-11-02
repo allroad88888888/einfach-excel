@@ -2,7 +2,66 @@
 
 use super::*;
 
+/// 工作簿公式求值模式。默认 `Automatic` 保持实时依赖传播；`Manual` 保留已求值结果直到显式重算。
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum CalculationMode {
+    #[default]
+    Automatic,
+    Manual,
+}
+
 impl Workbook {
+    pub fn calculation_mode(&self) -> CalculationMode {
+        self.calculation_mode
+    }
+
+    /// 切换工作簿计算模式：`Automatic -> Manual` 冻结当前公式结果；`Manual -> Automatic` 立即全表重算。
+    pub fn set_calculation_mode(&mut self, mode: CalculationMode) -> bool {
+        if self.is_inside_custom_call() || self.calculation_mode == mode {
+            return false;
+        }
+        self.calculation_mode = mode;
+        match mode {
+            CalculationMode::Manual => {
+                let all =
+                    CellRange::new(CellAddress::new(0, 0), CellAddress::new(u32::MAX, u32::MAX));
+                for sheet in &self.sheets {
+                    sheet.set_manual_calculation(false);
+                }
+                for index in 0..self.sheets.len() {
+                    let mut addrs: Vec<_> = self.sheets[index]
+                        .formula_addrs_in_range(all)
+                        .into_iter()
+                        .collect();
+                    addrs.sort_unstable_by_key(|addr| (addr.row, addr.col));
+                    for addr in addrs {
+                        self.sheets[index].peek_value(addr);
+                    }
+                }
+                let groups = (0..self.sheets.len())
+                    .map(|index| (index, self.sheets[index].formula_addrs_in_range(all)))
+                    .collect();
+                self.recompute_array_formula_groups(groups);
+                for index in 0..self.sheets.len() {
+                    let mut addrs: Vec<_> = self.sheets[index]
+                        .formula_addrs_in_range(all)
+                        .into_iter()
+                        .collect();
+                    addrs.sort_unstable_by_key(|addr| (addr.row, addr.col));
+                    self.sheets[index].capture_manual_calculation_cache(&addrs);
+                }
+                self.store.settle_pending_reads();
+            }
+            CalculationMode::Automatic => {
+                for sheet in &self.sheets {
+                    sheet.set_manual_calculation(false);
+                }
+                let _ = self.recalculate(None);
+            }
+        }
+        true
+    }
+
     /// `Some(index)` 强制重算该表，`None` 强制重算整个工作簿。
     /// 跨表下游仍由 Store 传播；无关表的公式不强制失效。
     /// 只枚举已有公式（包括尚未读取的导入公式），不扫描空白网格。
@@ -25,6 +84,12 @@ impl Workbook {
             .map(|(index, sheet)| (index, sheet.formula_addrs_in_range(all)))
             .collect();
         let count = selected.iter().map(|(_, addrs)| addrs.len()).sum();
+        let is_manual = self.calculation_mode == CalculationMode::Manual;
+        if is_manual {
+            for (index, _) in &selected {
+                self.sheets[*index].set_manual_calculation(false);
+            }
+        }
         let roots: Vec<_> = selected
             .iter()
             .flat_map(|(index, addrs)| {
@@ -53,20 +118,31 @@ impl Workbook {
             .sheets
             .iter()
             .enumerate()
-            .map(|(index, sheet)| {
-                let mut arrays = sheet.array_formula_addrs_for_store_atoms(&dependents);
+            .map(|(index, sheet_ref)| {
+                let mut arrays = if is_manual && sheet.is_some_and(|target| target != index) {
+                    HashSet::new()
+                } else {
+                    sheet_ref.array_formula_addrs_for_store_atoms(&dependents)
+                };
                 if let Some((_, addrs)) = selected.iter().find(|(target, _)| *target == index) {
                     let inner: Vec<_> = addrs
                         .iter()
-                        .filter_map(|addr| sheet.formula_inner_atom(*addr))
+                        .filter_map(|addr| sheet_ref.formula_inner_atom(*addr))
                         .collect();
-                    arrays.extend(sheet.array_formula_addrs_for_store_atoms(&inner));
+                    arrays.extend(sheet_ref.array_formula_addrs_for_store_atoms(&inner));
                 }
                 (index, arrays)
             })
             .collect();
         // 依赖顺序由 Store 决定，不能按工作表顺序重建动态数组几何。
         self.recompute_array_formula_groups(groups);
+        if is_manual {
+            for (index, addrs) in &selected {
+                let mut ordered: Vec<_> = addrs.iter().copied().collect();
+                ordered.sort_unstable_by_key(|addr| (addr.row, addr.col));
+                self.sheets[*index].capture_manual_calculation_cache(&ordered);
+            }
+        }
         store.settle_pending_reads();
         Ok(count)
     }

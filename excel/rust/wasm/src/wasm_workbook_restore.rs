@@ -74,6 +74,11 @@ impl WasmWorkbook {
             Self::print_config_snapshots_from_json(payload.print_configs, sheet_count)?;
         let conditional_formats =
             Self::conditional_format_snapshots_from_json(payload.conditional_formats, sheet_count)?;
+        let calculation_mode = match payload.calculation_mode.as_deref() {
+            None | Some("automatic") => einfach_excel_core::CalculationMode::Automatic,
+            Some("manual") => einfach_excel_core::CalculationMode::Manual,
+            Some(other) => return Err(format!("invalid calculationMode in payload: {other}")),
+        };
 
         let mut workbook = Workbook::new();
         workbook.set_custom_function_registry(Some(
@@ -175,6 +180,10 @@ impl WasmWorkbook {
         let restored_filter_sheets = workbook
             .restore_filters(filter_snapshot)
             .map_err(|_| "persistence restore filters failed".to_string())?;
+
+        if calculation_mode == einfach_excel_core::CalculationMode::Manual {
+            workbook.set_calculation_mode(einfach_excel_core::CalculationMode::Manual);
+        }
 
         // 保护最后恢复；前面的候选构造必须先完整验证，不产生半次受保护导入。
         Self::restore_protection_json(&mut workbook, payload.protection)?;

@@ -97,6 +97,7 @@ fn exports_native_snapshots_written_by_the_engine() {
                     "strikethrough": false, "indent": 0, "verticalAlign": "default", "rotation": 0}}],
                 "rowStyles": [{"index": 0, "format": {}, "height": 28}], "columnStyles": []}],
             "printConfigs": [{"sheet": 0, "revision": 0, "config": {}}],
+            "calculationMode": "manual",
         }
     });
     let bytes = einfach_xlsx::native_to_xlsx(&native.to_string()).unwrap();
@@ -106,6 +107,7 @@ fn exports_native_snapshots_written_by_the_engine() {
     assert_eq!(cells[1]["value"], "=FILTER(A1:A3,A1:A3<>\"\")");
     assert_eq!(cells[2]["kind"], "error");
     assert_eq!(back["workbook"]["sheets"][0]["name"], "Data & More");
+    assert_eq!(back["workbook"]["calculationMode"], "manual");
     let format = &back["workbook"]["formats"][0]["cellStyles"][0]["format"];
     assert_eq!(format["bold"], true);
     assert_eq!(format["numberFormat"]["pattern"], "\"¥\"#,##0.00");

@@ -143,6 +143,10 @@ impl Sheet {
         // mutate the sheet, so the spill install has to happen here.
         self.recompute_array_formula(addr);
         self.recompute_array_formulas_in(&array_formulas_to_reproject);
+        if self.interior.manual_calculation.get() {
+            let _ = self.peek_value(addr);
+            self.store.settle_pending_reads();
+        }
         Ok(true)
     }
 

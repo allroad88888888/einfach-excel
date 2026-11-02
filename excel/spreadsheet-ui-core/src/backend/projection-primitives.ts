@@ -1,6 +1,5 @@
 import type { CellCoord, CellRange, SheetRef, SpreadsheetError } from '../shared'
 import type { ValidationOutcome } from '../data-validation/types'
-import type { DisplayCellRichValue } from '../rich-types/types'
 import type { SpreadsheetCellFormat } from './cell-format'
 
 /** 投影协议共享的标识、取消标记及单元格值类型。 */
@@ -67,7 +66,6 @@ export interface DisplayCell {
     readonly index: 0 | 1 | 2
     readonly showValue: boolean
   }
-  richValue?: DisplayCellRichValue
   /** Locked indicator from a protected sheet; gating logic uses unlockedRanges on the UI side. */
   locked?: boolean
 }

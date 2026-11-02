@@ -70,13 +70,6 @@ export interface SetViewportFreezeInput {
   cols?: number
 }
 
-export interface FrozenWindows {
-  topLeft: VisibleWindow
-  topRight: VisibleWindow
-  bottomLeft: VisibleWindow
-  bottomRight: VisibleWindow
-}
-
 export interface ViewportHiddenState {
   rowsBySheet: Record<string, number[]>
   colsBySheet: Record<string, number[]>

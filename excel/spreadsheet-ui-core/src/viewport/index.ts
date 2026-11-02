@@ -9,9 +9,7 @@ export {
   viewportMetricsAtom,
 } from './metrics'
 export {
-  countVisibleIndices,
   getVisibleWindow,
-  getVisibleWindowWithHidden,
   isCellInVisibleWindow,
   visibleWindowAtom,
 } from './visible-window'
@@ -35,7 +33,6 @@ export {
   type ViewportSizeHydrationOutcome,
   type ViewportSizeProjectionPort,
 } from './size-projection'
-export { getFrozenWindows } from './frozen-windows'
 export * from './hidden'
 export * from './effective-hidden'
 export * from './freeze'

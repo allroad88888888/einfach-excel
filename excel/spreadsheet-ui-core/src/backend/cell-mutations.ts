@@ -1,5 +1,4 @@
 import type { CellRange, SheetRef } from '../shared'
-import type { DisplayCellRichValue } from '../rich-types/types'
 import type { ProjectionRequestId, ProjectionRevision } from './projection-primitives'
 
 /** 单元格内容变更的数据契约。 */
@@ -13,15 +12,6 @@ export interface SetCellInputRequest extends SheetRef {
   /** 仅用户明确继续 Warning/Information 后发送，默认仍拒绝无效输入。 */
   validationConfirmation?: 'continue'
   validationRevision?: ProjectionRevision
-  requestId?: ProjectionRequestId
-  revision?: ProjectionRevision
-}
-
-export interface SetCellRichValueRequest extends SheetRef {
-  kind: 'set-cell-rich-value'
-  row: number
-  col: number
-  value: DisplayCellRichValue
   requestId?: ProjectionRequestId
   revision?: ProjectionRevision
 }

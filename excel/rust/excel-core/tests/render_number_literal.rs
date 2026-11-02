@@ -149,7 +149,7 @@ fn structural_edit_keeps_the_literal_short_and_exact() {
     wb.set_formula(0, "B1", "=1E-300+E2");
     assert_eq!(value_to_display(&wb.get_cell("Sheet1", "B1")), "7");
 
-    wb.insert_rows(0, 1, 1); // 在第 2 行前插一行：E2 → E3
+    wb.insert_rows(0, 1, 1).unwrap(); // 在第 2 行前插一行：E2 → E3
     let text = wb
         .sheet(0)
         .unwrap()
@@ -159,7 +159,7 @@ fn structural_edit_keeps_the_literal_short_and_exact() {
     assert_eq!(value_to_display(&wb.get_cell("Sheet1", "B1")), "7");
 
     // 再插一次：写回去的文本必须能原样再走一轮（幂等 + 不漂移）。
-    wb.insert_rows(0, 1, 1);
+    wb.insert_rows(0, 1, 1).unwrap();
     let text = wb
         .sheet(0)
         .unwrap()

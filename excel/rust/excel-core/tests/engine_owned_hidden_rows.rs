@@ -118,7 +118,7 @@ fn inserting_a_row_with_no_hidden_rows_bumps_neither_epoch() {
     assert_eq!(num(&wb, "Sheet1", "C2"), 15.0);
 
     let before = wb.debug_formula_eval_count(0);
-    wb.insert_rows(0, 100, 1);
+    wb.insert_rows(0, 100, 1).unwrap();
     assert_eq!(num(&wb, "Sheet1", "C1"), 15.0);
     assert_eq!(num(&wb, "Sheet1", "C2"), 15.0);
     assert_eq!(
@@ -130,9 +130,9 @@ fn inserting_a_row_with_no_hidden_rows_bumps_neither_epoch() {
     // Same for a delete, and for the column axis (which displaces nothing in
     // a row set at all).
     let before = wb.debug_formula_eval_count(0);
-    wb.delete_rows(0, 100, 1);
-    wb.insert_columns(0, 100, 1);
-    wb.delete_columns(0, 100, 1);
+    wb.delete_rows(0, 100, 1).unwrap();
+    wb.insert_columns(0, 100, 1).unwrap();
+    wb.delete_columns(0, 100, 1).unwrap();
     assert_eq!(num(&wb, "Sheet1", "C1"), 15.0);
     assert_eq!(num(&wb, "Sheet1", "C2"), 15.0);
     assert_eq!(wb.debug_formula_eval_count(0), before);
@@ -147,7 +147,7 @@ fn inserting_above_a_hidden_row_does_bump_the_manual_epoch() {
     assert_eq!(num(&wb, "Sheet1", "C2"), 11.0);
 
     let before = wb.debug_formula_eval_count(0);
-    wb.insert_rows(0, 0, 1); // pushes A1:A5 down to A2:A6, hidden 3 → 4
+    wb.insert_rows(0, 0, 1).unwrap(); // pushes A1:A5 down to A2:A6, hidden 3 → 4
     assert!(
         wb.debug_formula_eval_count(0) > before,
         "displacing a hidden row MUST dirty SUBTOTAL 101-111"
@@ -225,17 +225,17 @@ fn the_owned_set_follows_row_edits() {
     let mut wb = two_layer_sheet();
 
     wb.hide_rows(0, &[3]);
-    wb.insert_rows(0, 0, 2);
+    wb.insert_rows(0, 0, 2).unwrap();
     assert_eq!(wb.list_hidden_rows(0), vec![5], "insert above → +2");
 
-    wb.delete_rows(0, 0, 1);
+    wb.delete_rows(0, 0, 1).unwrap();
     assert_eq!(wb.list_hidden_rows(0), vec![4], "delete above → -1");
 
-    wb.insert_columns(0, 0, 3);
-    wb.delete_columns(0, 0, 3);
+    wb.insert_columns(0, 0, 3).unwrap();
+    wb.delete_columns(0, 0, 3).unwrap();
     assert_eq!(wb.list_hidden_rows(0), vec![4], "column edits are a no-op");
 
-    wb.delete_rows(0, 4, 1);
+    wb.delete_rows(0, 4, 1).unwrap();
     assert!(
         wb.list_hidden_rows(0).is_empty(),
         "a delete covering the hidden row drops it"
@@ -254,7 +254,7 @@ fn subtotal_tracks_the_owned_set_across_a_row_insert() {
     // A1:A5 slides to A2:A6 and the formula itself slides C2 → C3; the
     // SUBTOTAL range retargets with the data and the hidden row must follow,
     // so the SAME value (4) stays excluded.
-    wb.insert_rows(0, 0, 1);
+    wb.insert_rows(0, 0, 1).unwrap();
     assert_eq!(wb.list_hidden_rows(0), vec![4]);
     assert_eq!(num(&wb, "Sheet1", "C3"), 11.0);
 }
@@ -267,7 +267,7 @@ fn a_row_edit_on_one_sheet_leaves_another_sheets_set_alone() {
     wb.hide_rows(0, &[3]);
     wb.hide_rows(s2, &[3]);
 
-    wb.insert_rows(0, 0, 1);
+    wb.insert_rows(0, 0, 1).unwrap();
     assert_eq!(wb.list_hidden_rows(0), vec![4]);
     assert_eq!(wb.list_hidden_rows(s2), vec![3]);
 }

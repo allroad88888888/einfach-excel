@@ -78,7 +78,7 @@ fn insert_above_a_hidden_row_shifts_the_manual_set() {
     wb.set_eval_hidden_rows(0, &[3]);
     assert_eq!(num(&wb, "Sheet1", "C10"), 11.0, "precondition: 15 - 4");
 
-    wb.insert_rows(0, 0, 1);
+    wb.insert_rows(0, 0, 1).unwrap();
 
     // C10 rode the insert down to C11; the range A1:A5 followed to A2:A6.
     assert_eq!(
@@ -97,7 +97,7 @@ fn insert_at_the_hidden_row_shifts_it() {
     wb.set_eval_hidden_rows(0, &[3]);
     assert_eq!(num(&wb, "Sheet1", "C10"), 11.0, "precondition: 15 - 4");
 
-    wb.insert_rows(0, 3, 1);
+    wb.insert_rows(0, 3, 1).unwrap();
 
     // Range A1:A5 grew to A1:A6 (insert strictly inside); C10 -> C11.
     assert_eq!(
@@ -115,7 +115,7 @@ fn insert_below_the_hidden_row_leaves_the_set_alone() {
     wb.set_eval_hidden_rows(0, &[1]);
     assert_eq!(num(&wb, "Sheet1", "C10"), 13.0, "precondition: 15 - 2");
 
-    wb.insert_rows(0, 5, 1);
+    wb.insert_rows(0, 5, 1).unwrap();
 
     assert_eq!(
         num(&wb, "Sheet1", "C11"),
@@ -131,7 +131,7 @@ fn multi_row_insert_shifts_by_the_full_count() {
     wb.set_eval_hidden_rows(0, &[3]);
     assert_eq!(num(&wb, "Sheet1", "C10"), 11.0, "precondition: 15 - 4");
 
-    wb.insert_rows(0, 1, 3);
+    wb.insert_rows(0, 1, 3).unwrap();
 
     // Range A1:A5 grew to A1:A8; C10 -> C13. Hidden 3 -> 6.
     assert_eq!(
@@ -157,7 +157,7 @@ fn delete_above_a_hidden_row_shifts_the_manual_set_back() {
     wb.set_eval_hidden_rows(0, &[3]);
     assert_eq!(num(&wb, "Sheet1", "C10"), 11.0, "precondition: 15 - 4");
 
-    wb.delete_rows(0, 1, 1);
+    wb.delete_rows(0, 1, 1).unwrap();
 
     // The 2 is gone; rows are now 1,3,4,5. Range A1:A4; C10 -> C9.
     // Hidden 3 -> 2, which is the 4. 13 - 4 = 9.
@@ -177,7 +177,7 @@ fn deleting_the_hidden_row_drops_it_from_the_set() {
     wb.set_eval_hidden_rows(0, &[3]);
     assert_eq!(num(&wb, "Sheet1", "C10"), 11.0, "precondition: 15 - 4");
 
-    wb.delete_rows(0, 3, 1);
+    wb.delete_rows(0, 3, 1).unwrap();
 
     // Rows are now 1,2,3,5 (the 4 is gone); range A1:A4; C10 -> C9.
     // Nothing is hidden any more, so the whole 11 aggregates.
@@ -195,7 +195,7 @@ fn delete_below_the_hidden_row_leaves_the_set_alone() {
     wb.set_eval_hidden_rows(0, &[1]);
     assert_eq!(num(&wb, "Sheet1", "C10"), 13.0, "precondition: 15 - 2");
 
-    wb.delete_rows(0, 5, 1);
+    wb.delete_rows(0, 5, 1).unwrap();
 
     assert_eq!(
         num(&wb, "Sheet1", "C9"),
@@ -212,7 +212,7 @@ fn multi_row_delete_drops_covered_rows_and_shifts_the_survivors() {
     wb.set_eval_hidden_rows(0, &[1, 4]);
     assert_eq!(num(&wb, "Sheet1", "C10"), 8.0, "precondition: 15 - 2 - 5");
 
-    wb.delete_rows(0, 1, 2);
+    wb.delete_rows(0, 1, 2).unwrap();
 
     // Rows 1 and 2 (the 2 and the 3) are gone; rows are now 1,4,5.
     // Range A1:A3; C10 -> C8. Hidden {1,4}: 1 is covered -> dropped,
@@ -240,7 +240,7 @@ fn manual_and_filter_sets_shift_independently() {
     );
     assert_eq!(num(&wb, "Sheet1", "D10"), 11.0, "precondition 9: 15 - 4");
 
-    wb.insert_rows(0, 0, 1);
+    wb.insert_rows(0, 0, 1).unwrap();
 
     // Manual 1 -> 2 (the 2), filter 3 -> 4 (the 4). C10/D10 -> C11/D11.
     assert_eq!(
@@ -263,7 +263,7 @@ fn filter_set_shifts_with_no_manual_set_present() {
     wb.set_eval_filter_hidden_rows(0, &[3]);
     assert_eq!(num(&wb, "Sheet1", "D10"), 11.0, "precondition: 15 - 4");
 
-    wb.insert_rows(0, 0, 1);
+    wb.insert_rows(0, 0, 1).unwrap();
 
     assert_eq!(
         num(&wb, "Sheet1", "D11"),
@@ -285,7 +285,7 @@ fn structural_shift_on_one_sheet_leaves_another_sheets_set_alone() {
     wb.set_eval_hidden_rows(1, &[3]);
     assert_eq!(num(&wb, "Sheet2", "C10"), 11.0, "precondition: 15 - 4");
 
-    wb.insert_rows(0, 0, 1);
+    wb.insert_rows(0, 0, 1).unwrap();
 
     assert_eq!(
         num(&wb, "Sheet1", "C11"),
@@ -309,7 +309,7 @@ fn column_shifts_leave_the_row_sets_alone() {
     wb.set_eval_filter_hidden_rows(0, &[1]);
     assert_eq!(num(&wb, "Sheet1", "C10"), 9.0, "precondition: 15 - 4 - 2");
 
-    wb.insert_columns(0, 0, 2);
+    wb.insert_columns(0, 0, 2).unwrap();
     // C10 rode two columns right to E10; A1:A5 followed to C1:C5.
     assert_eq!(
         num(&wb, "Sheet1", "E10"),
@@ -317,7 +317,7 @@ fn column_shifts_leave_the_row_sets_alone() {
         "row sets are untouched by a column insert"
     );
 
-    wb.delete_columns(0, 0, 2);
+    wb.delete_columns(0, 0, 2).unwrap();
     assert_eq!(
         num(&wb, "Sheet1", "C10"),
         9.0,
@@ -335,7 +335,7 @@ fn delete_covering_every_hidden_row_clears_the_set() {
     wb.set_eval_hidden_rows(0, &[1, 2]);
     assert_eq!(num(&wb, "Sheet1", "C10"), 10.0, "precondition: 15 - 2 - 3");
 
-    wb.delete_rows(0, 1, 2);
+    wb.delete_rows(0, 1, 2).unwrap();
 
     // Rows are now 1,4,5; range A1:A3; C10 -> C8. Nothing hidden.
     assert_eq!(

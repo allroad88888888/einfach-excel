@@ -283,7 +283,7 @@ fn insert_row_inside_data_moves_totals_and_recomputes() {
     wb.set_table_totals_row("Inventory", true).expect("enable");
     // Insert a blank row inside the data area (0-based row 2). Table grows to
     // A1:C6; the totals formula cell shifts from C5 to C6.
-    wb.insert_rows(0, 2, 1);
+    wb.insert_rows(0, 2, 1).unwrap();
     assert_eq!(wb.get_table("Inventory").unwrap().range(), rng(0, 0, 5, 2));
     assert_eq!(num(&wb, "C6"), 60.0, "blank inserted row contributes 0");
     // Fill the new Price cell (C3) → total picks it up.
@@ -297,7 +297,7 @@ fn delete_data_row_shrinks_and_totals_follow() {
     wb.set_table_totals_row("Inventory", true).expect("enable");
     // Delete the first data row (0-based row 1: x/price 10). Table shrinks to
     // A1:C4; totals formula cell shifts from C5 to C4.
-    wb.delete_rows(0, 1, 1);
+    wb.delete_rows(0, 1, 1).unwrap();
     assert_eq!(wb.get_table("Inventory").unwrap().range(), rng(0, 0, 3, 2));
     assert_eq!(num(&wb, "C4"), 50.0, "SUM(Price) after row delete = 20+30");
 }

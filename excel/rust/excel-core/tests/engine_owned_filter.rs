@@ -371,7 +371,7 @@ fn inserting_a_row_displaces_the_filter_set_without_re_running_the_predicate() {
     assert_eq!(wb.filter_hidden_rows(0), vec![4]);
     let scans = wb.debug_filter_scan_count(0);
 
-    wb.insert_rows(0, 0, 1); // a new row 0 pushes everything down
+    wb.insert_rows(0, 0, 1).unwrap(); // a new row 0 pushes everything down
 
     assert_eq!(wb.filter_hidden_rows(0), vec![5]);
     assert_eq!(
@@ -386,7 +386,7 @@ fn inserting_a_row_displaces_the_filter_set_without_re_running_the_predicate() {
     );
 
     // Deleting the band a hidden row sits in removes it entirely.
-    wb.delete_rows(0, 5, 1);
+    wb.delete_rows(0, 5, 1).unwrap();
     assert!(wb.filter_hidden_rows(0).is_empty());
     assert_eq!(wb.debug_filter_scan_count(0), scans);
 }
@@ -594,7 +594,7 @@ fn inserting_a_row_below_everything_bumps_neither_epoch() {
     assert_eq!(num(&wb, "D2"), 4.0);
 
     let before = wb.debug_formula_eval_count(0);
-    wb.insert_rows(0, 100, 1); // far below every hidden row and every formula
+    wb.insert_rows(0, 100, 1).unwrap(); // far below every hidden row and every formula
     assert_eq!(num(&wb, "D1"), 6.0);
     assert_eq!(num(&wb, "D2"), 4.0);
     assert_eq!(

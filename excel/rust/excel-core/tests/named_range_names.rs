@@ -148,7 +148,7 @@ fn structural_source_scanner_does_not_rewrite_address_shaped_parts_of_names() {
             "{name}"
         );
         assert!(wb.set_formula(0, "C1", &formula));
-        wb.insert_rows(0, 0, 1);
+        wb.insert_rows(0, 0, 1).unwrap();
         // 已解析公式沿既有 renderer 写回，二元表达式会带一层括号。
         assert_eq!(
             wb.sheet(0).unwrap().get_formula("C2"),

@@ -21,8 +21,7 @@ pub(super) fn stream_range(
 /// a grid of that size would overflow in debug builds and attempt a
 /// multi-billion-cell allocation in release, so dense materialization paths
 /// reject these sentinels before allocation.
-pub(super) const EXCEL_MAX_ROWS: u32 = 1_048_576;
-pub(super) const EXCEL_MAX_COLS: u32 = 16_384;
+pub(super) use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 
 /// 一个动态数组结果最多能有多少个单元格。SEQUENCE / MAKEARRAY / MAP /
 /// MMULT 等所有数组构造器共用这一个闸门，超限一律 `#VALUE!`（而不是去尝试

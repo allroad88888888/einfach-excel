@@ -217,7 +217,7 @@ fn deleting_a_boundary_row_shrinks_the_converted_closure_range() {
         WorkbookHistory::default()
             .convert_table_to_range(&mut wb, "Inventory")
             .unwrap();
-        wb.delete_rows(0, deleted, 1);
+        wb.delete_rows(0, deleted, 1).unwrap();
         assert_eq!(wb.get_cell("Sheet1", "D2"), Value::Number(expected));
     }
 }

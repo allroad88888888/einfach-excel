@@ -31,7 +31,7 @@ fn named_ranges_v1_roundtrip_keeps_dynamic_references_and_spills() {
     restored.set_number(1, "A2", 40.0);
     assert_eq!(restored.get_number(0, "A1"), 50.0);
     assert_eq!(restored.get_number(0, "C2"), 40.0);
-    restored.workbook.insert_rows(1, 0, 1);
+    restored.workbook.insert_rows(1, 0, 1).unwrap();
     assert_eq!(
         restored
             .workbook

@@ -115,12 +115,12 @@ fn whole_column_keeps_full_height_while_its_column_moves() {
     let mut wb = seed();
     wb.define_named_range("Entire", 0, range("B1", "B1048576"))
         .unwrap();
-    wb.insert_rows(0, 0, 2);
+    wb.insert_rows(0, 0, 2).unwrap();
     assert_eq!(
         wb.named_range("Entire"),
         Ok(Some(("Sheet1".into(), range("B1", "B1048576"))))
     );
-    wb.insert_columns(0, 0, 1);
+    wb.insert_columns(0, 0, 1).unwrap();
     assert_eq!(
         wb.named_range("Entire"),
         Ok(Some(("Sheet1".into(), range("C1", "C1048576"))))

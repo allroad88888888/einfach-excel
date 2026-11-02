@@ -172,9 +172,9 @@ fn column_structure_displaces_hidden_state_and_replacement_identity_rejects_hist
     history
         .set_visibility(&mut wb, 1, range("C1", "D1"), "hide-columns")
         .unwrap();
-    wb.insert_columns(1, 1, 2);
+    wb.insert_columns(1, 1, 2).unwrap();
     assert_eq!(wb.sheet_visibility(1).unwrap().columns, vec![4, 5]);
-    wb.delete_columns(1, 4, 1);
+    wb.delete_columns(1, 4, 1).unwrap();
     assert_eq!(wb.sheet_visibility(1).unwrap().columns, vec![4]);
     wb.remove_sheet(1).unwrap();
     wb.add_sheet("Second");

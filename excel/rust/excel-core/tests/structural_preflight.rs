@@ -174,14 +174,18 @@ fn the_last_valid_row_and_column_can_be_deleted_explicitly() {
 }
 
 #[test]
-fn zero_count_and_old_void_entry_points_share_the_safe_boundary() {
+fn zero_count_and_axis_wrappers_share_the_safe_boundary() {
     let mut wb = Workbook::new();
     wb.set_cell(0, "A1048576", Value::Number(3.0));
+    wb.set_cell(0, "XFD1", Value::Number(4.0));
     wb.try_structural_edit(0, ShiftEdit::RowInsert { at: 0, count: 0 })
         .unwrap();
-    wb.insert_rows(0, 0, 1);
-    wb.delete_rows(0, 1, u32::MAX);
+    assert!(wb.insert_rows(0, 0, 1).is_err());
+    assert!(wb.delete_rows(0, 1, u32::MAX).is_err());
+    assert!(wb.insert_columns(0, 0, 1).is_err());
+    assert!(wb.delete_columns(0, 1, u32::MAX).is_err());
     assert_eq!(wb.get_cell("Sheet1", "A1048576"), Value::Number(3.0));
+    assert_eq!(wb.get_cell("Sheet1", "XFD1"), Value::Number(4.0));
 }
 
 #[test]

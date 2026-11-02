@@ -35,22 +35,23 @@ impl WasmWorkbook {
     // Structural ops route through the WORKBOOK wrappers (not
     // `sheet_mut(..).insert_row`) so registered Excel Tables anchored to the
     // sheet follow the edit and their `tables_epoch` fires (design doc #32
-    // §4.3 item c). For a table-less workbook these wrappers are behaviorally
-    // identical to the old direct-sheet path.
+    // §4.3 item c). These void signatures are frozen by INV-4; production UI
+    // callers use `edit_structure` (`Result<bool, JsValue>`), which surfaces
+    // structural validation errors across the WASM boundary.
     pub fn insert_row(&mut self, sheet_idx: u32, at: u32, count: u32) {
-        self.workbook.insert_rows(sheet_idx as usize, at, count);
+        let _ = self.workbook.insert_rows(sheet_idx as usize, at, count);
     }
 
     pub fn delete_row(&mut self, sheet_idx: u32, at: u32, count: u32) {
-        self.workbook.delete_rows(sheet_idx as usize, at, count);
+        let _ = self.workbook.delete_rows(sheet_idx as usize, at, count);
     }
 
     pub fn insert_col(&mut self, sheet_idx: u32, at: u32, count: u32) {
-        self.workbook.insert_columns(sheet_idx as usize, at, count);
+        let _ = self.workbook.insert_columns(sheet_idx as usize, at, count);
     }
 
     pub fn delete_col(&mut self, sheet_idx: u32, at: u32, count: u32) {
-        self.workbook.delete_columns(sheet_idx as usize, at, count);
+        let _ = self.workbook.delete_columns(sheet_idx as usize, at, count);
     }
 
     pub fn get_display(&self, sheet_idx: u32, addr: &str) -> String {

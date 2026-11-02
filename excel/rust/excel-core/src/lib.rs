@@ -91,7 +91,7 @@ pub use shift::{render_formula, shift_refs};
 pub use sort::{
     sort_cmp, sort_cmp_with_direction, SortDirection, SortKey, SortRangeError, SortRangeReport,
 };
-pub use undo::{CellSnapshot, Edit, UndoStack};
+pub use undo::CellSnapshot;
 pub use workbook::{
     BulkInstallStats, CellShiftDirection, ConditionalFormatConfigSnapshot, ConditionalFormatError,
     ConditionalIconDisplay, DataBarDisplay, DisplayFormatRangeSnapshot,

@@ -267,7 +267,7 @@ fn structural_edits_keep_the_value_and_move_only_the_reference() {
     wb.set_formula(0, "B1", "=1E2+E2");
     assert_eq!(value_to_display(&wb.get_cell("Sheet1", "B1")), "107");
 
-    wb.insert_rows(0, 1, 1); // 在第 2 行前插一行：E2 → E3
+    wb.insert_rows(0, 1, 1).unwrap(); // 在第 2 行前插一行：E2 → E3
     let text = wb
         .sheet(0)
         .unwrap()

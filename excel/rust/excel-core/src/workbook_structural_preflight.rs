@@ -3,7 +3,7 @@ use super::*;
 use crate::shift::ShiftEdit;
 
 impl Workbook {
-    /// 可报告失败的行列结构入口。零数量是无操作；旧四个 void API 也使用同一预检。
+    /// 可报告失败的行列结构入口。零数量是无操作；四个行列快捷包装也转发到这里。
     pub fn try_structural_edit(
         &mut self,
         sheet_index: usize,

@@ -87,7 +87,7 @@ fn used_extent_groups_keep_column_identity_across_structure_without_rescanning()
     let mut book = seed();
     book.apply_filter_groups(0, &example()).unwrap();
     let scans = book.debug_filter_scan_count(0);
-    book.insert_columns(0, 0, 1);
+    book.insert_columns(0, 0, 1).unwrap();
     assert_eq!(book.filter_groups(0)[0].rules[0].col_index(), 1);
     assert_eq!(book.filter_hidden_rows(0), vec![3, 4]);
     assert_eq!(book.debug_filter_scan_count(0), scans);

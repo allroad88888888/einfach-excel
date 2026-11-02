@@ -101,7 +101,7 @@ fn structural_edit_does_not_break_quoted_refs() {
         let before = wb.get_cell("Sheet1", "E5");
         assert!(!matches!(before, Value::Error(_)), "setup failed: {src}");
 
-        wb.insert_rows(0, 0, 1);
+        wb.insert_rows(0, 0, 1).unwrap();
         // 公式被平移到 E6，同表的 `A1` 变 `A2`，跨表部分逐字不动。
         assert_eq!(wb.get_cell("Sheet1", "E6"), before, "value drifted: {src}");
         wb.set_formula(0, "G1", "=FORMULATEXT(E6)");

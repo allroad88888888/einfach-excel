@@ -30,10 +30,10 @@ fn all_four_axis_edits_keep_point_references_on_the_original_data() {
         ] {
             let mut wb = seed("=Data!C3", warm);
             match operation {
-                0 => wb.insert_rows(1, 0, 2),
-                1 => wb.delete_rows(1, 0, 1),
-                2 => wb.insert_columns(1, 0, 2),
-                _ => wb.delete_columns(1, 0, 1),
+                0 => wb.insert_rows(1, 0, 2).unwrap(),
+                1 => wb.delete_rows(1, 0, 1).unwrap(),
+                2 => wb.insert_columns(1, 0, 2).unwrap(),
+                _ => wb.delete_columns(1, 0, 1).unwrap(),
             }
             assert_eq!(
                 wb.sheet(0).unwrap().get_formula("A1").as_deref(),
@@ -48,7 +48,7 @@ fn all_four_axis_edits_keep_point_references_on_the_original_data() {
 fn deleted_cross_sheet_point_keeps_iferror_as_a_formula() {
     for warm in [false, true] {
         let mut wb = seed("=IFERROR(Data!A2,7)", warm);
-        wb.delete_rows(1, 1, 1);
+        wb.delete_rows(1, 1, 1).unwrap();
         assert_eq!(
             wb.sheet(0).unwrap().get_formula("A1").as_deref(),
             Some("=IFERROR(#REF!,7)")
@@ -67,7 +67,7 @@ fn range_deletion_shrinks_surviving_parts_instead_of_destroying_the_formula() {
             (0, 4, 0.0, "#REF!"),
         ] {
             let mut wb = seed("=IFERROR(SUM(Data!A1:A4),0)", warm);
-            wb.delete_rows(1, at, count);
+            wb.delete_rows(1, at, count).unwrap();
             assert!(wb
                 .sheet(0)
                 .unwrap()
@@ -83,13 +83,13 @@ fn range_deletion_shrinks_surviving_parts_instead_of_destroying_the_formula() {
 fn whole_axis_refs_only_move_on_their_bounded_axis() {
     for warm in [false, true] {
         let mut wb = seed("=SUM(Data!A:A)", warm);
-        wb.insert_rows(1, 0, 2);
+        wb.insert_rows(1, 0, 2).unwrap();
         assert_eq!(
             wb.sheet(0).unwrap().get_formula("A1").as_deref(),
             Some("=SUM(Data!A:A)")
         );
         assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Number(10.0));
-        wb.insert_columns(1, 0, 1);
+        wb.insert_columns(1, 0, 1).unwrap();
         assert_eq!(
             wb.sheet(0).unwrap().get_formula("A1").as_deref(),
             Some("=SUM(Data!B:B)")
@@ -105,7 +105,7 @@ fn qualified_self_references_move_once_while_other_sheet_references_stay_put() {
         loader.set_formula(1, "C1", "=Data!A2");
         loader.set_formula(1, "D1", "=Sheet1!A1");
     });
-    wb.insert_rows(1, 0, 1);
+    wb.insert_rows(1, 0, 1).unwrap();
     assert_eq!(
         wb.sheet(1).unwrap().get_formula("C2").as_deref(),
         Some("=Data!A3")
@@ -132,7 +132,7 @@ fn quoted_names_absolute_markers_and_string_literals_keep_their_meaning() {
             wb.get_cell("Sheet1", "B1");
         }
         let text = wb.sheet(0).unwrap().get_formula("B1");
-        wb.insert_rows(1, 0, 1);
+        wb.insert_rows(1, 0, 1).unwrap();
         assert_eq!(
             wb.sheet(0).unwrap().get_formula("A1").as_deref(),
             Some("='O''Brien Data'!$A$3")
@@ -150,7 +150,7 @@ fn structural_rewrite_does_not_hydrate_or_evaluate_a_parked_cross_sheet_chain() 
         .collect();
     wb.install_sheet_bulk(0, HashMap::new(), formulas).unwrap();
     let before = wb.debug_formula_eval_count(0);
-    wb.insert_rows(1, 0, 1);
+    wb.insert_rows(1, 0, 1).unwrap();
     let sheet = wb.sheet(0).unwrap();
     assert_eq!(sheet.debug_dep_graph_stats().formula_count, 0);
     assert_eq!(sheet.debug_point_dependency_key_count(), 0);
@@ -164,11 +164,11 @@ fn downstream_formulas_recalculate_after_a_shifted_reference_is_written() {
     let mut wb = seed("=Data!A2", true);
     wb.set_formula(0, "B1", "=A1*2");
     assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(4.0));
-    wb.insert_rows(1, 0, 1);
+    wb.insert_rows(1, 0, 1).unwrap();
     assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(4.0));
     wb.set_cell(1, "A3", Value::Number(9.0));
     assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(18.0));
-    wb.delete_rows(1, 2, 1);
+    wb.delete_rows(1, 2, 1).unwrap();
     assert_eq!(
         wb.get_cell("Sheet1", "B1"),
         Value::Error(ValueError::InvalidRef)
@@ -193,7 +193,7 @@ fn deleting_a_spill_anchor_preserves_a_parseable_error_formula_in_both_states() 
             if warm {
                 assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Number(6.0));
             }
-            wb.delete_rows(1, 0, 1);
+            wb.delete_rows(1, 0, 1).unwrap();
             assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Number(7.0));
             let source = wb.sheet(0).unwrap().get_formula("A1").unwrap();
             assert_eq!(source, "=IFERROR(SUM(#REF!),7)");
@@ -213,7 +213,7 @@ fn subscribed_cross_sheet_values_are_not_invalidated_by_a_pure_relocation() {
     let _subscription = wb.sheet_mut(0).unwrap().subscribe_cell("A1", move || {
         copy.set(copy.get() + 1);
     });
-    wb.insert_rows(1, 0, 1);
+    wb.insert_rows(1, 0, 1).unwrap();
     assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Number(2.0));
     assert_eq!(
         calls.get(),

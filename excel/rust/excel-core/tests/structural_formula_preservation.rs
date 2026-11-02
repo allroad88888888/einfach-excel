@@ -92,7 +92,7 @@ fn dead_reference_fallback_remains_lazy_and_keeps_invalid_sources_invalid() {
     workbook
         .install_sheet_bulk(0, HashMap::new(), sources)
         .unwrap();
-    workbook.delete_rows(0, 1, 1);
+    workbook.delete_rows(0, 1, 1).unwrap();
     assert_eq!(
         workbook.sheet(0).unwrap().get_cell("C5"),
         Value::Error(ValueError::InvalidValue)

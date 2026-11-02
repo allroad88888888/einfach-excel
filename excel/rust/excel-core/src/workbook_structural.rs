@@ -16,35 +16,55 @@ impl Workbook {
     // every Table anchored to that sheet. 显式跨表引用在同一 Store batch 内跟随。
 
     /// Insert `count` rows at `at` on `sheet_index`, then follow Tables.
-    pub fn insert_rows(&mut self, sheet_index: usize, at: u32, count: u32) {
-        let _ = self.try_structural_edit(
+    pub fn insert_rows(
+        &mut self,
+        sheet_index: usize,
+        at: u32,
+        count: u32,
+    ) -> Result<(), &'static str> {
+        self.try_structural_edit(
             sheet_index,
             crate::shift::ShiftEdit::RowInsert { at, count },
-        );
+        )
     }
 
     /// Delete `count` rows at `at` on `sheet_index`, then follow Tables.
-    pub fn delete_rows(&mut self, sheet_index: usize, at: u32, count: u32) {
-        let _ = self.try_structural_edit(
+    pub fn delete_rows(
+        &mut self,
+        sheet_index: usize,
+        at: u32,
+        count: u32,
+    ) -> Result<(), &'static str> {
+        self.try_structural_edit(
             sheet_index,
             crate::shift::ShiftEdit::RowDelete { at, count },
-        );
+        )
     }
 
     /// Insert `count` columns at `at` on `sheet_index`, then follow Tables.
-    pub fn insert_columns(&mut self, sheet_index: usize, at: u32, count: u32) {
-        let _ = self.try_structural_edit(
+    pub fn insert_columns(
+        &mut self,
+        sheet_index: usize,
+        at: u32,
+        count: u32,
+    ) -> Result<(), &'static str> {
+        self.try_structural_edit(
             sheet_index,
             crate::shift::ShiftEdit::ColInsert { at, count },
-        );
+        )
     }
 
     /// Delete `count` columns at `at` on `sheet_index`, then follow Tables.
-    pub fn delete_columns(&mut self, sheet_index: usize, at: u32, count: u32) {
-        let _ = self.try_structural_edit(
+    pub fn delete_columns(
+        &mut self,
+        sheet_index: usize,
+        at: u32,
+        count: u32,
+    ) -> Result<(), &'static str> {
+        self.try_structural_edit(
             sheet_index,
             crate::shift::ShiftEdit::ColDelete { at, count },
-        );
+        )
     }
 
     pub(super) fn apply_structural_shift_with_table_follow(

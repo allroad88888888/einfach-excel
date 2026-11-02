@@ -55,7 +55,7 @@ fn delete_data_row_recomputes_dependent_reference() {
     assert_eq!(wb.get_cell("Sheet1", "E1"), Value::Number(6.0));
     // Delete the last data row (row index 3 = "z"/qty 3). The Table shrinks
     // to A1:C3 and the dependent aggregate re-derives.
-    wb.delete_rows(0, 3, 1);
+    wb.delete_rows(0, 3, 1).unwrap();
     assert_eq!(wb.get_cell("Sheet1", "E1"), Value::Number(3.0));
 }
 
@@ -66,7 +66,7 @@ fn insert_row_inside_data_then_fill_recomputes() {
     assert_eq!(wb.get_cell("Sheet1", "E1"), Value::Number(6.0));
     // Insert a blank row inside the data area — the Table grows to A1:C5 but
     // the blank Qty contributes 0, so the sum is unchanged…
-    wb.insert_rows(0, 2, 1);
+    wb.insert_rows(0, 2, 1).unwrap();
     assert_eq!(wb.get_cell("Sheet1", "E1"), Value::Number(6.0));
     // …until the new data cell is filled, when the grown Table picks it up.
     wb.set_cell(0, "B3", Value::Number(10.0));
@@ -82,7 +82,7 @@ fn insert_column_inside_shifts_referenced_column() {
     assert_eq!(wb.get_cell("Sheet1", "A6"), Value::Number(60.0));
     // Insert a column inside the Table (before Price). Price shifts right one
     // column; the structured reference resolves it by NAME, so the sum holds.
-    wb.insert_columns(0, 1, 1);
+    wb.insert_columns(0, 1, 1).unwrap();
     assert_eq!(wb.get_cell("Sheet1", "A6"), Value::Number(60.0));
 }
 
@@ -206,7 +206,7 @@ fn cross_sheet_reference_recomputes_on_table_geometry_change() {
         .subscribe_cell("A1", move || *f.borrow_mut() += 1);
 
     // Shrink the Table on Sheet1; the Sheet2 formula must follow.
-    wb.delete_rows(0, 3, 1);
+    wb.delete_rows(0, 3, 1).unwrap();
 
     assert!(
         *fires.borrow() >= 1,

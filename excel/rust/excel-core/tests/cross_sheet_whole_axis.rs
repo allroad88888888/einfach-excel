@@ -206,7 +206,7 @@ fn within_sheet_structural_edit_does_not_shift_cross_sheet_whole_axis() {
     wb.set_formula(0, "E1", "=SUM(Sheet2!A:A)");
     wb.set_formula(0, "E2", "=SUM(C:C)");
     wb.set_formula(0, "E3", "=SUM(Sheet2!1:1)");
-    wb.insert_columns(0, 0, 1);
+    wb.insert_columns(0, 0, 1).unwrap();
     // Sheet2 没被动过，跨表整轴的答案不变。
     assert_eq!(wb.get_cell("Sheet1", "F1"), Value::Number(4.0));
     assert_eq!(wb.get_cell("Sheet1", "F3"), Value::Number(101.0));
@@ -217,7 +217,7 @@ fn within_sheet_structural_edit_does_not_shift_cross_sheet_whole_axis() {
     let mut wb = fixture();
     wb.set_formula(0, "E1", "=SUM(Sheet2!1:1)");
     wb.set_formula(0, "E2", "=SUM(Sheet2!A:A)");
-    wb.insert_rows(0, 0, 1);
+    wb.insert_rows(0, 0, 1).unwrap();
     assert_eq!(wb.get_cell("Sheet1", "E2"), Value::Number(101.0));
     assert_eq!(wb.get_cell("Sheet1", "E3"), Value::Number(4.0));
 }
@@ -228,7 +228,7 @@ fn within_sheet_delete_does_not_kill_cross_sheet_whole_axis() {
     let mut wb = fixture();
     wb.set_formula(0, "E1", "=SUM(Sheet2!A:A)");
     wb.set_formula(0, "E2", "=SUM(Sheet2!1:1)");
-    wb.delete_columns(0, 0, 1);
+    wb.delete_columns(0, 0, 1).unwrap();
     assert_eq!(wb.get_cell("Sheet1", "D1"), Value::Number(4.0));
     assert_eq!(wb.get_cell("Sheet1", "D2"), Value::Number(101.0));
 }

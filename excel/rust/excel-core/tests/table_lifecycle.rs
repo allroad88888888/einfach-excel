@@ -309,7 +309,7 @@ fn cap_256_tables_per_workbook() {
 #[test]
 fn insert_row_above_shifts_table_down() {
     let mut wb = wb_with_table();
-    wb.insert_rows(0, 0, 1);
+    wb.insert_rows(0, 0, 1).unwrap();
     let t = wb.get_table("Inventory").unwrap();
     assert_eq!(t.range(), rng(2, 0, 4, 2));
     // Cells follow: the "Name" header moved A2 → A3.
@@ -321,7 +321,7 @@ fn insert_row_above_shifts_table_down() {
 fn insert_row_inside_data_grows_table() {
     let mut wb = wb_with_table();
     // Insert at the first data row (row index 2) → range grows one row.
-    wb.insert_rows(0, 2, 1);
+    wb.insert_rows(0, 2, 1).unwrap();
     let t = wb.get_table("Inventory").unwrap();
     assert_eq!(t.range(), rng(1, 0, 4, 2));
     // Header stays put; a blank data row appears; data pushed down.
@@ -334,7 +334,7 @@ fn insert_row_inside_data_grows_table() {
 fn delete_partial_data_rows_shrinks_table() {
     let mut wb = wb_with_table();
     // Delete the first data row (row index 2).
-    wb.delete_rows(0, 2, 1);
+    wb.delete_rows(0, 2, 1).unwrap();
     let t = wb.get_table("Inventory").unwrap();
     assert_eq!(t.range(), rng(1, 0, 2, 2));
     // "y" shifted up from row 4 to row 3.
@@ -345,7 +345,7 @@ fn delete_partial_data_rows_shrinks_table() {
 fn delete_all_data_rows_keeps_zero_row_table() {
     let mut wb = wb_with_table();
     // Delete both data rows (indices 2 and 3).
-    wb.delete_rows(0, 2, 2);
+    wb.delete_rows(0, 2, 2).unwrap();
     let t = wb.get_table("Inventory").unwrap();
     // Header-only table survives (design doc §4.1 / §4.3 known divergence).
     assert_eq!(t.range(), rng(1, 0, 1, 2));
@@ -356,7 +356,7 @@ fn delete_all_data_rows_keeps_zero_row_table() {
 fn delete_header_row_drops_table() {
     let mut wb = wb_with_table();
     // Delete the header row (index 1).
-    wb.delete_rows(0, 1, 1);
+    wb.delete_rows(0, 1, 1).unwrap();
     assert!(wb.get_table("Inventory").is_none());
     assert_eq!(wb.table_count(), 0);
 }
@@ -365,7 +365,7 @@ fn delete_header_row_drops_table() {
 fn insert_column_inside_widens_and_auto_names() {
     let mut wb = wb_with_table();
     // Insert one column between A and B (index 1).
-    wb.insert_columns(0, 1, 1);
+    wb.insert_columns(0, 1, 1).unwrap();
     let t = wb.get_table("Inventory").unwrap();
     assert_eq!(t.range(), rng(1, 0, 3, 3));
     assert_eq!(t.columns(), &["Name", "Column1", "Qty", "Price"]);
@@ -377,7 +377,7 @@ fn insert_column_inside_widens_and_auto_names() {
 #[test]
 fn insert_column_left_shifts_table_right() {
     let mut wb = wb_with_table();
-    wb.insert_columns(0, 0, 1);
+    wb.insert_columns(0, 0, 1).unwrap();
     let t = wb.get_table("Inventory").unwrap();
     assert_eq!(t.range(), rng(1, 1, 3, 3));
     // Columns unchanged (a whole-table shift, not an in-table insert).
@@ -389,7 +389,7 @@ fn insert_column_left_shifts_table_right() {
 fn delete_partial_columns_shrinks_and_drops_names() {
     let mut wb = wb_with_table();
     // Delete column B (index 1, "Qty").
-    wb.delete_columns(0, 1, 1);
+    wb.delete_columns(0, 1, 1).unwrap();
     let t = wb.get_table("Inventory").unwrap();
     assert_eq!(t.range(), rng(1, 0, 3, 1));
     assert_eq!(t.columns(), &["Name", "Price"]);
@@ -400,7 +400,7 @@ fn delete_partial_columns_shrinks_and_drops_names() {
 #[test]
 fn delete_all_columns_drops_table() {
     let mut wb = wb_with_table();
-    wb.delete_columns(0, 0, 3);
+    wb.delete_columns(0, 0, 3).unwrap();
     assert!(wb.get_table("Inventory").is_none());
 }
 
@@ -410,7 +410,7 @@ fn structural_edit_on_other_sheet_leaves_table_untouched() {
     wb.add_sheet("Sheet2");
     let before = wb.get_table("Inventory").unwrap().range();
     let epoch = wb.tables_epoch();
-    wb.insert_rows(1, 0, 5); // edit Sheet2
+    wb.insert_rows(1, 0, 5).unwrap(); // edit Sheet2
     assert_eq!(wb.get_table("Inventory").unwrap().range(), before);
     assert_eq!(wb.tables_epoch(), epoch, "unrelated sheet edit must not bump");
 }
@@ -426,11 +426,11 @@ fn epoch_advances_on_mutations_only() {
     assert!(e1 > e0, "create bumps epoch");
 
     // A structural edit fully below the table changes nothing → no bump.
-    wb.insert_rows(0, 100, 1);
+    wb.insert_rows(0, 100, 1).unwrap();
     assert_eq!(wb.tables_epoch(), e1, "no-op follow must not bump");
 
     // A structural edit that moves the table bumps.
-    wb.insert_rows(0, 0, 1);
+    wb.insert_rows(0, 0, 1).unwrap();
     let e2 = wb.tables_epoch();
     assert!(e2 > e1, "table-moving edit bumps epoch");
 

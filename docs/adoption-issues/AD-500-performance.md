@@ -1,8 +1,8 @@
 # AD-500：可验证的性能证据
 
-父节点：[对外采用与推广：Issue 树](../ADOPTION_ISSUE_TREE.md)
+父节点：[对外采用与推广：Issue 树](../archive/ADOPTION_ISSUE_TREE.md)
 
-状态：**全组完成**（2026-08-17）。基准页 `/?bench=1`（AD-505 契约:dev 即启、registry 单点登记、无场景显式提示）,三场景按 ADR 0008~0011 口径实测并归档 `docs/observations/bench/`,复跑步骤见 `docs/BENCHMARK.md`。
+状态：**全组完成**（2026-08-17）。基准页 `/?bench=1`（AD-505 契约:dev 即启、registry 单点登记、无场景显式提示）,三场景按 ADR 0008~0011 口径实测并归档 `docs/archive/observations/bench/`,复跑步骤见 `docs/archive/BENCHMARK.md`。
 
 `excel/rust/docs/PERF.md` 是对内基线，刻意不做绝对阈值；对外需要另一套可复现口径，两者不能混用。
 

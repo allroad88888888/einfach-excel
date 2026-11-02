@@ -1,6 +1,6 @@
 # AD-600：内容与渠道
 
-父节点：[对外采用与推广：Issue 树](../ADOPTION_ISSUE_TREE.md)
+父节点：[对外采用与推广：Issue 树](../archive/ADOPTION_ISSUE_TREE.md)
 
 状态：**未开始**。前置：[AD-100](AD-100-publish-pipeline.md) 与 [AD-400](AD-400-positioning.md)；落地页尚不可验证时不应发声。
 

@@ -69,7 +69,7 @@ jobs:
           version: pnpm run release:version
           # 必须走 pnpm 的发布路径：只有 pnpm 会在打包时把 workspace:* 重写成
           # 真实版本号（实测 npm pack 原样保留，产物不可安装 —— 见
-          # docs/AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md）。
+          # docs/archive/AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md）。
           publish: pnpm run release:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

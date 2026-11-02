@@ -16,4 +16,4 @@ cd my-sheet && npm install && npm run dev
 - StackBlitz: <https://stackblitz.com/github/allroad88888888/einfach-excel/tree/main/templates/vite-starter>
 - CodeSandbox: <https://codesandbox.io/s/github/allroad88888888/einfach-excel/tree/main/templates/vite-starter>
 
-Node `>=22.12.0`。集成到既有工程见[配方页](../../docs/recipes/README.md)。
+Node `>=22.12.0`。集成到既有工程见[归档配方页](../../docs/archive/recipes/README.md)。

@@ -3,7 +3,7 @@
 - 状态：accepted
 - 日期：2026-08-13
 - 相关：[AD-300：框架适配层](../adoption-issues/AD-300-framework-adapters.md)、[AD-312：Grid
-  框架可移植性边界](../FRAMEWORK_GRID_PORTABILITY_BOUNDARIES.md)、[AD-313：编辑框架可移植性边界](../FRAMEWORK_EDITING_PORTABILITY_BOUNDARIES.md)、[AD-313：选区框架可移植性边界](../FRAMEWORK_SELECTION_PORTABILITY_BOUNDARIES.md)、[AD-314：非 Grid 交互的框架可移植性边界](../FRAMEWORK_INTERACTION_PORTABILITY_BOUNDARIES.md)、[AD-320：Headless mounting contract](../HEADLESS_MOUNTING_CONTRACT.md)
+  框架可移植性边界](../archive/FRAMEWORK_GRID_PORTABILITY_BOUNDARIES.md)、[AD-313：编辑框架可移植性边界](../archive/FRAMEWORK_EDITING_PORTABILITY_BOUNDARIES.md)、[AD-313：选区框架可移植性边界](../archive/FRAMEWORK_SELECTION_PORTABILITY_BOUNDARIES.md)、[AD-314：非 Grid 交互的框架可移植性边界](../archive/FRAMEWORK_INTERACTION_PORTABILITY_BOUNDARIES.md)、[AD-320：Headless mounting contract](../archive/HEADLESS_MOUNTING_CONTRACT.md)
 
 ## 背景
 

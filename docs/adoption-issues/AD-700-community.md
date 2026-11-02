@@ -1,6 +1,6 @@
 # AD-700：承接进来的人
 
-父节点：[对外采用与推广：Issue 树](../ADOPTION_ISSUE_TREE.md)
+父节点：[对外采用与推广：Issue 树](../archive/ADOPTION_ISSUE_TREE.md)
 
 流量来了不掉在地上。本组应在 [AD-600](AD-600-content-channels.md) 发声前就位。
 

@@ -1,10 +1,10 @@
 # AD-400：定位与可信度
 
-父节点：[对外采用与推广：Issue 树](../ADOPTION_ISSUE_TREE.md)
+父节点：[对外采用与推广：Issue 树](../archive/ADOPTION_ISSUE_TREE.md)
 
 本组可与 [AD-100](AD-100-publish-pipeline.md) 并行，但必须早于 [AD-600](AD-600-content-channels.md) 对外发声。
 
-状态：**本组状态与验收提交均以父节点的 [已完成叶子](../ADOPTION_ISSUE_TREE.md#已完成叶子) 统一维护；本文件不再重复汇总。**
+状态：**本组状态与验收提交均以父节点的 [已完成叶子](../archive/ADOPTION_ISSUE_TREE.md#已完成叶子) 统一维护；本文件不再重复汇总。**
 
 ## 参照与声明纪律
 

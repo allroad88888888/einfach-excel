@@ -1,13 +1,13 @@
 # AD-100：让人装得上（发布链路）
 
-父节点：[对外采用与推广：Issue 树](../ADOPTION_ISSUE_TREE.md)
+父节点：[对外采用与推广：Issue 树](../archive/ADOPTION_ISSUE_TREE.md)
 
 本组把「npm 上没有可用包」这条断路接通。**断路已于 2026-08-17 接通**：五包以 `0.1.0`
 上线 registry.npmjs.org，仓外真实 `npm install` 验证通过；余项为发布质量收尾。
 
 ## 当前状态
 
-状态：**首发完成；AD-101~126、AD-128~130、AD-132~142 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-131（判定待重定义）**；四框架冒烟矩阵（AD-138~141）收官，AD-127/143 已完成。
+状态：**首发完成；AD-101~126、AD-128~130、AD-132~142 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../archive/ADOPTION_ISSUE_TREE.md)）；剩余 AD-131（判定待重定义）**；四框架冒烟矩阵（AD-138~141）收官，AD-127/143 已完成。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -66,7 +66,7 @@
 - **AD-116 构建管线接入** —— **完成**（`8aadfff`）：`rollup.solid-excel.mjs` 独立管线（仅 ESM；CSS 副作用保留并按原路径拷入产物树；worker URL 字面量 `.ts`→`.mjs` 改写）。
 - **AD-117 exports 重写** —— **完成**（`8aadfff`）：全部子路径 `solid`/`types`/`import`/`default` 四条件成对；`vnext-worker-factory` 不进 barrel 的约束保持，契约测试 `package-entry.test.ts` 同步钉住新形态。
 - **AD-118 `files` 字段** —— **完成**（`8aadfff`）：白名单 `src`/`src-vnext`/`esm`/`@types/src*`；`npm pack --dry-run` 实测无 e2e、test。偏差说明：`src/demos` 保留 —— 它是公开导出面（`./demos` 子路径）的一部分，不属判定中的 dev 专用 demo 壳。
-- **AD-119 内部依赖可解析** —— **完成**（`8aadfff`、`1b08a6a`）：`@einfach-excel/excel-core-ts` 移除 `private` 并对齐 `0.1.0`；registry dry-run 中作为 solid-excel 依赖被外部消费者解析并可 import（[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)）。
+- **AD-119 内部依赖可解析** —— **完成**（`8aadfff`、`1b08a6a`）：`@einfach-excel/excel-core-ts` 移除 `private` 并对齐 `0.1.0`；registry dry-run 中作为 solid-excel 依赖被外部消费者解析并可 import（[观察记录](../archive/AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)）。
 - **AD-120 workspace 协议替换验证** —— **完成**（`8aadfff`）：实测 `pnpm pack` 把四个 `workspace:*` 全部重写为 `0.1.0`；`npm pack` **不重写**（产物不可安装），发布链因此锁定 pnpm 路径。
 - **AD-121 依赖边界与运行环境口径** —— **完成**（`8aadfff`）：`solid-js`/`@einfach/core`/`@einfach/solid` 移入 peerDependencies（复制到 devDependencies 保本地开发），范围 `^1.9.12`/`^0.4.0`/`^0.4.0` —— 单实例不变式（ADR 0001）要求消费者持有唯一副本；五个待发包 `engines` 统一 `>=22.12.0`。
 - **AD-122 sideEffects 与 CSS 导出核对** —— **完成**：`vnext-styles.css` 在 tree-shaking 下可被引入（`da50614`）。
@@ -89,11 +89,11 @@
 - **AD-133 发布流程文档化** —— **完成**：[docs/RELEASING.md](../RELEASING.md)——谁能发、凭据配置与轮换、pnpm-only 约束、首发 0.1.0 的顺序纪律与发布前自检。
 - **AD-134 稳定性声明** —— **完成**（`de98cf6`）：中英 README 的「发布状态与稳定性」按 ADR 0017/0018/0019/0001 写清 0.x 语义（次版本可破坏、锁定 `~0.1.0`）、Node 基线、双形态与 peer 单实例要求、TS lib 要求。
 - **AD-135 首条 release notes** —— **完成**：五个 `0.1.0` tag 的 GitHub Releases（tag 落发布提交 `6ddc17a`）；主 note 挂 `solid-excel@0.1.0`，覆盖成熟度、已知边界（打包器环境、peer 单实例、lite/full 语义差异、规模表述纪律）与非目标（非托管服务、无 SSR 承诺、无 React/Vue 已发布适配、非 Excel 平替）。
-- **AD-136 本地 registry** —— **完成**（`1b08a6a`）：verdaccio 6.9.2，本仓五包 scope 不设 uplink、其余代理 npmjs；配置要点见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。
-- **AD-137 全链路 dry-run** —— **完成**（`1b08a6a`）：五包经 `pnpm publish` 全部上 registry（无部分发布残留），仓外消费者一次 `npm install` 解析全链（含 peer 自动装自 npmjs 代理），运行时与类型探针见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。裸 node 下 `vnext` 入口因 CSS import 报错属设计内行为，打包器实跑归 AD-138~141。
-- **AD-138 Vite 仓外冒烟** —— **完成**（`c423d1a`）：真 registry 安装 + Node `22.12.0` 基线下界构建 + 浏览器实跑，跨三表公式链经真实 WASM worker 求值显示，零运行时错误；见[观察记录](../AD138_VITE_SMOKE_OBSERVATION.md)。
-- **AD-139 webpack 仓外冒烟** —— **完成**（`8e05c1d`）：**零配置改动**跑通预编译 ESM 路径（webpack 5.109.2 + Node 22.12.0 下界）——worker chunk 自动切出、wasm asset 自动发射、CSS 副作用保留；跨三表公式链在 C2 数据单元格严格断言为 13，零运行时错误；见[观察记录](../AD139_WEBPACK_SMOKE_OBSERVATION.md)。
-- **AD-140 Next 仓外冒烟** —— **完成**（`af43c2d`）：Next 15.5（webpack 生产构建）下五包安装解析,三个中立包实跑（excel-core-ts 服务端 prerender 求值 42、excel-wasm 客户端 init 后 63、ui-core loaded），零 pageerror；顺带发现并补上 excel-core-ts 缺失的 `exports` 字段（随下个版本发布）；见[观察记录](../AD140_NEXT_SMOKE_OBSERVATION.md)。
-- **AD-141 Nuxt 仓外冒烟** —— **完成**（`3a0741a`）：Nuxt 3.21/Vite 7/Nitro 下五包安装解析,三个中立包实跑（excel-core-ts SSR+客户端求值 43、excel-wasm 客户端 init 后 C1=43、ui-core createSpreadsheetUi loaded），wasm 资产零配置发射，零 pageerror；见[观察记录](../AD141_NUXT_SMOKE_OBSERVATION.md)。
-- **AD-142 失败路径可读性走查** —— **完成**（`e12b416`）：三场景走查见[走查记录](../AD142_FAILURE_PATH_WALKTHROUGH.md)。缺 WASM → jest 配置加载期定向报错（含重建命令，两态复验）；worker 启动失败 → 发现零 `onerror` 的静默挂死缺口，立叶 AD-143；重复 solid-js → README/release notes/ADR 0001 事前声明 + 仓内契约测试覆盖。
+- **AD-136 本地 registry** —— **完成**（`1b08a6a`）：verdaccio 6.9.2，本仓五包 scope 不设 uplink、其余代理 npmjs；配置要点见[观察记录](../archive/AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。
+- **AD-137 全链路 dry-run** —— **完成**（`1b08a6a`）：五包经 `pnpm publish` 全部上 registry（无部分发布残留），仓外消费者一次 `npm install` 解析全链（含 peer 自动装自 npmjs 代理），运行时与类型探针见[观察记录](../archive/AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。裸 node 下 `vnext` 入口因 CSS import 报错属设计内行为，打包器实跑归 AD-138~141。
+- **AD-138 Vite 仓外冒烟** —— **完成**（`c423d1a`）：真 registry 安装 + Node `22.12.0` 基线下界构建 + 浏览器实跑，跨三表公式链经真实 WASM worker 求值显示，零运行时错误；见[观察记录](../archive/AD138_VITE_SMOKE_OBSERVATION.md)。
+- **AD-139 webpack 仓外冒烟** —— **完成**（`8e05c1d`）：**零配置改动**跑通预编译 ESM 路径（webpack 5.109.2 + Node 22.12.0 下界）——worker chunk 自动切出、wasm asset 自动发射、CSS 副作用保留；跨三表公式链在 C2 数据单元格严格断言为 13，零运行时错误；见[观察记录](../archive/AD139_WEBPACK_SMOKE_OBSERVATION.md)。
+- **AD-140 Next 仓外冒烟** —— **完成**（`af43c2d`）：Next 15.5（webpack 生产构建）下五包安装解析,三个中立包实跑（excel-core-ts 服务端 prerender 求值 42、excel-wasm 客户端 init 后 63、ui-core loaded），零 pageerror；顺带发现并补上 excel-core-ts 缺失的 `exports` 字段（随下个版本发布）；见[观察记录](../archive/AD140_NEXT_SMOKE_OBSERVATION.md)。
+- **AD-141 Nuxt 仓外冒烟** —— **完成**（`3a0741a`）：Nuxt 3.21/Vite 7/Nitro 下五包安装解析,三个中立包实跑（excel-core-ts SSR+客户端求值 43、excel-wasm 客户端 init 后 C1=43、ui-core createSpreadsheetUi loaded），wasm 资产零配置发射，零 pageerror；见[观察记录](../archive/AD141_NUXT_SMOKE_OBSERVATION.md)。
+- **AD-142 失败路径可读性走查** —— **完成**（`e12b416`）：三场景走查见[走查记录](../archive/AD142_FAILURE_PATH_WALKTHROUGH.md)。缺 WASM → jest 配置加载期定向报错（含重建命令，两态复验）；worker 启动失败 → 发现零 `onerror` 的静默挂死缺口，立叶 AD-143；重复 solid-js → README/release notes/ADR 0001 事前声明 + 仓内契约测试覆盖。
 - **AD-143 worker 启动失败的错误面** —— **完成**（`77ad63d`）：连接层经能力探测挂 `error`/`messageerror`（`WorkerLike` 契约不变，type 守卫防无视 type 的测试 double 误触发），失败时 reject 全部在途请求、后续请求快速失败，错误信息指向 wasm 部署与 CSP 排查；契约测试 `vnext-worker-boot-failure.test.ts` 三用例钉住。走查修正：worker **内部**的 wasm 404 本就经 `ensureInit()` 的 try/catch 走 RPC 错误路径拒绝（`worker-runtime-core.ts`），静默挂死仅存在于 worker 脚本加载失败/被 CSP 拦截的页面侧场景——即本次修复面。

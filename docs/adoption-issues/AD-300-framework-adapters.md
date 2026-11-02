@@ -1,10 +1,10 @@
 # AD-300：框架适配层（React / Vue）
 
-父节点：[对外采用与推广：Issue 树](../ADOPTION_ISSUE_TREE.md)
+父节点：[对外采用与推广：Issue 树](../archive/ADOPTION_ISSUE_TREE.md)
 
 「框架无关」从主张变成证据的地方。本组不阻塞其余各组，但周期最长。
 
-状态：**本组状态与验收提交均以父节点的 [已完成叶子](../ADOPTION_ISSUE_TREE.md#已完成叶子) 统一维护；本文件不再重复汇总。**
+状态：**本组状态与验收提交均以父节点的 [已完成叶子](../archive/ADOPTION_ISSUE_TREE.md#已完成叶子) 统一维护；本文件不再重复汇总。**
 
 ## 首版范围
 

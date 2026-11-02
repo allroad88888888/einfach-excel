@@ -5,7 +5,7 @@ import { expect, test, type Page } from '@playwright/test'
  *
  * 这条门禁拦的是"看起来挂了"级别的观感故障 —— island 水合失败、worker/
  * WASM 资产路径断裂、seed 卡死。React 是独立 Vite 产品，不在介绍站提供 demo；
- * Vue 受控投影 demo 由 Vue e2e 包覆盖（矩阵见 docs/FRAMEWORK_BACKEND_E2E_MATRIX.md）。
+ * Vue 受控投影 demo 由 Vue e2e 包覆盖（矩阵见 docs/archive/FRAMEWORK_BACKEND_E2E_MATRIX.md）。
  */
 
 /** worker + 10 万行 seed 的 demo 给宽预算;其余(静态/小 seed)从严。 */

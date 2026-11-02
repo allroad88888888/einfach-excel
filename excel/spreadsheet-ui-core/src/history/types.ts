@@ -1,4 +1,4 @@
-import type { ProjectionRequestId, ProjectionRevision } from '../backend/types'
+import type { ProjectionRequestId, ProjectionRevision } from '../contracts/types'
 
 export type HistoryTransactionId = string
 export type HistoryAction = 'undo' | 'redo'

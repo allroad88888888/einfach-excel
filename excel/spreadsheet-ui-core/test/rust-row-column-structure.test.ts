@@ -4,7 +4,7 @@ import { applyRustHistory } from '../src/rust-workbook/history-apply'
 import { STRUCTURE_ACTIONS, type StructuralEdit } from '../src/rust-workbook/structure-geometry'
 import type { RustWorkbookSheet } from '../src/rust-workbook/commands'
 import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
-import type { VisibleProjectionRequest } from '../src/backend'
+import type { VisibleProjectionRequest } from '../src/contracts'
 
 const orders = { id: 'orders', key: '1', index: 0, name: 'Orders', rowCount: 100, colCount: 8 }
 const summary = { id: 'summary', key: '2', index: 1, name: 'Summary', rowCount: 12, colCount: 2 }

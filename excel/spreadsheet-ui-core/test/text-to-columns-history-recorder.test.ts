@@ -1,6 +1,6 @@
 import { createStore } from '@einfach/core'
 import { describe, expect, test } from 'vitest'
-import type { BackendMutationResult, ImportCellChunksRequest } from '../src/backend/types'
+import type { BackendMutationResult, ImportCellChunksRequest } from '../src/contracts/types'
 import {
   acquireHistoryProducerReservationAtom,
   historyStackAtom,

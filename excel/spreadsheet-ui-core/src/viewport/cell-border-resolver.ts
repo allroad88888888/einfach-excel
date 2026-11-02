@@ -1,7 +1,7 @@
 import type { CellRange } from '../shared'
-import type { DisplayCell } from '../backend/projection-primitives'
-import type { SpreadsheetBorderSpec, SpreadsheetCellFormat } from '../backend/cell-format'
-import type { VisibleProjectionResult } from '../backend/projection-contracts'
+import type { DisplayCell } from '../contracts/projection-primitives'
+import type { SpreadsheetBorderSpec, SpreadsheetCellFormat } from '../contracts/cell-format'
+import type { VisibleProjectionResult } from '../contracts/projection-contracts'
 
 const WEIGHT = { none: 100, thin: 10, dotted: 8, dashed: 9, medium: 20, thick: 30, double: 31 }
 

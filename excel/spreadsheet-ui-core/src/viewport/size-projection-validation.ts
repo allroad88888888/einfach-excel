@@ -4,7 +4,7 @@ import type {
   ViewportColumnWidth,
   ViewportRowHeight,
   ViewportSizeProjectionResult,
-} from '../backend/types'
+} from '../contracts/types'
 import type { CellRange } from '../shared'
 import {
   MAX_VIEWPORT_COL_WIDTH,

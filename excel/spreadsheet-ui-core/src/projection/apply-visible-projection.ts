@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { VisibleProjectionRequest, VisibleProjectionResult } from '../backend'
+import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
 import { validateProjectionResult } from './contracts'
 import {
   freezeProjectionRequest,

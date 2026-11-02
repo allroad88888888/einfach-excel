@@ -6,7 +6,7 @@ import type {
   SpreadsheetOverflow,
   SpreadsheetRotation,
   SpreadsheetVerticalAlignment,
-} from '../src/backend/types'
+} from '../src/contracts/types'
 
 describe('cell-format-rotation (Wave 6.2)', () => {
   test('SpreadsheetCellFormat accepts rotation, verticalAlign, overflow, shrinkToFit individually', () => {

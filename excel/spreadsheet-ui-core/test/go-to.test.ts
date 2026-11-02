@@ -54,7 +54,7 @@ import {
   setViewportMetricsAtom,
 } from '../src/viewport'
 import { setWorkspaceActiveSheetAtom } from '../src/workspace'
-import type { RangeProjectionRequest, RangeProjectionResult } from '../src/backend'
+import type { RangeProjectionRequest, RangeProjectionResult } from '../src/contracts'
 
 function makeContext(overrides: Partial<GoToParseContext> = {}): GoToParseContext {
   return {

@@ -1,7 +1,7 @@
 import type { CellCoord, CellRange } from '../shared'
 import type { WorkerCommand } from '../rust-worker'
 import type { NativeFunctionCatalog } from '../formula-functions/types'
-import type { VisibleProjectionRequest, VisibleProjectionResult } from '../backend'
+import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
 
 export type QuickFormula = 'sum' | 'average' | 'count'
 export interface RustQuickFormulaRequest {

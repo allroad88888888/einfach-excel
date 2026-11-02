@@ -1,6 +1,6 @@
 import { atom } from '@einfach/core'
 import type { Setter } from '@einfach/core'
-import type { RangeProjectionRequest } from '../backend/types'
+import type { RangeProjectionRequest } from '../contracts/types'
 import { selectionAuthorityWitnessAtom } from '../selection'
 import { workspaceActiveSheetAuthorityWitnessAtom } from '../workspace'
 import {

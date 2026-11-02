@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { ProjectionRevision } from '../../backend'
+import type { ProjectionRevision } from '../../contracts'
 import type { CellRange } from '../../shared'
 import type { RustWorkbookConnection } from '../../rust-workbook/commands'
 import type { NativeProtectionChange } from '../../rust-workbook/protection/commands'

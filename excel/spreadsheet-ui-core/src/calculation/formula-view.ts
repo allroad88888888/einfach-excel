@@ -3,7 +3,7 @@ import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { editingSessionAtom } from '../editing/session-atoms'
 import type { RustWorkbookConnection } from '../rust-workbook/commands'
-import type { DisplayCell } from '../backend'
+import type { DisplayCell } from '../contracts'
 
 // 每张表的会话视图偏好；不改 Rust 数据、原始投影或剪贴板输出。
 const stateAtom = atom<{

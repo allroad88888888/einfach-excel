@@ -1,5 +1,5 @@
 import type { CellRange, SheetRef } from '../shared'
-import type { ProjectionRevision, ProjectionRequestId } from '../backend/types'
+import type { ProjectionRevision, ProjectionRequestId } from '../contracts/types'
 import type { ClipboardPayloadDescriptor, ClipboardRangeDescriptor } from '../clipboard/types'
 import type { HistoryEntryRecorder } from '../history'
 

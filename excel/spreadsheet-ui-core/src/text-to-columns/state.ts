@@ -5,7 +5,7 @@ import type {
   ImportCellChunksRequest,
   ProjectionRequestId,
   RangeProjectionRequest,
-} from '../backend/types'
+} from '../contracts/types'
 import type { HistoryEntryRecorder } from '../history'
 import type { CellCoord, CellRange } from '../shared'
 import type { SelectionAuthorityWitness } from '../selection'

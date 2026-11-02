@@ -1,5 +1,5 @@
 import type { Getter, Setter } from '@einfach/core'
-import type { ProjectionRevision, SheetMutationResult, SpreadsheetSheetMetadata } from '../backend'
+import type { ProjectionRevision, SheetMutationResult, SpreadsheetSheetMetadata } from '../contracts'
 import { reorderSheetMetadata } from './metadata'
 import { sheetTabsAtom } from './state'
 import type {

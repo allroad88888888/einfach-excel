@@ -35,7 +35,7 @@ export { formulaArgumentsPanelAtom, runFormulaArgumentsAtom,
 export * from './comments'
 export * from './history'
 export * from './repeat'
-export * from './backend'
+export * from './contracts'
 export * from './clipboard'
 export * from './clipboard/system-clipboard-command'
 export * from './clipboard/paste-special-panel'

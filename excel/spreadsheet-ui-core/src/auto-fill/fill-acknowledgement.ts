@@ -1,4 +1,4 @@
-import type { AutoFillMutationResult, ProjectionRevision } from '../backend/types'
+import type { AutoFillMutationResult, ProjectionRevision } from '../contracts/types'
 import type { CellRange } from '../shared'
 import { copyRange, sameRange } from './fill-range-geometry'
 

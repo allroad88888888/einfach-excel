@@ -18,7 +18,7 @@ import type {
   FillRangeRequest,
   RangeProjectionResult,
   ResolveDataEdgeRequest,
-} from '../src/backend/types'
+} from '../src/contracts/types'
 import {
   acquireHistoryProducerReservationAtom,
   historyStackAtom,

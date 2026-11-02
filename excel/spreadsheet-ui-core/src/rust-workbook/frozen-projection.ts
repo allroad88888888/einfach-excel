@@ -1,4 +1,4 @@
-import type { VisibleProjectionRequest, FrozenProjection } from '../backend'
+import type { VisibleProjectionRequest, FrozenProjection } from '../contracts'
 import { DEFAULT_MAX_PROJECTION_CELLS } from '../projection/contracts'
 import { validProjectionViewport } from '../projection/frozen-validation'
 import { getFrozenRegions } from '../viewport/frozen-regions'

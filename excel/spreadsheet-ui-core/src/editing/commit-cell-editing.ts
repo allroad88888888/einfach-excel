@@ -1,5 +1,5 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
-import type { ProjectionRevision } from '../backend'
+import type { ProjectionRevision } from '../contracts'
 import { keyboardModeAtom } from '../keyboard'
 import { resetFormulaReferenceStateAtom } from '../formula-reference/state'
 import {

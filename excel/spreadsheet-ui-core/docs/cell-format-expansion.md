@@ -132,7 +132,7 @@ describe how `undefined` vs `null` is interpreted.
 `format: null` at the request level means clear all formatting (existing
 behaviour). Individual fields use `undefined`-as-omit because
 `SpreadsheetCellFormat` already follows that pattern for `bold`, `italic`, etc.
-This must be documented in the `backend/README.md` or a separate
+This must be documented in the `contracts/README.md` or a separate
 partial-format doc so all adapter authors apply it consistently.
 
 `borders` follows the same omit semantics per side: sending

@@ -1,5 +1,5 @@
 import type { Getter, Setter } from '@einfach/core'
-import type { ProjectionRequestId } from '../backend/types'
+import type { ProjectionRequestId } from '../contracts/types'
 import { releaseHistoryProducerReservationAtom } from '../history'
 import {
   primarySelectionRegionAtom,

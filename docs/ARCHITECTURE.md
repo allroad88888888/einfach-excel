@@ -31,7 +31,7 @@ rust-runtime.ts               Worker 入口
 
 | 目录 | 唯一职责 |
 |---|---|
-| `excel/spreadsheet-ui-core/src/backend/` | 表格请求、结果和显示类型；这里只是类型，不是 backend 对象 |
+| `excel/spreadsheet-ui-core/src/contracts/` | 表格请求、结果和显示类型；这里只是类型，不是 backend 对象 |
 | `excel/spreadsheet-ui-core/src/runtime/` | store 内的连接引用和 loading/ready/error 生命周期 |
 | `excel/spreadsheet-ui-core/src/projection/` | 投影排队、关联和发布 |
 | `excel/spreadsheet-ui-core/src/editing/` | 编辑草稿与一次 Rust 提交事务 |

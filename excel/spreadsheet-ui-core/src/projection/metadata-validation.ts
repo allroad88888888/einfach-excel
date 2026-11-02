@@ -1,4 +1,4 @@
-import type { DisplayCell } from '../backend'
+import type { DisplayCell } from '../contracts'
 import type { ProjectionResult } from './types'
 import { validateCustomFormulaDefinitions } from '../custom-formulas/expression-types'
 

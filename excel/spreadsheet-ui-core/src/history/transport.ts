@@ -1,4 +1,4 @@
-import type { ProjectionRevision } from '../backend/types'
+import type { ProjectionRevision } from '../contracts/types'
 import { DEFAULT_HISTORY_TIMEOUT_MS } from './constants'
 import { HISTORY_OUTCOME_UNKNOWN_ERROR } from './constants'
 import { isProjectionRevision } from './identity'

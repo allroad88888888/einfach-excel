@@ -4,7 +4,7 @@ import { validNativeOutline } from '../outline/native-state'
 import { validNativeTableStyle } from '../tables/native-types'
 import { validFilterRules } from '../rust-workbook/filter-commands'
 import { validFilterGroups } from '../advanced-filter/contracts'
-import { cloneFilterSortRule } from '../backend/projection-helpers'
+import { cloneFilterSortRule } from '../contracts/projection-helpers'
 import { validateCustomFormulaDefinitions, type NativeCustomFormulaDefinition } from '../custom-formulas/expression-types'
 
 export interface RustWorkbookSheetDefinition extends RustWorkbookSheetInput {

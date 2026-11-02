@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { SetCellInputRequest, VisibleProjectionRequest } from '../backend'
+import type { SetCellInputRequest, VisibleProjectionRequest } from '../contracts'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 
 export interface SetRustCellInputInput {

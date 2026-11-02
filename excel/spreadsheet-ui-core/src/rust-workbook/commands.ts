@@ -8,7 +8,7 @@ import type {
   VisibleProjectionResult,
   ViewportRowHeight,
   ViewportColumnWidth,
-} from '../backend'
+} from '../contracts'
 import type { WorkerCommand, WorkerLike, WorkerTransport } from '../rust-worker'
 import type { FillSeriesKind } from '../auto-fill/series-options'
 import type { CellRange } from '../shared'

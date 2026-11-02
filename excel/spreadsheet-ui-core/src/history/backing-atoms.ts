@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { ProjectionRevision } from '../backend/types'
+import type { ProjectionRevision } from '../contracts/types'
 import type { HistoryLifecycleState, HistoryProducerReservation } from './types'
 import {
   INITIAL_HISTORY_LIFECYCLE,

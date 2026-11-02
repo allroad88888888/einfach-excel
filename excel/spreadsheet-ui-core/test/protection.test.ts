@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest'
 import { createStore, type Store } from '@einfach/core'
-import type { BackendMutationResult, DisplayCell } from '../src/backend/types'
+import type { BackendMutationResult, DisplayCell } from '../src/contracts/types'
 import { resolveContentMutationAtom } from '../src/editing'
 import { historyStackAtom } from '../src/history'
 import type { CellRange } from '../src/shared'

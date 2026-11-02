@@ -6,7 +6,7 @@ import type {
   SetFreezeConfigRequest,
   BackendMutationResult,
   ViewportFreezeConfig,
-} from '../backend/types'
+} from '../contracts/types'
 import {
   nextHistoryTransactionId,
   pushHistoryAtom,

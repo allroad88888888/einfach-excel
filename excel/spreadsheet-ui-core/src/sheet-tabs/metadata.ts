@@ -1,4 +1,4 @@
-import type { SpreadsheetSheetMetadata } from '../backend'
+import type { SpreadsheetSheetMetadata } from '../contracts'
 import type { ReorderSheetMetadataInput } from './types'
 
 export function normalizeSheetTabDraftName(name: string): string | null {

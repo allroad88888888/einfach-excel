@@ -1,5 +1,5 @@
 import type { Getter, Setter } from '@einfach/core'
-import type { VisibleProjectionResult } from '../backend'
+import type { VisibleProjectionResult } from '../contracts'
 import { selectionSnapshotAtom } from '../selection'
 import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
 import { getViewportScrollForCell, scrollToCellAtom, viewportMetricsAtom } from '../viewport/metrics'

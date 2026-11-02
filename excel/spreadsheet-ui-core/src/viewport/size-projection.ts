@@ -3,7 +3,7 @@ import type {
   ProjectionRequestId,
   ViewportSizeProjectionRequest,
   ViewportSizeProjectionResult,
-} from '../backend/types'
+} from '../contracts/types'
 import type { CellRange } from '../shared'
 import {
   rotateViewportMetadataProjectionIdentity,

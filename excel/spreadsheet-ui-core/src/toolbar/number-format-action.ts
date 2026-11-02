@@ -1,4 +1,4 @@
-import type { SpreadsheetNumberFormat } from '../backend'
+import type { SpreadsheetNumberFormat } from '../contracts'
 
 export const SELECTION_PERCENT_FORMAT = Object.freeze({
   kind: 'percent' as const,

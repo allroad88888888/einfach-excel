@@ -1,5 +1,5 @@
 import type { Getter, Setter } from '@einfach/core'
-import type { DisplayCell, RangeProjectionResult } from '../backend/types'
+import type { DisplayCell, RangeProjectionResult } from '../contracts/types'
 import { shiftFormulaRefs } from '../clipboard'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import { nextHistoryTransactionId } from '../history'

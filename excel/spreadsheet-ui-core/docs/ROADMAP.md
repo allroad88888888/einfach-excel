@@ -18,7 +18,7 @@
 | 某 feature 的 atom 分类、有界缓存上限、测试面 | `src/<feature>/README.md` |
 | 某个事实归引擎还是归 UI core | [`../../solid-excel/docs/CANONICAL_OWNERSHIP.md`](../../solid-excel/docs/CANONICAL_OWNERSHIP.md) |
 | 归属判据及那次翻转的理由 | [ADR 0003](../../../docs/decisions/0003-engine-owns-filter-sort.md) |
-| Rust 命令与领域契约 | `src/rust-workbook/` + `src/backend/` |
+| Rust 命令与领域契约 | `src/rust-workbook/` + `src/contracts/` |
 | 仓库级三层架构 | [`../../../docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) |
 | 包内硬约束与测试门禁 | [`CONVENTIONS.md`](./CONVENTIONS.md) |
 | e2e 覆盖了哪些场景 | `excel/solid-excel/e2e/<feature>/CASES.md` |

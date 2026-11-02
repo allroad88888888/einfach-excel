@@ -1,5 +1,5 @@
-import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat } from '../backend'
-import { isDefaultFormat, toA1 } from '../backend'
+import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat } from '../contracts'
+import { isDefaultFormat, toA1 } from '../contracts'
 import type { CellRange } from '../shared'
 import { formatNumberValue } from '../operations/format/numberFormat'
 import type { RustFormatRangeSnapshot, RustSparseCellStyle, WasmWorkbook } from './wasm-types'

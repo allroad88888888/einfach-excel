@@ -2,7 +2,7 @@ import type {
   ProjectionRevision,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '../backend'
+} from '../contracts'
 import type { WasmWorkbook } from './wasm-types'
 import { readWindowProjection } from './window-projection'
 import { readFrozenProjection } from './frozen-projection'

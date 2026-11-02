@@ -1,5 +1,5 @@
-import type { DisplayCell, VisibleProjectionResult } from '../backend'
-import { toA1 } from '../backend'
+import type { DisplayCell, VisibleProjectionResult } from '../contracts'
+import { toA1 } from '../contracts'
 import type { CellRange } from '../shared'
 import { displayCell } from './cell-io'
 import { applyVisibleFormats, readDisplayFormats } from './format-projection'

@@ -1,6 +1,6 @@
 import { atom } from '@einfach/core'
 import type { Atom, Getter } from '@einfach/core'
-import type { ProjectionRequestId, ProjectionRevision } from '../backend/types'
+import type { ProjectionRequestId, ProjectionRevision } from '../contracts/types'
 import { releaseHistoryProducerReservationAtom } from '../history'
 import type { HistoryEntryRecorder, HistoryProducerReservation } from '../history'
 import type {

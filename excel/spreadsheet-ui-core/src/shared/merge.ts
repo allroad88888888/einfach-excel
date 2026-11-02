@@ -1,5 +1,5 @@
 import type { CellCoord, CellRange } from './types'
-import type { DisplayCell } from '../backend/types'
+import type { DisplayCell } from '../contracts/types'
 
 export function isMergeAnchor(cell: DisplayCell): boolean {
   return cell.mergedSpan !== undefined

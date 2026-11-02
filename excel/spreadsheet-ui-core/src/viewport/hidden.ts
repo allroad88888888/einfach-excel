@@ -11,7 +11,7 @@ import type {
   UnhideRowsRequest,
   ViewportSizeProjectionRequest,
   ViewportSizeProjectionResult,
-} from '../backend/types'
+} from '../contracts/types'
 import {
   nextHistoryTransactionId,
   pushHistoryAtom,

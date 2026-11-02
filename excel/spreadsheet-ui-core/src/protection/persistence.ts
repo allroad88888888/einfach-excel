@@ -1,5 +1,5 @@
 import type { Setter } from '@einfach/core'
-import type { BackendMutationResult } from '../backend/types'
+import type { BackendMutationResult } from '../contracts/types'
 import type { CellRange } from '../shared'
 import type {
   ReadSheetProtectionRequest,

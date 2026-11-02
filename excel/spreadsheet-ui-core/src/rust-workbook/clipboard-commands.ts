@@ -1,5 +1,5 @@
 import type { CellRange } from '../shared'
-import type { ProjectionRevision } from '../backend'
+import type { ProjectionRevision } from '../contracts'
 
 export type RustClipboardExportFormat = 'text' | 'markdown' | 'html'
 

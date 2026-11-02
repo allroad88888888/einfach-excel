@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest'
-import type { VisibleProjectionRequest } from '../src/backend'
+import type { VisibleProjectionRequest } from '../src/contracts'
 import { readVisibleProjection } from '../src/rust-workbook/visible-projection'
 import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 import { validateProjectionResult } from '../src/projection/contracts'

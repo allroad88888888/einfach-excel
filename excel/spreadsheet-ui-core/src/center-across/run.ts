@@ -1,4 +1,4 @@
-import type { DisplayCell } from '../backend'
+import type { DisplayCell } from '../contracts'
 
 /** 跨列居中的连续区间：从锚点列到最后一个被吞并的空格列（闭区间）。 */
 export interface CenterAcrossRun {

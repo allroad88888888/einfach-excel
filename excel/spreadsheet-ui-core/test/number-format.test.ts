@@ -1,6 +1,6 @@
 import { createStore } from '@einfach/core'
 import { describe, expect, test } from 'vitest'
-import type { SpreadsheetCellFormat, SpreadsheetNumberFormat } from '../src/backend/types'
+import type { SpreadsheetCellFormat, SpreadsheetNumberFormat } from '../src/contracts/types'
 import {
   DEFAULT_LOCALE,
   excelSerialToDate,

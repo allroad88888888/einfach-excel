@@ -4,7 +4,7 @@ import type {
   SheetListResult,
   SheetMutationResult,
   SpreadsheetSheetMetadata,
-} from '../src/backend'
+} from '../src/contracts'
 import {
   activateSheetTabAtom,
   addSheetTabAtom,

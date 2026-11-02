@@ -1,4 +1,4 @@
-import type { RangeProjectionRequest, RangeProjectionResult } from '../backend'
+import type { RangeProjectionRequest, RangeProjectionResult } from '../contracts'
 import type { CellRange } from '../shared'
 import { GO_TO_SCAN_MAX_CELLS, type GoToCandidateCell } from './types'
 

@@ -6,7 +6,7 @@ import type {
   ProjectionRequestId,
   SetFormatRangeRequest,
   UnmergeRangeRequest,
-} from '../backend/types'
+} from '../contracts/types'
 import type { CellRange } from '../shared'
 import type {
   ToolbarBackendMutationResult,

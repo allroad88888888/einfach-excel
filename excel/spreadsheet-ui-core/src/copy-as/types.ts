@@ -1,4 +1,4 @@
-import type { DisplayCell } from '../backend/types'
+import type { DisplayCell } from '../contracts/types'
 
 /**
  * Rectangle of the active selection (inclusive on both ends). Mirrors

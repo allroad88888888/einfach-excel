@@ -1,5 +1,5 @@
 import type { Getter, Setter } from '@einfach/core'
-import type { RangeProjectionResult } from '../backend/types'
+import type { RangeProjectionResult } from '../contracts/types'
 import type { CellRange } from '../shared'
 import type { AutoFillControllerPort, AutoFillIntent } from './command-contract'
 import { detectFillSeries, fillSeriesLocaleAtom } from './detector'

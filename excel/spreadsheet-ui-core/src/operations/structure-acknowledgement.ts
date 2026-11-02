@@ -2,7 +2,7 @@ import type {
   BackendMutationResult,
   BackendStructuralShift,
   ProjectionRevision,
-} from '../backend/types'
+} from '../contracts/types'
 import type { CellRange } from '../shared'
 import type { StructureOperationTicket } from './structure-lifecycle'
 import { isProjectionRevision } from './structure-request'

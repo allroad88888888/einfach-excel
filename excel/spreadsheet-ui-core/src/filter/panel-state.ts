@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { ProjectionRevision } from '../backend'
+import type { ProjectionRevision } from '../contracts'
 import type { ColumnFilterRule } from '../filter-sort/types'
 import type { RustWorkbookConnection } from '../rust-workbook/commands'
 import type { RustFilterValuesPage } from '../rust-workbook/filter-commands'

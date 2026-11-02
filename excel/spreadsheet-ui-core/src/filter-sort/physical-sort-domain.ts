@@ -1,7 +1,7 @@
 import { atom } from '@einfach/core'
 import type { Atom, Getter } from '@einfach/core'
 import type { CellRange } from '../shared'
-import type { ProjectionRequestId, SortRangeRejectionCode } from '../backend/types'
+import type { ProjectionRequestId, SortRangeRejectionCode } from '../contracts/types'
 import { getHiddenRowsForSheet, viewportHiddenAtom } from '../viewport/hidden'
 import { getFilterHiddenRowsForSheet, viewportFilterHiddenAtom } from '../viewport/effective-hidden'
 import type {

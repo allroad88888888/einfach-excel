@@ -1,5 +1,5 @@
-import type { DisplayCell } from '../backend'
-import { toA1 } from '../backend'
+import type { DisplayCell } from '../contracts'
+import { toA1 } from '../contracts'
 import type { RustCellSnapshot, WasmWorkbook } from './wasm-types'
 
 function requiredMethod<T>(method: T | undefined, name: string): T {

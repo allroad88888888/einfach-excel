@@ -4,7 +4,7 @@ import type {
   ProjectionRequestId,
   RangeProjectionRequest,
   RangeProjectionResult,
-} from '../backend/types'
+} from '../contracts/types'
 import type { HistoryEntryRecorder } from '../history'
 import type { CellCoord, CellRange } from '../shared'
 

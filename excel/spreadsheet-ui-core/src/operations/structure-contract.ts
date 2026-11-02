@@ -6,7 +6,7 @@ import type {
   InsertRowsRequest,
   ProjectionRequestId,
   ProjectionRevision,
-} from '../backend/types'
+} from '../contracts/types'
 import type { HistoryEntryRecorder } from '../history'
 import type {
   DeleteColumnsOperationIntent,

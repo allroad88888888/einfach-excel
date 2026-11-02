@@ -1,6 +1,6 @@
 import { atom } from '@einfach/core'
-import type { SpreadsheetNumberFormat } from '../backend'
-import { toA1 } from '../backend'
+import type { SpreadsheetNumberFormat } from '../contracts'
+import { toA1 } from '../contracts'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { activeCellFormatAtom } from '../projection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'

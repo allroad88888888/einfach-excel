@@ -1,4 +1,4 @@
-import type { ProjectionRequestId } from '../backend/types'
+import type { ProjectionRequestId } from '../contracts/types'
 import type { ClipboardPayloadDescriptor, ClipboardRangeDescriptor } from '../clipboard/types'
 import type { CellRange } from '../shared'
 import {

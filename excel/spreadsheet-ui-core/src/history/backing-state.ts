@@ -1,4 +1,4 @@
-import type { ProjectionRequestId, ProjectionRevision } from '../backend/types'
+import type { ProjectionRequestId, ProjectionRevision } from '../contracts/types'
 import type {
   HistoryAction,
   HistoryEntry,

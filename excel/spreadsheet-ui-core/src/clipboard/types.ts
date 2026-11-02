@@ -1,5 +1,5 @@
 import type { CellCoord, CellRange, SpreadsheetError, SheetRef } from '../shared'
-import type { ImportCellInput, ProjectionRevision } from '../backend'
+import type { ImportCellInput, ProjectionRevision } from '../contracts'
 
 export type ClipboardOperation = 'copy' | 'cut' | 'paste'
 

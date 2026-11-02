@@ -4,7 +4,7 @@ import {
   validateProjectionRequest,
   validateProjectionResult,
 } from '../src/projection/contracts'
-import type { VisibleProjectionRequest, VisibleProjectionResult } from '../src/backend'
+import type { VisibleProjectionRequest, VisibleProjectionResult } from '../src/contracts'
 
 const request: VisibleProjectionRequest = {
   kind: 'visible-window',

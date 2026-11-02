@@ -6,7 +6,7 @@ import type {
   RangeProjectionResult,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '../backend'
+} from '../contracts'
 import type { CellRange, SpreadsheetError } from '../shared'
 
 export type ProjectionRequest = VisibleProjectionRequest | RangeProjectionRequest

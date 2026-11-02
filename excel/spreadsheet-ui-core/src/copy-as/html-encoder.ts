@@ -1,5 +1,5 @@
 import type { CellCoord } from '../shared'
-import type { DisplayCell, SpreadsheetCellFormat } from '../backend/types'
+import type { DisplayCell, SpreadsheetCellFormat } from '../contracts/types'
 import type { CopyAsInput, CopyAsRect } from './types'
 import { copyAsVisibleRows, normalizeCopyAsHiddenRows } from './visible-rows'
 

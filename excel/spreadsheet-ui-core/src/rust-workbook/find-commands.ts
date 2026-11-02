@@ -3,7 +3,7 @@ import type {
   VisibleProjectionResult,
   ViewportRowHeight,
   ViewportColumnWidth,
-} from '../backend'
+} from '../contracts'
 import type { WorkerCommand } from '../rust-worker'
 import type { CellRange } from '../shared'
 

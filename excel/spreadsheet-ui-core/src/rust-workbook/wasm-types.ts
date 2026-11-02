@@ -1,5 +1,5 @@
-import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat, ViewportRowHeight, ViewportColumnWidth } from '../backend'
-import type { RangeBorderPatch, SetFormatRangeRequest } from '../backend/format-contracts'
+import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat, ViewportRowHeight, ViewportColumnWidth } from '../contracts'
+import type { RangeBorderPatch, SetFormatRangeRequest } from '../contracts/format-contracts'
 import type { NativeFunctionCatalog } from '../formula-functions/types'
 import type { RustImportCell, RustImportStats, RustClearRangeRequest } from './commands'
 import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboard-commands'

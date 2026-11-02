@@ -2,7 +2,7 @@ import type { CellRange } from '../shared'
 import type {
   FrozenProjectionRegion,
   ProjectionViewport,
-} from '../backend/frozen-projection-contracts'
+} from '../contracts/frozen-projection-contracts'
 import { getAxisOffsetForIndex } from './axis-geometry'
 
 type Span = { start: number; end: number }

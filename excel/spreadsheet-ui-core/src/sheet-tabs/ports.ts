@@ -3,7 +3,7 @@ import type {
   ProjectionRevision,
   SheetListResult,
   SpreadsheetSheetMetadata,
-} from '../backend'
+} from '../contracts'
 import { sheetTabsRequestSequenceAtom } from './state'
 import type {
   CapturedSheetTabsPorts,

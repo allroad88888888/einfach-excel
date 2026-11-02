@@ -1,6 +1,6 @@
 import { atom } from '@einfach/core'
 import type { Atom } from '@einfach/core'
-import type { DisplayCell, ProjectionRequestId, RangeProjectionRequest } from '../backend/types'
+import type { DisplayCell, ProjectionRequestId, RangeProjectionRequest } from '../contracts/types'
 import type { HistoryEntryRecorder, HistoryProducerReservation } from '../history'
 import type { SelectionAuthorityWitness } from '../selection'
 import { getFilterHiddenRowsForSheet, viewportFilterHiddenAtom } from '../viewport/effective-hidden'

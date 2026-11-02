@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { RangeBorderPatch, SpreadsheetBorders, SpreadsheetCellFormat } from '../backend'
+import type { RangeBorderPatch, SpreadsheetBorders, SpreadsheetCellFormat } from '../contracts'
 import { activeCellFormatAtom, projectionSnapshotAtom } from '../projection'
 import {
   runSelectionMutationAtom,

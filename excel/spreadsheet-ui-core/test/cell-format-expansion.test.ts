@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest'
 import type {
   SpreadsheetBorders,
   SpreadsheetCellFormat,
-} from '../src/backend/types'
+} from '../src/contracts/types'
 import {
   dispatchToolbarFormatCommandAtom,
   getToolbarCommandAvailability,

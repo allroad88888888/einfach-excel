@@ -1,4 +1,4 @@
-import type { VisibleProjectionResult } from '../backend'
+import type { VisibleProjectionResult } from '../contracts'
 import type { CellRange } from '../shared'
 import { displayCell } from './cell-io'
 import { applyVisibleFormats, readDisplayFormats } from './format-projection'

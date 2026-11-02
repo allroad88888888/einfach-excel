@@ -1,7 +1,7 @@
 /**
  * Wave 6.3 — projection-layer number-format pipeline.
  *
- * `SpreadsheetNumberFormat` lives in `backend/types.ts` (re-exported here for
+ * `SpreadsheetNumberFormat` lives in `contracts/types.ts` (re-exported here for
  * ergonomics).  This module owns the runtime: given a `SpreadsheetNumberFormat`
  * variant and a numeric value, return a `{ text, color }` pair the projection
  * can drop onto `DisplayCell.displayValue`.
@@ -15,7 +15,7 @@
 import type {
   SpreadsheetNumberFormat,
   SpreadsheetNumberFormatNegative,
-} from '../../backend/types'
+} from '../../contracts/types'
 import {
   DEFAULT_LOCALE,
   formatCustomNumber,
@@ -28,7 +28,7 @@ export type {
   SpreadsheetNumberFormat,
   SpreadsheetNumberFormatNegative,
   SpreadsheetNumberFormatFractionDenominator,
-} from '../../backend/types'
+} from '../../contracts/types'
 export {
   parseCustomFormat,
   formatCustomNumber,

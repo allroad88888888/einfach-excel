@@ -12,7 +12,7 @@ import {
 import type {
   RangeImageExportRequest,
   RangeImageExportResult,
-} from '../src/backend/types'
+} from '../src/contracts/types'
 
 /**
  * Minimal valid PNG signature followed by an IHDR placeholder. Only used

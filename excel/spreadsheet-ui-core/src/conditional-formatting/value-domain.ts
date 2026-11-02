@@ -2,7 +2,7 @@ import type {
   SpreadsheetBorderSide,
   SpreadsheetBorderSpec,
   SpreadsheetCellFormat,
-} from '../backend'
+} from '../contracts'
 import type { CellRange } from '../shared'
 import {
   CONDITIONAL_FORMAT_MUTATION_LEDGER_MAX,

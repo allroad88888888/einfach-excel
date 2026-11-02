@@ -28,7 +28,7 @@ Charts、images 与浮动对象明确不在范围内。
 | 模块 | 职责 | README |
 |---|---|---|
 | `src/auto-fill/` | 填充序列 locale 状态、纯序列识别，与填充柄共享的命令/请求路径 | [✓](./src/auto-fill/README.md) |
-| `src/backend/` | 投影、变更和工作表操作的请求/结果类型；不包含统一 backend 对象 | [✓](./src/backend/README.md) |
+| `src/contracts/` | 投影、变更和工作表操作的请求/结果类型；不包含统一 backend 对象 | [✓](./src/contracts/README.md) |
 | `src/clipboard/` | 复制/剪切/粘贴 UI 状态与分块命令契约 | [✓](./src/clipboard/README.md) |
 | `src/comments/` | 单元格锚定的备注与线程化批注的编辑器权属 | [✓](./src/comments/README.md) |
 | `src/conditional-formatting/` | 条件格式规则编辑器状态与操作契约 | [✓](./src/conditional-formatting/README.md) |

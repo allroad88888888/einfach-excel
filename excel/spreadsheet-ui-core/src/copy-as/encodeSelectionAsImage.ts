@@ -2,7 +2,7 @@ import type { CellRange } from '../shared'
 import type {
   RangeImageExportRequest,
   RangeImageExportResult,
-} from '../backend/types'
+} from '../contracts/types'
 import type { CopyAsRect } from './types'
 import { copyAsVisibleRows } from './visible-rows'
 

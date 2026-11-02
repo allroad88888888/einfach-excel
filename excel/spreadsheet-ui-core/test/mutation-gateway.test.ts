@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { createStore } from '@einfach/core'
-import type { DisplayCell, VisibleProjectionResult } from '../src/backend'
+import type { DisplayCell, VisibleProjectionResult } from '../src/contracts'
 import { diagnosticsAtom } from '../src/diagnostics'
 import {
   clearContentMutationBlockAtom,

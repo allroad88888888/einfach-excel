@@ -1,4 +1,4 @@
-import type { ProjectionRevision } from '../backend/types'
+import type { ProjectionRevision } from '../contracts/types'
 
 export function isProjectionRevision(value: unknown): value is ProjectionRevision {
   return (

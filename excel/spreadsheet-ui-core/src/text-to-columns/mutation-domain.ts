@@ -1,5 +1,5 @@
 import type { Getter } from '@einfach/core'
-import type { BackendMutationResult } from '../backend/types'
+import type { BackendMutationResult } from '../contracts/types'
 import { sameRange } from './identity'
 import {
   activeTextToColumnsMutationAtom,

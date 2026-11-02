@@ -1,6 +1,6 @@
 import { atom } from '@einfach/core'
 import type { Getter, Setter } from '@einfach/core'
-import type { DisplayCell } from '../backend/types'
+import type { DisplayCell } from '../contracts/types'
 import {
   EMPTY_CELLS,
   EMPTY_KEY_COLUMNS,

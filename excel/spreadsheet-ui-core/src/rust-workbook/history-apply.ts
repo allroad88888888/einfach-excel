@@ -1,4 +1,4 @@
-import type { VisibleProjectionRequest } from '../backend'
+import type { VisibleProjectionRequest } from '../contracts'
 import type { RustWorkbookCommands, RustWorkbookSheet } from './commands'
 import type { WasmWorkbook } from './wasm-types'
 import { readSheetMetadata } from './sheet-metadata'

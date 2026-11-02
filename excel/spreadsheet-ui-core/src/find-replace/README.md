@@ -9,6 +9,6 @@
 
 Rust 负责匹配、替换事务及撤销历史；UI Core 不保存工作簿副本，不维护 ticket、ledger 或重试层。
 查询一次只取当前匹配，全部替换直接交给 Rust，不受查询分页大小限制。
-旧 backend 的数据类型保留在 `backend/find-types.ts`，不是 React 的执行路径。
+旧 backend 的数据类型保留在 `contracts/find-types.ts`，不是 React 的执行路径。
 
 验证：`test/find-replace.test.ts`、`test/find-replace-history.test.ts`。

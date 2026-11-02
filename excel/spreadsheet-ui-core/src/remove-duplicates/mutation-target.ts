@@ -1,4 +1,4 @@
-import type { BackendStructuralShift, ProjectionRevision } from '../backend/types'
+import type { BackendStructuralShift, ProjectionRevision } from '../contracts/types'
 import type { CellRange } from '../shared'
 import { snapshotRange, validRange } from './domain'
 import type { RemoveDuplicatesRange } from './types'

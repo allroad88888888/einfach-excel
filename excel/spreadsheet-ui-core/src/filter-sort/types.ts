@@ -5,7 +5,7 @@ import type {
   SortRangeRejectionCode,
   SortRangeRequest,
   SortRangeResult,
-} from '../backend/types'
+} from '../contracts/types'
 import type { HistoryEntryRecorder } from '../history'
 
 export type SortDirection = 'asc' | 'desc'

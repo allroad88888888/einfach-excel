@@ -1,5 +1,5 @@
 import type { CellRange, SheetRef } from '../shared'
-import type { ProjectionRevision } from '../backend/types'
+import type { ProjectionRevision } from '../contracts/types'
 
 export type SheetProtectionMode = 'open' | 'protected'
 

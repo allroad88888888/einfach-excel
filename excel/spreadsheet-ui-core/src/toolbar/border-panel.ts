@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { RangeBorderPatch } from '../backend/format-contracts'
+import type { RangeBorderPatch } from '../contracts/format-contracts'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { activeCellFormatAtom } from '../projection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'

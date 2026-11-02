@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { RangeProjectionRequest, RangeProjectionResult } from '../backend'
+import type { RangeProjectionRequest, RangeProjectionResult } from '../contracts'
 import { selectionAuthorityWitnessAtom, selectionSnapshotAtom } from '../selection'
 import { sheetTabsSheetsAtom } from '../sheet-tabs'
 import { effectiveHiddenAtom, viewportMetricsAtom } from '../viewport'

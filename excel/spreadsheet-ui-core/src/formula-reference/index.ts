@@ -7,7 +7,8 @@ import { keyboardModeAtom } from '../keyboard'
 import { parseFormulaReferences } from './parser'
 import { formulaReferenceCaretBackingAtom, formulaReferenceSessionBackingAtom } from './state'
 import { activeEditingCommitTicketAtom } from '../editing/commit-state'
-import { workbookDocumentAtom } from '../runtime/workbook-document'
+import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'
+import { workspaceSessionAtom } from '../workspace'
 import type {
   EnterFormulaReferenceInput,
   FormulaReferenceExitReason,
@@ -130,9 +131,31 @@ export const formulaReferenceTokensAtom = atom((get) => {
   if (session.status !== 'drafting') return []
   const draft = get(editingDraftAtom)
   if (!draft.startsWith('=')) return []
-  return parseFormulaReferences(draft, session.source?.sheetId ?? null)
+  return parseFormulaReferences(
+    draft,
+    session.source?.sheetId ?? null,
+    get(workbookDocumentAtom).sheets,
+  )
 })
 formulaReferenceTokensAtom.debugLabel = 'spreadsheet.formulaReference.tokens'
+
+/**
+ * Reference tokens from the active formula draft whose resolved `sheetId`
+ * targets the currently viewed worksheet (including cross-sheet picking).
+ */
+export const activeSheetFormulaReferenceTokensAtom = atom((get) => {
+  const tokens = get(formulaReferenceTokensAtom)
+  if (tokens.length === 0) return []
+  const activeSheetId =
+    get(activeWorkbookSheetAtom)?.id ??
+    get(workspaceSessionAtom).activeSheetId ??
+    get(editingSessionAtom).source?.sheetId ??
+    null
+  if (activeSheetId === null) return []
+  return tokens.filter((token) => token.sheetId === activeSheetId)
+})
+activeSheetFormulaReferenceTokensAtom.debugLabel =
+  'spreadsheet.formulaReference.activeSheetTokens'
 
 // ---------------------------------------------------------------------------
 // Command atoms

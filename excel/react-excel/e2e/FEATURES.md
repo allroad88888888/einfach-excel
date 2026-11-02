@@ -849,6 +849,8 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | CALC-043 | 打开原生函数选择器 | `editing/function-dialog.spec.ts` | Open function dialog preserves native formulas fonts and redo at 1280px |
 | CALC-044 | 函数选择器 Tab 循环 | `editing/function-dialog.spec.ts` | Tab function dialog preserves native formulas fonts and redo at 1280px |
 | CALC-045 | 函数选择器 Shift+Tab 循环 | `editing/function-dialog.spec.ts` | Shift+Tab function dialog preserves native formulas fonts and redo at 1280px |
+| CALC-046 | 编辑公式时引用文本与网格区域同色高亮 | `editing/formula-reference-coloring.spec.ts` | CALC-046 editing a formula in the cell editor or formula bar colors each reference token and highlights referenced cells on the grid |
+| CALC-047 | 重复引用复用同色且跨表引用在目标表高亮 | `editing/formula-reference-coloring.spec.ts` | CALC-047 duplicate references share the same color and cross-sheet references highlight when viewing the target sheet |
 | STAT-001 | 整列统计包含视口外记录 | `selection/statistics-actions.spec.ts` | column statistics include all offscreen native records at 1280px |
 | STAT-002 | 恢复全部统计默认显示 | `selection/statistics-preferences.spec.ts` | restore default statistics resets all six without changing redo at 1280px |
 | STAT-003 | 复制求和完整精度 | `selection/statistics-actions.spec.ts` | copies full precision to the real system clipboard and pastes as a scalar |

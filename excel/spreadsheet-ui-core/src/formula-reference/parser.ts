@@ -1,5 +1,10 @@
 import type { CellRange } from '../shared'
 
+export interface FormulaReferenceSheetIdentity {
+  readonly id: string
+  readonly name: string
+}
+
 export interface FormulaReferenceToken {
   /** Char offset (inclusive) into the draft where this token starts. */
   start: number
@@ -46,6 +51,35 @@ function parseA1(token: string): { row: number; col: number } | null {
 // eslint-disable-next-line max-len
 const TOKEN_RE = /"(?:[^"]|"")*"?|(?:(?:([A-Za-z_][\w]*)|'((?:[^']|'')+)')!)?(\$?[A-Z]+\$?\d+)(?::(\$?[A-Z]+\$?\d+))?/gi
 
+function resolveFormulaReferenceSheetId(
+  rawSheet: string | undefined,
+  currentSheetId: string | null,
+  sheets?: readonly FormulaReferenceSheetIdentity[],
+): string | null {
+  if (rawSheet !== undefined) {
+    if (sheets && sheets.length > 0) {
+      const normalized = rawSheet.toLowerCase()
+      const matched = sheets.find(
+        (sheet) =>
+          sheet.name.toLowerCase() === normalized || sheet.id.toLowerCase() === normalized,
+      )
+      return matched?.id ?? rawSheet
+    }
+    return rawSheet
+  }
+  if (currentSheetId !== null && sheets && sheets.length > 0) {
+    const normalized = currentSheetId.toLowerCase()
+    const matched = sheets.find(
+      (sheet) =>
+        sheet.id === currentSheetId ||
+        sheet.name.toLowerCase() === normalized ||
+        sheet.id.toLowerCase() === normalized,
+    )
+    return matched?.id ?? currentSheetId
+  }
+  return currentSheetId
+}
+
 /**
  * Scan a formula draft (without the leading '=') and return every cell /
  * range reference token in left-to-right order. The function is purely
@@ -53,6 +87,9 @@ const TOKEN_RE = /"(?:[^"]|"")*"?|(?:(?:([A-Za-z_][\w]*)|'((?:[^']|'')+)')!)?(\$
  *
  * - `currentSheetId` is used to fill `sheetId` for tokens with no explicit
  *   sheet prefix.
+ * - `sheets` optionally maps explicit sheet-name prefixes (case-insensitively)
+ *   to their canonical `sheet.id` so same-sheet qualified and unqualified
+ *   references deduplicate to the same `colorIndex`.
  * - The draft may include or omit the leading '='; the parser scans the
  *   entire string in either case.
  * - Tokens are deduplicated by their resolved range key; the `colorIndex`
@@ -62,6 +99,7 @@ const TOKEN_RE = /"(?:[^"]|"")*"?|(?:(?:([A-Za-z_][\w]*)|'((?:[^']|'')+)')!)?(\$
 export function parseFormulaReferences(
   draft: string,
   currentSheetId: string | null,
+  sheets?: readonly FormulaReferenceSheetIdentity[],
 ): FormulaReferenceToken[] {
   const tokens: FormulaReferenceToken[] = []
   if (!draft) return tokens
@@ -80,7 +118,8 @@ export function parseFormulaReferences(
     if (/[\p{L}\p{N}_.]/u.test(draft[start - 1] ?? '') ||
       /[\p{L}\p{N}_.(]/u.test(draft[end] ?? '')) continue
 
-    const sheetId = sheetUnquoted ?? sheetQuoted?.replace(/''/g, "'") ?? currentSheetId
+    const rawSheet = sheetUnquoted ?? sheetQuoted?.replace(/''/g, "'")
+    const sheetId = resolveFormulaReferenceSheetId(rawSheet, currentSheetId, sheets)
     const startCoord = parseA1(startRaw.replace(/\$/g, ''))
     if (!startCoord) continue
     const endCoord = endRaw ? parseA1(endRaw.replace(/\$/g, '')) : startCoord

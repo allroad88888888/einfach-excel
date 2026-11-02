@@ -76,11 +76,26 @@
   font-style: italic;
 }
 
+:where(.einfach-spreadsheet) .formula-input-shell {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex: 1;
+}
+
+:where(.einfach-spreadsheet) .formula-input-shell .formula-reference-highlight {
+  padding: 5px 9px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
 :where(.einfach-spreadsheet) .formula-value {
   min-height: 27px;
   max-height: 90px;
   resize: none;
   min-width: 0;
+  width: 100%;
   flex: 1;
   padding: 5px 9px;
   overflow: auto;
@@ -92,6 +107,14 @@
   outline: none;
   text-overflow: ellipsis;
   white-space: pre-wrap;
+}
+
+:where(.einfach-spreadsheet) .formula-value[data-has-formula-refs='true'] {
+  position: relative;
+  z-index: 1;
+  color: transparent;
+  caret-color: var(--text);
+  background: transparent;
 }
 
 :where(.einfach-spreadsheet) .formula-value:focus {

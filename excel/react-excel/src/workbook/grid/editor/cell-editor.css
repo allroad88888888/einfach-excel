@@ -21,6 +21,21 @@
   line-height: 18px;
 }
 
+:where(.einfach-spreadsheet) .cell-editor .formula-reference-highlight {
+  padding: 2px 6px;
+  border: 2px solid transparent;
+  background: var(--surface);
+  line-height: 18px;
+}
+
+:where(.einfach-spreadsheet) .cell-editor textarea[data-has-formula-refs='true'] {
+  position: relative;
+  z-index: 1;
+  color: transparent;
+  caret-color: var(--text);
+  background: transparent;
+}
+
 :where(.einfach-spreadsheet) .cell-editor-feedback {
   display: flex;
   width: max-content;

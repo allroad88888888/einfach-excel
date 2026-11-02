@@ -31,6 +31,7 @@ import { useGridClipboard } from '../../clipboard/use-grid-clipboard'
 import { useWorkbookGridWindow } from './use-workbook-grid-window'
 import { GridHeaders } from './GridHeaders'
 import { FrozenGrid } from './FrozenGrid'
+import { FormulaReferenceOverlay } from '../../formula-reference/FormulaReferenceOverlay'
 import { OutlineGutters } from './OutlineGutters'
 import { FillHandle } from '../fill/FillHandle'
 import { SelectionMoveBorder } from '../../drag-move/SelectionMoveBorder'
@@ -219,6 +220,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             )}
           </div>
           <FrozenGrid focusGrid={events.focusGrid} />
+          <FormulaReferenceOverlay />
           <SelectionMoveBorder scrollRef={events.scrollRef} focusGrid={events.focusGrid} />
           <FillHandle scrollRef={events.scrollRef} focusGrid={events.focusGrid} />
           <CellEditor focusGrid={events.focusGrid} />

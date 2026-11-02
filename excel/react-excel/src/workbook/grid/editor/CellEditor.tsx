@@ -8,6 +8,7 @@ import {
   editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingDraftAtom,
+  formulaReferenceTokensAtom,
   updateFormulaDraftAtom,
   insertEditingLineBreakAtom,
   editingSessionAtom,
@@ -26,6 +27,7 @@ import { useLingui } from '@lingui/react/macro'
 import './cell-editor.css'
 import { useFormulaInput } from './use-formula-input'
 import { FormulaAssist } from '../../formula/FormulaAssist'
+import { FormulaReferenceHighlight } from '../../formula-reference/FormulaReferenceHighlight'
 import {
   WORKBOOK_GRID_ROW_HEIGHT,
   WORKBOOK_GRID_COLUMN_WIDTH,
@@ -41,6 +43,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const { i18n, t } = useLingui()
   const session = useAtomValue(editingSessionAtom)
   const draft = useAtomValue(editingDraftAtom)
+  const hasFormulaRefs = useAtomValue(formulaReferenceTokensAtom).length > 0
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
@@ -54,6 +57,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
   const instanceId = useId()
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const highlightRef = useRef<HTMLDivElement>(null)
   const formulaInput = useFormulaInput(inputRef, 'cell')
   const committingRef = useRef(false)
   const suppressBlurRef = useRef(false)
@@ -214,6 +218,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       onPointerDown={stopPointer}
       style={style}
     >
+      <FormulaReferenceHighlight draft={draft} highlightRef={highlightRef} />
       <textarea
         ref={inputRef}
         aria-label={t`Cell editor`}
@@ -222,12 +227,19 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
         aria-activedescendant={formulaInput.activeOption}
         aria-invalid={feedback ? true : undefined}
         aria-describedby={feedback ? `${fieldIdentity}-feedback` : formulaInput.signatureId}
+        data-has-formula-refs={hasFormulaRefs ? 'true' : undefined}
         disabled={busy}
         id={fieldIdentity}
         name={fieldIdentity}
         onChange={(event) =>
           setDraft({ draft: event.currentTarget.value, caret: event.currentTarget.selectionStart })
         }
+        onScroll={(event) => {
+          if (highlightRef.current) {
+            highlightRef.current.scrollTop = event.currentTarget.scrollTop
+            highlightRef.current.scrollLeft = event.currentTarget.scrollLeft
+          }
+        }}
         onSelect={formulaInput.onSelect}
         onKeyDown={onKeyDown}
         value={draft}

@@ -7,6 +7,7 @@ import {
   editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingDraftAtom,
+  formulaReferenceTokensAtom,
   updateFormulaDraftAtom,
   insertEditingLineBreakAtom,
   editingSessionAtom,
@@ -19,6 +20,7 @@ import { useId, useLayoutEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useFormulaInput } from '../../grid/editor/use-formula-input'
 import { FormulaAssist } from '../../formula/FormulaAssist'
+import { FormulaReferenceHighlight } from '../../formula-reference/FormulaReferenceHighlight'
 import { NameBox } from './NameBox'
 import './formula-bar.css'
 import { useLingui } from '@lingui/react/macro'
@@ -32,11 +34,13 @@ export function FormulaBar() {
   const sourceText = useAtomValue(activeCellInputTextAtom)
   const editingSession = useAtomValue(editingSessionAtom)
   const editingDraft = useAtomValue(editingDraftAtom)
+  const hasFormulaRefs = useAtomValue(formulaReferenceTokensAtom).length > 0
   const editingLifecycle = useAtomValue(editingCommitLifecycleAtom)
   const startEditing = useSetAtom(startCellEditingFromProjectionAtom)
   const setEditingDraft = useSetAtom(editingDraftAtom)
   const updateDraft = useSetAtom(updateFormulaDraftAtom)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const highlightRef = useRef<HTMLDivElement>(null)
   const formulaInput = useFormulaInput(inputRef, 'formula-bar')
   const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
@@ -140,30 +144,44 @@ export function FormulaBar() {
         <span className="insert-function" aria-hidden="true">
           fx
         </span>
-        <textarea
-          ref={inputRef}
-          aria-label={t`Active cell value`}
-          aria-autocomplete="list"
-          aria-controls={formulaInput.activeOption ? formulaInput.listId : undefined}
-          aria-activedescendant={formulaInput.activeOption}
-          aria-invalid={feedback ? true : undefined}
-          aria-describedby={feedback ? feedbackId : formulaInput.signatureId}
-          autoComplete="off"
-          className="formula-value"
-          data-formula-input="true"
-          disabled={busy || (!hasEditingSource && sourceText === undefined)}
-          id={inputId}
-          name="formula-input"
-          onBlur={commitFormula}
-          onFocus={beginFormulaEditing}
-          onInput={updateFormula}
-          onKeyDown={handleFormulaKey}
-          onSelect={formulaInput.onSelect}
-          onMouseDown={beginFormulaEditing}
-          spellCheck={false}
-          rows={Math.min(4, value.split('\n').length)}
-          value={value}
-        />
+        <div className="formula-input-shell">
+          <FormulaReferenceHighlight
+            draft={value}
+            active={hasEditingSource}
+            highlightRef={highlightRef}
+          />
+          <textarea
+            ref={inputRef}
+            aria-label={t`Active cell value`}
+            aria-autocomplete="list"
+            aria-controls={formulaInput.activeOption ? formulaInput.listId : undefined}
+            aria-activedescendant={formulaInput.activeOption}
+            aria-invalid={feedback ? true : undefined}
+            aria-describedby={feedback ? feedbackId : formulaInput.signatureId}
+            autoComplete="off"
+            className="formula-value"
+            data-formula-input="true"
+            data-has-formula-refs={hasEditingSource && hasFormulaRefs ? 'true' : undefined}
+            disabled={busy || (!hasEditingSource && sourceText === undefined)}
+            id={inputId}
+            name="formula-input"
+            onBlur={commitFormula}
+            onFocus={beginFormulaEditing}
+            onInput={updateFormula}
+            onKeyDown={handleFormulaKey}
+            onSelect={formulaInput.onSelect}
+            onMouseDown={beginFormulaEditing}
+            onScroll={(event) => {
+              if (highlightRef.current) {
+                highlightRef.current.scrollTop = event.currentTarget.scrollTop
+                highlightRef.current.scrollLeft = event.currentTarget.scrollLeft
+              }
+            }}
+            spellCheck={false}
+            rows={Math.min(4, value.split('\n').length)}
+            value={value}
+          />
+        </div>
       </div>
       <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="formula-bar" />
       {feedback && (

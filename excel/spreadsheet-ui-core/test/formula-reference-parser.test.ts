@@ -1,5 +1,15 @@
+import { createStore } from '@einfach/core'
 import { describe, expect, it } from 'vitest'
-import { parseFormulaReferences } from '../src/formula-reference/parser'
+import {
+  activeSheetFormulaReferenceTokensAtom,
+  cancelEditingAtom,
+  dispatchFormulaInputKeyAtom,
+  formulaReferenceTokensAtom,
+  initializeWorkbookDocumentAtom,
+  parseFormulaReferences,
+  startEditingAtom,
+  updateFormulaDraftAtom,
+} from '../src'
 
 describe('parseFormulaReferences', () => {
   it('returns empty for non-formula text', () => {
@@ -76,5 +86,73 @@ describe('parseFormulaReferences', () => {
     const tokens = parseFormulaReferences('=A1+Sheet2!B2', 'sheet-1')
     expect(tokens[0].sheetId).toBe('sheet-1')
     expect(tokens[1].sheetId).toBe('Sheet2')
+  })
+
+  it('resolves quoted and unquoted sheet names case-insensitively and deduplicates colorIndex', () => {
+    const sheets = [
+      { id: 'orders', name: 'Sales Orders' },
+      { id: 'summary', name: 'Summary' },
+    ]
+    const tokens = parseFormulaReferences(
+      "=B2+summary!B2+'Sales Orders'!$G$2+'SUMMARY'!$B$2",
+      'summary',
+      sheets,
+    )
+    expect(
+      tokens.map((t) => ({ text: t.text, sheetId: t.sheetId, colorIndex: t.colorIndex })),
+    ).toEqual([
+      { text: 'B2', sheetId: 'summary', colorIndex: 0 },
+      { text: 'summary!B2', sheetId: 'summary', colorIndex: 0 },
+      { text: "'Sales Orders'!$G$2", sheetId: 'orders', colorIndex: 1 },
+      { text: "'SUMMARY'!$B$2", sheetId: 'summary', colorIndex: 0 },
+    ])
+  })
+
+  it('filters activeSheetFormulaReferenceTokensAtom by the currently viewed worksheet', async () => {
+    const store = createStore()
+    store.setter(initializeWorkbookDocumentAtom, {
+      title: 'Test',
+      sheets: [
+        { id: 'orders', name: 'Sales Orders', index: 0, rowCount: 100, colCount: 16 },
+        { id: 'summary', name: 'Summary', index: 1, rowCount: 100, colCount: 8 },
+      ],
+    })
+    store.setter(startEditingAtom, {
+      sheetId: 'orders',
+      cell: { row: 9, col: 1 },
+      source: 'cell',
+      draft: "=E2+'Summary'!B1:B2+E2",
+    })
+
+    const allTokens = store.getter(formulaReferenceTokensAtom)
+    expect(
+      allTokens.map((t) => ({ text: t.text, sheetId: t.sheetId, colorIndex: t.colorIndex })),
+    ).toEqual([
+      { text: 'E2', sheetId: 'orders', colorIndex: 0 },
+      { text: "'Summary'!B1:B2", sheetId: 'summary', colorIndex: 1 },
+      { text: 'E2', sheetId: 'orders', colorIndex: 0 },
+    ])
+
+    expect(store.getter(activeSheetFormulaReferenceTokensAtom).map((t) => t.text)).toEqual([
+      'E2',
+      'E2',
+    ])
+
+    store.setter(dispatchFormulaInputKeyAtom, { key: 'F2', start: 6, end: 6 })
+    expect(store.getter(activeSheetFormulaReferenceTokensAtom)).toEqual([
+      expect.objectContaining({
+        text: "'Summary'!B1:B2",
+        sheetId: 'summary',
+        colorIndex: 1,
+        range: { rowStart: 0, rowEnd: 1, colStart: 1, colEnd: 1 },
+      }),
+    ])
+
+    store.setter(updateFormulaDraftAtom, { draft: 'plain text', caret: 10 })
+    expect(store.getter(formulaReferenceTokensAtom)).toEqual([])
+    expect(store.getter(activeSheetFormulaReferenceTokensAtom)).toEqual([])
+
+    store.setter(cancelEditingAtom)
+    expect(store.getter(formulaReferenceTokensAtom)).toEqual([])
   })
 })

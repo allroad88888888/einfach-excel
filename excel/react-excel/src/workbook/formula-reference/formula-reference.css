@@ -1,0 +1,89 @@
+:where(.einfach-spreadsheet) .formula-reference-highlight {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  color: var(--text);
+  font: inherit;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+:where(.einfach-spreadsheet) .formula-ref-token {
+  font-weight: 500;
+}
+
+:where(.einfach-spreadsheet) .formula-ref-token[data-ref-color='0'] {
+  color: var(--formula-ref-0, #274fee);
+}
+
+:where(.einfach-spreadsheet) .formula-ref-token[data-ref-color='1'] {
+  color: var(--formula-ref-1, #00856a);
+}
+
+:where(.einfach-spreadsheet) .formula-ref-token[data-ref-color='2'] {
+  color: var(--formula-ref-2, #7b3fe4);
+}
+
+:where(.einfach-spreadsheet) .formula-ref-token[data-ref-color='3'] {
+  color: var(--formula-ref-3, #d95f02);
+}
+
+:where(.einfach-spreadsheet) .formula-ref-token[data-ref-color='4'] {
+  color: var(--formula-ref-4, #0077b6);
+}
+
+:where(.einfach-spreadsheet) .formula-ref-token[data-ref-color='5'] {
+  color: var(--formula-ref-5, #c92a76);
+}
+
+:where(.einfach-spreadsheet) .formula-reference-viewport {
+  position: sticky;
+  grid-area: 1 / 1 / 3 / 3;
+  align-self: start;
+  justify-self: start;
+  top: 0;
+  left: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+:where(.einfach-spreadsheet) .formula-ref-range {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px dashed var(--formula-ref-0, #274fee);
+  background: rgba(39, 79, 238, 0.08);
+  pointer-events: none;
+}
+
+:where(.einfach-spreadsheet) .formula-ref-range[data-ref-color='0'] {
+  border-color: var(--formula-ref-0, #274fee);
+  background: rgba(39, 79, 238, 0.08);
+}
+
+:where(.einfach-spreadsheet) .formula-ref-range[data-ref-color='1'] {
+  border-color: var(--formula-ref-1, #00856a);
+  background: rgba(0, 133, 106, 0.08);
+}
+
+:where(.einfach-spreadsheet) .formula-ref-range[data-ref-color='2'] {
+  border-color: var(--formula-ref-2, #7b3fe4);
+  background: rgba(123, 63, 228, 0.08);
+}
+
+:where(.einfach-spreadsheet) .formula-ref-range[data-ref-color='3'] {
+  border-color: var(--formula-ref-3, #d95f02);
+  background: rgba(217, 95, 2, 0.08);
+}
+
+:where(.einfach-spreadsheet) .formula-ref-range[data-ref-color='4'] {
+  border-color: var(--formula-ref-4, #0077b6);
+  background: rgba(0, 119, 182, 0.08);
+}
+
+:where(.einfach-spreadsheet) .formula-ref-range[data-ref-color='5'] {
+  border-color: var(--formula-ref-5, #c92a76);
+  background: rgba(201, 42, 118, 0.08);
+}

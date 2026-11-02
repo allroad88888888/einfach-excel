@@ -38,14 +38,36 @@ pub fn root_rels() -> String {
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="{REL}/officeDocument" Target="xl/workbook.xml"/></Relationships>"#)
 }
 
-pub fn workbook(names: &[String], defined_names: &str, manual_calculation: bool) -> String {
+pub fn workbook(
+    names: &[String],
+    defined_names: &str,
+    manual_calculation: bool,
+    iterative: Option<&crate::native::IterativeCalculation>,
+) -> String {
     let sheets: String = names.iter().enumerate()
         .map(|(index, name)| format!(r#"<sheet name="{}" sheetId="{}" r:id="rId{}"/>"#, escape(name), index + 1, index + 1))
         .collect();
+    let iter_attrs = match iterative {
+        Some(iter)
+            if iter.enabled
+                || iter.max_iterations != 100
+                || (iter.max_change - 0.001).abs() > 1e-12 =>
+        {
+            let flag = if iter.enabled { "1" } else { "0" };
+            let count = iter.max_iterations.clamp(1, 32_767);
+            let delta = if iter.max_change.is_finite() && iter.max_change >= 0.0 {
+                iter.max_change
+            } else {
+                0.0
+            };
+            format!(r#" iterate="{flag}" iterateCount="{count}" iterateDelta="{delta}""#)
+        }
+        _ => String::new(),
+    };
     let calc_pr = if manual_calculation {
-        r#"<calcPr calcId="191029" calcMode="manual"/>"#
+        format!(r#"<calcPr calcId="191029" calcMode="manual"{iter_attrs}/>"#)
     } else {
-        r#"<calcPr calcId="191029" calcMode="auto" fullCalcOnLoad="1"/>"#
+        format!(r#"<calcPr calcId="191029" calcMode="auto" fullCalcOnLoad="1"{iter_attrs}/>"#)
     };
     // 公式只写源文本不写缓存值，按计算模式写出 calcPr。
     format!(r#"{HEADER}

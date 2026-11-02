@@ -81,6 +81,13 @@ impl WasmWorkbook {
         };
 
         let mut workbook = Workbook::new();
+        if let Some(iter) = payload.iterative_calculation {
+            workbook.set_iterative_calculation(einfach_excel_core::IterativeConfig {
+                enabled: iter.enabled,
+                max_iterations: iter.max_iterations,
+                max_change: iter.max_change,
+            });
+        }
         workbook.set_custom_function_registry(Some(
             self.custom_formulas.clone() as Arc<dyn CustomFunctionRegistry>
         ));

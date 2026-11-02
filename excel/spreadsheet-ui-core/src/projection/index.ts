@@ -45,7 +45,10 @@ import { applyProjectionSizes } from './projection-sizes'
 import { applySheetVisibility } from '../viewport/hidden-state'
 import { setSheetProtectionAtom } from '../protection'
 import { hydrateCustomFormulaDefinitionsAtom } from '../custom-formulas/expression-catalog'
-import { hydrateCalculationModeAtom } from '../calculation/mode-state'
+import {
+  hydrateCalculationModeAtom,
+  hydrateIterativeCalculationAtom,
+} from '../calculation/mode-state'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { cellAtProjection } from './cell-at'
 
@@ -275,6 +278,8 @@ export const resolveProjectionAtom = atom(
               set(setSheetProtectionAtom, { sheetId: result.sheetId, state: result.protection })
             if (result.kind === 'visible-window' && result.calculationMode)
               set(hydrateCalculationModeAtom, result.calculationMode)
+            if (result.kind === 'visible-window' && result.iterativeCalculation)
+              set(hydrateIterativeCalculationAtom, result.iterativeCalculation)
             const connection = get(rustWorkbookConnectionAtom)
             if (connection && result.kind === 'visible-window' && result.customFormulaDefinitions)
               set(hydrateCustomFormulaDefinitionsAtom, {
@@ -314,6 +319,8 @@ export const resolveProjectionAtom = atom(
         set(setSheetProtectionAtom, { sheetId: result.sheetId, state: result.protection })
       if (result.kind === 'visible-window' && result.calculationMode)
         set(hydrateCalculationModeAtom, result.calculationMode)
+      if (result.kind === 'visible-window' && result.iterativeCalculation)
+        set(hydrateIterativeCalculationAtom, result.iterativeCalculation)
       const connection = get(rustWorkbookConnectionAtom)
       if (connection && result.kind === 'visible-window' && result.customFormulaDefinitions)
         set(hydrateCustomFormulaDefinitionsAtom, {

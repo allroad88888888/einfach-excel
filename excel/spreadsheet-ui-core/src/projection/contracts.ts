@@ -19,6 +19,7 @@ import { validNativeConditionalFormats } from '../rust-workbook/conditional-form
 import { validFrozenProjection, validProjectionViewport } from './frozen-validation'
 import { validMergeBorderCells } from './merge-border-cells'
 import { validProjectionMetadata } from './metadata-validation'
+import { validIterativeCalculation } from '../calculation/mode-state'
 import type {
   ProjectionLimitOptions,
   ProjectionRequest,
@@ -257,6 +258,9 @@ export function validateProjectionResult(
   if (result.kind === 'visible-window' && result.calculationMode !== undefined &&
     result.calculationMode !== 'automatic' && result.calculationMode !== 'manual')
     return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust calculation mode projection.')
+  if (result.kind === 'visible-window' && result.iterativeCalculation !== undefined &&
+    !validIterativeCalculation(result.iterativeCalculation))
+    return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust iterative calculation projection.')
   const requestValidation = validateProjectionRange(
     result.sheetId,
     result.requestId,

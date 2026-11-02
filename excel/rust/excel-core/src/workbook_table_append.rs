@@ -110,7 +110,11 @@ impl TableDefinitionChange {
                         let expr =
                             parse_formula(&formula.formula_at(row)?).ok_or("INVALID_FORMULA")?;
                         if workbook.closes_workbook_cycle(self.sheet, addr, &expr) {
-                            return Err("FORMULA_CYCLE");
+                            if workbook.iterative_calculation.enabled {
+                                workbook.atom_context.mark_installed_cycles();
+                            } else {
+                                return Err("FORMULA_CYCLE");
+                            }
                         }
                         let value = crate::sheet::collapse_array_for_eval(
                             workbook.sheets[self.sheet].peek_value(addr),

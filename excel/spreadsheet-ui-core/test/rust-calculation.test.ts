@@ -15,6 +15,11 @@ async function runtime() {
     calcMode = mode
     return true
   })
+  let iterative = { enabled: false, maxIterations: 100, maxChange: 0.001 }
+  const setIterative = vi.fn((enabled: boolean, maxIterations: number, maxChange: number) => {
+    iterative = { enabled, maxIterations, maxChange }
+    return true
+  })
   const read = vi.fn(() => [])
   const begin = vi.fn()
   class TestWorkbook extends EmptyAsyncFormulaWorkbook {
@@ -23,6 +28,8 @@ async function runtime() {
     recalculate = recalculate
     get_calculation_mode = () => calcMode
     set_calculation_mode = setCalcMode
+    get_iterative_calculation = () => iterative
+    set_iterative_calculation = setIterative
     read_sparse_range = read
     history_begin = begin
     snapshot_format_range = () => ({ cellStyles: [], rowStyles: [], columnStyles: [] })
@@ -33,7 +40,7 @@ async function runtime() {
     return post.mock.lastCall![0]
   }
   await call('workbook.initialize', { sheets: [{ id: 's', name: 'Orders', rowCount: 100, colCount: 8 }] })
-  return { call, recalculate, setCalcMode, read, begin }
+  return { call, recalculate, setCalcMode, setIterative, read, begin }
 }
 const projection = { kind: 'visible-window', sheetId: 's', requestId: 1,
   window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 7 } }
@@ -63,6 +70,30 @@ test('formula.setCalculationMode updates calculation mode and publishes bundled 
   })
   expect(setCalcMode).toHaveBeenCalledWith('manual')
   expect((await call('formula.setCalculationMode', { mode: 'bogus', projection })).ok).toBe(false)
+  expect(begin).not.toHaveBeenCalled()
+})
+test('formula.setIterativeCalculation updates iterative config and publishes bundled projection', async () => {
+  const { call, setIterative, begin } = await runtime()
+  expect(
+    await call('formula.setIterativeCalculation', {
+      enabled: true,
+      maxIterations: 25,
+      maxChange: 0.005,
+      projection,
+    }),
+  ).toMatchObject({
+    ok: true,
+    result: {
+      changed: true,
+      iterativeCalculation: { enabled: true, maxIterations: 25, maxChange: 0.005 },
+      projection: {
+        revision: 1,
+        sheetId: 's',
+        iterativeCalculation: { enabled: true, maxIterations: 25, maxChange: 0.005 },
+      },
+    },
+  })
+  expect(setIterative).toHaveBeenCalledWith(true, 25, 0.005)
   expect(begin).not.toHaveBeenCalled()
 })
 

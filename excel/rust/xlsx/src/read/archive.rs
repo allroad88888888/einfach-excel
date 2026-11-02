@@ -29,6 +29,7 @@ pub struct WorkbookParts {
     pub theme: Option<String>,
     pub date1904: bool,
     pub manual_calculation: bool,
+    pub iterative_calculation: Option<crate::native::IterativeCalculation>,
     pub external_links: usize,
     pub pivot_caches: usize,
     pub macros: bool,
@@ -79,6 +80,7 @@ impl Archive {
         let mut sheets = Vec::new();
         let mut date1904 = false;
         let mut manual_calculation = false;
+        let mut iterative_calculation = None;
         let mut reader = Reader::from_str(&workbook);
         loop {
             match reader.read_event() {
@@ -93,6 +95,20 @@ impl Archive {
                     b"calcPr" => {
                         manual_calculation = attr(&e, "calcMode")
                             .is_some_and(|mode| mode.eq_ignore_ascii_case("manual"));
+                        let iterate = attr(&e, "iterate")
+                            .is_some_and(|v| v == "1" || v.eq_ignore_ascii_case("true"));
+                        let iterate_count =
+                            attr(&e, "iterateCount").and_then(|v| v.parse::<u32>().ok());
+                        let iterate_delta = attr(&e, "iterateDelta")
+                            .and_then(|v| v.parse::<f64>().ok())
+                            .filter(|v| v.is_finite() && *v >= 0.0);
+                        if iterate || iterate_count.is_some() || iterate_delta.is_some() {
+                            iterative_calculation = Some(crate::native::IterativeCalculation {
+                                enabled: iterate,
+                                max_iterations: iterate_count.unwrap_or(100).clamp(1, 32_767),
+                                max_change: iterate_delta.unwrap_or(0.001),
+                            });
+                        }
                     }
                     _ => {}
                 },
@@ -111,6 +127,7 @@ impl Archive {
             theme: by_type("/theme"),
             date1904,
             manual_calculation,
+            iterative_calculation,
             external_links,
             pivot_caches,
             macros,

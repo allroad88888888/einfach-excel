@@ -96,30 +96,34 @@ impl Sheet {
         // by an earlier hydration in the same immutable formula topology.
         let cycle_check = self.closes_parked_local_cycle(addr, expr_rc.clone(), checked_at);
         if cycle_check.closes_cycle {
-            let err_expr = Rc::new(Expr::Error(ValueError::CyclicRef));
-            let record = Rc::new(FormulaRecord::new(
-                err_expr.clone(),
-                HashSet::new(),
-                HashSet::new(),
-            ));
-            record
-                .cycle_checked_at
-                .set(self.formula_topology_epoch.get());
-            self.interior
-                .formula_cells
-                .borrow_mut()
-                .insert(addr, record);
-            self.interior
-                .formula_exprs
-                .borrow_mut()
-                .insert(addr, err_expr);
-            self.interior
-                .formula_texts
-                .borrow_mut()
-                .insert(addr, source.as_ref().to_string());
-            self.materialize_formula_inner(addr);
-            self.invalidate_formula_value(addr);
-            return;
+            if self.facade_ctx().is_iterative_enabled() {
+                self.facade_ctx().mark_installed_cycles();
+            } else {
+                let err_expr = Rc::new(Expr::Error(ValueError::CyclicRef));
+                let record = Rc::new(FormulaRecord::new(
+                    err_expr.clone(),
+                    HashSet::new(),
+                    HashSet::new(),
+                ));
+                record
+                    .cycle_checked_at
+                    .set(self.formula_topology_epoch.get());
+                self.interior
+                    .formula_cells
+                    .borrow_mut()
+                    .insert(addr, record);
+                self.interior
+                    .formula_exprs
+                    .borrow_mut()
+                    .insert(addr, err_expr);
+                self.interior
+                    .formula_texts
+                    .borrow_mut()
+                    .insert(addr, source.as_ref().to_string());
+                self.materialize_formula_inner(addr);
+                self.invalidate_formula_value(addr);
+                return;
+            }
         }
 
         // Install static references and the FormulaRecord, then materialize
@@ -159,6 +163,7 @@ impl Sheet {
         let parked = self.interior.formula_source.borrow_mut().remove(&addr);
         self.interior.needs_parse.borrow_mut().remove(&addr);
         self.interior.manual_formula_cache.borrow_mut().remove(&addr);
+        self.facade_ctx().clear_iterative_on_write(addr);
         let record = self.interior.formula_cells.borrow_mut().remove(&addr);
         if record.is_some() {
             self.interior.formula_exprs.borrow_mut().remove(&addr);

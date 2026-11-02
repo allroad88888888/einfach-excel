@@ -96,8 +96,8 @@ pub use workbook::{
     BulkInstallStats, CalculationMode, CellShiftDirection, ConditionalFormatConfigSnapshot,
     ConditionalFormatError, ConditionalIconDisplay, DataBarDisplay, DisplayFormatRangeSnapshot,
     ConditionalFormatRuleEntry, FilterSnapshot, HeaderFooterFields, HiddenRowsError,
-    HiddenRowsSnapshot, InstallError, ManualPageBreak, ManualPageBreakAxis, MergeAction,
-    PrintConfig, PrintConfigError, PrintConfigSnapshot, PrintOrientation, PrintScale,
+    HiddenRowsSnapshot, InstallError, IterativeConfig, ManualPageBreak, ManualPageBreakAxis,
+    MergeAction, PrintConfig, PrintConfigError, PrintConfigSnapshot, PrintOrientation, PrintScale,
     SheetFilterState, SheetHiddenRows, TableEntry, TableError, TableRegistrySnapshot,
     TotalsFunction, Workbook, WorkbookError,
 };

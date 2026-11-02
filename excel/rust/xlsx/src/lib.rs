@@ -105,3 +105,41 @@ pub fn native_to_xlsx_with_report_js(text: &str) -> Result<XlsxExportOutput, JsE
         .map_err(|error| JsError::new(&error.to_string()))?;
     Ok(XlsxExportOutput { bytes, report })
 }
+
+#[cfg(test)]
+mod iterative_calc_tests {
+    use super::*;
+
+    #[test]
+    fn iterative_calculation_roundtrips_through_xlsx_calc_pr() {
+        let input = r#"{
+            "format": "einfach-workbook",
+            "version": 1,
+            "title": "IterTest",
+            "canvases": [{ "rowCount": 100, "colCount": 26 }],
+            "workbook": {
+                "version": 1,
+                "sheets": [{ "idx": 0, "name": "Sheet1" }],
+                "cells": [],
+                "calculationMode": "manual",
+                "iterativeCalculation": {
+                    "enabled": true,
+                    "maxIterations": 50,
+                    "maxChange": 0.0005
+                }
+            }
+        }"#;
+        let bytes = native_to_xlsx(input).expect("export xlsx");
+        let restored = xlsx_to_native(bytes, "IterTest").expect("import xlsx");
+        let parsed: native::NativeFile = serde_json::from_str(&restored).expect("parse native");
+        assert_eq!(parsed.workbook.calculation_mode.as_deref(), Some("manual"));
+        assert_eq!(
+            parsed.workbook.iterative_calculation,
+            Some(native::IterativeCalculation {
+                enabled: true,
+                max_iterations: 50,
+                max_change: 0.0005,
+            })
+        );
+    }
+}

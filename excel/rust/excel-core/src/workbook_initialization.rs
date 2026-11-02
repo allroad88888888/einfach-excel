@@ -23,6 +23,8 @@ impl Workbook {
             validation_failure: std::cell::RefCell::new(None),
             custom_call_depth,
             calculation_mode: CalculationMode::Automatic,
+            iterative_calculation: IterativeConfig::default(),
+            cyclic_formulas: HashMap::new(),
             content_revision: 0,
             tables: BTreeMap::new(),
             tables_epoch: 0,

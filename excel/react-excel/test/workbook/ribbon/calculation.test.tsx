@@ -9,6 +9,7 @@ import { SpreadsheetGrid } from '@einfach-excel/react-cells'
 
 type Input = RustWorkbookCommands['formula.recalculate']['payload']
 type ModeInput = RustWorkbookCommands['formula.setCalculationMode']['payload']
+type IterativeInput = RustWorkbookCommands['formula.setIterativeCalculation']['payload']
 const window = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 1 }
 const cells = [{ row: 0, col: 0, displayValue: '50%', formula: '=1/2' },
   { row: 0, col: 1, displayValue: '=literal', inputText: "'=literal" }]
@@ -17,9 +18,22 @@ async function setup() {
     projection: { ...input.projection, cells, revision: 2 } }))
   const setMode = vi.fn(async (input: ModeInput) => ({ mode: input.mode,
     projection: { ...input.projection, calculationMode: input.mode, cells, revision: 2 } }))
+  const setIterative = vi.fn(async (input: IterativeInput) => {
+    const iterativeCalculation = {
+      enabled: input.enabled,
+      maxIterations: input.maxIterations,
+      maxChange: input.maxChange,
+    }
+    return {
+      changed: true,
+      iterativeCalculation,
+      projection: { ...input.projection, iterativeCalculation, cells, revision: 2 },
+    }
+  })
   const request = vi.fn(async (command: string, input: unknown) => {
     if (command === 'formula.recalculate') return calculate(input as Input)
     if (command === 'formula.setCalculationMode') return setMode(input as ModeInput)
+    if (command === 'formula.setIterativeCalculation') return setIterative(input as IterativeInput)
     return { ...(input as { request: VisibleProjectionRequest }).request, calculationMode: 'automatic', cells, revision: 1 }
   })
   const { store } = createSpreadsheetUi({ connection: {
@@ -32,7 +46,7 @@ async function setup() {
   const rendered = render(<WorkbookStoreProvider store={store}>
     <CalculationTools /><SpreadsheetGrid window={window} cells={cells} />
   </WorkbookStoreProvider>)
-  return { store, calculate, setMode, request, ...rendered }
+  return { store, calculate, setMode, setIterative, request, ...rendered }
 }
 
 test.each(['sheet', 'workbook'])('%s select dispatches one calculation with accessible success feedback', async (scope) => {
@@ -79,5 +93,29 @@ test('calculation mode select switches between Automatic and Manual', async () =
   expect(setMode).toHaveBeenCalledOnce()
   expect(setMode.mock.lastCall![0].mode).toBe('manual')
   expect(screen.getByRole('status')).toHaveTextContent('Calculation mode set to Manual.')
+})
+test('iterative calculation controls toggle enabled and update maxIterations and maxChange', async () => {
+  const { setIterative } = await setup()
+  const toggle = screen.getByTestId('iterative-calculation-toggle')
+  const maxIterInput = screen.getByTestId('iterative-max-iterations')
+  const maxChangeInput = screen.getByTestId('iterative-max-change')
+  expect(toggle).toHaveAttribute('aria-pressed', 'false')
+  fireEvent.click(toggle)
+  await waitFor(() => expect(toggle).toHaveAttribute('aria-pressed', 'true'))
+  expect(setIterative).toHaveBeenLastCalledWith(
+    expect.objectContaining({ enabled: true, maxIterations: 100, maxChange: 0.001 }),
+  )
+  fireEvent.change(maxIterInput, { target: { value: '20' } })
+  await waitFor(() =>
+    expect(setIterative).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true, maxIterations: 20, maxChange: 0.001 }),
+    ),
+  )
+  fireEvent.change(maxChangeInput, { target: { value: '0.05' } })
+  await waitFor(() =>
+    expect(setIterative).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true, maxIterations: 20, maxChange: 0.05 }),
+    ),
+  )
 })
 

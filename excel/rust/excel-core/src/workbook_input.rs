@@ -48,7 +48,9 @@ impl Workbook {
             CellInput::Formula(source) => {
                 // 提交草稿前预检，解析/静态循环失败不能先覆盖原格再要求用户重试。
                 let expr = parse_formula(&source).ok_or("INVALID_FORMULA")?;
-                if self.closes_workbook_cycle(sheet_idx, addr, &expr) {
+                if !self.iterative_calculation.enabled
+                    && self.closes_workbook_cycle(sheet_idx, addr, &expr)
+                {
                     return Err("FORMULA_CYCLE");
                 }
                 if !self

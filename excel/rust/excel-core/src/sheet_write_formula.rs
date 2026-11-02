@@ -80,9 +80,14 @@ impl Sheet {
 
         // Static cycle check (B.2). Walk referenced formula AST/source content
         // on demand to see if `addr` is reachable; no reverse graph is kept.
+        self.facade_ctx().clear_iterative_on_write(addr);
         if self.closes_local_cycle(addr, &expr) {
-            self.write_error(addr, ValueError::CyclicRef);
-            return Ok(false);
+            if self.facade_ctx().is_iterative_enabled() {
+                self.facade_ctx().mark_installed_cycles();
+            } else {
+                self.write_error(addr, ValueError::CyclicRef);
+                return Ok(false);
+            }
         }
         let mut array_formulas_to_reproject =
             self.store_dependent_array_formula_addrs_from_addrs(std::iter::once(addr));
@@ -166,6 +171,7 @@ impl Sheet {
     }
 
     pub(super) fn write_error_inner(&mut self, addr: CellAddress, err: ValueError) {
+        self.facade_ctx().clear_iterative_on_write(addr);
         let collapsed_anchor = self.spilled_into_anchor(addr);
         let blocked_retries = self.blocked_anchors_claiming(addr);
         let pre_range_member = self.range_member_present(addr);

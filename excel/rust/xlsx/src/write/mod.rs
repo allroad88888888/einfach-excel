@@ -139,7 +139,15 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
     put("[Content_Types].xml", &package::content_types(names.len(), &parts))?;
     put("_rels/.rels", &package::root_rels())?;
     let manual_calculation = workbook.calculation_mode.as_deref() == Some("manual");
-    put("xl/workbook.xml", &package::workbook(&names, &defined_names_xml, manual_calculation))?;
+    put(
+        "xl/workbook.xml",
+        &package::workbook(
+            &names,
+            &defined_names_xml,
+            manual_calculation,
+            workbook.iterative_calculation.as_ref(),
+        ),
+    )?;
     put("xl/_rels/workbook.xml.rels", &package::workbook_rels(names.len()))?;
     for (index, xml) in sheet_xml.iter().enumerate() {
         put(&format!("xl/worksheets/sheet{}.xml", index + 1), xml)?;

@@ -108,6 +108,16 @@ impl WasmWorkbook {
             calculation_mode: (self.workbook.calculation_mode()
                 == einfach_excel_core::CalculationMode::Manual)
                 .then(|| "manual".to_owned()),
+            iterative_calculation: {
+                let cfg = self.workbook.iterative_calculation();
+                (cfg != einfach_excel_core::IterativeConfig::default()).then_some(
+                    IterativeCalculationJSON {
+                        enabled: cfg.enabled,
+                        max_iterations: cfg.max_iterations,
+                        max_change: cfg.max_change,
+                    },
+                )
+            },
         }
     }
 

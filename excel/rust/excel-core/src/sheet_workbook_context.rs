@@ -76,6 +76,14 @@ pub(crate) struct WorkbookAtomContext {
     pub(super) custom_call_depth: Rc<Cell<usize>>,
     pub(super) in_flight: Rc<RefCell<HashSet<(usize, CellAddress)>>>,
     pub(super) async_custom: RefCell<AsyncCustomState>,
+    pub(super) iterative_config: Cell<crate::workbook::IterativeConfig>,
+    pub(super) iterative_epoch: RefCell<Option<AtomId>>,
+    pub(super) iterative_revision: Cell<u64>,
+    pub(super) has_installed_cycles: Cell<bool>,
+    pub(super) iterative_solving: Cell<bool>,
+    pub(super) iterative_active_scc: RefCell<HashSet<(usize, CellAddress)>>,
+    pub(super) iterative_values: RefCell<HashMap<(usize, CellAddress), Value>>,
+    pub(super) iterative_converged: RefCell<HashSet<(usize, CellAddress)>>,
 }
 
 impl WorkbookAtomContext {
@@ -113,6 +121,14 @@ impl WorkbookAtomContext {
                 next_call_id: 1,
                 generation: 0,
             }),
+            iterative_config: Cell::new(crate::workbook::IterativeConfig::default()),
+            iterative_epoch: RefCell::new(None),
+            iterative_revision: Cell::new(0),
+            has_installed_cycles: Cell::new(false),
+            iterative_solving: Cell::new(false),
+            iterative_active_scc: RefCell::new(HashSet::new()),
+            iterative_values: RefCell::new(HashMap::new()),
+            iterative_converged: RefCell::new(HashSet::new()),
         })
     }
 

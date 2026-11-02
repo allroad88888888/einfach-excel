@@ -27,4 +27,34 @@ impl WasmWorkbook {
         };
         Ok(self.workbook.set_calculation_mode(parsed))
     }
+
+    pub fn get_iterative_calculation(&self) -> JsValue {
+        let cfg = self.workbook.iterative_calculation();
+        serde_wasm_bindgen::to_value(&IterativeCalculationJSON {
+            enabled: cfg.enabled,
+            max_iterations: cfg.max_iterations,
+            max_change: cfg.max_change,
+        })
+        .unwrap_or(JsValue::NULL)
+    }
+
+    pub fn set_iterative_calculation(
+        &mut self,
+        enabled: bool,
+        max_iterations: u32,
+        max_change: f64,
+    ) -> Result<bool, JsValue> {
+        if self.workbook.is_inside_custom_call() {
+            return Err(JsValue::from_str(
+                "Cannot change iterative calculation inside a custom-formula callback.",
+            ));
+        }
+        Ok(self
+            .workbook
+            .set_iterative_calculation(einfach_excel_core::IterativeConfig {
+                enabled,
+                max_iterations,
+                max_change,
+            }))
+    }
 }

@@ -8,6 +8,10 @@ import { readWindowProjection } from './window-projection'
 import { readFrozenProjection } from './frozen-projection'
 import { validateCustomFormulaDefinitions } from '../custom-formulas/expression-types'
 import type { NativeCustomFormulaDefinition } from '../custom-formulas/expression-types'
+import {
+  normalizeIterativeCalculation,
+  validIterativeCalculation,
+} from '../calculation/mode-state'
 
 // 仅缓存同一原生实例/既有revision的只读目录投影；不是第二个可写registry。
 const customDirectories = new WeakMap<WasmWorkbook, {
@@ -40,9 +44,14 @@ export function readVisibleProjection(
   const rawCalcMode = workbook.get_calculation_mode?.()
   const calculationMode = rawCalcMode === 'manual' || rawCalcMode === 'automatic'
     ? rawCalcMode : undefined
+  const rawIterative = workbook.get_iterative_calculation?.()
+  const iterativeCalculation = validIterativeCalculation(rawIterative)
+    ? normalizeIterativeCalculation(rawIterative)
+    : undefined
   return {
     kind: 'visible-window',
     ...(calculationMode ? { calculationMode } : {}),
+    ...(iterativeCalculation ? { iterativeCalculation } : {}),
     ...(workbook.listTables ? { tables: workbook.listTables() } : {}),
     ...(freeze ? { freeze } : {}),
     ...(frozen ? { frozen } : {}),

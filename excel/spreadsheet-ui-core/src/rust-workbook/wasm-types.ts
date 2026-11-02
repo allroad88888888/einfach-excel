@@ -1,4 +1,11 @@
-import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat, ViewportRowHeight, ViewportColumnWidth } from '../contracts'
+import type {
+  DisplayCell,
+  IterativeCalculationConfig,
+  SpreadsheetCellFormat,
+  SpreadsheetNumberFormat,
+  ViewportRowHeight,
+  ViewportColumnWidth,
+} from '../contracts'
 import type { RangeBorderPatch, SetFormatRangeRequest } from '../contracts/format-contracts'
 import type { NativeFunctionCatalog } from '../formula-functions/types'
 import type { RustImportCell, RustImportStats, RustClearRangeRequest } from './commands'
@@ -79,6 +86,12 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   recalculate?: (sheet?: number) => number
   get_calculation_mode?: () => 'automatic' | 'manual'
   set_calculation_mode?: (mode: 'automatic' | 'manual') => boolean
+  get_iterative_calculation?: () => IterativeCalculationConfig
+  set_iterative_calculation?: (
+    enabled: boolean,
+    maxIterations: number,
+    maxChange: number,
+  ) => boolean
   snapshot_persistence_v1?: () => unknown
   restore_persistence_v1?: (value: unknown) => unknown
   free?: () => void

@@ -2,7 +2,8 @@ import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   calculationAvailableAtom, calculationFeedbackAtom, calculationModeAtom,
-  recalculateAtom, setCalculationModeAtom,
+  iterativeCalculationAtom, recalculateAtom, setCalculationModeAtom,
+  setIterativeCalculationAtom,
   formulaViewAvailableAtom, showFormulasAtom, toggleFormulaViewAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -13,6 +14,8 @@ export function CalculationTools() {
   const calculate = useSetAtom(recalculateAtom)
   const mode = useAtomValue(calculationModeAtom)
   const setMode = useSetAtom(setCalculationModeAtom)
+  const iterative = useAtomValue(iterativeCalculationAtom)
+  const setIterative = useSetAtom(setIterativeCalculationAtom)
   const available = useAtomValue(calculationAvailableAtom)
   const feedback = useAtomValue(calculationFeedbackAtom)
   const show = useAtomValue(showFormulasAtom)
@@ -36,6 +39,34 @@ export function CalculationTools() {
       <option value="sheet"><Trans>Current worksheet</Trans></option>
       <option value="workbook"><Trans>Entire workbook</Trans></option>
     </select>
+    <button type="button" className="tool-button" data-testid="iterative-calculation-toggle"
+      aria-label={t`Iterative calculation`} title={t`Iterative calculation`}
+      aria-pressed={iterative.enabled} disabled={!available}
+      onClick={() => void setIterative({ ...iterative, enabled: !iterative.enabled })}>
+      <Trans>Iterative</Trans>
+    </button>
+    <input type="number" className="tool-input" data-testid="iterative-max-iterations"
+      aria-label={t`Max iterations`} title={t`Max iterations`}
+      min={1} max={32767} step={1} defaultValue={iterative.maxIterations}
+      disabled={!available} onChange={(event) => {
+        const raw = event.currentTarget.value.trim()
+        if (!raw) return
+        const next = Number(raw)
+        if (Number.isFinite(next) && next >= 1) {
+          void setIterative({ ...iterative, maxIterations: Math.trunc(next) })
+        }
+      }} />
+    <input type="number" className="tool-input" data-testid="iterative-max-change"
+      aria-label={t`Max change`} title={t`Max change`}
+      min={0} step="any" defaultValue={iterative.maxChange}
+      disabled={!available} onChange={(event) => {
+        const raw = event.currentTarget.value.trim()
+        if (!raw) return
+        const next = Number(raw)
+        if (Number.isFinite(next) && next >= 0) {
+          void setIterative({ ...iterative, maxChange: next })
+        }
+      }} />
     <button type="button" className="tool-button" aria-label={t`Show formulas`} title={t`Show formulas`}
       aria-pressed={show} disabled={!viewAvailable} onClick={() => toggle()}>=</button>
     {feedback.busy && <span role="status"><Trans>Recalculating…</Trans></span>}

@@ -67,10 +67,17 @@ export function createTestRustWorkbookConnection(
       }
       return handlers.clearRange(input.request, input.projection)
     }
-    if (command === 'projection.readVisible' && handlers.readVisibleProjection) {
-      return handlers.readVisibleProjection(
-        (payload as { request: VisibleProjectionRequest }).request,
-      )
+    if (command === 'projection.readVisible') {
+      const projection = (payload as { request: VisibleProjectionRequest }).request
+      if (handlers.readVisibleProjection) return handlers.readVisibleProjection(projection)
+      if (handlers.setCellProjection) return handlers.setCellProjection(projection)
+      return {
+        kind: 'visible-window' as const,
+        sheetId: projection.sheetId,
+        requestId: projection.requestId,
+        window: { ...projection.window },
+        cells: [],
+      }
     }
     if (command === 'cell.setInput' && handlers.setCellInput) {
       const input = payload as {

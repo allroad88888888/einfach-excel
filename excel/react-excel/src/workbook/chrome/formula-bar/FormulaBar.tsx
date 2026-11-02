@@ -3,6 +3,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   cancelEditingAtom,
   commitCellEditingAtom,
+  reconcileCellEditingAtom,
   editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingDraftAtom,
@@ -39,6 +40,7 @@ export function FormulaBar() {
   const formulaInput = useFormulaInput(inputRef, 'formula-bar')
   const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
+  const reconcileEditing = useSetAtom(reconcileCellEditingAtom)
   const cancelEditing = useSetAtom(cancelEditingAtom)
   const activeCell = selection.activeCell
   const activeSheetId = selection.selection.sheetId
@@ -98,6 +100,10 @@ export function FormulaBar() {
       (document.activeElement !== document.body && document.activeElement !== input)) return
     if (outcome === 'completed') focusGrid()
     else if (outcome === 'rejected' || outcome === 'blocked') input.focus({ preventScroll: true })
+  }
+  const reconcileFromFormulaBar = async () => {
+    const outcome = await reconcileEditing()
+    if (outcome === 'completed') focusGrid()
   }
   const handleFormulaKey = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     event.stopPropagation()
@@ -161,9 +167,14 @@ export function FormulaBar() {
       </div>
       <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="formula-bar" />
       {feedback && (
-        <p className="formula-edit-feedback" id={feedbackId} role="alert">
-          {translateFeedback(i18n, feedback.message)}
-        </p>
+        <div className="formula-edit-feedback" role="alert">
+          <span id={feedbackId}>{translateFeedback(i18n, feedback.message)}</span>
+          {editingLifecycle.status === 'outcome-unknown' && (
+            <button type="button" onClick={() => void reconcileFromFormulaBar()}>
+              {t`Refresh`}
+            </button>
+          )}
+        </div>
       )}
     </>
   )

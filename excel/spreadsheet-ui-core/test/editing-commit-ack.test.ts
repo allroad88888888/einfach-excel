@@ -6,6 +6,7 @@ import {
   commitCellEditingAtom,
   editingCommitLifecycleAtom,
   editingSessionAtom,
+  reconcileCellEditingAtom,
   type EditingCommitRequest,
 } from '../src/editing'
 import { projectionSnapshotAtom } from '../src/projection'
@@ -62,8 +63,51 @@ describe('editing commit acknowledgement', () => {
       await expect(store.setter(commitCellEditingAtom)).resolves.toBe('blocked')
       expect(store.setter(cancelEditingAtom)).toBeNull()
       expect(transportCalls).toBe(1)
+
+      await expect(store.setter(reconcileCellEditingAtom)).resolves.toBe('completed')
+      expect(store.getter(editingCommitLifecycleAtom).status).toBe('ready')
+      expect(store.getter(editingSessionAtom).status).toBe('idle')
     },
   )
+
+  test('reconcileCellEditingAtom re-reads Rust projection and unlocks subsequent commits after ACK mismatch', async () => {
+    const store = createStore()
+    let calls = 0
+    startCellEdit(store, 'mismatched first')
+    bindEditingMutation(
+      store,
+      async (request) => {
+        calls += 1
+        return {
+          sheetId: request.sheetId,
+          requestId: calls === 1 ? request.requestId + 1 : request.requestId,
+          revision: calls,
+        }
+      },
+      async (request) => ({
+        kind: 'visible-window',
+        sheetId: request.sheetId,
+        requestId: request.requestId,
+        revision: calls,
+        window: { ...request.window },
+        cells: [{ row: 4, col: 2, displayValue: calls === 1 ? 'Rust truth' : 'Second commit' }],
+      }),
+    )
+
+    await expect(store.setter(commitCellEditingAtom)).resolves.toBe('outcome-unknown')
+    await expect(store.setter(commitCellEditingAtom)).resolves.toBe('blocked')
+
+    await expect(store.setter(reconcileCellEditingAtom)).resolves.toBe('completed')
+    expect(store.getter(editingSessionAtom).status).toBe('idle')
+    expect(store.getter(editingCommitLifecycleAtom).status).toBe('ready')
+    expect(store.getter(projectionSnapshotAtom).result?.cells).toEqual([
+      { row: 4, col: 2, displayValue: 'Rust truth' },
+    ])
+
+    startCellEdit(store, 'Second commit')
+    await expect(store.setter(commitCellEditingAtom)).resolves.toBe('completed')
+    expect(calls).toBe(2)
+  })
 
   test('a matching request id from another worksheet cannot close or resend the edit', async () => {
     const store = createStore()

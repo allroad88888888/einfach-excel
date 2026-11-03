@@ -537,29 +537,32 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | SHEET-001 | 新增工作表 | `workbook/sheet-tabs.spec.ts` | new sheet is blank, editable and uses the existing Worker |
 | SHEET-002 | 切换工作表 | `workbook/sheet-tabs.spec.ts` | seed summary reads the same Rust workbook and sheet switching keeps values isolated |
 | SHEET-003 | Enter 提交工作表名 | `workbook/sheet-tabs.spec.ts` | rename retargets cross-sheet formulas and later source edits still recalculate |
-| SHEET-004 | 向右移动工作表 | `workbook/sheet-movement.spec.ts` | move sheet right preserves identity and undoes once at 1280px |
-| SHEET-005 | 删除工作表 | `workbook/sheet-structure.spec.ts` | deletes active sheet, chooses the neighbor, and rejects deleting the last sheet |
+| SHEET-004 | 右键菜单向右移动工作表 | `workbook/sheet-movement.spec.ts` | move sheet right preserves identity and undoes once at 1280px |
+| SHEET-005 | 右键菜单删除工作表 | `workbook/sheet-structure.spec.ts` | deletes active sheet, chooses the neighbor, and rejects deleting the last sheet |
 | SHEET-006 | 切表恢复视图 | `workbook/sheet-view-memory.spec.ts` | sheet tabs restore selection and both scroll axes at 1280px |
 | SHEET-007 | 上一张工作表按钮（桌面入口） | `workbook/sheet-entries.spec.ts` | Previous sheet button switches the native sheet without history at 1280px |
 | SHEET-008 | 下一张工作表按钮（桌面入口） | `workbook/sheet-entries.spec.ts` | Next sheet button switches the native sheet without history at 1280px |
-| SHEET-009 | 按钮打开重命名 | `workbook/sheet-entries.spec.ts` | rename button opens a selected native name without mutation at 1280px |
-| SHEET-010 | 双击标签打开重命名 | `workbook/sheet-rename-entries.spec.ts` | double click opens sheet rename without mutation at 1280px |
-| SHEET-011 | F2 打开工作表重命名 | `workbook/sheet-rename-entries.spec.ts` | F2 opens sheet rename without mutation at 1280px |
-| SHEET-012 | Save 提交工作表名 | `workbook/sheet-rename-entries.spec.ts` | Save sheet name rewrites references and undoes once at 1280px |
-| SHEET-013 | 取消工作表名草稿 | `workbook/sheet-rename-recovery.spec.ts` | Cancel discards a sheet name draft and retains redo at 1280px |
+| SHEET-010 | 双击标签原位重命名 | `workbook/sheet-rename-entries.spec.ts` | double click opens sheet rename without mutation at 1280px |
+| SHEET-011 | F2 原位编辑工作表名 | `workbook/sheet-rename-entries.spec.ts` | F2 opens sheet rename without mutation at 1280px |
+| SHEET-012 | 失焦提交工作表名 | `workbook/sheet-rename-entries.spec.ts` | blur sheet name rewrites references and undoes once at 1280px |
 | SHEET-014 | Escape 丢弃工作表名草稿 | `workbook/sheet-rename-recovery.spec.ts` | Escape discards a sheet name draft and retains redo at 1280px |
 | SHEET-015 | 工作表重名纠正重试 | `workbook/sheet-rename-recovery.spec.ts` | duplicate sheet name can correct without partial rename at 1280px |
 | SHEET-016 | 工作表名非法字符纠正 | `workbook/sheet-rename-recovery.spec.ts` | invalid characters sheet name can correct without partial rename at 1280px |
 | SHEET-017 | 空工作表名纠正 | `workbook/sheet-rename-recovery.spec.ts` | empty sheet name can correct without partial rename at 1280px |
 | SHEET-018 | 超长工作表名纠正 | `workbook/sheet-rename-recovery.spec.ts` | too long sheet name can correct without partial rename at 1280px |
 | SHEET-019 | 保留工作表名纠正 | `workbook/sheet-rename-recovery.spec.ts` | reserved sheet name can correct without partial rename at 1280px |
-| SHEET-020 | 向左移动工作表 | `workbook/sheet-movement.spec.ts` | move sheet left preserves identity and undoes once at 1280px |
+| SHEET-020 | 右键菜单向左移动工作表 | `workbook/sheet-movement.spec.ts` | move sheet left preserves identity and undoes once at 1280px |
 | SHEET-021 | 打开删除工作表确认 | `workbook/sheet-delete-recovery.spec.ts` | Open delete confirmation preserves cells and redo at 1280px |
 | SHEET-022 | 取消删除工作表 | `workbook/sheet-delete-recovery.spec.ts` | Cancel delete confirmation preserves cells and redo at 1280px |
 | SHEET-023 | Escape 放弃删除工作表 | `workbook/sheet-delete-recovery.spec.ts` | Escape delete confirmation preserves cells and redo at 1280px |
 | SHEET-024 | 删除确认 Tab 焦点循环 | `workbook/sheet-delete-recovery.spec.ts` | Tab delete confirmation preserves cells and redo at 1280px |
 | SHEET-025 | 删除确认 Shift+Tab 焦点循环 | `workbook/sheet-delete-recovery.spec.ts` | Shift+Tab delete confirmation preserves cells and redo at 1280px |
 | SHEET-026 | 删除传输失败原地重试 | `workbook/sheet-delete-retry.spec.ts` | delete transport failure retries in the same confirmation with one undo at 1280px |
+| SHEET-027 | 右键菜单重命名指定工作表 | `sheet-management/tab-strip.spec.ts` | right-click Rename edits the clicked inactive sheet inline and preserves its neighbor |
+| SHEET-028 | 右键菜单新建工作表 | `sheet-management/tab-strip.spec.ts` | right-click New sheet adds an editable sheet and preserves the source cells |
+| SHEET-029 | Shift+F10 打开工作表菜单 | `sheet-management/tab-strip.spec.ts` | Shift+F10 opens the focused sheet menu and Escape restores tab focus |
+| SHEET-030 | 菜单键打开工作表菜单 | `sheet-management/tab-strip.spec.ts` | ContextMenu opens the focused sheet menu and Escape restores tab focus |
+| SHEET-031 | 紧凑工作表栏及右键菜单布局 | `sheet-management/tab-strip.spec.ts` | Excel sheet strip keeps controls compact and its right-click menu in view at 1280px |
 | TABLE-001 | 创建 Table | `workbook/tables.spec.ts` | create a table preserves its source and undoes once at 1280px |
 | TABLE-002 | Table 重命名 | `workbook/tables.spec.ts` | rename a seeded table rewrites only its references at 1280px |
 | TABLE-003 | Table 转普通区域 | `workbook/tables.spec.ts` | convert a seeded table keeps data and visible formatting at 1280px |
@@ -1007,6 +1010,25 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | PROTECT-010 | 保护面板中英文切换 | `protection/dialog.spec.ts` | worksheet protection switches language without losing native settings at 1280px |
 | PROTECT-011 | 保护原生下载/打开 | `protection/persistence.spec.ts` | native file roundtrip retains worksheet protection and editable ranges at 1280px |
 | PROTECT-012 | 预设范围但默认开放的真实原生种子 | `protection/seed.spec.ts` | native protection seed remains open with configured editable ranges and no startup history at 1280px |
+| PROTECT-013 | 整表只读演示及解除保护 | `protection/demo-sheets.spec.ts` | read-only demo rejects edits from startup and can be unprotected at 1280px |
+| PROTECT-014 | 局部可编辑演示及锁定公式 | `protection/demo-sheets.spec.ts` | editable-range demo changes green inputs and keeps prices and formulas locked at 1280px |
+| PROTECT-015 | 双击锁定格弹出保护警告，确定关闭后恢复原格焦点 | `protection/locked-edit-dialog.spec.ts` | double-click opens a protection dialog and OK restores cell focus at 1280px dom |
+| PROTECT-016 | F2 触发保护警告，Esc 关闭后恢复原格焦点 | `protection/locked-edit-dialog.spec.ts` | F2 opens a protection dialog and Escape restores cell focus at 1280px dom |
+| PROTECT-017 | 键入触发保护警告，Enter 关闭后恢复原格焦点 | `protection/locked-edit-dialog.spec.ts` | typing opens a protection dialog and Enter restores cell focus at 1280px dom |
+| PROTECT-018 | 存在受保护工作表时新增 Sheet，可输入并撤销重做 | `protection/add-sheet.spec.ts` | add sheet with protected neighbors supports input undo and redo from Sales Orders at 1280px |
+| PROTECT-019 | 删除新建表，邻表保护保持有效 | `protection/delete-sheet.spec.ts` | right-click Delete removes a new sheet with protected neighbors and replays history at 1280px |
+| PROTECT-020 | 删除受保护表并撤销恢复保护配置 | `protection/delete-sheet.spec.ts` | right-click Delete restores a protected sheet with its locks on undo at 1280px |
+| PROTECT-021 | 受保护邻表存在时隐藏工作表 | `protection/sheet-tab-actions.spec.ts` | right-click Hide works with protected demo sheets and undoes at 1280px |
+| PROTECT-022 | 取消隐藏受保护工作表 | `protection/sheet-tab-actions.spec.ts` | right-click Unhide restores a protected sheet without unlocking it at 1280px |
+| PROTECT-023 | 受保护邻表存在时改名并更新引用 | `protection/sheet-tab-actions.spec.ts` | right-click Rename works with protected demo sheets and preserves formulas at 1280px |
+| PROTECT-024 | 受保护工作表左移 | `protection/sheet-tab-actions.spec.ts` | right-click Move left works on a protected sheet and undoes at 1280px |
+| PROTECT-025 | 受保护工作表右移 | `protection/sheet-tab-actions.spec.ts` | right-click Move right works on a protected sheet and undoes at 1280px |
+| PROTECT-026 | 复制受保护工作表及允许编辑区域 | `protection/sheet-tab-actions.spec.ts` | right-click Duplicate preserves protected cells and editable ranges at 1280px |
+| PROTECT-027 | 受保护工作表设置标签颜色 | `protection/sheet-tab-actions.spec.ts` | right-click Tab color works on a protected sheet and undoes at 1280px |
+| PROTECT-028 | 受保护工作表清除标签颜色 | `protection/sheet-tab-actions.spec.ts` | right-click No color clears a protected sheet tab color at 1280px |
+| PROTECT-029 | 受保护工作表右键新建页 | `protection/sheet-tab-actions.spec.ts` | right-click New sheet works beside protected sheets at 1280px |
+| PROTECT-030 | 右键全选含受保护页的工作表 | `protection/sheet-tab-actions.spec.ts` | right-click Select all sheets includes protected sheets at 1280px |
+| PROTECT-031 | 右键取消含受保护页的分组 | `protection/sheet-tab-actions.spec.ts` | right-click Ungroup sheets clears protected sheet grouping at 1280px |
 | CUSTOM-001 | 打开目录 | `custom-formulas/actions.spec.ts` | open custom formula directory reads native definitions at 1280px |
 | CUSTOM-002 | 注册定义 | `custom-formulas/actions.spec.ts` | register custom expression leaves user cells unchanged at 1280px |
 | CUSTOM-003 | 公式栏调用 | `custom-formulas/actions.spec.ts` | call registered expression from formula bar at 1280px |

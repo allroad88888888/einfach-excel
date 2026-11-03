@@ -13,6 +13,14 @@ export const sheetProtectionAtom: Atom<SheetProtectionBySheet> = atom((get) =>
 )
 sheetProtectionAtom.debugLabel = 'spreadsheet.protection.state'
 
+/** Whole-sheet read-only status, derived from accepted protection facts. */
+export const readOnlySheetIdsAtom = atom((get): ReadonlySet<string> => new Set(
+  Object.entries(get(sheetProtectionAtom))
+    .filter(([, state]) => state.mode === 'protected' && state.unlockedRanges.length === 0)
+    .map(([sheetId]) => sheetId),
+))
+readOnlySheetIdsAtom.debugLabel = 'spreadsheet.protection.readOnlySheetIds'
+
 // Sheets that are locally owned: either seeded once from the persistence
 // hook or written by a local command. A late hydration result must never
 // clobber a locally owned sheet. Bounded by the sheet count, same as the

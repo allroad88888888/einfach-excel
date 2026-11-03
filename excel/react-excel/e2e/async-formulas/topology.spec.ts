@@ -1,6 +1,7 @@
+import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
-import { bar, button, cell, controlledJson, formula, openAsyncDemo, write } from './fixtures'
+import { bar, cell, controlledJson, formula, openAsyncDemo, write } from './fixtures'
 
 test.beforeEach(async ({ page }) => openAsyncDemo(page))
 
@@ -10,7 +11,7 @@ test('renaming the source sheet during HTTP I/O preserves identity and updates n
   await page.getByRole('tab', { name: 'Async Summary', exact: true }).click()
   await write(page, 'B12', '11:1', "='Async JSON'!B12+1")
   await page.getByRole('tab', { name: 'Async JSON', exact: true }).click()
-  await button(page, 'Rename sheet').click()
+  await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
   await page.getByLabel('Sheet name').fill('Renamed JSON')
   await page.getByLabel('Sheet name').press('Enter')
   await page.getByRole('tab', { name: 'Async Summary', exact: true }).click()
@@ -26,7 +27,7 @@ test('deleting the pending source cannot inject its late HTTP result into a diff
   await page.getByRole('tab', { name: 'Async Summary', exact: true }).click()
   await write(page, 'B12', '11:1', "='Async JSON'!B12+1")
   await page.getByRole('tab', { name: 'Async JSON', exact: true }).click()
-  await button(page, 'Delete sheet').click()
+  await (await sheetMenuItem(page, 'Delete sheet')).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Delete worksheet', exact: true }).click()
   await expect(page.getByRole('tab', { name: 'Async JSON', exact: true })).toHaveCount(0)
   await http.release(0, 99)

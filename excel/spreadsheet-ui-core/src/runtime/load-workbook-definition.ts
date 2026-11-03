@@ -1,10 +1,14 @@
 import type { RustWorkbookConnection } from '../rust-workbook'
 import type { WorkbookDocumentSheet } from './workbook-document'
 import type { RustWorkbookDefinition } from './rust-workbook-definition'
+import { createVisibleProjectionRequest, validateProjectionResult } from '../projection/contracts'
+import { validNativeProtection } from '../rust-workbook/protection/commands'
+import type { SheetProtectionBySheet, SheetProtectionState } from '../protection/types'
 
 export interface LoadedWorkbook {
   readonly title: string
   readonly sheets: readonly WorkbookDocumentSheet[]
+  readonly protectionBySheet?: SheetProtectionBySheet
 }
 
 /**
@@ -70,5 +74,24 @@ export async function loadWorkbookDefinition(
       await connection.request('workbook.importCells', { cells: [], tables })
       if (!owned()) return null
     }
-  return { title: definition.title, sheets: documentSheets }
+    // 先导入全部内容再锁定，复用原生保护命令；页面发布前不会出现可写的中间状态。
+    const protectionBySheet: Record<string, SheetProtectionState> = {}
+    for (const sheet of definition.sheets.filter((entry) => entry.protected)) {
+      const projection = createVisibleProjectionRequest({ sheetId: sheet.id, requestId: 1,
+        window: { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 } })
+      const current = await connection.request('projection.readVisible', { request: projection })
+      if (!owned()) return null
+      if (current.revision === undefined ||
+        !validateProjectionResult(current, { request: projection }).ok)
+        throw new Error('Rust returned an invalid initial protection projection.')
+      const saved = await connection.request('protection.change', {
+        sheetId: sheet.id, change: { action: 'protect' }, revision: current.revision, projection,
+      })
+      if (!owned()) return null
+      if (!validNativeProtection(saved.protection) || saved.protection.mode !== 'protected')
+        throw new Error('Rust did not enable initial worksheet protection.')
+      protectionBySheet[sheet.id] = saved.protection
+    }
+  return { title: definition.title, sheets: documentSheets,
+    ...(Object.keys(protectionBySheet).length ? { protectionBySheet } : {}) }
 }

@@ -8,6 +8,7 @@ import {
   activeWorkbookSheetAtom,
   workbookDocumentAtom,
   sheetTabsAtom,
+  openSheetTabMenuAtom,
   selectionSnapshotAtom,
   selectionBoundsAtom,
   viewportMetricsAtom,
@@ -46,6 +47,34 @@ function setup() {
 }
 
 describe('Rust workbook sheet commands', () => {
+  test.each(['move-left', 'move-right', 'request-delete'] as const)(
+    '%s from the menu targets the clicked inactive sheet and closes the menu', async (operation) => {
+      const { store, run } = setup()
+      if (operation === 'move-right') await run({ operation: 'switch', sheetId: 'summary' })
+      const activeId = store.getter(activeWorkbookSheetAtom)!.id
+      const sheetId = activeId === 'orders' ? 'summary' : 'orders'
+      const sheets = store.getter(workbookDocumentAtom).sheets
+      const request = vi.fn(async () => ({
+        sheets: (operation === 'request-delete'
+          ? sheets.filter((sheet) => sheet.id !== sheetId)
+          : [...sheets].reverse()).map((sheet, index) => ({ ...sheet, index })),
+        revision: 1,
+      }))
+      store.setter(setRustWorkbookConnectionAtom,
+        { request, dispose: vi.fn() } as unknown as RustWorkbookConnection)
+      store.setter(openSheetTabMenuAtom, { sheetId, x: 100, y: 600 })
+      expect(await run({ operation, sheetId })).toBe(true)
+      expect(store.getter(sheetTabsAtom).contextMenu).toBeNull()
+      if (operation === 'request-delete') {
+        expect(request).not.toHaveBeenCalled()
+        expect(store.getter(sheetTabsAtom).deleteConfirmation?.sheetId).toBe(sheetId)
+        expect(await run({ operation: 'delete' })).toBe(true)
+      }
+      expect(request).toHaveBeenCalledExactlyOnceWith('workbook.changeSheets', expect.objectContaining({ sheetId }))
+      expect(store.getter(activeWorkbookSheetAtom)?.id).toBe(activeId)
+    },
+  )
+
   test('adds one Rust sheet and publishes returned identity without reinitializing', async () => {
     const { store, run, request } = setup()
     expect(await run({ operation: 'add' })).toBe(true)
@@ -136,6 +165,26 @@ describe('Rust workbook sheet commands', () => {
     })
     await run({ operation: 'cancel-rename' })
     expect(store.getter(sheetTabsAtom)).toMatchObject({ error: null, rename: null })
+  })
+
+  test('leaving an unchanged name closes its draft without a native write', async () => {
+    const { store, run, request } = setup()
+    await run({ operation: 'begin-rename', sheetId: 'orders' })
+    expect(await run({ operation: 'rename' })).toBe(true)
+    expect(store.getter(sheetTabsAtom).rename).toBeNull()
+    expect(request).not.toHaveBeenCalled()
+  })
+
+  test.each([false, true])('switch settles the name draft before navigation, rejected=%s', async (rejected) => {
+    const { store, run, edit, request } = setup()
+    if (rejected) edit.mockRejectedValueOnce(new Error('Duplicate sheet name'))
+    await run({ operation: 'begin-rename', sheetId: 'orders' })
+    await run({ operation: 'change-name', name: 'Budget' })
+    expect(await run({ operation: 'switch', sheetId: 'summary' })).toBe(!rejected)
+    expect(request).toHaveBeenCalledTimes(1)
+    expect(store.getter(activeWorkbookSheetAtom)?.id).toBe(rejected ? 'orders' : 'summary')
+    expect(store.getter(workbookDocumentAtom).sheets[0].name).toBe(rejected ? 'Orders' : 'Budget')
+    expect(store.getter(sheetTabsAtom).rename?.draftName ?? null).toBe(rejected ? 'Budget' : null)
   })
 
   test('pending mutation blocks duplicate clicks, response from disposed workbook is ignored', async () => {

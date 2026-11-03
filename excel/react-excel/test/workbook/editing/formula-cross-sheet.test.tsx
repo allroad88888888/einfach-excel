@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { expect, test } from 'vitest'
-import { editingSessionAtom } from '@einfach-excel/spreadsheet-ui-core'
+import { editingSessionAtom, setSheetProtectionAtom } from '@einfach-excel/spreadsheet-ui-core'
 import {
   createControlledCellEditingConnection, dispatchEditingPointer, firstEditingCell,
   renderSalesOrdersEditingWorksheet,
@@ -27,9 +27,16 @@ test.each(['cell', 'formula-bar'])(
     expect(bar).toHaveValue('=')
     expect(bar).toHaveFocus()
     expect(screen.getByRole('button', { name: 'New sheet' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Rename sheet' })).toBeDisabled()
+    fireEvent.doubleClick(screen.getByRole('tab', { name: 'Summary' }))
+    expect(screen.queryByLabelText('Sheet name')).toBeNull()
+    expect(bar).toHaveFocus()
     expect(controlled.setCellInput).not.toHaveBeenCalled()
     const grid = await screen.findByLabelText('Summary cells')
+    act(() => store.setter(setSheetProtectionAtom, {
+      sheetId: 'summary', state: { mode: 'protected', unlockedRanges: [] },
+    }))
+    // 浏览锁定的引用目标不会把原单元格的编辑会话改为只读。
+    expect(bar).not.toHaveAttribute('readonly')
     dispatchEditingPointer(document.querySelector('[data-cell="0:1"]')!, 'pointerdown', 2)
     dispatchEditingPointer(grid, 'pointerup', 2)
     expect(bar).toHaveValue("='Summary'!B1")

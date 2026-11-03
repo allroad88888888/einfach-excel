@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
-import { button, cell, panel, select, openProtection, protect, closeProtection, input, editor } from './support'
+import { button, cell, panel, select, openProtection, protect, closeProtection, input, editor, expectLockedInput } from './support'
 
 for (const width of [1280, 390])
   test(`native file roundtrip retains worksheet protection and editable ranges at ${width}px`, async ({ page }) => {
@@ -34,7 +34,7 @@ for (const width of [1280, 390])
     await closeProtection(page)
     await select(page, 'E2', '1:4'); await input(page, '2')
     await expect(cell(page, '1:4')).toHaveText('2')
-    await select(page, 'F2', '1:5'); await input(page, '100')
+    await select(page, 'F2', '1:5'); await expectLockedInput(page)
     await expect(cell(page, '1:5')).toHaveText('79')
     await editor(page).press('Escape')
     await button(page, 'Undo').click()

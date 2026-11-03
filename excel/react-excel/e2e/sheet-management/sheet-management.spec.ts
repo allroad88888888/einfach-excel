@@ -104,7 +104,7 @@ test('download and open keep hidden sheets and tab colors', async ({ page }) => 
   const saved = JSON.parse(text).workbook.sheets
   expect(saved[0].hidden).toBe(true)
   expect(saved[1].tabColor).toBe('#0070C0')
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await openWorkbookText(page, text)
   await expect(tabs(page)).toHaveText(['Summary'])

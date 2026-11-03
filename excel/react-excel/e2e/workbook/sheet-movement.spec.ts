@@ -1,3 +1,4 @@
+import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 
@@ -21,7 +22,7 @@ for (const width of [1280, 390]) for (const direction of ['left', 'right'] as co
     const active = page.getByRole('tab', { name: source, exact: true })
     const undo = page.getByRole('button', { name: 'Undo', exact: true })
     const redo = page.getByRole('button', { name: 'Redo', exact: true })
-    await page.getByRole('button', { name: `Move sheet ${direction}`, exact: true }).click()
+    await (await sheetMenuItem(page, `Move sheet ${direction}`)).click()
     await expect(tabs).toHaveText(['Summary', 'Sales Orders'])
     await expect(active).toHaveAttribute('aria-selected', 'true')
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue(range)
@@ -29,7 +30,7 @@ for (const width of [1280, 390]) for (const direction of ['left', 'right'] as co
     await expect(cell(page, coord)).toHaveCSS('font-weight', '700')
     const after = (await cell(page, coord).boundingBox())!
     expect([after.width, after.height]).toEqual([before.width, before.height])
-    await expect(page.getByRole('button', { name: `Move sheet ${direction}`, exact: true })).toBeDisabled()
+    await expect((await sheetMenuItem(page, `Move sheet ${direction}`))).toBeDisabled()
     await undo.click()
     await expect(tabs).toHaveText(['Sales Orders', 'Summary'])
     await expect(active).toHaveAttribute('aria-selected', 'true')

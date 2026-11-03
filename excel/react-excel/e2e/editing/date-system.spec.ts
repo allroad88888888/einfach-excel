@@ -15,7 +15,7 @@ async function write(page: Page, address: string, formula: string) {
   await editor.press('Enter')
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   // 日期计算需要普通输入格；Summary!A80:B80 是真实 Table 表头，输入应视为列名文字。
   await page.getByRole('button', { name: 'New sheet', exact: true }).click()

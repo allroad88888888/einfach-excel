@@ -25,7 +25,7 @@ async function headers(page: Page, enabled: boolean) {
 test('local header insertion moves a merged formula and undo restores its complete geometry', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
   await button(page, 'New sheet').click()
   await expect(page.getByRole('tab', { name: 'Sheet3', exact: true })).toHaveAttribute('aria-selected', 'true')
@@ -65,7 +65,7 @@ test('local header insertion moves a merged formula and undo restores its comple
 
 const wasmUrl = `/@fs${fileURLToPath(new URL('../../../excel-wasm/', import.meta.url))}`
 for (const variant of ['lite', 'full']) test(`${variant} persists moved merge geometry and formula sources`, async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   const result = await page.evaluate(async (url) => {
     const module = await import(url)
     await module.default()
@@ -102,7 +102,7 @@ for (const variant of ['lite', 'full']) test(`${variant} persists moved merge ge
 })
 
 for (const variant of ['lite', 'full']) test(`${variant} reblocks a newly expanded array on merge movement undo`, async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   const result = await page.evaluate(async (url) => {
     const module = await import(url)
     await module.default()

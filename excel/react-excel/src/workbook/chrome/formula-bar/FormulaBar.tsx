@@ -14,6 +14,7 @@ import {
   activeCellInputTextAtom,
   selectionSnapshotAtom,
   startCellEditingFromProjectionAtom,
+  activeCellLockedAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import type { FocusEvent, FormEvent, KeyboardEvent } from 'react'
 import { useId, useLayoutEffect, useRef } from 'react'
@@ -32,6 +33,7 @@ export function FormulaBar() {
   const feedbackId = useId()
   const selection = useAtomValue(selectionSnapshotAtom)
   const sourceText = useAtomValue(activeCellInputTextAtom)
+  const activeCellLocked = useAtomValue(activeCellLockedAtom)
   const editingSession = useAtomValue(editingSessionAtom)
   const editingDraft = useAtomValue(editingDraftAtom)
   const hasFormulaRefs = useAtomValue(formulaReferenceTokensAtom).length > 0
@@ -49,6 +51,8 @@ export function FormulaBar() {
   const activeCell = selection.activeCell
   const activeSheetId = selection.selection.sheetId
   const hasEditingSource = editingSession.source !== null
+  // 跨表选择引用时，公式栏仍属于原单元格的编辑会话。
+  const readOnly = !hasEditingSource && activeCellLocked
   const value = hasEditingSource ? editingDraft : sourceText ?? ''
   const busy =
     editingLifecycle.status === 'pending' || editingLifecycle.status === 'outcome-unknown'
@@ -58,7 +62,7 @@ export function FormulaBar() {
       : null
 
   const beginFormulaEditing = () => {
-    if (busy || (!hasEditingSource && sourceText === undefined)) return
+    if (readOnly || busy || (!hasEditingSource && sourceText === undefined)) return
     if (hasEditingSource) {
       setEditingDraft({ draft: editingDraft, source: 'formula-bar' })
       return
@@ -70,6 +74,7 @@ export function FormulaBar() {
     })
   }
   const updateFormula = (event: FormEvent<HTMLTextAreaElement>) => {
+    if (readOnly) return
     if (!hasEditingSource) {
       const started = startEditing({
         sheetId: activeSheetId,
@@ -111,6 +116,13 @@ export function FormulaBar() {
   }
   const handleFormulaKey = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     event.stopPropagation()
+    if (readOnly) {
+      if (event.key === 'Escape' || event.key === 'Enter') {
+        event.preventDefault()
+        focusGrid()
+      }
+      return
+    }
     // 输入法确认键属于浏览器；229 覆盖部分浏览器 compositionend 后的确认事件。
     if (event.nativeEvent.isComposing || event.keyCode === 229) return
     if (formulaInput.onFormulaKey(event)) return
@@ -163,6 +175,7 @@ export function FormulaBar() {
             data-formula-input="true"
             data-has-formula-refs={hasEditingSource && hasFormulaRefs ? 'true' : undefined}
             disabled={busy || (!hasEditingSource && sourceText === undefined)}
+            readOnly={readOnly}
             id={inputId}
             name="formula-input"
             onBlur={commitFormula}

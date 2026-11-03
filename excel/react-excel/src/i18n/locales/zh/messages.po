@@ -635,7 +635,6 @@ msgstr "自定义公式表达式只能调用内置函数或已注册的自定义
 
 #: src/workbook/advanced-validation/ValidationErrorAlert.tsx
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
@@ -1663,7 +1662,7 @@ msgstr "删除选中的列"
 msgid "Delete selected rows"
 msgstr "删除选中的行"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Delete sheet"
 msgstr "删除工作表"
 
@@ -1832,9 +1831,13 @@ msgid "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys
 msgstr "拖动调整{axisLabel}尺寸；双击或按 Enter 自动适应；方向键每次调整 10 像素"
 
 #: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
-#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Duplicate"
 msgstr "重复值"
+
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgctxt "worksheet"
+msgid "Duplicate"
+msgstr "复制工作表"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Duplicate / unique values"
@@ -3496,11 +3499,11 @@ msgstr "下移规则 {0}"
 msgid "Move rule {0} up"
 msgstr "上移规则 {0}"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Move sheet left"
 msgstr "向左移动工作表"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Move sheet right"
 msgstr "向右移动工作表"
 
@@ -3597,6 +3600,7 @@ msgid "New rule"
 msgstr "新建规则"
 
 #: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "New sheet"
 msgstr "新建工作表"
 
@@ -3797,6 +3801,7 @@ msgstr "等差数列"
 msgid "Numerical count"
 msgstr "数值计数"
 
+#: src/workbook/protection/LockedCellDialog.tsx
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
 #: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "OK"
@@ -4354,7 +4359,7 @@ msgstr "重命名失败：找不到表格。"
 msgid "Rename failed: the table name is invalid."
 msgstr "重命名失败：表格名称无效。"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Rename sheet"
 msgstr "重命名工作表"
 
@@ -4746,10 +4751,6 @@ msgstr "样本已截断：最多显示 20 行、12 列，每个字段最多 120 
 msgid "Sample values"
 msgstr "样本值"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
-msgid "Save"
-msgstr "保存"
-
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Save changes"
@@ -5118,7 +5119,7 @@ msgstr "工作表 / 单元格"
 msgid "Sheet list failed to load"
 msgstr "工作表列表加载失败。"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/chrome/footer/SheetTabRenameInput.tsx
 msgid "Sheet name"
 msgstr "工作表名称"
 
@@ -6023,6 +6024,7 @@ msgstr "此工作簿为只读。"
 msgid "This worksheet is open for editing."
 msgstr "此工作表可自由编辑。"
 
+#: src/workbook/protection/LockedCellDialog.tsx
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "This worksheet is protected."
 msgstr "此工作表已受保护。"
@@ -6071,6 +6073,10 @@ msgstr "时间"
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Time format"
 msgstr "时间格式"
+
+#: src/workbook/protection/LockedCellDialog.tsx
+msgid "To edit this cell, unprotect the worksheet first."
+msgstr "若要修改此单元格，请先解除工作表保护。"
 
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "To replace a formula, choose Formulas / raw values. Calculated results are not overwritten."

@@ -9,7 +9,7 @@ async function select(page: Page, address: string) {
   await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
 }
 async function summary(page: Page) {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'A93:F93')

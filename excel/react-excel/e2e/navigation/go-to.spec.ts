@@ -137,7 +137,7 @@ test('offscreen cross-sheet navigation works with frozen panes and returning kee
 
 test('quoted worksheet names navigate correctly and an obsolete history address stays an explicit error', async ({ page }) => {
   await go(page, 'Summary!B2')
-  await button(page, 'Rename sheet').click()
+  await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
   await page.getByRole('textbox', { name: 'Sheet name' }).fill("Manager'!s report")
   await page.getByRole('textbox', { name: 'Sheet name' }).press('Enter')
   await expect(page.getByRole('tab', { name: "Manager'!s report", exact: true })).toBeVisible()

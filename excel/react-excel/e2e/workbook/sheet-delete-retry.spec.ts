@@ -1,3 +1,4 @@
+import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
@@ -29,7 +30,7 @@ for (const width of [1280, 390])
         post.call(this, message, Array.isArray(options) ? { transfer: options } : (options ?? {}))
       }
     })
-    await page.getByRole('button', { name: 'Delete sheet', exact: true }).click()
+    await (await sheetMenuItem(page, 'Delete sheet')).click()
     const dialog = page.getByRole('alertdialog', { name: 'Delete worksheet?', exact: true })
     const confirm = dialog.getByRole('button', { name: 'Delete worksheet', exact: true })
     await confirm.click()

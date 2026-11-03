@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
 })
 
@@ -16,7 +16,7 @@ async function switchSheet(page: Page, name: string) {
 }
 
 async function rename(page: Page, name: string) {
-  await page.getByRole('button', { name: 'Rename sheet' }).click()
+  await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
   const input = page.getByRole('textbox', { name: 'Sheet name' })
   await input.fill(name)
   await input.press('Enter')
@@ -180,7 +180,7 @@ test('sheet controls stay reachable with many tabs on desktop and narrow viewpor
   await rename(page, 'September budget worksheet')
   const tab = page.getByRole('tab', { name: 'September budget worksheet' })
   await expect(tab).toBeInViewport()
-  await page.getByRole('button', { name: 'Rename sheet' }).click()
+  await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
   const input = page.getByLabel('Sheet name')
   await input.fill('Summary')
   await input.press('Enter')

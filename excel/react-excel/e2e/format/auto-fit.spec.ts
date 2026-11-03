@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await select(page, 'A2', '1:0')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await expect(page.locator('td[data-cell="0:0"]')).toHaveText('First order total')

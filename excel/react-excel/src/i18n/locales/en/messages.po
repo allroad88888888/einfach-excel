@@ -635,7 +635,6 @@ msgstr "Call only built-in functions or registered custom formulas in custom for
 
 #: src/workbook/advanced-validation/ValidationErrorAlert.tsx
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
@@ -1663,7 +1662,7 @@ msgstr "Delete selected columns"
 msgid "Delete selected rows"
 msgstr "Delete selected rows"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Delete sheet"
 msgstr "Delete sheet"
 
@@ -1832,7 +1831,11 @@ msgid "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys
 msgstr "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px"
 
 #: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
+msgid "Duplicate"
+msgstr "Duplicate"
+
 #: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgctxt "worksheet"
 msgid "Duplicate"
 msgstr "Duplicate"
 
@@ -3496,11 +3499,11 @@ msgstr "Move rule {0} down"
 msgid "Move rule {0} up"
 msgstr "Move rule {0} up"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Move sheet left"
 msgstr "Move sheet left"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Move sheet right"
 msgstr "Move sheet right"
 
@@ -3597,6 +3600,7 @@ msgid "New rule"
 msgstr "New rule"
 
 #: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "New sheet"
 msgstr "New sheet"
 
@@ -3797,6 +3801,7 @@ msgstr "Number sequence"
 msgid "Numerical count"
 msgstr "Numerical count"
 
+#: src/workbook/protection/LockedCellDialog.tsx
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
 #: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "OK"
@@ -4354,7 +4359,7 @@ msgstr "Rename failed: the table could not be found."
 msgid "Rename failed: the table name is invalid."
 msgstr "Rename failed: the table name is invalid."
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Rename sheet"
 msgstr "Rename sheet"
 
@@ -4746,10 +4751,6 @@ msgstr "Sample shortened: up to 20 rows, 12 columns and 120 characters per field
 msgid "Sample values"
 msgstr "Sample values"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
-msgid "Save"
-msgstr "Save"
-
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Save changes"
@@ -5118,7 +5119,7 @@ msgstr "Sheet / cell"
 msgid "Sheet list failed to load"
 msgstr "Sheet list failed to load"
 
-#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/chrome/footer/SheetTabRenameInput.tsx
 msgid "Sheet name"
 msgstr "Sheet name"
 
@@ -6023,6 +6024,7 @@ msgstr "This workbook is read-only."
 msgid "This worksheet is open for editing."
 msgstr "This worksheet is open for editing."
 
+#: src/workbook/protection/LockedCellDialog.tsx
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "This worksheet is protected."
 msgstr "This worksheet is protected."
@@ -6071,6 +6073,10 @@ msgstr "Time"
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Time format"
 msgstr "Time format"
+
+#: src/workbook/protection/LockedCellDialog.tsx
+msgid "To edit this cell, unprotect the worksheet first."
+msgstr "To edit this cell, unprotect the worksheet first."
 
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "To replace a formula, choose Formulas / raw values. Calculated results are not overwritten."

@@ -24,7 +24,7 @@ for (const width of [1280, 390]) test(`split conditional scope remains one edita
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.setViewportSize({ width, height: 800 })
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await button(page, 'New sheet').click()
   await expect(page.getByRole('tab', { name: 'Sheet3', exact: true })).toHaveAttribute('aria-selected', 'true')
@@ -80,7 +80,7 @@ for (const width of [1280, 390]) test(`split conditional scope remains one edita
 
 const wasmUrl = `/@fs${fileURLToPath(new URL('../../../excel-wasm/', import.meta.url))}`
 for (const variant of ['lite', 'full']) test(`${variant} restores multi-area scope and rejects invalid extra bounds`, async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   const result = await page.evaluate(async (url) => {
     const module = await import(url)
     await module.default()

@@ -46,3 +46,35 @@ for (const variant of ['lite', 'full'])
     expect(result.locked.display).toBe('7')
     expect(result.allowed.display).toBe('5')
   })
+
+for (const variant of ['lite', 'full'])
+  test(`${variant} raw WASM adds sheets beside protected cells and replays creation history`, async ({ page }) => {
+    await page.goto('/')
+    const result = await page.evaluate(async (url) => {
+      const module = await import(url)
+      await module.default()
+      const book = new module.WasmWorkbook()
+      try {
+        book.set_cell_input(0, 'A1', '7')
+        book.change_protection(0, { action: 'protect' })
+        const protection = book.read_protection(0)
+        const raw = book.add_sheet('Raw')
+        const added = book.edit_sheet(undefined, 'New')
+        const key = book.sheet_key(added)
+        book.history_apply('undo')
+        const afterUndo = book.sheet_count()
+        book.history_apply('redo')
+        const restoredKey = book.sheet_key(added)
+        book.set_cell_input(added, 'A1', '42')
+        let blocked = false
+        try { book.set_cell_input(0, 'A1', '99') } catch { blocked = true }
+        return { raw, added, key, restoredKey, afterUndo, count: book.sheet_count(), blocked,
+          protection, after: book.read_protection(0), addedMode: book.read_protection(added).mode,
+          original: book.snapshotCell(0, 'A1').display, input: book.snapshotCell(added, 'A1').display }
+      } finally { book.free() }
+    }, `${wasmUrl}${variant}/einfach_wasm.js`)
+    expect(result).toMatchObject({ raw: 1, added: 2, afterUndo: 2, count: 3,
+      blocked: true, original: '7', input: '42', addedMode: 'open' })
+    expect(result.key).toBe(result.restoredKey)
+    expect(result.after).toEqual(result.protection)
+  })

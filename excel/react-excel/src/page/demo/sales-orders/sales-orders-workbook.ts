@@ -1,4 +1,4 @@
-import type { RustWorkbookDefinition } from '@einfach-excel/spreadsheet-ui-core'
+import type { RustWorkbookDefinition, RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 import { applySalesOrderMerge, SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
   SALES_ORDER_EXTRA_MERGE_CELLS } from './data/merge-seed'
 import { createSalesOrderImportChunks } from './data/import-seed'
@@ -8,6 +8,7 @@ import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from './data/validation
 import { SUMMARY_OUTLINE, SUMMARY_OUTLINE_CELLS } from './data/outline-seed'
 import { SUMMARY_NAMED_RANGES, SUMMARY_NAMED_RANGE_CELLS } from './data/named-range-seed'
 import { SUMMARY_TABLES, SUMMARY_TABLE_CELLS } from './data/table-seed'
+import { PROTECTION_DEMO_SHEETS, PROTECTION_DEMO_CELLS } from './data/protection-seed'
 import { SUMMARY_CONDITIONAL_TEXT_CELLS, SUMMARY_CONDITIONAL_TEXT_RULES } from './data/conditional-text-seed'
 import {
   SALES_ORDER_SUMMARY_CELLS,
@@ -18,7 +19,7 @@ import {
   SUMMARY_CONDITIONAL_FORMATS,
 } from './data/summary-seed'
 
-/** Defines the workbook data loaded by the Sales Orders page. */
+/** 两张基础表也供隔离测试夹具复用，产品演示在下方追加保护样例。 */
 export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
   Object.freeze<RustWorkbookDefinition>({
     title: 'Sales Orders',
@@ -88,3 +89,16 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       ],
     ],
   })
+
+/** 产品演示追加两张保护表，基础表与既有样例的数据保持原位。 */
+export const SALES_ORDERS_DEMO_DEFINITION: RustWorkbookDefinition = {
+  ...SALES_ORDERS_WORKBOOK_DEFINITION,
+  sheets: [...SALES_ORDERS_WORKBOOK_DEFINITION.sheets, ...PROTECTION_DEMO_SHEETS],
+  createImportChunks: function* () {
+    const chunks = SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
+      readonly RustImportCell[]
+    >
+    yield* chunks
+    yield PROTECTION_DEMO_CELLS
+  },
+}

@@ -1,0 +1,113 @@
+import { expect, test } from '@playwright/test'
+import { cell, chooseTabMenu, menu, menuItem, openSeed, openTabMenu, tab, tabs, undo } from './support'
+
+for (const width of [1280, 390]) {
+  test(`Excel sheet strip keeps controls compact and its right-click menu in view at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 800 })
+    await page.goto('/?locale=en')
+    await expect(cell(page, '1:0')).toHaveText('SO-10001')
+    const strip = page.locator('.sheet-tabs')
+    await expect(strip.getByRole('button')).toHaveCount(3)
+    await expect(tab(page, 'Sales Orders')).toHaveCSS('border-radius', '0px')
+    await expect(tab(page, 'Sales Orders')).toHaveCSS('color', 'rgb(33, 115, 70)')
+    await expect(tab(page, 'Sales Orders')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    await expect(tab(page, '整表只读')).toHaveAttribute('data-read-only', 'true')
+    await expect(tab(page, '整表只读')).toHaveCSS('color', 'rgb(123, 129, 144)')
+    await expect(strip.getByRole('button', { name: 'New sheet' })).toHaveCSS('cursor', 'pointer')
+    expect(await strip.evaluate((element) =>
+      element.querySelector('.sheet-tab-list')?.nextElementSibling?.classList.contains('add-sheet'),
+    )).toBe(true)
+    await expect(strip.locator('.sheet-tab-dot, .sheet-action')).toHaveCount(0)
+    await page.screenshot({ path: info.outputPath(`sheet-strip-${width}.png`) })
+    await openTabMenu(page, '局部可编辑')
+    const bounds = (await menu(page).boundingBox())!
+    expect(bounds.x).toBeGreaterThanOrEqual(8)
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width - 8)
+    expect(bounds.y).toBeGreaterThanOrEqual(8)
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(792)
+    await page.screenshot({ path: info.outputPath(`sheet-menu-${width}.png`) })
+    await page.keyboard.press('Escape')
+    await expect(menu(page)).toHaveCount(0)
+    await expect(tab(page, '局部可编辑')).toBeFocused()
+    await expect(tab(page, 'Sales Orders')).toHaveAttribute('aria-selected', 'true')
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  })
+}
+
+test('right-click Rename edits the clicked inactive sheet inline and preserves its neighbor', async ({ page }) => {
+  await openSeed(page)
+  await chooseTabMenu(page, 'Summary', 'Rename sheet')
+  const input = page.getByRole('textbox', { name: 'Sheet name' })
+  await expect(input).toBeFocused()
+  await expect(input).toHaveValue('Summary')
+  await input.fill('Quarter summary')
+  await input.press('Enter')
+  await expect(menu(page)).toHaveCount(0)
+  await expect(tabs(page)).toHaveText(['Sales Orders', 'Quarter summary'])
+  await expect(tab(page, 'Sales Orders')).toHaveAttribute('aria-selected', 'true')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await tab(page, 'Quarter summary').click()
+  await expect(cell(page, '0:1')).toHaveText('79')
+  await undo(page)
+  await expect(tabs(page)).toHaveText(['Sales Orders', 'Summary'])
+})
+
+test('right-click movement reorders the clicked inactive sheet without switching the active sheet', async ({ page }) => {
+  await openSeed(page)
+  await chooseTabMenu(page, 'Summary', 'Move sheet left')
+  await expect(tabs(page)).toHaveText(['Summary', 'Sales Orders'])
+  await expect(tab(page, 'Sales Orders')).toHaveAttribute('aria-selected', 'true')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await chooseTabMenu(page, 'Summary', 'Move sheet right')
+  await expect(tabs(page)).toHaveText(['Sales Orders', 'Summary'])
+  await tab(page, 'Summary').click()
+  await expect(cell(page, '0:1')).toHaveText('79')
+})
+
+test('right-click Delete confirms and removes only the clicked inactive sheet', async ({ page }) => {
+  await openSeed(page)
+  await chooseTabMenu(page, 'Summary', 'Delete sheet')
+  const dialog = page.getByRole('alertdialog', { name: 'Delete worksheet?' })
+  await expect(dialog).toContainText('Summary')
+  await dialog.getByRole('button', { name: 'Delete worksheet', exact: true }).click()
+  await expect(tabs(page)).toHaveText(['Sales Orders'])
+  await expect(tab(page, 'Sales Orders')).toHaveAttribute('aria-selected', 'true')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await undo(page)
+  await expect(tabs(page)).toHaveText(['Sales Orders', 'Summary'])
+  await tab(page, 'Summary').click()
+  await expect(cell(page, '0:1')).toHaveText('79')
+})
+
+test('right-click New sheet adds an editable sheet and preserves the source cells', async ({ page }) => {
+  await openSeed(page)
+  await chooseTabMenu(page, 'Sales Orders', 'New sheet')
+  await expect(tabs(page)).toHaveText(['Sales Orders', 'Summary', 'Sheet3'])
+  await expect(tab(page, 'Sheet3')).toHaveAttribute('aria-selected', 'true')
+  await expect(menu(page)).toHaveCount(0)
+  await cell(page, '0:0').dblclick()
+  const editor = page.getByRole('textbox', { name: 'Cell editor' })
+  await editor.fill('New sheet value')
+  await editor.press('Enter')
+  await expect(cell(page, '0:0')).toHaveText('New sheet value')
+  await tab(page, 'Sales Orders').click()
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+})
+
+for (const key of ['Shift+F10', 'ContextMenu']) {
+  test(`${key} opens the focused sheet menu and Escape restores tab focus`, async ({ page }) => {
+    await openSeed(page)
+    await tab(page, 'Summary').focus()
+    await page.keyboard.press(key)
+    await expect(menu(page)).toBeVisible()
+    await expect(menuItem(page, 'New sheet')).toBeFocused()
+    await page.keyboard.press('ArrowDown')
+    await expect(menuItem(page, 'Delete sheet')).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(menu(page)).toHaveCount(0)
+    await expect(tab(page, 'Summary')).toBeFocused()
+    await expect(tabs(page)).toHaveText(['Sales Orders', 'Summary'])
+    await expect(tab(page, 'Sales Orders')).toHaveAttribute('aria-selected', 'true')
+    await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  })
+}

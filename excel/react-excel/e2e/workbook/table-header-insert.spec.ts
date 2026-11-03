@@ -24,7 +24,7 @@ async function toggle(page: Page, enabled: boolean, range: string) {
   await close(page)
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await button(page, 'New sheet').click()
   await expect(page.getByRole('tab', { name: 'Sheet3', exact: true })).toHaveAttribute('aria-selected', 'true')

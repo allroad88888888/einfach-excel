@@ -27,6 +27,7 @@ import { dispatchSheetTabIntentAtom } from './basic-commands'
 import { nextSheetTabName } from './metadata'
 import { sheetTabsAtom } from './state'
 import { selectionSnapshotAtom } from '../selection'
+import { closeSheetTabMenuAtom } from '../sheet-management/ui-state'
 
 export type WorkbookSheetCommand =
   | {
@@ -34,12 +35,10 @@ export type WorkbookSheetCommand =
         | 'add'
         | 'rename'
         | 'cancel-rename'
-        | 'request-delete'
         | 'cancel-delete'
         | 'delete'
-        | 'move-left'
-        | 'move-right'
     }
+  | { readonly operation: 'request-delete' | 'move-left' | 'move-right'; readonly sheetId?: string }
   | {
       readonly operation: 'switch'
       readonly sheetId: string
@@ -51,9 +50,9 @@ export type WorkbookSheetCommand =
 /** 当前 Rust 工作簿的标签操作；复用既有草稿/错误状态，不接旧 backend ports。 */
 export const runWorkbookSheetCommandAtom = atom(
   null,
-  async (get, set, input: WorkbookSheetCommand): Promise<boolean> => {
+  async function runCommand(get, set, input: WorkbookSheetCommand): Promise<boolean> {
     const connection = get(rustWorkbookConnectionAtom)
-    const state = get(sheetTabsAtom)
+    let state = get(sheetTabsAtom)
     if (
       !connection ||
       get(activeEditingCommitTicketAtom) !== null ||
@@ -63,6 +62,10 @@ export const runWorkbookSheetCommandAtom = atom(
       get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy
     )
       return false
+    if (state.contextMenu) {
+      set(closeSheetTabMenuAtom)
+      state = get(sheetTabsAtom)
+    }
     if (input.operation === 'cancel-delete') {
       set(sheetTabsAtom, { ...state, deleteConfirmation: null, error: null })
       return true
@@ -81,13 +84,18 @@ export const runWorkbookSheetCommandAtom = atom(
       set(sheetTabsAtom, { ...get(sheetTabsAtom), error: null })
       return true
     }
+    if (state.rename && input.operation !== 'rename') {
+      if (input.operation === 'begin-rename' && input.sheetId === state.rename.sheetId) return true
+      if (!(await runCommand(get, set, { operation: 'rename' }))) return false
+      return runCommand(get, set, input)
+    }
     const active = get(activeWorkbookSheetAtom)
     const workbook = get(workbookDocumentAtom)
     if (!active) return false
     const target =
       input.operation === 'delete'
         ? workbook.sheets.find((sheet) => sheet.id === state.deleteConfirmation?.sheetId)
-        : 'sheetId' in input
+        : 'sheetId' in input && input.sheetId
           ? workbook.sheets.find((sheet) => sheet.id === input.sheetId)
           : active
     if (!target) return false
@@ -155,6 +163,11 @@ export const runWorkbookSheetCommandAtom = atom(
     }
     const rename = get(sheetTabsAtom).rename
     if (input.operation === 'rename' && !rename) return false
+    if (input.operation === 'rename' &&
+      workbook.sheets.find((sheet) => sheet.id === rename!.sheetId)?.name === rename!.draftName) {
+      set(sheetTabsAtom, { ...get(sheetTabsAtom), rename: null, error: null })
+      return true
+    }
     const name = structural
       ? ''
       : input.operation === 'add'
@@ -256,3 +269,4 @@ export const runWorkbookSheetCommandAtom = atom(
     }
   },
 )
+runWorkbookSheetCommandAtom.debugLabel = 'spreadsheet.sheetTabs.runWorkbookCommand'

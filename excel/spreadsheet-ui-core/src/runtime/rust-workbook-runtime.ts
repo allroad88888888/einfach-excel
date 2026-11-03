@@ -17,6 +17,7 @@ import {
 import { clearWorkbookDocumentAtom, initializeWorkbookDocumentAtom } from './workbook-document'
 import { openedWorkbookSheets } from './opened-workbook-sheets'
 import { loadWorkbookDefinition, type LoadedWorkbook } from './load-workbook-definition'
+import { setSheetProtectionAtom } from '../protection/commands'
 import {
   snapshotRustWorkbookDefinition,
   type StartRustWorkbookRuntimeInput,
@@ -111,6 +112,8 @@ export const startRustWorkbookRuntimeAtom = atom(
       set(publishNativeFunctionCatalogAtom, { connection, catalog })
       set(initializeWorkbookDocumentAtom, workbook)
       set(resolveSpreadsheetRuntimeAtom, { connection })
+      for (const [sheetId, state] of Object.entries(workbook.protectionBySheet ?? {}))
+        set(setSheetProtectionAtom, { sheetId, state })
       set(watchAsyncFormulaSettlementsAtom, connection)
     } catch (error) {
       if (!ownsConnection(get, sessionId, connection)) return

@@ -14,6 +14,9 @@ import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
 import { mergeRangeAt } from '../shared/merge'
 import { nativeTableFeedbackAtom } from '../tables/native-feedback'
 import { getAxisSpanSize } from '../viewport/axis-geometry'
+import { sheetProtectionAtom } from '../protection/source-atoms'
+import { isCoordUnlocked } from '../protection/range-coverage'
+import { clearLockedEditFeedbackForCellAtom, reportLockedEditFeedbackAtom } from './locked-edit-feedback'
 
 export interface StartCellEditingFromProjectionInput {
   readonly sheetId: string
@@ -96,6 +99,14 @@ function startFromProjection(
       ? getSourceTextFromProjection(result, cell, input.sheetId)
       : undefined
   if (sourceText === undefined) return false
+  if (!isCoordUnlocked(get(sheetProtectionAtom), input.sheetId, cell)) {
+    if (input.source !== 'formula-bar')
+      set(reportLockedEditFeedbackAtom, {
+        sheetId: input.sheetId, cell, source: input.source === 'keyboard' ? 'keyboard' : 'cell',
+      })
+    return false
+  }
+  set(clearLockedEditFeedbackForCellAtom, { sheetId: input.sheetId, cell })
 
   set(startEditingAtom, {
     sheetId: input.sheetId,

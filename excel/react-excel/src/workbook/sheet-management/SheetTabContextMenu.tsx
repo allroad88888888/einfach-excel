@@ -17,13 +17,14 @@ import {
   ungroupSheetsAtom,
   visibleSheets,
   workbookDocumentAtom,
+  runWorkbookSheetCommandAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { TAB_COLORS } from './tab-colors'
 import './sheet-management.css'
 
-/** 标签右键菜单：复制、隐藏、取消隐藏…、标签颜色、全选工作表、取消工作表分组。所有状态与命令都在 UI Core。 */
-export function SheetTabContextMenu() {
+/** 工作表操作集中在标签右键菜单；命令目标是右键点击的表。 */
+export function SheetTabContextMenu({ structureBusy }: { readonly structureBusy: boolean }) {
   const { i18n, t } = useLingui()
   const menu = useAtomValue(sheetTabsAtom).contextMenu
   const ui = useAtomValue(sheetManagementUiAtom)
@@ -40,24 +41,46 @@ export function SheetTabContextMenu() {
   const setColor = useSetAtom(setSheetTabColorAtom)
   const selectAll = useSetAtom(selectAllSheetsAtom)
   const ungroup = useSetAtom(ungroupSheetsAtom)
+  const run = useSetAtom(runWorkbookSheetCommandAtom)
   const ref = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const element = ref.current
+    const view = element?.ownerDocument.defaultView
+    if (!menu || !element || !view) return
+    const position = () => {
+      element.style.left = `${Math.max(8, Math.min(menu.x, view.innerWidth - element.offsetWidth - 8))}px`
+      element.style.top = `${Math.max(8, Math.min(menu.y - element.offsetHeight,
+        view.innerHeight - element.offsetHeight - 8))}px`
+    }
+    position()
+    view.addEventListener('resize', position)
+    return () => view.removeEventListener('resize', position)
+  }, [menu, ui.colorMenuOpen])
 
   useEffect(() => {
     const element = ref.current
     if (!menu || !element) return
     element.querySelector<HTMLElement>('[role="menuitem"]:not(:disabled)')?.focus()
     const owner = element.ownerDocument
+    const workbook = element.closest('.workbook')
     const outside = (event: PointerEvent) => {
       if (!element.contains(event.target as Node)) void close()
     }
     owner.addEventListener('pointerdown', outside, true)
-    return () => owner.removeEventListener('pointerdown', outside, true)
+    return () => {
+      owner.removeEventListener('pointerdown', outside, true)
+      if (owner.activeElement !== owner.body && !element.contains(owner.activeElement)) return
+      const tabs = workbook?.querySelectorAll<HTMLElement>('[role="tab"][data-sheet-id]') ?? []
+      Array.from(tabs).find((tab) => tab.dataset.sheetId === menu.sheetId)
+        ?.focus({ preventScroll: true })
+    }
   }, [menu, close])
 
   if (!menu) return null
   const target = sheets.find((sheet) => sheet.id === menu.sheetId)
   if (!target) return null
-  const locked = !controls.allowSheetStructure || controls.readOnly
+  const locked = structureBusy || !controls.allowSheetStructure || controls.readOnly
   const visible = visibleSheets(sheets)
   const onlyVisible = visible.length <= 1
   const allGrouped = !onlyVisible && grouped.length >= visible.length
@@ -70,9 +93,10 @@ export function SheetTabContextMenu() {
       className="sheet-tab-menu"
       role="menu"
       aria-label={t`Worksheet tab`}
-      style={{ left: menu.x, top: menu.y, transform: 'translateY(-100%)' }}
+      style={{ left: menu.x, top: menu.y }}
       onKeyDown={(event) => {
-        if (event.key === 'Escape') {
+        event.stopPropagation()
+        if (event.key === 'Escape' || event.key === 'Tab') {
           event.preventDefault()
           void close()
           return
@@ -85,9 +109,30 @@ export function SheetTabContextMenu() {
         list[(at + step + list.length) % list.length]?.focus()
       }}
     >
-      <button type="button" role="menuitem" disabled={locked} onClick={() => void duplicate(target.id)}>
-        <Trans>Duplicate</Trans>
+      <button type="button" role="menuitem" disabled={locked} onClick={() => void run({ operation: 'add' })}>
+        <Trans>New sheet</Trans>
       </button>
+      <button type="button" role="menuitem" disabled={locked || onlyVisible}
+        onClick={() => void run({ operation: 'request-delete', sheetId: target.id })}>
+        <Trans>Delete sheet</Trans>
+      </button>
+      <button type="button" role="menuitem" disabled={locked}
+        onClick={() => void run({ operation: 'begin-rename', sheetId: target.id })}>
+        <Trans>Rename sheet</Trans>
+      </button>
+      <div role="separator" />
+      <button type="button" role="menuitem" disabled={locked || target.index <= 0}
+        onClick={() => void run({ operation: 'move-left', sheetId: target.id })}>
+        <Trans>Move sheet left</Trans>
+      </button>
+      <button type="button" role="menuitem" disabled={locked || target.index >= sheets.length - 1}
+        onClick={() => void run({ operation: 'move-right', sheetId: target.id })}>
+        <Trans>Move sheet right</Trans>
+      </button>
+      <button type="button" role="menuitem" disabled={locked} onClick={() => void duplicate(target.id)}>
+        <Trans context="worksheet">Duplicate</Trans>
+      </button>
+      <div role="separator" />
       <button
         type="button"
         role="menuitem"

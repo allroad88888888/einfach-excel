@@ -14,7 +14,7 @@ async function switchTo(page: Page, name: string) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 
@@ -31,7 +31,7 @@ for (const source of ['cell', 'formula-bar'] as const) {
     await expect(formula(page)).toHaveValue("='Summary'!B1")
     await expect(formula(page)).toBeFocused()
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
-    await expect(page.getByRole('button', { name: 'Delete sheet' })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'New sheet' })).toBeDisabled()
     await formula(page).press('Enter')
     await expect(page.getByRole('tab', { name: 'Sales Orders' })).toHaveAttribute('aria-selected', 'true')
     await expect(cell(page, '9:1')).toHaveText('79')
@@ -87,7 +87,7 @@ test('cross-sheet keyboard references retain F4 locks through Shift and F2', asy
 
 test('sheet names with spaces, apostrophes and Chinese survive native parsing and mixed references', async ({ page }) => {
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
-  await page.getByRole('button', { name: 'Rename sheet' }).click()
+  await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
   const name = page.getByRole('textbox', { name: 'Sheet name', exact: true })
   await name.fill("O'Brien 预算")
   await name.press('Enter')

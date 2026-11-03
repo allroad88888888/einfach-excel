@@ -1,3 +1,4 @@
+import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test, type Page } from '@playwright/test'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -24,7 +25,7 @@ async function save(page: Page, edit = false) {
   await expect(dialog(page)).toHaveCount(0)
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await go(page, 'C65:E67')
@@ -166,7 +167,7 @@ test('cross-sheet formula survives rename, deletion and native undo', async ({ p
   await save(page)
   await expect(cell(page, '64:1')).toHaveCSS('background-color', red)
   await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
-  await button(page, 'Rename sheet').click()
+  await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
   await page.getByLabel('Sheet name').fill('Orders')
   await page.getByLabel('Sheet name').press('Enter')
   await expect(page.getByRole('tab', { name: 'Orders', exact: true })).toBeVisible()
@@ -176,7 +177,7 @@ test('cross-sheet formula survives rename, deletion and native undo', async ({ p
   await button(page, 'Cancel').click()
   await expect(cell(page, '64:1')).toHaveCSS('background-color', red)
   await page.getByRole('tab', { name: 'Orders', exact: true }).click()
-  await button(page, 'Delete sheet').click()
+  await (await sheetMenuItem(page, 'Delete sheet')).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Delete worksheet' }).click()
   await expect(page.getByRole('tab', { name: 'Orders', exact: true })).toHaveCount(0)
   await go(page, 'B65')

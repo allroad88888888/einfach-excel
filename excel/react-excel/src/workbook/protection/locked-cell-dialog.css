@@ -1,0 +1,59 @@
+:where(.einfach-spreadsheet) .locked-cell-dialog {
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: #242735;
+  box-shadow: 0 12px 40px #20243433;
+  font-size: 13px;
+}
+:where(.einfach-spreadsheet) .locked-cell-dialog::backdrop {
+  background: #20243433;
+}
+:where(.einfach-spreadsheet) .locked-cell-dialog-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+:where(.einfach-spreadsheet) .locked-cell-dialog-icon {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  color: #f4ba45;
+}
+:where(.einfach-spreadsheet) .locked-cell-dialog h2 {
+  margin: 2px 0 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+:where(.einfach-spreadsheet) .locked-cell-dialog p {
+  margin: 0;
+  color: #505463;
+  line-height: 1.6;
+}
+:where(.einfach-spreadsheet) .locked-cell-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+:where(.einfach-spreadsheet) .locked-cell-dialog-actions button {
+  min-width: 76px;
+  padding: 7px 18px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  color: #242735;
+  font: inherit;
+  cursor: pointer;
+}
+:where(.einfach-spreadsheet) .locked-cell-dialog-actions button:hover {
+  background: var(--control-hover);
+}
+:where(.einfach-spreadsheet) .locked-cell-dialog-actions button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}

@@ -37,6 +37,9 @@ export function App() {
 初始化工作簿和原生函数目录，然后渲染完整工具栏、公式栏、表格和页签。
 可传入 `store` 与宿主共享状态；一个 Store 同时只能归属一个挂载中的工作簿。
 更换 definition、Store 或 workerFactory 会清理旧 runtime 并启动新的实例。
+
+单张工作表定义支持 `protected: true`：全部内容和 Table 导入完成后、界面就绪前启用原生保护。
+`editableRanges` 内仍允许编辑，未指定 `protected` 时保持开放；保护配置不产生内容撤销记录。
 卸载和失败资源由 Core 统一清理，宿主无需再次终止 Worker。
 
 默认 Worker 通过模块 URL 加载包内编译产物。宿主无需 Lingui 宏插件、`.po` loader、

@@ -1,9 +1,10 @@
+import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test, type Page } from '@playwright/test'
 import { copy, paste, select } from '../support/clipboard'
 
 test.beforeEach(async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
 })
 
@@ -17,7 +18,7 @@ async function switchSheet(page: Page, name: string) {
 }
 
 async function remove(page: Page, name: string) {
-  await page.getByRole('button', { name: 'Delete sheet', exact: true }).click()
+  await (await sheetMenuItem(page, 'Delete sheet')).click()
   const dialog = page.getByRole('alertdialog')
   await expect(dialog).toContainText(name)
   await dialog.getByRole('button', { name: 'Delete worksheet', exact: true }).click()
@@ -27,8 +28,8 @@ async function remove(page: Page, name: string) {
 
 test('moves both ways without changing selected cells or their seed styles', async ({ page }) => {
   await select(page, 'A2:C3', '1:0')
-  await expect(page.getByRole('button', { name: 'Move sheet left' })).toBeDisabled()
-  await page.getByRole('button', { name: 'Move sheet right' }).click()
+  await expect((await sheetMenuItem(page, 'Move sheet left'))).toBeDisabled()
+  await (await sheetMenuItem(page, 'Move sheet right')).click()
   await expect(page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab')).toHaveText([
     'Summary',
     'Sales Orders',
@@ -36,8 +37,8 @@ test('moves both ways without changing selected cells or their seed styles', asy
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A2:C3')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveCSS('font-weight', '700')
-  await expect(page.getByRole('button', { name: 'Move sheet right' })).toBeDisabled()
-  await page.getByRole('button', { name: 'Move sheet left' }).click()
+  await expect((await sheetMenuItem(page, 'Move sheet right'))).toBeDisabled()
+  await (await sheetMenuItem(page, 'Move sheet left')).click()
   await expect(page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab')).toHaveText([
     'Sales Orders',
     'Summary',
@@ -48,7 +49,7 @@ test('reordered native indices still edit the intended source and recalculate Su
   page,
 }) => {
   await switchSheet(page, 'Summary')
-  await page.getByRole('button', { name: 'Move sheet left' }).click()
+  await (await sheetMenuItem(page, 'Move sheet left')).click()
   await expect(page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab')).toHaveText([
     'Summary',
     'Sales Orders',
@@ -66,7 +67,7 @@ test('reordered native indices still edit the intended source and recalculate Su
 
 test('delete cancellation and Escape never remove data', async ({ page }) => {
   for (const cancel of ['button', 'escape']) {
-    await page.getByRole('button', { name: 'Delete sheet', exact: true }).click()
+    await (await sheetMenuItem(page, 'Delete sheet')).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText('Sales Orders')
     await expect(dialog).toContainText('session history limits')
@@ -90,10 +91,10 @@ test('deletes active sheet, chooses the neighbor, and rejects deleting the last 
     'true',
   )
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
-  await expect(page.getByRole('button', { name: 'Delete sheet', exact: true })).toBeDisabled()
+  await expect((await sheetMenuItem(page, 'Delete sheet'))).toBeDisabled()
   await page.getByRole('button', { name: 'New sheet' }).click()
   await expect(page.getByRole('tab', { name: 'Sheet2' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Delete sheet', exact: true })).toBeEnabled()
+  await expect((await sheetMenuItem(page, 'Delete sheet'))).toBeEnabled()
 })
 
 test('deleting a formula source creates permanent REF errors even after reusing its name', async ({
@@ -104,7 +105,7 @@ test('deleting a formula source creates permanent REF errors even after reusing 
   await expect(page.locator('td[data-cell="1:1"]')).toHaveText('#REF!')
   await page.getByRole('button', { name: 'New sheet' }).click()
   await expect(page.getByRole('tab', { name: 'Sheet2' })).toHaveAttribute('aria-selected', 'true')
-  await page.getByRole('button', { name: 'Rename sheet' }).click()
+  await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
   await page.getByLabel('Sheet name').fill('Sales Orders')
   await page.getByLabel('Sheet name').press('Enter')
   await expect(page.getByRole('tab', { name: 'Sales Orders' })).toBeVisible()
@@ -136,7 +137,7 @@ test('moving a cut source retains its identity and never clears neighboring shee
 }) => {
   await select(page, 'A2', '1:0')
   await copy(page, 'Cut')
-  await page.getByRole('button', { name: 'Move sheet right' }).click()
+  await (await sheetMenuItem(page, 'Move sheet right')).click()
   await expect(page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab')).toHaveText([
     'Summary',
     'Sales Orders',
@@ -183,7 +184,7 @@ test('copy formulas follow a renamed source while the clipboard result stays fro
   await select(page, 'B1', '0:1')
   await copy(page)
   await switchSheet(page, 'Sales Orders')
-  await page.getByRole('button', { name: 'Rename sheet' }).click()
+  await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
   await page.getByLabel('Sheet name').fill('Budget')
   await page.getByLabel('Sheet name').press('Enter')
   await expect(page.getByRole('tab', { name: 'Budget' })).toBeVisible()
@@ -201,9 +202,9 @@ test('delete confirmation and compact controls work at desktop and narrow widths
   page.on('pageerror', (error) => errors.push(error.message))
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 844 })
-    const move = page.getByRole('button', { name: 'Move sheet right' })
+    const move = (await sheetMenuItem(page, 'Move sheet right'))
     await expect(move).toBeInViewport()
-    await page.getByRole('button', { name: 'Delete sheet', exact: true }).click()
+    await (await sheetMenuItem(page, 'Delete sheet')).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toBeInViewport()
     await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeFocused()

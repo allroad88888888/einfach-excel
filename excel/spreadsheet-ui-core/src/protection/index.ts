@@ -10,6 +10,7 @@ export { rangesIntersect } from './range-guards'
 export { isCoordUnlocked, isRangeFullyUnlocked, isRangePartiallyUnlocked } from './range-coverage'
 export {
   sheetProtectionAtom,
+  readOnlySheetIdsAtom,
   resetSheetProtectionProjectionAtom,
   sheetProtectionDiagnosticAtom,
 } from './source-atoms'

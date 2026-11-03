@@ -3,7 +3,7 @@ import { select } from '../support/clipboard'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
-// 重命名的标签手势及 Save 提交入口；跨表引用与历史均由原生工作簿返回。
+// 重命名的标签手势及 失焦提交入口；跨表引用与历史均由原生工作簿返回。
 for (const width of [1280, 390]) test.describe(`${width}px rename entries`, () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
@@ -15,17 +15,23 @@ for (const width of [1280, 390]) test.describe(`${width}px rename entries`, () =
   for (const entry of ['double click', 'F2'] as const)
     test(`${entry} opens sheet rename without mutation at ${width}px`, async ({ page }) => {
       const tab = page.getByRole('tab', { name: 'Sales Orders', exact: true })
+      const before = await tab.boundingBox()
+      const footer = await page.locator('.workbook-footer').boundingBox()
       if (entry === 'double click') await tab.dblclick()
       else await tab.press('F2')
       const input = page.getByRole('textbox', { name: 'Sheet name', exact: true })
       await expect(input).toHaveValue('Sales Orders')
+      expect(await input.boundingBox()).toEqual(before)
+      expect(await page.locator('.workbook-footer').boundingBox()).toEqual(footer)
+      await expect(page.getByRole('button', { name: 'Rename sheet', exact: true })).toHaveCount(0)
+      await expect(page.locator('.workbook-sheet-controls').getByRole('button', { name: /^(Save|Cancel)$/ })).toHaveCount(0)
       await expect(input).toBeFocused()
       expect(await input.evaluate(node => {
         const field = node as HTMLInputElement
         return [field.selectionStart, field.selectionEnd]
       })).toEqual([0, 12])
       await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
-      await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+      await input.press('Escape')
       await expect(input).toHaveCount(0)
       await expect(tab).toHaveAttribute('aria-selected', 'true')
       await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('B2')
@@ -34,11 +40,11 @@ for (const width of [1280, 390]) test.describe(`${width}px rename entries`, () =
       await expect(cell(page, '1:0')).toHaveCSS('font-weight', '700')
     })
 
-  test(`Save sheet name rewrites references and undoes once at ${width}px`, async ({ page }) => {
-    await page.getByRole('button', { name: 'Rename sheet', exact: true }).click()
+  test(`blur sheet name rewrites references and undoes once at ${width}px`, async ({ page }) => {
+    await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
     const input = page.getByRole('textbox', { name: 'Sheet name', exact: true })
     await input.fill("Budget O'Brien")
-    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await page.getByRole('textbox', { name: 'Name box' }).click()
     await expect(input).toHaveCount(0)
     const renamed = page.getByRole('tab', { name: "Budget O'Brien", exact: true })
     await expect(renamed).toHaveAttribute('aria-selected', 'true')
@@ -68,5 +74,28 @@ for (const width of [1280, 390]) test.describe(`${width}px rename entries`, () =
     await select(page, 'B1', '0:1')
     await expect(cell(page, '0:1')).toHaveText('237')
     await expect(bar).toHaveValue("='Budget O''Brien'!G2")
+  })
+  test(`switching tabs commits an inline name before navigation at ${width}px`, async ({ page }) => {
+    await page.getByRole('tab', { name: 'Sales Orders', exact: true }).dblclick()
+    const input = page.getByRole('textbox', { name: 'Sheet name', exact: true })
+    await input.fill('Inline Orders')
+    await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+    await expect(input).toHaveCount(0)
+    await expect(page.getByRole('tab', { name: 'Inline Orders', exact: true })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Summary', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(cell(page, '0:1')).toHaveText('79')
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(page.getByRole('tab', { name: 'Sales Orders', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  })
+
+  test(`clicking the grid commits an inline name at ${width}px`, async ({ page }) => {
+    await page.getByRole('tab', { name: 'Sales Orders', exact: true }).dblclick()
+    const input = page.getByRole('textbox', { name: 'Sheet name', exact: true })
+    await input.fill('Grid Orders')
+    await cell(page, '1:1').click()
+    await expect(input).toHaveCount(0)
+    await expect(page.getByRole('tab', { name: 'Grid Orders', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(cell(page, '1:1')).toHaveText('Acme Co.')
   })
 })

@@ -19,7 +19,7 @@ async function input(page: Page, address: string, coord: string, value: string) 
   await formula(page).fill(value); await formula(page).press('Enter')
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await expect(cell(page, '4:1')).toHaveText('60')

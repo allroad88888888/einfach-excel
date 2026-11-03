@@ -1,3 +1,4 @@
+import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test, type Page } from '@playwright/test'
 import { copy, select } from '../support/clipboard'
 
@@ -16,20 +17,20 @@ async function switchSheet(page: Page, name: string) {
   if (name === 'Summary') await expect(cell(page, '0:0')).toHaveText('First order total')
 }
 async function rename(page: Page, name: string) {
-  await page.getByRole('button', { name: 'Rename sheet' }).click()
+  await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
   await page.getByLabel('Sheet name').fill(name)
   await page.getByLabel('Sheet name').press('Enter')
   await expect(page.getByRole('tab', { name, exact: true })).toBeVisible()
 }
 async function remove(page: Page, name: string) {
-  await page.getByRole('button', { name: 'Delete sheet', exact: true }).click()
+  await (await sheetMenuItem(page, 'Delete sheet')).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Delete worksheet' }).click()
   await expect(page.getByRole('tab', { name, exact: true })).toHaveCount(0)
 }
 
 test.beforeEach(async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 
@@ -52,7 +53,7 @@ test('rename undo and redo update tabs and exact cross-sheet formula sources', a
 
 test('move undo keeps selected range and native data on the same sheet', async ({ page }) => {
   await select(page, 'A2:C3', '1:0')
-  await page.getByRole('button', { name: 'Move sheet right' }).click()
+  await (await sheetMenuItem(page, 'Move sheet right')).click()
   await expect(tabs(page)).toHaveText(['Summary', 'Sales Orders'])
   await history(page, 'Undo')
   await expect(tabs(page)).toHaveText(['Sales Orders', 'Summary'])
@@ -115,7 +116,7 @@ test('edit and worksheet operations share one native history without starting an
   await page.getByRole('textbox', { name: 'Active cell value' }).press('Enter')
   await expect(cell(page, '1:4')).toHaveText('3')
   await rename(page, 'Orders')
-  await page.getByRole('button', { name: 'Move sheet right' }).click()
+  await (await sheetMenuItem(page, 'Move sheet right')).click()
   await remove(page, 'Orders')
   await expect(cell(page, '0:1')).toHaveText('#REF!')
   for (let index = 0; index < 4; index++) await history(page, 'Undo')
@@ -144,7 +145,7 @@ test('failed and unchanged renames preserve the redo branch', async ({ page }) =
   await rename(page, 'Budget')
   await history(page, 'Undo')
   await expect(page.getByRole('tab', { name: 'Sales Orders' })).toBeVisible()
-  await page.getByRole('button', { name: 'Rename sheet' }).click()
+  await page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab', { selected: true }).dblclick()
   await page.getByLabel('Sheet name').fill('bad/name')
   await page.getByLabel('Sheet name').press('Enter')
   await expect(page.locator('[data-sheet-command-error]')).toContainText('cannot contain')

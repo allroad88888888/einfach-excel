@@ -1,3 +1,4 @@
+import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 
@@ -19,7 +20,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     await undo.click()
     await select(page, 'B2', '1:1')
     await expect(page.locator('[data-workbook-grid]')).toBeFocused()
-    await page.getByRole('button', { name: 'Delete sheet', exact: true }).click()
+    await (await sheetMenuItem(page, 'Delete sheet')).click()
     const dialog = page.getByRole('alertdialog', { name: 'Delete worksheet?', exact: true })
     await expect(dialog).toBeInViewport()
     await expect(dialog).toContainText('Sales Orders')
@@ -42,6 +43,8 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     await expect(cell(page, '1:1')).toHaveText('Acme Co.')
     await expect(cell(page, '1:1')).toHaveCSS('font-style', 'italic')
     if (action !== 'Open') {
+      await expect(page.getByRole('tab', { name: 'Sales Orders', exact: true })).toBeFocused()
+      await cell(page, '1:1').click()
       await page.keyboard.press('ArrowDown')
       await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('B3')
       await expect(page.locator('[data-workbook-grid]')).toBeFocused()

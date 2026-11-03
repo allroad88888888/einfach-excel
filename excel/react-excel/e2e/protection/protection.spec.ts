@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { button, cell, editor, panel, select, openProtection, protect, closeProtection, input } from './support'
+import { button, cell, editor, panel, select, openProtection, protect, closeProtection, input, expectLockedInput } from './support'
 
 for (const width of [1280, 390]) test.describe(`${width}px native worksheet protection`, () => {
   test.use({ viewport: { width, height: 850 } })
@@ -13,7 +13,7 @@ for (const width of [1280, 390]) test.describe(`${width}px native worksheet prot
     await input(page, '2')
     await expect(cell(page, '1:6')).toHaveText('158')
     await openProtection(page); await protect(page); await closeProtection(page)
-    await input(page, '9')
+    await expectLockedInput(page)
     await expect(cell(page, '1:4')).toHaveText('2')
     await expect(cell(page, '1:5')).toHaveText('79')
     await editor(page).press('Escape')
@@ -35,7 +35,7 @@ for (const width of [1280, 390]) test.describe(`${width}px native worksheet prot
     await input(page, '2')
     await expect(cell(page, '1:4')).toHaveText('2')
     await expect(cell(page, '1:6')).toHaveText('158')
-    await select(page, 'F2', '1:5'); await input(page, '100')
+    await select(page, 'F2', '1:5'); await expectLockedInput(page)
     await expect(cell(page, '1:5')).toHaveText('79')
     await editor(page).press('Escape')
     await button(page, 'Undo').click()
@@ -65,7 +65,7 @@ for (const width of [1280, 390]) test.describe(`${width}px native worksheet prot
     await button(page, 'Remove editable range E2').click()
     await expect(panel(page)).toContainText('No editable ranges.')
     await protect(page); await closeProtection(page)
-    await input(page, '9')
+    await expectLockedInput(page)
     await expect(cell(page, '1:4')).toHaveText('1')
     await expect(cell(page, '1:5')).toHaveText('79')
     await editor(page).press('Escape')

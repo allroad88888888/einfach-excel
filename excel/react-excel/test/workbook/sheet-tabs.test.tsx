@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
 import {
   activeWorkbookSheetAtom,
@@ -58,6 +58,10 @@ describe('workbook sheet tabs', () => {
     fireEvent.doubleClick(screen.getByRole('tab', { name: 'Sales Orders' }))
     const input = await screen.findByRole('textbox', { name: 'Sheet name' })
     expect(input).toHaveFocus()
+    expect(input.closest('[role="tablist"]')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Rename sheet' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull()
     fireEvent.change(input, { target: { value: 'Budget' } })
     fireEvent.submit(input.closest('form')!)
     expect(await screen.findByRole('tab', { name: 'Budget' })).toHaveAttribute(
@@ -67,7 +71,7 @@ describe('workbook sheet tabs', () => {
     expect(editSheet).toHaveBeenCalledWith(
       expect.objectContaining({ sheetId: 'orders', name: 'Budget' }),
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Rename sheet' }))
+    fireEvent.doubleClick(within(screen.getByRole('tablist', { name: 'Workbook sheets' })).getByRole('tab', { selected: true }))
     fireEvent.change(await screen.findByLabelText('Sheet name'), { target: { value: 'Discard' } })
     fireEvent.keyDown(screen.getByLabelText('Sheet name'), { key: 'Escape' })
     await waitFor(() => expect(screen.queryByLabelText('Sheet name')).toBeNull())
@@ -77,7 +81,7 @@ describe('workbook sheet tabs', () => {
   test('Rust rejects invalid names visibly and the same draft can retry', async () => {
     const { editSheet } = await setup()
     editSheet.mockRejectedValueOnce(new Error('A worksheet with this name already exists.'))
-    fireEvent.click(screen.getByRole('button', { name: 'Rename sheet' }))
+    fireEvent.doubleClick(within(screen.getByRole('tablist', { name: 'Workbook sheets' })).getByRole('tab', { selected: true }))
     const input = await screen.findByLabelText('Sheet name')
     fireEvent.change(input, { target: { value: 'Summary' } })
     fireEvent.submit(input.closest('form')!)

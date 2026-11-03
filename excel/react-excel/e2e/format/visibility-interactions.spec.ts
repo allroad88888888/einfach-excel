@@ -1,3 +1,4 @@
+import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 
@@ -87,7 +88,7 @@ test('delete then undo restores the original hidden seed metadata and its sizes'
 }) => {
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await expect(cell(page, '0:0')).toHaveText('First order total')
-  await page.getByRole('button', { name: 'Delete sheet', exact: true }).click()
+  await (await sheetMenuItem(page, 'Delete sheet')).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Delete worksheet' }).click()
   await expect(page.getByRole('tab', { name: 'Summary', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Undo', exact: true }).click()

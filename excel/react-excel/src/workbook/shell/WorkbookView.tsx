@@ -14,6 +14,7 @@ import { runFindReplaceAtom, formatPainterAtom, runFormatPainterAtom,
 import { Trans, useLingui } from '@lingui/react/macro'
 import { SelectSpecialStatus } from '../select-special/SelectSpecialStatus'
 import { useSelectSpecialKeys } from '../select-special/use-select-special-keys'
+import { LockedCellDialog } from '../protection/LockedCellDialog'
 
 /** Composes the shared spreadsheet chrome around the active Rust workbook. */
 export function WorkbookView() {
@@ -68,6 +69,7 @@ export function WorkbookView() {
       <ShiftCellsDialog />
       <EvaluateFormulaDialog />
       <WatchWindowPanel />
+      <LockedCellDialog />
     </div>
   )
 }

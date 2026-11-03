@@ -12,6 +12,8 @@ export interface RustWorkbookSheetDefinition extends RustWorkbookSheetInput {
   readonly name: string
   readonly rowCount: number
   readonly colCount: number
+  /** 数据与 Table 导入完成后启用原生保护；允许区由 editableRanges 定义。 */
+  readonly protected?: boolean
 }
 
 export interface RustWorkbookDefinition {
@@ -56,6 +58,8 @@ export function snapshotRustWorkbookDefinition(
       throw new Error('Rust workbook definition contains an invalid sheet.')
     }
     ids.add(id)
+    if (sheet.protected !== undefined && typeof sheet.protected !== 'boolean')
+      throw new Error('Invalid initial worksheet protection.')
     const hidden = (indices: readonly number[] | undefined, count: number) => {
       if (indices?.some((index) => !Number.isSafeInteger(index) || index < 0 || index >= count))
         throw new Error('Invalid initial hidden index.')
@@ -223,6 +227,7 @@ export function snapshotRustWorkbookDefinition(
       name,
       rowCount: sheet.rowCount,
       colCount: sheet.colCount,
+      ...(sheet.protected === undefined ? {} : { protected: sheet.protected }),
       ...(rowHeights ? { rowHeights: Object.freeze(rowHeights) } : {}),
       ...(colWidths ? { colWidths: Object.freeze(colWidths) } : {}),
       ...(hiddenRows ? { hiddenRows } : {}),

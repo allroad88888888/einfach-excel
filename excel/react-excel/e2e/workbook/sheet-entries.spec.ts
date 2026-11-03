@@ -3,7 +3,7 @@ import { select } from '../support/clipboard'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
-// 工作表导航及重命名按钮的独立 DOM 入口，不用 Core 命令代替点击。
+// 工作表导航按钮的独立 DOM 入口，不用 Core 命令代替点击。
 for (const width of [1280, 390]) test.describe(`${width}px sheet entries`, () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
@@ -41,22 +41,4 @@ for (const width of [1280, 390]) test.describe(`${width}px sheet entries`, () =>
         .toHaveText(['Sales Orders', 'Summary'])
     })
 
-  test(`rename button opens a selected native name without mutation at ${width}px`, async ({ page }) => {
-    await page.getByRole('button', { name: 'Rename sheet', exact: true }).click()
-    const input = page.getByRole('textbox', { name: 'Sheet name', exact: true })
-    await expect(input).toBeFocused()
-    await expect(input).toHaveValue('Sales Orders')
-    expect(await input.evaluate(node => {
-      const field = node as HTMLInputElement
-      return [field.selectionStart, field.selectionEnd]
-    })).toEqual([0, 12])
-    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
-    await page.getByRole('button', { name: 'Cancel', exact: true }).click()
-    await expect(input).toHaveCount(0)
-    await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('B2')
-    await expect(cell(page, '1:1')).toHaveText('Acme Co.')
-    await expect(cell(page, '1:1')).toHaveCSS('font-style', 'italic')
-    await expect(cell(page, '1:0')).toHaveCSS('font-weight', '700')
-    await expect(page.getByRole('tab', { name: 'Sales Orders', exact: true })).toHaveAttribute('aria-selected', 'true')
-  })
 })

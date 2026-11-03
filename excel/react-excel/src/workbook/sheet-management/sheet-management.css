@@ -2,18 +2,22 @@
   position: fixed;
   z-index: 40;
   min-width: 168px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  box-sizing: border-box;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   padding: 4px;
   border: 1px solid var(--line, #d0d5dd);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--surface, #fff);
   box-shadow: 0 8px 24px rgb(16 24 40 / 18%);
 }
 :where(.einfach-spreadsheet) .sheet-tab-menu > button {
   padding: 7px 12px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 2px;
   background: transparent;
   color: inherit;
   font-size: 12px;
@@ -27,6 +31,10 @@
 :where(.einfach-spreadsheet) .sheet-tab-menu > button:disabled {
   opacity: 0.45;
   cursor: default;
+}
+:where(.einfach-spreadsheet) .sheet-tab-menu > [role='separator'] {
+  margin: 4px 0;
+  border-top: 1px solid var(--border);
 }
 :where(.einfach-spreadsheet) .sheet-tab-colors {
   display: grid;
@@ -60,11 +68,8 @@
   opacity: 0.45;
   cursor: default;
 }
-:where(.einfach-spreadsheet) .sheet-tab[data-tab-color] {
+:where(.einfach-spreadsheet) .sheet-tabs .sheet-tab[data-tab-color] {
   box-shadow: inset 0 -3px 0 var(--tab-color);
-}
-:where(.einfach-spreadsheet) .sheet-tab[data-tab-color] > span {
-  background: var(--tab-color);
 }
 :where(.einfach-spreadsheet) .sheet-unhide-dialog {
   width: min(320px, calc(100vw - 32px));

@@ -10,7 +10,7 @@ export const menuItem = (page: Page, name: string) =>
   menu(page).getByRole('menuitem', { name, exact: true })
 
 export async function openSeed(page: Page) {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 }
 

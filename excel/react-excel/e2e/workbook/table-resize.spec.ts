@@ -21,7 +21,7 @@ async function resize(page: Page, range: string) {
   await expect(button(page, 'Edit table DemoTable')).toContainText(range)
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await expect(cell(page, '4:1')).toHaveText('60')

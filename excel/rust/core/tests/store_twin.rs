@@ -18,7 +18,7 @@ fn n(v: f64) -> Value {
     Value::Number(v)
 }
 fn t(v: &str) -> Value {
-    Value::Text(v.to_string())
+    Value::Text(v.to_string().into())
 }
 fn as_n(v: Value) -> f64 {
     v.as_number().expect("number value")

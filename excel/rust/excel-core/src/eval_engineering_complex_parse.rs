@@ -171,7 +171,7 @@ pub(super) fn complex_unary_text(
     if !r.is_finite() || !i.is_finite() {
         return Value::Error(ValueError::Overflow);
     }
-    Value::Text(format_complex(r, i, sfx))
+    Value::Text(format_complex(r, i, sfx).into())
 }
 
 pub(super) fn complex_unary_number(

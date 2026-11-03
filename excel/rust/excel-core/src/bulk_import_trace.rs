@@ -307,7 +307,7 @@ pub fn run_bulk_import_with_phase_timings(
                     loader.set_cell_at(cell.sheet_idx, cell.addr, Value::Number(*n));
                 }
                 BulkImportCellKind::Text(s) => {
-                    loader.set_cell_at(cell.sheet_idx, cell.addr, Value::Text(s.clone()));
+                    loader.set_cell_at(cell.sheet_idx, cell.addr, Value::Text(s.as_str().into()));
                 }
                 BulkImportCellKind::Boolean(b) => {
                     loader.set_cell_at(cell.sheet_idx, cell.addr, Value::Boolean(*b));

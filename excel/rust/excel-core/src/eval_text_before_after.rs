@@ -75,8 +75,8 @@ pub(super) fn fn_text_before_after(args: &[Expr], provider: &dyn EvalProvider, b
 
     if delims.iter().any(|d| d.is_empty()) {
         return match instance {
-            1 => Value::Text(if before { String::new() } else { text.clone() }),
-            -1 => Value::Text(if before { text.clone() } else { String::new() }),
+            1 => Value::Text(if before { String::new().into() } else { text.clone().into() }),
+            -1 => Value::Text(if before { text.clone().into() } else { String::new().into() }),
             _ => not_found(),
         };
     }
@@ -121,9 +121,9 @@ pub(super) fn fn_text_before_after(args: &[Expr], provider: &dyn EvalProvider, b
     match pick {
         Some((s, e)) => {
             if before {
-                Value::Text(text[..s].to_string())
+                Value::Text(text[..s].to_string().into())
             } else {
-                Value::Text(text[e..].to_string())
+                Value::Text(text[e..].to_string().into())
             }
         }
         None => not_found(),

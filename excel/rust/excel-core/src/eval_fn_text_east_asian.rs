@@ -20,7 +20,7 @@ pub(super) fn eval_fn_text_east_asian(
                 return Value::Error(ValueError::WrongArgCount);
             }
             match eval_text_arg(&args[0], provider) {
-                Ok(text) => Value::Text(text),
+                Ok(text) => Value::Text(text.into()),
                 Err(e) => Value::Error(e),
             }
         }

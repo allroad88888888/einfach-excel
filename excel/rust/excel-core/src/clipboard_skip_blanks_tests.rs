@@ -53,14 +53,14 @@ fn blank_source_preserves_destination_formula_and_style_while_zero_and_false_are
 fn empty_string_formula_and_literal_are_not_blank_cells() {
     let mut wb = Workbook::new();
     wb.set_formula(0, "A1", "=\"\"");
-    wb.set_cell(0, "B1", Value::Text(String::new()));
+    wb.set_cell(0, "B1", Value::Text(String::new().into()));
     wb.set_cell(0, "A3", Value::Number(7.0));
     wb.set_cell(0, "B3", Value::Number(8.0));
     let clip = wb.capture_clipboard(0, range("A1", "B1"), false).unwrap();
     wb.paste_clipboard(&clip, 0, &skipping("A3", "A3")).unwrap();
     let sheet = wb.sheet(0).unwrap();
     assert_eq!(sheet.get_formula("A3").as_deref(), Some("=\"\""));
-    assert_eq!(sheet.get_cell("B3"), Value::Text(String::new()));
+    assert_eq!(sheet.get_cell("B3"), Value::Text(String::new().into()));
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn external_blanks_are_skipped_in_each_transposed_tile() {
     assert_eq!(sheet.get_cell("E5"), Value::Number(88.0));
     assert_eq!(sheet.get_cell("D3"), Value::Boolean(false));
     assert_eq!(sheet.get_cell("C4"), Value::Number(0.0));
-    assert_eq!(sheet.get_cell("F6"), Value::Text(String::new()));
+    assert_eq!(sheet.get_cell("F6"), Value::Text(String::new().into()));
 }
 
 #[test]

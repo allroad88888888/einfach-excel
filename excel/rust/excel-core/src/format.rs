@@ -257,7 +257,7 @@ pub fn value_to_display(val: &Value) -> String {
     let val = collapse_array_for_display(val);
     match &*val {
         Value::Number(n) => default_number_string(*n),
-        Value::Text(s) => s.clone(),
+        Value::Text(s) => s.to_string(),
         Value::Boolean(b) => if *b { "TRUE" } else { "FALSE" }.into(),
         Value::Null => String::new(),
         // NOT `format!("{}", e)`: the rendering boundary speaks Excel's error

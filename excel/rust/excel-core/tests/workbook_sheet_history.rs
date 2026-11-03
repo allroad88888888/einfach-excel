@@ -145,7 +145,7 @@ fn native_history_cannot_restore_into_another_workbook() {
 fn archived_sheet_participates_in_existing_memory_budget() {
     let mut wb = Workbook::new();
     wb.add_sheet("Large");
-    wb.set_cell(1, "A1", Value::Text("x".repeat(33 * 1024 * 1024)));
+    wb.set_cell(1, "A1", Value::Text("x".repeat(33 * 1024 * 1024).into()));
     let mut history = WorkbookHistory::default();
     history.edit_sheet(&mut wb, Some(0), "Small").unwrap();
     history.remove_sheet(&mut wb, 1).unwrap();

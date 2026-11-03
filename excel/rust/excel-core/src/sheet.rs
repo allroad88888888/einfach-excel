@@ -47,6 +47,8 @@ mod array_gate;
 mod async_custom;
 #[path = "sheet_atom_formula_provider.rs"]
 mod atom_formula_provider;
+#[path = "sheet_range_value_reader.rs"]
+mod range_value_reader;
 #[path = "sheet_atom_gc.rs"]
 mod atom_gc;
 #[path = "sheet_axis_border_clear.rs"]

@@ -221,7 +221,7 @@ impl DataValidationRule {
 
 fn scalar_text(value: &Value) -> Option<String> {
     match value {
-        Value::Text(text) => Some(text.clone()),
+        Value::Text(text) => Some(text.to_string()),
         Value::Number(number) if number.is_finite() => Some(excel_general_to_text(*number)),
         Value::Boolean(value) => Some(if *value { "TRUE" } else { "FALSE" }.into()),
         _ => None,

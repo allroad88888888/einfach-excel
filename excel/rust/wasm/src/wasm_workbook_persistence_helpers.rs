@@ -65,7 +65,7 @@ impl WasmWorkbook {
                     }
                     "text" => {
                         if let Some(ImportValueJSON::Text(s)) = cell.value {
-                            loader.set_cell_at(cell.sheet, addr, Value::Text(s));
+                            loader.set_cell_at(cell.sheet, addr, Value::Text(s.into()));
                             restored += 1;
                         }
                     }

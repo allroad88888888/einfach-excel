@@ -10,14 +10,14 @@ pub(super) fn fn_formulatext(args: &[Expr], provider: &dyn EvalProvider) -> Valu
                 return Value::Error(ValueError::InvalidRef);
             }
             match provider.cell_formula_text(*addr) {
-                Some(s) => Value::Text(s),
+                Some(s) => Value::Text(s.into()),
                 None => Value::Error(ValueError::NotAvailable),
             }
         }
         Expr::Range { start, end, .. } => {
             let r = CellRange::new(*start, *end).normalize();
             match provider.cell_formula_text(r.start) {
-                Some(s) => Value::Text(s),
+                Some(s) => Value::Text(s.into()),
                 None => Value::Error(ValueError::NotAvailable),
             }
         }
@@ -29,7 +29,7 @@ pub(super) fn fn_formulatext(args: &[Expr], provider: &dyn EvalProvider) -> Valu
                 return Value::Error(ValueError::InvalidRef);
             }
             match provider.sheet_cell_formula_text(sheet, *addr) {
-                Some(s) => Value::Text(s),
+                Some(s) => Value::Text(s.into()),
                 None => Value::Error(ValueError::NotAvailable),
             }
         }
@@ -41,7 +41,7 @@ pub(super) fn fn_formulatext(args: &[Expr], provider: &dyn EvalProvider) -> Valu
             }
             let r = CellRange::new(*start, *end).normalize();
             match provider.sheet_cell_formula_text(sheet, r.start) {
-                Some(s) => Value::Text(s),
+                Some(s) => Value::Text(s.into()),
                 None => Value::Error(ValueError::NotAvailable),
             }
         }

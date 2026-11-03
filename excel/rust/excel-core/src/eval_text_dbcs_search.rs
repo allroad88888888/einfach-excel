@@ -106,5 +106,5 @@ pub(super) fn fn_replaceb(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     out.push_str(&left);
     out.push_str(&new_s);
     out.push_str(&right);
-    Value::Text(out)
+    Value::Text(out.into())
 }

@@ -57,3 +57,7 @@ harness = false
 # CI 另以 CARGO_PROFILE_{DEV,TEST}_DEBUG=0 完全关闭。
 [profile.dev]
 debug = "line-tables-only"
+
+[[bench]]
+name = "storage_reads"
+harness = false

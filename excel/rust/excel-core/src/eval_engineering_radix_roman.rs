@@ -47,7 +47,7 @@ pub(super) fn roman_with_form(n: i64, form: usize) -> Value {
             rem -= *v;
         }
     }
-    Value::Text(out)
+    Value::Text(out.into())
 }
 
 pub(super) fn fn_arabic(args: &[Expr], provider: &dyn EvalProvider) -> Value {
@@ -60,7 +60,7 @@ pub(super) fn fn_arabic(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     }
     let raw = match &v {
         Value::Text(s) => s.clone(),
-        Value::Null => String::new(),
+        Value::Null => String::new().into(),
         // Numbers/booleans → reject.
         _ => return Value::Error(ValueError::WrongType),
     };

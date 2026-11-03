@@ -30,7 +30,7 @@ pub(super) fn eval_fn_text_format(
             }
             let n = n_trunc as usize;
             if n == 0 {
-                return Value::Text(String::new());
+                return Value::Text(String::new().into());
             }
             let text = coerce_to_text(&text_v);
             let char_count = text.chars().count();
@@ -42,7 +42,7 @@ pub(super) fn eval_fn_text_format(
                     for _ in 0..n {
                         out.push_str(&text);
                     }
-                    Value::Text(out)
+                    Value::Text(out.into())
                 }
                 _ => Value::Error(ValueError::InvalidValue),
             }
@@ -108,7 +108,7 @@ pub(super) fn eval_fn_text_format(
             match v {
                 Value::Error(e) => Value::Error(e),
                 Value::Text(s) => Value::Text(s),
-                _ => Value::Text(String::new()),
+                _ => Value::Text(String::new().into()),
             }
         }
 
@@ -129,7 +129,7 @@ pub(super) fn eval_fn_text_format(
                 return Value::Error(ValueError::InvalidValue);
             }
             match char::from_u32(n_f as u32) {
-                Some(c) => Value::Text(c.to_string()),
+                Some(c) => Value::Text(c.to_string().into()),
                 None => Value::Error(ValueError::InvalidValue),
             }
         }
@@ -226,7 +226,7 @@ pub(super) fn eval_fn_text_format(
                     None => out.push(ch),
                 }
             }
-            Value::Text(out)
+            Value::Text(out.into())
         }
 
         // ===== ARMS REGISTRY: ADD NEW MATCH ARMS BEFORE THIS LINE =====

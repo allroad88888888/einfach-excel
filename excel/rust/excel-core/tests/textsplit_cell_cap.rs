@@ -53,7 +53,7 @@ fn anchor(sheet: &Sheet, addr: &str) -> Value {
 /// `n` 个行分隔符切出 n+1 行；最后一行是那 m 个逗号，切出 m+1 列。
 fn seed_two_axis(sheet: &mut Sheet, row_delims: usize, col_delims: usize) {
     let text = format!("{}{}", ";".repeat(row_delims), ",".repeat(col_delims));
-    sheet.set_cell("A1", Value::Text(text));
+    sheet.set_cell("A1", Value::Text(text.into()));
 }
 
 // === 二维分支：闸门 ===
@@ -145,7 +145,7 @@ fn textsplit_over_cap_by_product_only() {
 #[test]
 fn textsplit_wide_but_small_result_is_accepted() {
     let mut sheet = Sheet::new();
-    sheet.set_cell("A1", Value::Text(",".repeat(20_000)));
+    sheet.set_cell("A1", Value::Text(",".repeat(20_000).into()));
     assert_eq!(
         counta_of(&mut sheet, "C1", "TEXTSPLIT(A1,\",\",\";\")"),
         Value::Number(20_001.0),
@@ -159,7 +159,7 @@ fn textsplit_wide_but_small_result_is_accepted() {
 #[test]
 fn textsplit_one_axis_is_not_gated() {
     let mut sheet = Sheet::new();
-    sheet.set_cell("A1", Value::Text(",".repeat(32767)));
+    sheet.set_cell("A1", Value::Text(",".repeat(32767).into()));
     assert_eq!(
         counta_of(&mut sheet, "C1", "TEXTSPLIT(A1,\",\")"),
         Value::Number(32768.0),
@@ -172,7 +172,7 @@ fn textsplit_one_axis_is_not_gated() {
 #[test]
 fn textsplit_host_injected_long_text_stays_linear() {
     let mut sheet = Sheet::new();
-    sheet.set_cell("A1", Value::Text(";".repeat(300_000)));
+    sheet.set_cell("A1", Value::Text(";".repeat(300_000).into()));
     assert_eq!(
         counta_of(&mut sheet, "C1", "TEXTSPLIT(A1,\",\",\";\")"),
         Value::Number(300_001.0),
@@ -185,20 +185,20 @@ fn textsplit_host_injected_long_text_stays_linear() {
 #[test]
 fn ordinary_textsplit_is_unaffected() {
     let mut sheet = Sheet::new();
-    sheet.set_cell("A1", Value::Text("a,b;c,d".to_string()));
+    sheet.set_cell("A1", Value::Text("a,b;c,d".to_string().into()));
     assert!(sheet.set_formula("C1", "=TEXTSPLIT(A1,\",\",\";\")"));
-    assert_eq!(anchor(&sheet, "C1"), Value::Text("a".to_string()));
-    assert_eq!(sheet.get_cell("D1"), Value::Text("b".to_string()));
-    assert_eq!(sheet.get_cell("C2"), Value::Text("c".to_string()));
-    assert_eq!(sheet.get_cell("D2"), Value::Text("d".to_string()));
+    assert_eq!(anchor(&sheet, "C1"), Value::Text("a".to_string().into()));
+    assert_eq!(sheet.get_cell("D1"), Value::Text("b".to_string().into()));
+    assert_eq!(sheet.get_cell("C2"), Value::Text("c".to_string().into()));
+    assert_eq!(sheet.get_cell("D2"), Value::Text("d".to_string().into()));
 
     // 参差行补 pad（默认 `#N/A`）—— 补齐正是闸门要数的那一步。
-    sheet.set_cell("A2", Value::Text("a;b,c".to_string()));
+    sheet.set_cell("A2", Value::Text("a;b,c".to_string().into()));
     assert!(sheet.set_formula("F1", "=TEXTSPLIT(A2,\",\",\";\")"));
-    assert_eq!(anchor(&sheet, "F1"), Value::Text("a".to_string()));
+    assert_eq!(anchor(&sheet, "F1"), Value::Text("a".to_string().into()));
     assert_eq!(sheet.get_cell("G1"), Value::Error(ValueError::NotAvailable));
-    assert_eq!(sheet.get_cell("F2"), Value::Text("b".to_string()));
-    assert_eq!(sheet.get_cell("G2"), Value::Text("c".to_string()));
+    assert_eq!(sheet.get_cell("F2"), Value::Text("b".to_string().into()));
+    assert_eq!(sheet.get_cell("G2"), Value::Text("c".to_string().into()));
 }
 
 /// `col_delim` 是必填的。修复前只挡了 `args.is_empty()`，`=TEXTSPLIT("a")`

@@ -110,13 +110,13 @@ fn expensive_pattern_fails_before_any_planned_replacement_is_written() {
     let mut wb = Workbook::new();
     let mut history = WorkbookHistory::default();
     let pattern = "a?".repeat(100);
-    wb.set_cell(0, "A1", Value::Text("aa".repeat(100)));
-    wb.set_cell(0, "A2", Value::Text("a".repeat(100_000)));
+    wb.set_cell(0, "A1", Value::Text("aa".repeat(100).into()));
+    wb.set_cell(0, "A2", Value::Text("a".repeat(100_000).into()));
     let q = query(&pattern);
     assert!(wb.find_cells(&scope(), &q, 0, 10).is_err());
     assert!(history
         .replace_by_query(&mut wb, &scope(), &q, "X", None)
         .is_err());
     assert_eq!(history.undo_count(), 0);
-    assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Text("aa".repeat(100)));
+    assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Text("aa".repeat(100).into()));
 }

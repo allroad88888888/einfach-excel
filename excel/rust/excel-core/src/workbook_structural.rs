@@ -259,7 +259,7 @@ impl Workbook {
     /// string so the caller auto-names that column.
     pub(super) fn header_text(&self, sheet_name: &str, addr: CellAddress) -> String {
         match self.get_cell(sheet_name, &addr.to_string_repr()) {
-            Value::Text(s) => s,
+            Value::Text(s) => s.to_string(),
             Value::Number(n) => format!("{n}"),
             Value::Boolean(b) => {
                 if b {

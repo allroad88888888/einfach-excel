@@ -170,7 +170,7 @@ fn defined_name_body_accepts_quoted_sheet_names() {
 fn structured_refs_still_work_on_a_quoted_sheet() {
     let mut wb = fixture();
     let s = wb.sheet_mut(MY_SHEET).unwrap();
-    s.set_cell("D1", Value::Text("Qty".to_string()));
+    s.set_cell("D1", Value::Text("Qty".to_string().into()));
     s.set_cell("D2", Value::Number(5.0));
     s.set_cell("D3", Value::Number(7.0));
     let range = CellRange::new(CellAddress::new(0, 3), CellAddress::new(2, 3));

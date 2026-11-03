@@ -15,7 +15,7 @@ use super::*;
 pub(super) fn formula_addrs_in_range(interior: &SheetInterior, range: CellRange) -> Vec<CellAddress> {
     let cells = interior.formula_cells.borrow();
     let source = interior.formula_source.borrow();
-    let mut out: Vec<CellAddress> = Vec::with_capacity(cells.len() + source.len());
+    let mut out: Vec<CellAddress> = Vec::new();
     let mut hydrated = cells.range_iter(range).map(|(addr, _)| addr).peekable();
     let mut lazy = source.range_iter(range).map(|(addr, _)| addr).peekable();
     loop {
@@ -112,23 +112,24 @@ impl Sheet {
         // and gives us a stable iteration set.
         let formula_addrs = formula_addrs_in_range(&self.interior, range);
 
-        // P4a borrow rule: snapshot the primitive addresses in range so no
-        // `cells` borrow is held across `cell_value_at` (store read) or the
-        // caller's `f`. Membership can't change during the loop (`&self`),
-        // so the per-iteration formula-map checks below observe the same
-        // set the live iteration did.
-        let prim_addrs: Vec<CellAddress> = self
-            .interior
-            .cells
-            .borrow()
-            .range_iter(range)
-            .map(|(addr, _)| addr)
-            .collect();
-        // 行主序归并：`prim_addrs` 与 `formula_addrs` 各自升序，按 `(row, col)`
-        // 交错取小的那个，合成一条全局行主序的发射序列。两个快照都在循环前取好，
-        // 所以 `value_resolver` 里的惰性 hydration（把条目从 `formula_source`
-        // 搬进 `formula_cells`）不会动到迭代集合。
-        let mut prims = prim_addrs.into_iter().peekable();
+        // Carry actual slots, irrespective of the rectangle's empty area.
+        // The power-of-two cap covers a dense 100x50 viewport; exports keep
+        // only addresses beyond it, bounding the number of cloned values.
+        // Both snapshots release the borrow before Store/callbacks.
+        const SLOT_SNAPSHOT_LIMIT: usize = 8192;
+        let (slots, addrs): (Vec<_>, Vec<_>) = {
+            let cells = self.interior.cells.borrow();
+            let mut entries = cells.range_iter(range);
+            let slots = entries
+                .by_ref()
+                .take(SLOT_SNAPSHOT_LIMIT)
+                .map(|(a, s)| (a, s.clone()))
+                .collect();
+            let addrs = entries.map(|(a, _)| a).collect();
+            (slots, addrs)
+        };
+        let mut prims = slots.into_iter().map(|(a, s)| (a, Some(s)))
+            .chain(addrs.into_iter().map(|a| (a, None))).peekable();
         let mut formulas = formula_addrs.into_iter().peekable();
         loop {
             let take_prim = match (prims.peek(), formulas.peek()) {
@@ -137,21 +138,22 @@ impl Sheet {
                 (None, Some(_)) => false,
                 // 同坐标时先取字面量：它会被下面的「已升级成公式」判断跳过，
                 // 下一轮再由公式分支在同一坐标发出值。
-                (Some(p), Some(q)) => (p.row, p.col) <= (q.row, q.col),
+                (Some((p, _)), Some(q)) => (p.row, p.col) <= (q.row, q.col),
             };
             if take_prim {
-                let addr = prims.next().expect("peek 已确认非空");
-                // Skip primitives that have been upgraded to formulas — the
-                // formula branch emits the formula value at this addr.
-                // Address-equality check stays O(1) (BTreeMap point lookup).
-                // Both hydrated and lazy formulas count.
-                if self.interior.formula_cells.borrow().contains_key(&addr)
-                    || self.interior.formula_source.borrow().contains_key(&addr)
-                {
+                let (addr, slot) = prims.next().expect("peek confirmed nonempty");
+                // Equal coordinates are emitted by the formula branch next.
+                if formulas.peek() == Some(&addr) {
                     continue;
                 }
-                let Some(value) = self.cell_value_at(addr) else {
-                    continue;
+                let value = match slot {
+                    Some(CellSlot::Plain(value)) => value,
+                    Some(CellSlot::Atom(id)) if self.store.has_atom(id) => self.store.get(id),
+                    Some(CellSlot::Atom(_)) => continue,
+                    None => match self.cell_value_at(addr) {
+                        Some(value) => value,
+                        None => continue,
+                    },
                 };
                 if matches!(value, Value::Null) {
                     continue;

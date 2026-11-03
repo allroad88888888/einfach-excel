@@ -2,7 +2,7 @@ use super::*;
 
 pub(super) fn coerce_to_text(v: &Value) -> String {
     match v {
-        Value::Text(s) => s.clone(),
+        Value::Text(s) => s.to_string(),
         // Excel「General」转文本规格的唯一调用点：15 位有效数字、half-up 收位、
         // 大数指数 > 19 / 小数普通写法超过 20 字符才退到科学计数。规格本身与它
         // 和 `format::value_to_display`（网格渲染，另一条路）的关系写在

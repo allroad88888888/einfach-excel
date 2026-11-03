@@ -20,7 +20,7 @@ fn eval_phonetic_returns_text_without_ruby_metadata() {
     );
     assert_eq!(
         eval_str("=PHONETIC(D4)", &cm, &vs),
-        Value::Text(String::new())
+        Value::Text(String::new().into())
     );
 }
 

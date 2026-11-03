@@ -54,7 +54,7 @@ fn blank_policy_is_explicit_for_each_kind() {
         },
     ] {
         let mut rule = rule(kind);
-        for blank in [Value::Null, Value::Text(String::new())] {
+        for blank in [Value::Null, Value::Text(String::new().into())] {
             assert!(rule.accepts(&blank));
             rule.ignore_blank = false;
             assert!(!rule.accepts(&blank));

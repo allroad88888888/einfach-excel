@@ -45,7 +45,7 @@ fn supported_group_separators_require_complete_three_digit_groups() {
         let source = format!("1{separator}234{separator}567{decimal}89");
         let options = Options { decimal_separator: decimal, group_separator: Some(separator), trailing_minus: false };
         assert_eq!(converted(&source, options), Value::Number(1_234_567.89));
-        assert_eq!(converted(&format!("12{separator}34"), options), Value::Text(format!("12{separator}34")));
+        assert_eq!(converted(&format!("12{separator}34"), options), Value::Text(format!("12{separator}34").into()));
     }
     assert_eq!(converted("1,234", Options::default()), Value::Text("1,234".into()));
 }

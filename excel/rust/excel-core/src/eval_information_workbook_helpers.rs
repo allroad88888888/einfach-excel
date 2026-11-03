@@ -104,11 +104,11 @@ pub(super) fn fn_info(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     }
     let key = coerce_to_text(&v).to_ascii_lowercase();
     match key.as_str() {
-        "directory" => Value::Text(String::new()),
+        "directory" => Value::Text(String::new().into()),
         "numfile" => Value::Number(1.0),
-        "osversion" => Value::Text(String::new()),
+        "osversion" => Value::Text(String::new().into()),
         "recalc" => Value::Text("Automatic".into()),
-        "release" => Value::Text(format!("einfach-{}", env!("CARGO_PKG_VERSION"))),
+        "release" => Value::Text(format!("einfach-{}", env!("CARGO_PKG_VERSION")).into()),
         "system" => {
             let os = if cfg!(target_os = "macos") {
                 "mac"

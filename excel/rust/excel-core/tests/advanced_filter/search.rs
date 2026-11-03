@@ -11,7 +11,7 @@ fn query(search: &str) -> FilterValuesQuery<'_> {
 fn one_query_returns_every_search_match_across_pages_without_mutation() {
     let mut book = Workbook::new();
     for row in 1..=1000 {
-        book.set_cell(0, &format!("A{}", row + 1), Value::Text(format!("Order {row:04}")));
+        book.set_cell(0, &format!("A{}", row + 1), Value::Text(format!("Order {row:04}").into()));
     }
     book.apply_filter_range(0, range("A1", "B1001"), &[]).unwrap();
     let before = book.snapshot_filters();
@@ -26,13 +26,13 @@ fn one_query_returns_every_search_match_across_pages_without_mutation() {
 #[test]
 fn all_match_count_text_and_scan_budgets_reject_rather_than_truncate() {
     let mut book = Workbook::new();
-    for row in 1..=1001 { book.set_cell(0, &format!("A{}", row + 1), Value::Text(format!("Item {row}"))); }
+    for row in 1..=1001 { book.set_cell(0, &format!("A{}", row + 1), Value::Text(format!("Item {row}").into())); }
     book.apply_filter_range(0, range("A1", "A1002"), &[]).unwrap();
     assert_eq!(book.filter_values(0, query("")).unwrap().total, 1001);
     assert!(book.filter_all_values(0, query("")).unwrap_err().contains("1,000"));
     assert_eq!(book.filter_all_values(0, query("Item 1001")).unwrap().total, 1);
     assert!(book.filter_all_values(0, FilterValuesQuery { offset: 1, ..query("") }).is_err());
-    for row in 1..=40 { book.set_cell(0, &format!("B{}", row + 1), Value::Text(format!("{row}{}", "x".repeat(30_000)))); }
+    for row in 1..=40 { book.set_cell(0, &format!("B{}", row + 1), Value::Text(format!("{row}{}", "x".repeat(30_000)).into())); }
     book.apply_filter_range(0, range("A1", "B1002"), &[]).unwrap();
     assert!(book.filter_all_values(0, FilterValuesQuery { column: 1, ..query("") }).unwrap_err().contains("1 MiB"));
     book.apply_filter_range(0, range("A1", "A50002"), &[]).unwrap();

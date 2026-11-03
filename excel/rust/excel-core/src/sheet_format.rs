@@ -65,7 +65,7 @@ impl Sheet {
         let value = collapse_array_for_eval(self.peek_value(addr));
         match &value {
             Value::Number(n) => self.effective_format(addr_str).format_number(*n),
-            Value::Text(s) => s.clone(),
+            Value::Text(s) => s.to_string(),
             Value::Boolean(b) => if *b { "TRUE" } else { "FALSE" }.into(),
             Value::Null => String::new(),
             Value::Error(e) => crate::error_display_token(e).into_owned(),

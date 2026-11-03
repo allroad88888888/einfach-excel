@@ -127,7 +127,7 @@ impl WasmWorkbook {
 
     pub fn set_text(&mut self, sheet_idx: u32, addr: &str, value: &str) {
         self.workbook
-            .set_cell(sheet_idx as usize, addr, Value::Text(value.to_string()));
+            .set_cell(sheet_idx as usize, addr, Value::Text(value.to_string().into()));
     }
 
     pub fn set_boolean(&mut self, sheet_idx: u32, addr: &str, value: bool) {

@@ -52,7 +52,7 @@ impl WasmWorkbook {
     /// Set a cell to a text value through the workbook. Cross-sheet aware.
     pub fn set_cell_text(&mut self, sheet_idx: usize, addr: &str, value: &str) {
         self.workbook
-            .set_cell(sheet_idx, addr, Value::Text(value.to_string()));
+            .set_cell(sheet_idx, addr, Value::Text(value.to_string().into()));
     }
 
     /// Set a cell to a boolean value through the workbook. Cross-sheet aware.
@@ -122,7 +122,7 @@ impl WasmWorkbook {
         try_set_cell_result(self.workbook.try_set_cell(
             sheet_idx,
             addr,
-            Value::Text(value.to_string()),
+            Value::Text(value.to_string().into()),
         ))
     }
 

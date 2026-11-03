@@ -88,7 +88,7 @@ pub(super) fn plan_cells(
                     Some(ClipboardValue::Literal(match source_value {
                         ClipboardValue::Formula { source, evaluated } => evaluated
                             .clone()
-                            .unwrap_or_else(|| Value::Text(source.clone())),
+                            .unwrap_or_else(|| Value::Text(source.as_str().into())),
                         ClipboardValue::Literal(value) => value.clone(),
                     }))
                 }

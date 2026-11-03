@@ -249,7 +249,7 @@ fn cross_sheet_whole_axis_round_trips_through_formula_text() {
         wb.set_formula(0, "F1", "=FORMULATEXT(E1)");
         assert_eq!(
             wb.get_cell("Sheet1", "F1"),
-            Value::Text(src.to_string()),
+            Value::Text(src.to_string().into()),
             "formula text must round-trip: {src}"
         );
     }

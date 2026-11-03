@@ -92,7 +92,7 @@ fn text_length_matches_len_not_utf8_bytes_or_formatted_display() {
 
 #[test]
 fn blank_policy_applies_length_zero_when_not_ignored() {
-    for blank in [Value::Null, Value::Text(String::new())] {
+    for blank in [Value::Null, Value::Text(String::new().into())] {
         assert!(rule(Kind::TextLength { min: 0.0, max: 0.0 }).accepts(&blank));
         let mut limit = rule(Kind::TextLength { min: 1.0, max: 3.0 });
         assert!(!limit.accepts(&blank));

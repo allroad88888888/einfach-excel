@@ -98,19 +98,14 @@ impl FacadeCtx {
     /// Primitive Null atoms may remain alive as Store dependency anchors after
     /// a clear. They are internal state, not sparse worksheet members.
     pub(super) fn primitive_slot_has_visible_value(&self, addr: CellAddress) -> bool {
-        let probe: Result<Value, AtomId> = {
+        let id = {
             let cells = self.interior.cells.borrow();
             match cells.get(&addr) {
-                Some(CellSlot::Plain(value)) => Ok(value.clone()),
-                Some(CellSlot::Atom(id)) => Err(*id),
+                Some(CellSlot::Plain(value)) => return !value.is_null(),
+                Some(CellSlot::Atom(id)) => *id,
                 None => return false,
             }
         };
-        let value = match probe {
-            Ok(value) => value,
-            Err(id) if self.store.has_atom(id) => self.store.get(id),
-            Err(_) => Value::Null,
-        };
-        !matches!(value, Value::Null)
+        self.store.has_atom(id) && !self.store.get(id).is_null()
     }
 }

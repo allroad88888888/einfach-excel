@@ -23,7 +23,7 @@ fn parse_text_complex(v: &Value) -> (f64, f64) {
     // Trim suffix.
     let (body, has_suffix) = match s.chars().last() {
         Some('i') | Some('j') => (&s[..s.len() - 1], true),
-        _ => (s.as_str(), false),
+        _ => (s.as_ref(), false),
     };
     if !has_suffix {
         return (body.parse::<f64>().unwrap(), 0.0);

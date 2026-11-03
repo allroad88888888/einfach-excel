@@ -156,7 +156,7 @@ fn eval_address_function_matches_the_authoritative_bytes() {
         );
         assert_eq!(
             wb.get_cell("Sheet1", &cell),
-            Value::Text(after.to_string()),
+            Value::Text(after.to_string().into()),
             "ADDRESS 与权威写法在 {after} 上分叉了"
         );
     }
@@ -176,7 +176,7 @@ fn eval_cell_address_info_matches_the_authoritative_bytes() {
         wb.set_formula(0, &host, &format!("=CELL(\"address\", {target})"));
         assert_eq!(
             wb.get_cell("Sheet1", &host),
-            Value::Text(authoritative(col, row, true, true)),
+            Value::Text(authoritative(col, row, true, true).into()),
             "CELL(\"address\") 与权威写法在 {target} 上分叉了"
         );
     }

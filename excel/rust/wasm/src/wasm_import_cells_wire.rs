@@ -92,7 +92,7 @@ impl PrimitiveWireJSON {
             PrimitiveWireJSON::Number(n) if n.is_finite() => Some(Value::Number(n)),
             PrimitiveWireJSON::Number(_) => None,
             PrimitiveWireJSON::Boolean(b) => Some(Value::Boolean(b)),
-            PrimitiveWireJSON::Text(s) => Some(Value::Text(s)),
+            PrimitiveWireJSON::Text(s) => Some(Value::Text(s.into())),
             PrimitiveWireJSON::Error(s) => Some(Value::Error(value_error_from_display(&s))),
             PrimitiveWireJSON::Null => None,
         }

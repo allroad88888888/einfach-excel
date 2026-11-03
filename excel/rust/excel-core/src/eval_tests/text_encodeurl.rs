@@ -43,7 +43,7 @@ fn eval_encodeurl_empty_and_numeric() {
     let (cm, vs) = make_test_env();
     assert_eq!(
         eval_str("=ENCODEURL(\"\")", &cm, &vs),
-        Value::Text(String::new())
+        Value::Text(String::new().into())
     );
     assert_eq!(
         eval_str("=ENCODEURL(123)", &cm, &vs),

@@ -86,7 +86,7 @@ pub(super) fn eval_dec2xxx(
         Err(e) => return Value::Error(e),
     };
     match format_base_n_signed(n, base, max_chars, bits_per_digit, places, upper_hex) {
-        Ok(s) => Value::Text(s),
+        Ok(s) => Value::Text(s.into()),
         Err(e) => Value::Error(e),
     }
 }
@@ -123,7 +123,7 @@ pub(super) fn eval_cross_base(
         Err(e) => return Value::Error(e),
     };
     match format_base_n_signed(dec, to.0, to.1, to.2, places, upper_hex) {
-        Ok(s) => Value::Text(s),
+        Ok(s) => Value::Text(s.into()),
         Err(e) => Value::Error(e),
     }
 }

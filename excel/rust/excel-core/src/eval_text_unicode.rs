@@ -22,7 +22,7 @@ pub(super) fn fn_unichar(args: &[Expr], provider: &dyn EvalProvider) -> Value {
         return Value::Error(ValueError::InvalidValue);
     }
     match char::from_u32(cp) {
-        Some(c) => Value::Text(c.to_string()),
+        Some(c) => Value::Text(c.to_string().into()),
         None => Value::Error(ValueError::InvalidValue),
     }
 }

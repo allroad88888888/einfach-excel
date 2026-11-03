@@ -119,3 +119,31 @@ Behavioral assertions for lazy evaluation and dependency bounds live in standard
 - **Absolute thresholds (e.g. "must be < 50 ms").** Hardware-dependent; we
   rely on relative deltas for timing and deterministic counter assertions in
   `cargo test` for algorithmic invariants.
+
+## Storage reads and allocation probes
+
+`storage_reads` separates first SUM evaluation, cached reads, and edit/recompute,
+with both storage-primary Plain cells and materialized atom cells. It also covers
+8/128/4096-byte text reads and 100k formula installation/window reads. Use the
+same Criterion baseline workflow above; avoid timing alongside builds/tests.
+
+`cargo run --release --example storage_allocations` reports allocator requests,
+peak/live requested bytes, and atom/evaluation counts. These are not RSS.
+For a real Chromium Worker projection and transport measurement, start the React
+Vite server and run `node scripts/bench-rust-storage-worker.mjs <server-url>` from
+the repository root. For lite/full it validates a 1350-cell viewport, a dense
+5000-cell wide viewport, the same 5000 cells in a sparse million-row rectangle,
+and a 10000-cell export spanning the snapshot budget.
+
+Sparse scans carry the first 8192 actual primitive slots with their values, then
+keep only addresses for the remainder. Empty coordinates do not consume this
+budget. The power-of-two limit covers a dense 100-by-50 viewport while bounding
+the retained slot buffer independently of export size. Layout depends on the
+target; the measured native slot buffer is at most 256 KiB. Large formula ranges
+still retain one reusable address epoch per visited Plain member; replacing those
+with region dependencies requires a separate invalidation design.
+
+The [2026-11-03 validation record](archive/2026-11-03-storage-read-optimization.md)
+records the implementation boundaries and distinguishes counts from noisy timings.
+The [snapshot-budget follow-up](archive/2026-11-03-slot-snapshot-review.md)
+records the later viewport correction, export-memory tradeoff, and verification.

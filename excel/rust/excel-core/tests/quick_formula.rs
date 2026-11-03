@@ -57,7 +57,7 @@ fn explicit_ranges_use_one_summary_and_reuse_an_empty_trailing_row() {
 #[test]
 fn occupied_result_and_empty_string_formula_are_never_overwritten() {
     let mut book = book();
-    book.set_cell(0, "A5", Value::Text(String::new()));
+    book.set_cell(0, "A5", Value::Text(String::new().into()));
     assert!(book.suggest_quick_formula(0, range("A2", "A4"), 100, 8, QuickFormula::Sum).is_err());
     book.set_formula(0, "A5", "=IF(TRUE,\"\",0)");
     assert!(book.suggest_quick_formula(0, range("A2", "A4"), 100, 8, QuickFormula::Sum).is_err());

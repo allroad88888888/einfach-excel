@@ -192,7 +192,7 @@ impl TableDefinitionChange {
                 .iter_mut()
                 .find(|(_, next)| next.range.contains(addr))
                 .unwrap();
-            header.cells = Some(vec![CellSnapshot::value(addr, Value::Text(name))]);
+            header.cells = Some(vec![CellSnapshot::value(addr, Value::Text(name.into()))]);
         }
         Ok(Some(change))
     }

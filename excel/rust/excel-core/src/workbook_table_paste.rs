@@ -64,7 +64,7 @@ impl TableDefinitionChange {
                 let addr = CellAddress::new(range.start.row, col);
                 let raw = match indices.get(&addr).map(|index| &planned[*index]) {
                     Some((_, Some(ClipboardValue::Formula { source, .. }), _)) => source.clone(),
-                    Some((_, Some(ClipboardValue::Literal(Value::Text(value))), _)) => value.clone(),
+                    Some((_, Some(ClipboardValue::Literal(Value::Text(value))), _)) => value.to_string(),
                     Some((_, Some(ClipboardValue::Literal(Value::Null)), _)) => String::new(),
                     Some((_, Some(ClipboardValue::Literal(value)), _)) => crate::format::value_to_display(value),
                     _ => after.columns[(col - range.start.col) as usize].clone(),
@@ -74,7 +74,7 @@ impl TableDefinitionChange {
                 } else { raw.trim().to_owned() };
                 used.insert(name.to_ascii_uppercase());
                 after.columns[(col - range.start.col) as usize] = name.clone();
-                extra.push((addr, Some(ClipboardValue::Literal(Value::Text(name))), None));
+                extra.push((addr, Some(ClipboardValue::Literal(Value::Text(name.into()))), None));
             }
             // 新表头由同一个最终写入计划落地，不再由范围事务先写一次。
             change.cells.clear();

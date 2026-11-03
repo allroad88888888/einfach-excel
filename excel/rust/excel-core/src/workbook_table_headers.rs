@@ -47,7 +47,7 @@ impl TableDefinitionChange {
         let mut next = original.clone();
         next.cells = Some(if enabled {
             after.columns.iter().enumerate().map(|(offset, name)| CellSnapshot::value(
-                CellAddress::new(row, range.start.col + offset as u32), Value::Text(name.clone()),
+                CellAddress::new(row, range.start.col + offset as u32), Value::Text(name.clone().into()),
             )).collect()
         } else { Vec::new() });
         // 保留既有普通区域行为：只清理同表头、同列跨度且不超出表的筛选。

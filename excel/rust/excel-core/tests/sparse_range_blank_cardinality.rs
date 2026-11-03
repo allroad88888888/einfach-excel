@@ -38,7 +38,7 @@ fn number(sheet: &mut Sheet, formula: &str) -> f64 {
 
 fn text(sheet: &mut Sheet, formula: &str) -> String {
     match probe(sheet, formula) {
-        Value::Text(s) => s,
+        Value::Text(s) => s.to_string(),
         other => panic!("{formula} 期望 Text，得到 {other:?}"),
     }
 }
@@ -101,7 +101,7 @@ fn empty_text_counts_as_blank_but_countblank_is_not_the_complement_of_counta() {
     assert!(sheet.set_formula("A2", "=\"\""));
     sheet.set_cell("A3", Value::Number(3.0));
 
-    assert_eq!(sheet.get_cell("A2"), Value::Text(String::new()));
+    assert_eq!(sheet.get_cell("A2"), Value::Text(String::new().into()));
     // A2 发得出来（它是个公式格），但值算空。
     assert_eq!(number(&mut sheet, "=COUNTBLANK(A1:A3)"), 1.0);
     // 同一格 COUNTA 算非空 → 1 + 3 = 4 > 3 格，正是「不互补」的样子。
@@ -113,7 +113,7 @@ fn empty_text_counts_as_blank_but_countblank_is_not_the_complement_of_counta() {
     // 直接存进去的空文本同理。
     let mut lit = Sheet::new();
     lit.set_cell("A1", Value::Number(1.0));
-    lit.set_cell("A2", Value::Text(String::new()));
+    lit.set_cell("A2", Value::Text(String::new().into()));
     assert_eq!(number(&mut lit, "=COUNTBLANK(A1:A2)"), 1.0);
 }
 
@@ -239,7 +239,7 @@ fn cross_sheet_ranges_get_the_same_treatment() {
         .set_formula("B2", "=TEXTJOIN(\",\",FALSE,Src!A1:A3)");
     assert_eq!(
         wb.sheet(dst).unwrap().get_cell("B2"),
-        Value::Text("1,,3".to_string())
+        Value::Text("1,,3".to_string().into())
     );
 }
 

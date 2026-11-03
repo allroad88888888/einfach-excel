@@ -68,7 +68,7 @@ pub(super) fn fn_textsplit(args: &[Expr], provider: &dyn EvalProvider) -> Value 
         return Value::Array(Arc::new(ArrayData::new(
             1,
             1,
-            vec![Value::Text(String::new())],
+            vec![Value::Text(String::new().into())],
         )));
     }
 
@@ -76,7 +76,7 @@ pub(super) fn fn_textsplit(args: &[Expr], provider: &dyn EvalProvider) -> Value 
         // 1×N column-split. Drop empty fragments per `ignore_empty`.
         let fragments = textsplit_one_axis(&text, &col_delims, ignore_empty, match_mode);
         let cols = fragments.len().max(1) as u32;
-        let data: Vec<Value> = fragments.into_iter().map(Value::Text).collect();
+        let data: Vec<Value> = fragments.into_iter().map(|text| Value::Text(text.into())).collect();
         return Value::Array(Arc::new(ArrayData::new(1, cols, data)));
     }
 
@@ -97,7 +97,7 @@ pub(super) fn fn_textsplit(args: &[Expr], provider: &dyn EvalProvider) -> Value 
         return Value::Array(Arc::new(ArrayData::new(
             1,
             1,
-            vec![Value::Text(String::new())],
+            vec![Value::Text(String::new().into())],
         )));
     }
     if max_cols == 0 {
@@ -128,7 +128,7 @@ pub(super) fn fn_textsplit(args: &[Expr], provider: &dyn EvalProvider) -> Value 
     for row in grid {
         for j in 0..max_cols {
             if j < row.len() {
-                data.push(Value::Text(row[j].clone()));
+                data.push(Value::Text(row[j].clone().into()));
             } else {
                 let pad_value = pad
                     .get_or_insert_with(|| {

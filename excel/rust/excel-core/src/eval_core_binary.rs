@@ -12,7 +12,7 @@ pub(super) fn eval_binop(op: BinOperator, left: &Value, right: &Value) -> Value 
     // Concat is the only string-yielding op; handle separately so we don't
     // require both sides to be numeric.
     if let BinOperator::Concat = op {
-        return Value::Text(format!("{}{}", coerce_to_text(left), coerce_to_text(right)));
+        return Value::Text(format!("{}{}", coerce_to_text(left), coerce_to_text(right)).into());
     }
 
     // Comparisons accept mixed types and return Boolean. Numeric comparison

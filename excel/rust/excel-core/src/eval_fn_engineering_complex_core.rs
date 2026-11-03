@@ -25,8 +25,8 @@ pub(super) fn eval_fn_engineering_complex_core(
                     return Value::Error(e);
                 }
                 match v {
-                    Value::Text(s) if s == "i" => 'i',
-                    Value::Text(s) if s == "j" => 'j',
+                    Value::Text(s) if s == "i".into() => 'i',
+                    Value::Text(s) if s == "j".into() => 'j',
                     // Excel surfaces #VALUE! for any other suffix.
                     _ => return Value::Error(ValueError::InvalidValue),
                 }
@@ -36,7 +36,7 @@ pub(super) fn eval_fn_engineering_complex_core(
             if !real.is_finite() || !imag.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(real, imag, suffix))
+            Value::Text(format_complex(real, imag, suffix).into())
         }
         "IMABS" => complex_unary_number(args, provider, |a, b| (a * a + b * b).sqrt()),
         "IMAGINARY" => complex_unary_number(args, provider, |_a, b| b),
@@ -77,7 +77,7 @@ pub(super) fn eval_fn_engineering_complex_core(
             if !sum_r.is_finite() || !sum_i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(sum_r, sum_i, suffix))
+            Value::Text(format_complex(sum_r, sum_i, suffix).into())
         }
         "IMSUB" => {
             if args.len() != 2 {
@@ -96,7 +96,7 @@ pub(super) fn eval_fn_engineering_complex_core(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, suffix))
+            Value::Text(format_complex(r, i, suffix).into())
         }
         "IMPRODUCT" => {
             if args.is_empty() {
@@ -118,7 +118,7 @@ pub(super) fn eval_fn_engineering_complex_core(
             if !pr.is_finite() || !pi.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(pr, pi, suffix))
+            Value::Text(format_complex(pr, pi, suffix).into())
         }
         "IMDIV" => {
             if args.len() != 2 {
@@ -139,7 +139,7 @@ pub(super) fn eval_fn_engineering_complex_core(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, suffix))
+            Value::Text(format_complex(r, i, suffix).into())
         }
                 _ => unreachable!(),
     }

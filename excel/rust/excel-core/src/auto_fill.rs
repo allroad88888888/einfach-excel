@@ -463,7 +463,7 @@ fn source_texts(
                 ));
             }
             match sheet.peek_value(addr) {
-                Value::Text(value) => Ok(value),
+                Value::Text(value) => Ok(value.to_string()),
                 _ => Err(AutoFillError::InvalidSource(
                     "source cells must be canonical non-formula strings",
                 )),
@@ -911,7 +911,7 @@ fn plan_text_number_series(
             ));
         }
         format_text_number(pattern, value)
-            .map(Value::Text)
+            .map(|text| Value::Text(text.into()))
             .ok_or(AutoFillError::InvalidSource(
                 "generated text-number is invalid",
             ))
@@ -1128,7 +1128,7 @@ fn plan_named_series(
     }
     plan_generated(sheet, request, write_range, |relative| {
         let index = (first + step_i64 * relative).rem_euclid(list_len) as usize;
-        Ok(Value::Text(witness.values[index].clone()))
+        Ok(Value::Text(witness.values[index].as_str().into()))
     })
 }
 
@@ -1803,8 +1803,8 @@ mod tests {
     #[test]
     fn text_number_and_named_lists_extend_and_wrap() {
         let mut wb = Workbook::new();
-        wb.set_cell(0, "A1", Value::Text("Item01".to_string()));
-        wb.set_cell(0, "A2", Value::Text("Item02".to_string()));
+        wb.set_cell(0, "A1", Value::Text("Item01".to_string().into()));
+        wb.set_cell(0, "A2", Value::Text("Item02".to_string().into()));
         let mut text_request = request(
             range("A1", "A2"),
             range("A1", "A4"),
@@ -1819,7 +1819,7 @@ mod tests {
         });
         wb.apply_auto_fill(&text_request).unwrap();
 
-        wb.set_cell(0, "B1", Value::Text("Sun".to_string()));
+        wb.set_cell(0, "B1", Value::Text("Sun".to_string().into()));
         let mut weekday_request = request(
             range("B1", "B1"),
             range("B1", "B3"),
@@ -1837,8 +1837,8 @@ mod tests {
         });
         wb.apply_auto_fill(&weekday_request).unwrap();
 
-        wb.set_cell(0, "C1", Value::Text("small".to_string()));
-        wb.set_cell(0, "C2", Value::Text("medium".to_string()));
+        wb.set_cell(0, "C1", Value::Text("small".to_string().into()));
+        wb.set_cell(0, "C2", Value::Text("medium".to_string().into()));
         let mut custom_request = request(
             range("C1", "C2"),
             range("C1", "C4"),
@@ -1858,30 +1858,30 @@ mod tests {
 
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("A3")),
-            Value::Text("Item03".to_string())
+            Value::Text("Item03".to_string().into())
         );
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("A4")),
-            Value::Text("Item04".to_string())
+            Value::Text("Item04".to_string().into())
         );
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("B2")),
-            Value::Text("Mon".to_string())
+            Value::Text("Mon".to_string().into())
         );
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("B3")),
-            Value::Text("Tue".to_string())
+            Value::Text("Tue".to_string().into())
         );
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("C3")),
-            Value::Text("large".to_string())
+            Value::Text("large".to_string().into())
         );
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("C4")),
-            Value::Text("small".to_string())
+            Value::Text("small".to_string().into())
         );
 
-        wb.set_cell(0, "D1", Value::Text("Dec".to_string()));
+        wb.set_cell(0, "D1", Value::Text("Dec".to_string().into()));
         let mut month_request = request(
             range("D1", "D1"),
             range("D1", "D3"),
@@ -1900,18 +1900,18 @@ mod tests {
         wb.apply_auto_fill(&month_request).unwrap();
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("D2")),
-            Value::Text("Jan".to_string())
+            Value::Text("Jan".to_string().into())
         );
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("D3")),
-            Value::Text("Feb".to_string())
+            Value::Text("Feb".to_string().into())
         );
     }
 
     #[test]
     fn named_lists_require_supported_canonical_locale_and_use_turkish_case_fold() {
         let mut wb = Workbook::new();
-        wb.set_cell(0, "A1", Value::Text("ı".to_string()));
+        wb.set_cell(0, "A1", Value::Text("ı".to_string().into()));
         let mut request = request(
             range("A1", "A1"),
             range("A1", "A2"),
@@ -1927,7 +1927,7 @@ mod tests {
         wb.apply_auto_fill(&request).unwrap();
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("A2")),
-            Value::Text("İ".to_string())
+            Value::Text("İ".to_string().into())
         );
 
         for (locale, first, expected) in [("zh-Hans-CN", "甲", "乙"), ("az-Latn-AZ", "ı", "İ")]
@@ -1942,13 +1942,13 @@ mod tests {
                 },
                 locale: locale.to_string(),
             });
-            wb.set_cell(0, "B1", Value::Text(first.to_string()));
+            wb.set_cell(0, "B1", Value::Text(first.to_string().into()));
             localized.source_range = range("B1", "B1");
             localized.target_range = range("B1", "B2");
             wb.apply_auto_fill(&localized).unwrap();
             assert_eq!(
                 wb.sheet(0).unwrap().peek_value(addr("B2")),
-                Value::Text(expected.to_string())
+                Value::Text(expected.to_string().into())
             );
         }
 
@@ -2090,7 +2090,7 @@ mod tests {
         }
 
         let mut wb = Workbook::new();
-        wb.set_cell(0, "A1", Value::Text("ος".to_string()));
+        wb.set_cell(0, "A1", Value::Text("ος".to_string().into()));
         let mut request = request(
             range("A1", "A1"),
             range("A1", "A2"),
@@ -2106,15 +2106,15 @@ mod tests {
         wb.apply_auto_fill(&request).unwrap();
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("A2")),
-            Value::Text("ΟΣΑ".to_string())
+            Value::Text("ΟΣΑ".to_string().into())
         );
     }
 
     #[test]
     fn built_in_named_lists_reject_locale_tampering() {
         let mut wb = Workbook::new();
-        wb.set_cell(0, "A1", Value::Text("Mon".to_string()));
-        wb.set_cell(0, "A2", Value::Text("untouched".to_string()));
+        wb.set_cell(0, "A1", Value::Text("Mon".to_string().into()));
+        wb.set_cell(0, "A2", Value::Text("untouched".to_string().into()));
         let mut request = request(
             range("A1", "A1"),
             range("A1", "A2"),
@@ -2139,7 +2139,7 @@ mod tests {
         ));
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("A2")),
-            Value::Text("untouched".to_string())
+            Value::Text("untouched".to_string().into())
         );
     }
 
@@ -2358,8 +2358,8 @@ mod tests {
 
         // Text-number series: witness must match the sources to reach the gate.
         let mut wb = Workbook::new();
-        wb.set_cell(0, "F1", Value::Text("Item01".to_string()));
-        wb.set_cell(0, "F2", Value::Text("Item02".to_string()));
+        wb.set_cell(0, "F1", Value::Text("Item01".to_string().into()));
+        wb.set_cell(0, "F2", Value::Text("Item02".to_string().into()));
         spill_column(&mut wb, "F3", &[10.0, 20.0]);
         let mut text_request = request(
             range("F1", "F2"),
@@ -2381,7 +2381,7 @@ mod tests {
         // Named list (custom list and both built-in list flavours share the
         // planner). Anchor G2 / target G3.
         let mut wb = Workbook::new();
-        wb.set_cell(0, "G1", Value::Text("small".to_string()));
+        wb.set_cell(0, "G1", Value::Text("small".to_string().into()));
         spill_column(&mut wb, "G2", &[10.0, 20.0]);
         let mut list_request = request(
             range("G1", "G1"),

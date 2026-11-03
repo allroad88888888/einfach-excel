@@ -141,7 +141,7 @@ pub(super) fn eval_fn_text_search(
             let old = coerce_to_text(&old_v);
             let new_s = coerce_to_text(&new_v);
             if old.is_empty() {
-                return Value::Text(text);
+                return Value::Text(text.into());
             }
             let text_chars: Vec<char> = text.chars().collect();
             let old_chars: Vec<char> = old.chars().collect();
@@ -170,7 +170,7 @@ pub(super) fn eval_fn_text_search(
                     i += 1;
                 }
             }
-            Value::Text(out)
+            Value::Text(out.into())
         }
 
         // REPLACE(text, start_num, num_chars, new_text). 1-based char position.
@@ -218,7 +218,7 @@ pub(super) fn eval_fn_text_search(
             for c in &text_chars[cut_end..] {
                 out.push(*c);
             }
-            Value::Text(out)
+            Value::Text(out.into())
         }
 
         // REPT(text, n) — char-count limit 32767 per Excel.

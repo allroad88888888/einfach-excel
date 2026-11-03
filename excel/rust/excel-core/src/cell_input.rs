@@ -83,7 +83,7 @@ pub fn editable_cell_text(value: &Value, formula: &str) -> String {
     match value {
         Value::Number(number) => number.to_string(),
         Value::Text(text) => match parse_cell_input(text, true) {
-            CellInput::Literal(Value::Text(parsed)) if parsed == *text => text.clone(),
+            CellInput::Literal(Value::Text(parsed)) if parsed == *text => text.to_string(),
             _ => format!("'{text}"),
         },
         _ => crate::value_to_display(value),

@@ -26,7 +26,7 @@ fn sparse_cells_to_install_payload(
                 _ => continue,
             },
             "text" => match cell.value {
-                Some(ImportValueJSON::Text(s)) => Value::Text(s),
+                Some(ImportValueJSON::Text(s)) => Value::Text(s.into()),
                 _ => continue,
             },
             "boolean" => match cell.value {

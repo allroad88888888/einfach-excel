@@ -83,7 +83,7 @@ fn eval_textsplit_empty_text() {
     match eval_str("=TEXTSPLIT(\"\", \",\")", &cm, &vs) {
         Value::Array(arr) => {
             assert_eq!(arr.shape(), (1, 1));
-            assert_eq!(arr.get(0, 0), Some(&Value::Text(String::new())));
+            assert_eq!(arr.get(0, 0), Some(&Value::Text(String::new().into())));
         }
         other => panic!("expected array, got {:?}", other),
     }

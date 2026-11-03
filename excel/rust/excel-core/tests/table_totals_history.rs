@@ -14,7 +14,7 @@ fn seed() -> (Workbook, WorkbookHistory) {
     wb.set_cell(0, "A1", Value::Text("Product".into()));
     wb.set_cell(0, "B1", Value::Text("Amount".into()));
     for row in 2..=4 {
-        wb.set_cell(0, &format!("A{row}"), Value::Text(format!("Item{row}")));
+        wb.set_cell(0, &format!("A{row}"), Value::Text(format!("Item{row}").into()));
         wb.set_cell(
             0,
             &format!("B{row}"),

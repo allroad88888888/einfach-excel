@@ -359,7 +359,7 @@ fn value_to_literal_expr(val: &Value) -> (Expr, String) {
     match val {
         Value::Number(n) => (Expr::Number(*n), crate::value_to_display(val)),
         Value::Text(s) => {
-            let expr = Expr::Text(s.clone());
+            let expr = Expr::Text(s.to_string());
             let rendered = render_formula(&expr)[1..].to_string();
             (expr, rendered)
         }

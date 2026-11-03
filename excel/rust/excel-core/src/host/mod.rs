@@ -26,7 +26,7 @@ impl RawCellValue {
         Ok(match self {
             Self::Number { value } if value.is_finite() => Value::Number(value),
             Self::Number { .. } => return Err("NON_FINITE_NUMBER"),
-            Self::String { value } => Value::Text(value),
+            Self::String { value } => Value::Text(value.into()),
             Self::Boolean { value } => Value::Boolean(value),
             Self::Blank => Value::Null,
             Self::Error { code } => Value::Error([
@@ -41,7 +41,7 @@ impl RawCellValue {
     fn from_value(value: Value) -> Result<Self, &'static str> {
         Ok(match value {
             Value::Number(value) => Self::Number { value },
-            Value::Text(value) => Self::String { value },
+            Value::Text(value) => Self::String { value: value.to_string() },
             Value::Boolean(value) => Self::Boolean { value },
             Value::Error(error) => Self::Error { code: error.to_string() },
             Value::Array(array) => return Self::from_value(array.get(0, 0).cloned().unwrap_or(Value::Null)),

@@ -238,7 +238,7 @@ fn build_workbook(seed: u64, operation_count: usize) -> Workbook {
                 let a = addr(&mut rng);
                 let v = match rng.below(3) {
                     0 => Value::Number(rng.below(1000) as f64 / 4.0),
-                    1 => Value::Text(format!("t{}", rng.below(50))),
+                    1 => Value::Text(format!("t{}", rng.below(50)).into()),
                     _ => Value::Boolean(rng.below(2) == 0),
                 };
                 wb.set_cell(sheet_idx, &a, v);

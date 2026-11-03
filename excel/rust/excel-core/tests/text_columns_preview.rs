@@ -81,13 +81,13 @@ fn late_invalid_quote_rejects_the_entire_preview() {
 fn previews_bound_columns_and_unicode_text_without_changing_source() {
     let mut wb = Workbook::new();
     let source = format!("{},{}", "😀".repeat(121), "x,".repeat(15));
-    wb.set_cell(0, "A1", Value::Text(source.clone()));
+    wb.set_cell(0, "A1", Value::Text(source.clone().into()));
     let preview = wb.preview_text_columns(&request("A1", "A1", "B1")).unwrap();
     assert_eq!(preview.target.cols(), 17);
     assert_eq!(preview.sample[0].len(), 12);
     assert_eq!(preview.sample[0][0], "😀".repeat(120));
     assert!(preview.sample_truncated);
-    assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Text(source));
+    assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Text(source.into()));
 }
 
 #[test]
@@ -115,7 +115,7 @@ fn inplace_source_is_expected_but_other_destination_content_requires_confirmatio
             .overwritten_cells,
         1
     );
-    wb.set_cell(0, "B2", Value::Text(String::new()));
+    wb.set_cell(0, "B2", Value::Text(String::new().into()));
     assert_eq!(
         wb.preview_text_columns(&request("A1", "A2", "A1"))
             .unwrap()
@@ -215,7 +215,7 @@ fn cumulative_payload_limit_rejects_instead_of_returning_a_truncated_plan() {
         wb.set_cell(
             0,
             &format!("A{row}"),
-            Value::Text("x".repeat(12 * 1024 * 1024)),
+            Value::Text("x".repeat(12 * 1024 * 1024).into()),
         );
     }
     assert!(wb.preview_text_columns(&request("A1", "A3", "B1")).is_err());

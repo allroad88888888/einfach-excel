@@ -53,7 +53,7 @@ impl WasmSheet {
 
     /// Set a cell to a text value.
     pub fn set_text(&mut self, addr: &str, value: &str) {
-        self.sheet.set_cell(addr, Value::Text(value.to_string()));
+        self.sheet.set_cell(addr, Value::Text(value.to_string().into()));
     }
 
     /// Set a cell to a boolean value.

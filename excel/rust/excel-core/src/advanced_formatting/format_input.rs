@@ -17,7 +17,7 @@ pub(crate) fn sync_format_input(
             let value = collapse_array_for_eval(value);
             if matches!(value, Value::Number(number) if number.is_finite()) {
                 if let Some(key) = display_key(&value, &sheet.base_format_at(addr)) {
-                    keys.extend([Value::Number(f64::from(addr.row)), Value::Number(f64::from(addr.col)), Value::Text(key)]);
+                    keys.extend([Value::Number(f64::from(addr.row)), Value::Number(f64::from(addr.col)), Value::Text(key.into())]);
                 }
             }
         });
@@ -33,7 +33,7 @@ pub(crate) fn read_format_keys(value: Value) -> HashMap<CellAddress, String> {
         for index in 0..keys.rows {
             if let (Some(Value::Number(row)), Some(Value::Number(col)), Some(Value::Text(key))) =
                 (keys.get(index, 0), keys.get(index, 1), keys.get(index, 2)) {
-                display_keys.insert(CellAddress::new(*row as u32, *col as u32), key.clone());
+                display_keys.insert(CellAddress::new(*row as u32, *col as u32), key.to_string());
             }
         }
     }

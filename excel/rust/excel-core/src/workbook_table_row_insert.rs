@@ -93,7 +93,7 @@ pub(super) fn prepare(
     }
     if header {
         next.cells.as_mut().unwrap().extend(after.columns.iter().enumerate().map(|(offset, name)|
-            CellSnapshot::value(CellAddress::new(row, columns.0 + offset as u32), Value::Text(name.clone()))));
+            CellSnapshot::value(CellAddress::new(row, columns.0 + offset as u32), Value::Text(name.clone().into()))));
     }
     for (addr, _) in &mut next.formats.cell_styles { addr.row += 1; }
     for merged in next.merges.iter_mut().flatten() {

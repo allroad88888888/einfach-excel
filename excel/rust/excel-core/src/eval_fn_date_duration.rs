@@ -99,7 +99,7 @@ pub(super) fn eval_fn_date_duration(
             let s = match v {
                 Value::Text(s) => s,
                 Value::Null => return Value::Error(ValueError::WrongType),
-                other => coerce_to_text(&other),
+                other => coerce_to_text(&other).into(),
             };
             crate::date_serial::parse_iso_date(s.trim())
                 .map(Value::Number)
@@ -117,7 +117,7 @@ pub(super) fn eval_fn_date_duration(
             let s = match v {
                 Value::Text(s) => s,
                 Value::Null => return Value::Error(ValueError::WrongType),
-                other => coerce_to_text(&other),
+                other => coerce_to_text(&other).into(),
             };
             let parts: Vec<&str> = s.split(':').collect();
             if parts.len() < 2 || parts.len() > 3 {

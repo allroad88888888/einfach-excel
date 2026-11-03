@@ -7,7 +7,7 @@ use einfach_excel_core::workbook_remove_duplicates::{DuplicateComparison, Remove
 fn setup() -> (Workbook, RemoveDuplicatesRequest) {
     let mut wb = Workbook::new();
     for row in 0..46 {
-        wb.set_cell(0, &format!("A{}", row + 1), Value::Text(format!("Key{}", row % 3)));
+        wb.set_cell(0, &format!("A{}", row + 1), Value::Text(format!("Key{}", row % 3).into()));
         wb.set_cell(0, &format!("B{}", row + 1), Value::Number(row as f64));
     }
     (wb, RemoveDuplicatesRequest { sheet: 0,

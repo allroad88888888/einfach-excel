@@ -123,9 +123,9 @@ pub(super) fn fn_base(args: &[Expr], provider: &dyn EvalProvider) -> Value {
         digits.iter().rev().collect::<String>()
     };
     if s.len() >= min_len {
-        Value::Text(s)
+        Value::Text(s.into())
     } else {
         let pad = min_len - s.len();
-        Value::Text(format!("{}{}", "0".repeat(pad), s))
+        Value::Text(format!("{}{}", "0".repeat(pad), s).into())
     }
 }

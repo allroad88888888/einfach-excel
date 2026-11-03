@@ -100,7 +100,7 @@ fn eval_cell_prefix() {
     // Non-text → "".
     assert_eq!(
         eval_str("=CELL(\"prefix\",A1)", &cm, &vs),
-        Value::Text(String::new())
+        Value::Text(String::new().into())
     );
 }
 

@@ -27,7 +27,7 @@ fn rng(sr: u32, sc: u32, er: u32, ec: u32) -> CellRange {
 }
 
 fn text(wb: &mut Workbook, a1: &str, s: &str) {
-    wb.set_cell(0, a1, Value::Text(s.to_string()));
+    wb.set_cell(0, a1, Value::Text(s.to_string().into()));
 }
 
 /// A 3×3 Table anchored at A2:C4 on Sheet1 with headers Name/Qty/Price and

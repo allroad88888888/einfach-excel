@@ -155,9 +155,9 @@ fn editing_after_undo_uses_restored_dependencies() {
 #[test]
 fn unrelated_sheets_and_unmoved_prefix_data_do_not_consume_the_history_budget() {
     let mut wb = Workbook::new();
-    wb.set_cell(0, "A1", Value::Text("x".repeat(33 * 1024 * 1024)));
+    wb.set_cell(0, "A1", Value::Text("x".repeat(33 * 1024 * 1024).into()));
     let other = wb.add_sheet("Unrelated");
-    wb.set_cell(other, "A1", Value::Text("y".repeat(33 * 1024 * 1024)));
+    wb.set_cell(other, "A1", Value::Text("y".repeat(33 * 1024 * 1024).into()));
     wb.set_cell(0, "A10", Value::Number(10.0));
     let mut history = WorkbookHistory::default();
     history

@@ -30,7 +30,7 @@ impl<'a, 'r> AtomFormulaProvider<'a, 'r> {
     /// sticky `#CYCLE!`. A later edit that breaks the cycle bumps the depended
     /// atom's generation and re-derives this reader (see the `depend` primitive
     /// tests).
-    fn read_facade_from(&self, ctx: &FacadeCtx, addr: CellAddress) -> Value {
+    pub(super) fn read_facade_from(&self, ctx: &FacadeCtx, addr: CellAddress) -> Value {
         let facade = ctx.get_or_create_facade(addr);
         if let Some((context, sheet_idx)) = ctx.workbook_scope() {
             if context.is_in_active_scc(sheet_idx, addr) {
@@ -94,7 +94,8 @@ impl<'a, 'r> AtomFormulaProvider<'a, 'r> {
     ) {
         ctx.depend_range_geometry_epochs(range, self.args);
         let member_addrs = ctx.range_member_addrs(range);
-        if range_cell_count_u64(range) <= RANGE_TIER_A_CELL_LIMIT {
+        let large_range = range_cell_count_u64(range) > RANGE_TIER_A_CELL_LIMIT;
+        if !large_range {
             let members: HashSet<CellAddress> = member_addrs.iter().copied().collect();
             for addr in range.normalize().iter() {
                 if !members.contains(&addr) {
@@ -103,7 +104,12 @@ impl<'a, 'r> AtomFormulaProvider<'a, 'r> {
             }
         }
         for addr in member_addrs {
-            let value = collapse_array_for_eval(self.read_facade_from(ctx, addr));
+            let value = if large_range {
+                self.read_range_member_from(ctx, addr)
+            } else {
+                self.read_facade_from(ctx, addr)
+            };
+            let value = collapse_array_for_eval(value);
             f(addr, value);
         }
     }

@@ -101,6 +101,14 @@ impl Sheet {
                     continue;
                 }
 
+                let epoch_addr = { self.slot_epoch_family.borrow().key_of(id).copied() };
+                if let Some(addr) = epoch_addr {
+                    if !self.evict_owned_family_key(&self.slot_epoch_family, &addr) {
+                        pending.insert(id);
+                    }
+                    continue;
+                }
+
                 let band_key = { self.range_band_epoch_family.borrow().key_of(id).copied() };
                 if let Some(key) = band_key {
                     if !self.evict_owned_family_key(&self.range_band_epoch_family, &key) {

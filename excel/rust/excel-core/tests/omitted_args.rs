@@ -75,7 +75,7 @@ fn num(n: f64) -> Value {
     Value::Number(n)
 }
 fn text(s: &str) -> Value {
-    Value::Text(s.to_string())
+    Value::Text(s.to_string().into())
 }
 
 // ── 解析层：空槽位有形状，不是解析失败 ────────────────────────────

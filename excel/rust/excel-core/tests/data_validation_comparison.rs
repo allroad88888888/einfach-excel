@@ -81,7 +81,7 @@ fn text_length_comparisons_count_unicode_and_handle_zero_length() {
     assert!(!equal.accepts(&Value::Text("中文".into())));
     let outside = rule(Kind::TextLength { min: 2.0, max: 4.0 }, Op::NotBetween);
     assert!(outside.accepts(&Value::Null));
-    assert!(outside.accepts(&Value::Text(String::new())));
+    assert!(outside.accepts(&Value::Text(String::new().into())));
     assert!(!outside.accepts(&Value::Text("four".into())));
     let mut nonempty = rule(Kind::TextLength { min: 0.0, max: 0.0 }, Op::GreaterThan);
     assert!(!nonempty.accepts(&Value::Null));

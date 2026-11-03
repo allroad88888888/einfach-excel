@@ -105,7 +105,7 @@ pub(super) fn matches_criterion(v: &Value, criterion: &Value) -> bool {
 /// 渲染成 `"#N/A"`，正是本次要去掉的行为。
 pub(super) fn criterion_cell_text(v: &Value) -> Option<String> {
     match v {
-        Value::Text(s) => Some(s.clone()),
+        Value::Text(s) => Some(s.to_string()),
         Value::Array(arr) => arr.get(0, 0).and_then(criterion_cell_text),
         _ => None,
     }

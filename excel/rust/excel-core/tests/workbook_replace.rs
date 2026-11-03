@@ -186,7 +186,7 @@ fn searching_formula_results_does_not_authorize_destroying_formulas() {
 fn replacement_expansion_is_rejected_before_allocating_or_mutating() {
     let mut wb = Workbook::new();
     let mut history = WorkbookHistory::default();
-    wb.set_cell(0, "A1", Value::Text("a".repeat(20)));
+    wb.set_cell(0, "A1", Value::Text("a".repeat(20).into()));
     assert!(history
         .replace_by_query(
             &mut wb,
@@ -196,7 +196,7 @@ fn replacement_expansion_is_rejected_before_allocating_or_mutating() {
             None
         )
         .is_err());
-    assert_eq!(value(&wb, 0, "A1"), Value::Text("a".repeat(20)));
+    assert_eq!(value(&wb, 0, "A1"), Value::Text("a".repeat(20).into()));
     assert_eq!(history.undo_count(), 0);
 }
 

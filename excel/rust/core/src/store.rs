@@ -426,14 +426,15 @@ impl Inner {
     /// Returns true when the value actually changed.
     fn set_atom_state(&mut self, id: AtomId, value: Value) -> bool {
         let rec = self.record(id);
-        let prev = rec.value.clone();
-        if let Some(prev_v) = &prev {
+        if let Some(prev_v) = &rec.value {
             if *prev_v == value {
                 return false;
             }
         }
         let rec = self.record_mut(id);
-        rec.value = Some(value);
+        let prev = rec.value.replace(value);
+        // Initialization is only needed until the first committed state.
+        rec.init = None;
         rec.generation += 1;
         self.write_seq += 1;
         self.pending.upsert(id, prev);
@@ -662,9 +663,9 @@ const READ_RECURSION_BUDGET: usize = 256;
 fn seed_primitive(inner: &Rc<RefCell<Inner>>, id: AtomId) -> Value {
     let mut inner_mut = inner.borrow_mut();
     let init = inner_mut
-        .record(id)
+        .record_mut(id)
         .init
-        .clone()
+        .take()
         .expect("primitive atom has an init value");
     inner_mut.set_atom_state(id, init.clone());
     init

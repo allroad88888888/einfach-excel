@@ -36,7 +36,7 @@ pub fn eval_expr(
 pub fn eval_expr_with_provider(expr: &Expr, provider: &dyn EvalProvider) -> Value {
     match expr {
         Expr::Number(n) => Value::Number(*n),
-        Expr::Text(s) => Value::Text(s.clone()),
+        Expr::Text(s) => Value::Text(s.as_str().into()),
         Expr::Bool(b) => Value::Boolean(*b),
         Expr::Error(e) => Value::Error(e.clone()),
         // 空占位实参（`=SUM(1,,2)`）——「传了个空值进去」，不是「这个参数

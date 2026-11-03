@@ -28,7 +28,7 @@ pub(super) fn eval_fn_text_basic(
             if let Some(e) = err {
                 Value::Error(e)
             } else {
-                Value::Text(out)
+                Value::Text(out.into())
             }
         }
         "LEN" => {
@@ -58,7 +58,7 @@ pub(super) fn eval_fn_text_basic(
                 (Some(start), Some(len)) if start >= 1.0 && len >= 0.0 => {
                     let skip = (start as usize).saturating_sub(1);
                     let take = len as usize;
-                    Value::Text(s.chars().skip(skip).take(take).collect())
+                    Value::Text(s.chars().skip(skip).take(take).collect::<String>().into())
                 }
                 _ => Value::Error(ValueError::WrongType),
             }
@@ -88,7 +88,7 @@ pub(super) fn eval_fn_text_basic(
                 None => return Value::Error(ValueError::WrongType),
             };
             match format_with_text_pattern(n, &fmt) {
-                Some(formatted) => Value::Text(formatted),
+                Some(formatted) => Value::Text(formatted.into()),
                 None => Value::Error(ValueError::InvalidValue),
             }
         }

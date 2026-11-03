@@ -32,7 +32,7 @@ pub(super) fn fn_leftb(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     } else {
         1
     };
-    Value::Text(dbcs_take_left(&s, n))
+    Value::Text(dbcs_take_left(&s, n).into())
 }
 
 pub(super) fn fn_rightb(args: &[Expr], provider: &dyn EvalProvider) -> Value {
@@ -56,7 +56,7 @@ pub(super) fn fn_rightb(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     } else {
         1
     };
-    Value::Text(dbcs_take_right(&s, n))
+    Value::Text(dbcs_take_right(&s, n).into())
 }
 
 pub(super) fn fn_midb(args: &[Expr], provider: &dyn EvalProvider) -> Value {
@@ -84,7 +84,7 @@ pub(super) fn fn_midb(args: &[Expr], provider: &dyn EvalProvider) -> Value {
         _ => return Value::Error(ValueError::InvalidValue),
     };
     let s = coerce_to_text(&sv);
-    Value::Text(dbcs_mid(&s, start, num))
+    Value::Text(dbcs_mid(&s, start, num).into())
 }
 
 /// FINDB / SEARCHB shared byte-positioning engine. Returns Excel-style

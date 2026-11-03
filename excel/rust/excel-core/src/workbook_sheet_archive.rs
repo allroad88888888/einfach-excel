@@ -229,7 +229,7 @@ mod tests {
         let mut workbook = Workbook::new();
         workbook.add_sheet("Large");
         let baseline = workbook.store.debug_total_atom_count();
-        workbook.set_cell(1, "A1", Value::Text("x".repeat(33 * 1024 * 1024)));
+        workbook.set_cell(1, "A1", Value::Text("x".repeat(33 * 1024 * 1024).into()));
         assert!(workbook.store.debug_total_atom_count() > baseline);
         let mut history = WorkbookHistory::default();
         history.remove_sheet(&mut workbook, 1).unwrap();

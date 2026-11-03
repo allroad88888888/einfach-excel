@@ -74,9 +74,9 @@ fn eval_sheets_with_ref_returns_one() {
 
 #[test]
 fn eval_info_known_subtypes() {
-    assert_eq!(ev("=INFO(\"directory\")"), Value::Text(String::new()));
+    assert_eq!(ev("=INFO(\"directory\")"), Value::Text(String::new().into()));
     assert_eq!(ev("=INFO(\"numfile\")"), Value::Number(1.0));
-    assert_eq!(ev("=INFO(\"osversion\")"), Value::Text(String::new()));
+    assert_eq!(ev("=INFO(\"osversion\")"), Value::Text(String::new().into()));
     assert_eq!(ev("=INFO(\"recalc\")"), Value::Text("Automatic".into()));
     match ev("=INFO(\"release\")") {
         Value::Text(s) => assert!(s.starts_with("einfach-"), "got: {}", s),

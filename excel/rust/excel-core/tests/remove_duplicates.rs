@@ -103,7 +103,7 @@ fn formulas_compare_by_display_and_number_formats_can_distinguish_equal_values()
 fn empty_cells_empty_formula_and_empty_text_are_comparable_not_omitted() {
     let mut wb = Workbook::new();
     wb.set_formula(0, "A2", "=\"\"");
-    wb.set_cell(0, "A3", Value::Text(String::new()));
+    wb.set_cell(0, "A3", Value::Text(String::new().into()));
     let result = wb.preview_remove_duplicates(&request("A1", "A4")).unwrap();
     assert_eq!((result.scanned_rows, result.removed_rows, result.unique_rows), (4, 3, 1));
 }
@@ -154,7 +154,7 @@ fn filter_hidden_rows_stay_in_place_while_manual_hidden_rows_participate() {
 #[test]
 fn full_scan_is_not_limited_to_twenty_preview_rows() {
     let mut wb = Workbook::new();
-    for row in 1..=400 { wb.set_cell(0, &format!("A{row}"), Value::Text("a".repeat(130))); }
+    for row in 1..=400 { wb.set_cell(0, &format!("A{row}"), Value::Text("a".repeat(130).into())); }
     let req = request("A1", "A400");
     let result = wb.preview_remove_duplicates(&req).unwrap();
     assert_eq!((result.removed_rows, result.sample.len()), (399, 20));

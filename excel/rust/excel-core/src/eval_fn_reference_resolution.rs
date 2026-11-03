@@ -133,7 +133,7 @@ pub(super) fn eval_fn_reference_resolution(
                 };
                 format!("{}{}", row_part, col_part)
             };
-            Value::Text(format!("{}{}", sheet_prefix, body))
+            Value::Text(format!("{}{}", sheet_prefix, body).into())
         }
 
         // INDIRECT(ref_text[, a1=TRUE]) — parse a string into a reference and

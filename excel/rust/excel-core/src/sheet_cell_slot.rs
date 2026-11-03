@@ -21,7 +21,7 @@ use super::*;
 ///     (`attach_address_sub` promotes before wiring the store sub).
 ///   - Spill anchors and spill targets are always `Atom` (anchors via
 ///     `ensure_cell`, targets hold derived atoms).
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub(crate) enum CellSlot {
     /// Raw stored value — no core atom allocated yet.
     Plain(Value),
@@ -69,6 +69,7 @@ impl Sheet {
                 None => None,
             }
         };
+        let promoted = parked.is_some();
         let id = match parked {
             Some(value) => self.owned_create_atom(value),
             None => self.owned_create_atom(Value::Null),
@@ -77,6 +78,10 @@ impl Sheet {
             .cells
             .borrow_mut()
             .insert(addr, CellSlot::Atom(id));
+        if promoted {
+            // Rebind direct range readers even for public cell_atom promotion.
+            self.bump_facade_epoch(addr);
+        }
         id
     }
 
@@ -109,10 +114,15 @@ impl Sheet {
     }
 
     pub(super) fn primitive_slot_has_visible_value(&self, addr: CellAddress) -> bool {
-        matches!(
-            self.cell_value_at(addr),
-            Some(value) if !matches!(value, Value::Null)
-        )
+        let id = {
+            let cells = self.interior.cells.borrow();
+            match cells.get(&addr) {
+                Some(CellSlot::Plain(value)) => return !value.is_null(),
+                Some(CellSlot::Atom(id)) => *id,
+                None => return false,
+            }
+        };
+        self.store.has_atom(id) && !self.store.get(id).is_null()
     }
 
     /// Remove the slot at `addr`; if it held a materialized atom with no
@@ -131,8 +141,8 @@ impl Sheet {
         true
     }
 
-    /// Get or create the primitive atom for a cell. Formula results no longer
-    /// have core atoms; callers needing a raw atom get the primitive slot.
+    /// Get or create the primitive slot atom. Formula result subscriptions
+    /// use the facade instead of this raw primitive handle.
     pub(super) fn readable_atom(&mut self, addr: CellAddress) -> AtomId {
         self.ensure_cell(addr)
     }

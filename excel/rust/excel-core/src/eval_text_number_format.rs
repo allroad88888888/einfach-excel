@@ -73,7 +73,7 @@ pub(super) fn fn_dollar(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     } else {
         format!("${}", body)
     };
-    Value::Text(result)
+    Value::Text(result.into())
 }
 
 /// FIXED(number, [decimals=2], [no_commas=FALSE]).
@@ -112,5 +112,5 @@ pub(super) fn fn_fixed(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     };
     let body = format_thousands(n, decimals, !no_commas);
     let result = if n < 0.0 { format!("-{}", body) } else { body };
-    Value::Text(result)
+    Value::Text(result.into())
 }

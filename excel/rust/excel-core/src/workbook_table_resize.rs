@@ -178,7 +178,7 @@ fn new_headers(
             .map(|col| {
                 CellSnapshot::value(
                     CellAddress::new(row, col),
-                    Value::Text(after.columns[(col - after.range.start.col) as usize].clone()),
+                    Value::Text(after.columns[(col - after.range.start.col) as usize].clone().into()),
                 )
             })
             .collect(),

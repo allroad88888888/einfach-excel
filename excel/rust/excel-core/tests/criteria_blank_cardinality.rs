@@ -150,7 +150,7 @@ fn empty_text_formula_cell_counts_as_blank_for_criteria() {
     s.set_cell("A1", Value::Number(1.0));
     assert!(s.set_formula("A2", "=\"\""));
     s.set_cell("A3", Value::Number(3.0));
-    assert_eq!(s.get_cell("A2"), Value::Text(String::new()));
+    assert_eq!(s.get_cell("A2"), Value::Text(String::new().into()));
     assert_eq!(number(&mut s, "=COUNTBLANK(A1:A3)"), 1.0);
     assert_eq!(number(&mut s, "=COUNTIF(A1:A3,\"\")"), 1.0);
     assert_eq!(number(&mut s, "=COUNTIFS(A1:A3,\"\")"), 1.0);

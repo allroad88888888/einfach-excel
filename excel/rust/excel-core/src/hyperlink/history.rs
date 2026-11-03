@@ -32,7 +32,7 @@ impl WorkbookHistory {
         if text.is_some_and(|text| text.len() > 32767 || text.contains('\0')) {
             return Err("The hyperlink display text is too long or invalid.");
         }
-        let value = text.map(|text| Value::Text(text.to_owned()));
+        let value = text.map(|text| Value::Text(text.to_owned().into()));
         if value.is_some() {
             // Table 表头/计算列的语义入口不同，不绕过它们直接改原始内容。
             if workbook.list_tables().iter().any(|entry| {

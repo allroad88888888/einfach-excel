@@ -71,7 +71,7 @@ fn whole_source_is_written_not_only_preview_and_empty_fields_clear_targets() {
     let mut wb = Workbook::new();
     let mut history = WorkbookHistory::default();
     for row in 1..=400 {
-        wb.set_cell(0, &format!("A{row}"), Value::Text(format!("r{row},tail")));
+        wb.set_cell(0, &format!("A{row}"), Value::Text(format!("r{row},tail").into()));
     }
     wb.set_cell(0, "A399", Value::Text("short".into()));
     wb.set_cell(0, "D399", Value::Number(77.0));
@@ -195,7 +195,7 @@ fn undo_budget_rejects_before_mutation_and_keeps_existing_history() {
     history
         .split_text_columns(&mut wb, &request("A1", "A1", "C1"), false)
         .unwrap();
-    wb.set_cell(0, "B1", Value::Text("x".repeat(16 * 1024 * 1024)));
+    wb.set_cell(0, "B1", Value::Text("x".repeat(16 * 1024 * 1024).into()));
     assert!(history
         .split_text_columns(&mut wb, &request("A1", "A1", "B1"), true)
         .is_err());

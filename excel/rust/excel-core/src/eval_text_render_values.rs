@@ -21,7 +21,7 @@ pub(super) fn render_value_to_text(v: &Value, strict: bool) -> String {
             if strict {
                 quote_strict_text(s)
             } else {
-                s.clone()
+                s.to_string()
             }
         }
         Value::Null => String::new(),
@@ -56,7 +56,7 @@ pub(super) fn fn_valuetotext(args: &[Expr], provider: &dyn EvalProvider) -> Valu
     if let Value::Array(arr) = &v {
         return render_array_to_text(arr, strict);
     }
-    Value::Text(render_value_to_text(&v, strict))
+    Value::Text(render_value_to_text(&v, strict).into())
 }
 
 pub(super) fn fn_arraytotext(args: &[Expr], provider: &dyn EvalProvider) -> Value {
@@ -114,7 +114,7 @@ pub(super) fn fn_arraytotext(args: &[Expr], provider: &dyn EvalProvider) -> Valu
             if let Some(e) = err {
                 return Value::Error(e);
             }
-            Value::Text(format_grid(&grid, strict))
+            Value::Text(format_grid(&grid, strict).into())
         }
         Expr::SheetRange { start, end, .. } => {
             let range = CellRange::new(*start, *end).normalize();
@@ -140,7 +140,7 @@ pub(super) fn fn_arraytotext(args: &[Expr], provider: &dyn EvalProvider) -> Valu
             if let Some(e) = err {
                 return Value::Error(e);
             }
-            Value::Text(format_grid(&grid, strict))
+            Value::Text(format_grid(&grid, strict).into())
         }
         _ => {
             let v = eval_expr_with_provider(&args[0], provider);
@@ -155,9 +155,9 @@ pub(super) fn fn_arraytotext(args: &[Expr], provider: &dyn EvalProvider) -> Valu
             // strict mode wraps even a single scalar in `{...}`; we match.
             let body = render_value_to_text(&v, strict);
             if strict {
-                Value::Text(format!("{{{}}}", body))
+                Value::Text(format!("{{{}}}", body).into())
             } else {
-                Value::Text(body)
+                Value::Text(body.into())
             }
         }
     }

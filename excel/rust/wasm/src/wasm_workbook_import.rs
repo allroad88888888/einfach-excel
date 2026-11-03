@@ -73,7 +73,7 @@ impl WasmWorkbook {
                     },
                     "text" => match &cell.value {
                         Some(BulkImportValueJSON::Text(s)) => {
-                            loader.set_cell_at(cell.sheet, addr, Value::Text(s.clone()));
+                            loader.set_cell_at(cell.sheet, addr, Value::Text(s.clone().into()));
                             stats.accepted += 1;
                         }
                         _ => {

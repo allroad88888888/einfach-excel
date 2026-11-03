@@ -56,7 +56,7 @@ fn invalid_patterns_reject_atomically_and_can_be_corrected_without_losing_the_ru
 #[test]
 fn budget_overflow_skips_both_positive_and_negative_rules_then_short_pattern_recovers() {
     let mut book = Workbook::new();
-    book.set_cell(0, "A1", Value::Text("a".repeat(20_000)));
+    book.set_cell(0, "A1", Value::Text("a".repeat(20_000).into()));
     for condition in ["matches-wildcard", "not-matches-wildcard"] {
         install(&mut book, text(condition, &"?".repeat(1024)));
         assert!(!bold(&book, "A1"));

@@ -37,7 +37,7 @@ pub(super) fn text_unary(args: &[Expr], provider: &dyn EvalProvider, f: impl Fn(
     if let Value::Error(e) = v {
         return Value::Error(e);
     }
-    Value::Text(f(&coerce_to_text(&v)))
+    Value::Text(f(&coerce_to_text(&v)).into())
 }
 
 pub(super) fn text_slice(
@@ -57,7 +57,7 @@ pub(super) fn text_slice(
     } else {
         1
     };
-    Value::Text(take(&s, n))
+    Value::Text(take(&s, n).into())
 }
 
 pub(super) fn format_with_text_pattern(value: f64, pattern: &str) -> Option<String> {

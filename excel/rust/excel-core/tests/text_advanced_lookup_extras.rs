@@ -65,10 +65,10 @@ fn text_before_after_empty_delimiter_and_match_end() {
     wb.set_formula(0, "A6", "=TEXTBEFORE(\"abc\", \"-\", 1, 0, 2)");
     wb.set_formula(0, "A7", "=TEXTBEFORE(\"abc\", \"-\")");
 
-    assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Text(String::new()));
+    assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Text(String::new().into()));
     assert_eq!(wb.get_cell("Sheet1", "A2"), Value::Text("abc".into()));
     assert_eq!(wb.get_cell("Sheet1", "A3"), Value::Text("abc".into()));
-    assert_eq!(wb.get_cell("Sheet1", "A4"), Value::Text(String::new()));
+    assert_eq!(wb.get_cell("Sheet1", "A4"), Value::Text(String::new().into()));
     assert_eq!(wb.get_cell("Sheet1", "A5"), Value::Text("Socrates".into()));
     assert_eq!(
         wb.get_cell("Sheet1", "A6"),

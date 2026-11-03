@@ -19,5 +19,5 @@ pub(super) fn fn_encodeurl(args: &[Expr], provider: &dyn EvalProvider) -> Value 
             out.push_str(&format!("{:02X}", b));
         }
     }
-    Value::Text(out)
+    Value::Text(out.into())
 }

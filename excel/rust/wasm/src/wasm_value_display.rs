@@ -44,7 +44,7 @@ fn sparse_cell_from_value(sheet: usize, addr: CellAddress, val: &Value) -> Optio
     let val = collapse_array_for_js(val);
     let (kind, value) = match &*val {
         Value::Number(n) => ("number", Some(ImportValueJSON::Number(*n))),
-        Value::Text(s) => ("text", Some(ImportValueJSON::Text(s.clone()))),
+        Value::Text(s) => ("text", Some(ImportValueJSON::Text(s.to_string()))),
         Value::Boolean(b) => ("boolean", Some(ImportValueJSON::Boolean(*b))),
         // `Display`, NOT `error_display_token`. This record is the
         // persistence / clipboard WIRE, and `value_error_from_display` is its

@@ -34,7 +34,7 @@ impl TextColumnValue {
         if text.is_empty() {
             return Self { value: Value::Null, number_format: None };
         }
-        let literal = |format| Self { value: Value::Text(text.clone()), number_format: format };
+        let literal = |format| Self { value: Value::Text(text.clone().into()), number_format: format };
         match kind {
             None => literal(None),
             Some(TextColumnType::Text) => literal(Some(NumberFormat::Text)),

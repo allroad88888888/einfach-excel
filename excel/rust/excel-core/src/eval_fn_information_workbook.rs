@@ -51,7 +51,7 @@ pub(super) fn eval_fn_information_workbook(
                 "address" => {
                     let mut address = String::new();
                     crate::cell::push_abs_addr(&mut address, addr, true, true);
-                    Value::Text(address)
+                    Value::Text(address.into())
                 }
                 "row" => Value::Number((addr.row + 1) as f64),
                 // Excel accepts both "col" and "column" for the column index.
@@ -68,7 +68,7 @@ pub(super) fn eval_fn_information_workbook(
                     // we only know whether the cell is text, so we
                     // approximate: text → "'", everything else → "".
                     Value::Text(_) => Value::Text("'".into()),
-                    _ => Value::Text(String::new()),
+                    _ => Value::Text(String::new().into()),
                 },
                 // Excel's CELL("width") reports the column width in CHARACTER
                 // units (how many default-font digits fit), "rounded off to an

@@ -67,7 +67,7 @@ fn operand(value: ClipboardValue) -> Result<Expr, ClipboardError> {
         }
         ClipboardValue::Literal(value) => Ok(match value {
             Value::Number(number) => Expr::Number(number),
-            Value::Text(text) => Expr::Text(text),
+            Value::Text(text) => Expr::Text(text.to_string()),
             Value::Boolean(value) => Expr::Bool(value),
             Value::Null => Expr::Number(0.0),
             Value::Error(error) => Expr::Error(error),

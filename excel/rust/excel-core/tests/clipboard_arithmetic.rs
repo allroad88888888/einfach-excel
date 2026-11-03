@@ -234,7 +234,7 @@ fn expanded_formula_budget_rejects_before_any_write_or_history_entry() {
     // 原始文字只有 9 MiB，组合为公式时引号需转义，输出超过 16 MiB。
     let original = "\"".repeat(1024 * 1024);
     for row in 2..=10 {
-        wb.set_cell(0, &format!("A{row}"), Value::Text(original.clone()));
+        wb.set_cell(0, &format!("A{row}"), Value::Text(original.clone().into()));
     }
     let clip = wb.capture_clipboard(0, range("A1", "A1"), false).unwrap();
     let mut history = WorkbookHistory::default();
@@ -252,7 +252,7 @@ fn expanded_formula_budget_rejects_before_any_write_or_history_entry() {
         assert_eq!(wb.sheet(0).unwrap().get_formula(&format!("A{row}")), None);
         assert_eq!(
             wb.get_cell("Sheet1", &format!("A{row}")),
-            Value::Text(original.clone())
+            Value::Text(original.clone().into())
         );
     }
 }

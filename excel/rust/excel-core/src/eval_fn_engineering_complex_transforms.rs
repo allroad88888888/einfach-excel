@@ -28,7 +28,7 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, s))
+            Value::Text(format_complex(r, i, s).into())
         }
         "IMLOG10" => {
             if args.len() != 1 {
@@ -47,7 +47,7 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, s))
+            Value::Text(format_complex(r, i, s).into())
         }
         "IMLOG2" => {
             if args.len() != 1 {
@@ -66,7 +66,7 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, s))
+            Value::Text(format_complex(r, i, s).into())
         }
         "IMSQRT" => complex_unary_text(args, provider, |a, b, s| {
             // sqrt(z) = sqrt(r) * (cos(arg/2) + sin(arg/2)i), principal value.
@@ -91,12 +91,12 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             // returns 1), 0^positive == 0, 0^negative is #NUM!.
             if a == 0.0 && b == 0.0 {
                 if n == 0.0 {
-                    return Value::Text(format_complex(1.0, 0.0, s));
+                    return Value::Text(format_complex(1.0, 0.0, s).into());
                 }
                 if n < 0.0 {
                     return Value::Error(ValueError::Overflow);
                 }
-                return Value::Text(format_complex(0.0, 0.0, s));
+                return Value::Text(format_complex(0.0, 0.0, s).into());
             }
             let r = (a * a + b * b).sqrt();
             let arg = b.atan2(a);
@@ -107,7 +107,7 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             if !real.is_finite() || !imag.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(real, imag, s))
+            Value::Text(format_complex(real, imag, s).into())
         }
         "IMCOS" => complex_unary_text(args, provider, |a, b, s| {
             (a.cos() * b.cosh(), -a.sin() * b.sinh(), s)
@@ -142,7 +142,7 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, s))
+            Value::Text(format_complex(r, i, s).into())
         }
         "IMSEC" => {
             // sec = 1/cos.
@@ -161,7 +161,7 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, s))
+            Value::Text(format_complex(r, i, s).into())
         }
         "IMCSC" => {
             // csc = 1/sin.
@@ -180,7 +180,7 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, s))
+            Value::Text(format_complex(r, i, s).into())
         }
         "IMCOT" => {
             // cot = cos/sin.
@@ -200,7 +200,7 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, s))
+            Value::Text(format_complex(r, i, s).into())
         }
         // AREAS(reference) — count the number of disjoint areas in a
         // reference. Excel parity:
@@ -230,7 +230,7 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, s))
+            Value::Text(format_complex(r, i, s).into())
         }
         "IMCSCH" => {
             if args.len() != 1 {
@@ -248,7 +248,7 @@ pub(super) fn eval_fn_engineering_complex_transforms(
             if !r.is_finite() || !i.is_finite() {
                 return Value::Error(ValueError::Overflow);
             }
-            Value::Text(format_complex(r, i, s))
+            Value::Text(format_complex(r, i, s).into())
         }
                 _ => unreachable!(),
     }

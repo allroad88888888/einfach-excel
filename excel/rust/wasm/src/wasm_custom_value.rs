@@ -82,7 +82,7 @@ fn js_to_value(js: &JsValue) -> Value {
             }
             return Value::Error(ValueError::InvalidValue);
         }
-        return Value::Text(s);
+        return Value::Text(s.into());
     }
     // 数组回程（动态数组 / spill）。必须排在 `is_object()` 之前 —— JS 里
     // Array 也是 object，落到下面那条分支就会被当成「不认识的对象」判成

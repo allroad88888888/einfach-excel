@@ -93,7 +93,7 @@ fn eval_hyperlink_empty_link_returns_empty() {
     // No friendly name + empty link → empty text (Excel parity).
     assert_eq!(
         eval_str("=HYPERLINK(\"\")", &cm, &vs),
-        Value::Text(String::new())
+        Value::Text(String::new().into())
     );
 }
 

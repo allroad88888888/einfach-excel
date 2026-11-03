@@ -21,9 +21,9 @@ pub(super) fn eval_fn_linked_content(
                 if let Value::Error(e) = friendly_v {
                     return Value::Error(e);
                 }
-                Value::Text(coerce_to_text(&friendly_v))
+                Value::Text(coerce_to_text(&friendly_v).into())
             } else {
-                Value::Text(link_text)
+                Value::Text(link_text.into())
             }
         }
         // IMAGE(source, [alt_text], [sizing=0], [height], [width]) — 1..=5 args.
@@ -150,7 +150,7 @@ pub(super) fn eval_fn_linked_content(
                 sizing,
                 height,
                 width,
-            ))
+            ).into())
         }
         // === Bessel family ===
         // BESSELJ / BESSELY / BESSELI / BESSELK all follow the same shape:

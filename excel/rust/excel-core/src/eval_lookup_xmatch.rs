@@ -66,8 +66,8 @@ pub(super) fn fn_xmatch(args: &[Expr], provider: &dyn EvalProvider) -> Value {
         return Value::Error(ValueError::InvalidValue);
     }
     let wildcard_pattern: Option<String> = match (&needle, match_mode) {
-        (Value::Text(p), 2) => Some(p.clone()),
-        (Value::Text(p), 0) if pattern_has_wildcard(p) => Some(p.clone()),
+        (Value::Text(p), 2) => Some(p.to_string()),
+        (Value::Text(p), 0) if pattern_has_wildcard(p) => Some(p.to_string()),
         _ => None,
     };
     let test_exact = |v: &Value| -> bool {

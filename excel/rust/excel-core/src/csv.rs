@@ -124,7 +124,7 @@ pub fn import_csv(sheet: &mut Sheet, input: &str, origin: CellAddress) {
                 } else if let Ok(n) = field.parse::<f64>() {
                     loader.set_cell(&addr_str, Value::Number(n));
                 } else {
-                    loader.set_cell(&addr_str, Value::Text(field.clone()));
+                    loader.set_cell(&addr_str, Value::Text(field.as_str().into()));
                 }
             }
         }
@@ -169,7 +169,7 @@ fn value_to_csv_field(v: &Value) -> String {
         // 文本的单点实现，与 `format::value_to_display` / `eval::coerce_to_text`
         // 共用一份规格。
         Value::Number(n) => crate::general_text::excel_general_to_text(*n),
-        Value::Text(s) => s.clone(),
+        Value::Text(s) => s.to_string(),
         Value::Boolean(true) => "TRUE".into(),
         Value::Boolean(false) => "FALSE".into(),
         Value::Null => String::new(),

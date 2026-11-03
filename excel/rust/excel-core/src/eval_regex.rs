@@ -176,14 +176,14 @@ pub(super) fn fn_regexextract(args: &[Expr], provider: &dyn EvalProvider) -> Val
         // 存在了，属于陈旧注释带出来的双引擎分歧。
         0 => {
             match re.find(&text) {
-                Some(m) => Value::Text(m.as_str().to_string()),
+                Some(m) => Value::Text(m.as_str().into()),
                 None => Value::Error(ValueError::NotAvailable),
             }
         }
         1 => {
             let matches: Vec<Value> = re
                 .find_iter(&text)
-                .map(|m| Value::Text(m.as_str().to_string()))
+                .map(|m| Value::Text(m.as_str().into()))
                 .collect();
             if matches.is_empty() {
                 return Value::Error(ValueError::NotAvailable);
@@ -202,7 +202,7 @@ pub(super) fn fn_regexextract(args: &[Expr], provider: &dyn EvalProvider) -> Val
                 return Value::Error(ValueError::NotAvailable);
             }
             let data: Vec<Value> = (1..caps.len())
-                .map(|i| Value::Text(caps.get(i).map(|m| m.as_str()).unwrap_or("").to_string()))
+                .map(|i| Value::Text(caps.get(i).map(|m| m.as_str()).unwrap_or("").to_string().into()))
                 .collect();
             Value::Array(Arc::new(ArrayData::new(1, data.len() as u32, data)))
         }
@@ -258,7 +258,7 @@ pub(super) fn fn_regexreplace(args: &[Expr], provider: &dyn EvalProvider) -> Val
             re.replace_all(&text, |caps: &regex::Captures<'_>| {
                 expand_regex_replacement(&replacement, caps, &text)
             })
-            .into_owned(),
+            .into_owned().into(),
         )
     } else {
         let matches: Vec<regex::Captures<'_>> = re.captures_iter(&text).collect();
@@ -271,17 +271,17 @@ pub(super) fn fn_regexreplace(args: &[Expr], provider: &dyn EvalProvider) -> Val
             // Occurrence not reached → return original text untouched
             // (Excel returns the original string when the nth match
             // doesn't exist; the formula isn't an error).
-            return Value::Text(text.clone());
+            return Value::Text(text.as_str().into());
         }
         let caps = &matches[idx as usize];
         let Some(m) = caps.get(0) else {
-            return Value::Text(text.clone());
+            return Value::Text(text.as_str().into());
         };
         Value::Text(format!(
             "{}{}{}",
             &text[..m.start()],
             expand_regex_replacement(&replacement, caps, &text),
             &text[m.end()..]
-        ))
+        ).into())
     }
 }

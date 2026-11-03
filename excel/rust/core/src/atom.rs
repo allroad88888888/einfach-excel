@@ -146,7 +146,8 @@ pub trait LambdaValue: std::fmt::Debug + Send + Sync {
 #[derive(Clone, Debug)]
 pub enum Value {
     Number(f64),
-    Text(String),
+    /// Immutable shared text; cloning a Value never copies its text bytes.
+    Text(std::sync::Arc<str>),
     Boolean(bool),
     Null,
     Error(ValueError),

@@ -205,7 +205,7 @@ fn unmerge_history_does_not_copy_unrelated_content_in_the_bounding_box() {
     for r in [range("A1", "C1"), range("A5", "C5")] {
         wb.merge_cells(0, r, MergeAction::Merge, false).unwrap();
     }
-    wb.set_cell(0, "B3", Value::Text("x".repeat(33 * 1024 * 1024)));
+    wb.set_cell(0, "B3", Value::Text("x".repeat(33 * 1024 * 1024).into()));
     let mut history = WorkbookHistory::default();
     history
         .merge_cells(&mut wb, 0, range("A1", "A5"), MergeAction::Unmerge, false)

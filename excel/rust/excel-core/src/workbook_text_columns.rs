@@ -140,7 +140,7 @@ impl Workbook {
         // 一次冻结完整源数据（含隐藏行），不能边读取边覆盖重叠目标。
         for address in source.iter() {
             let text = match sheet.peek_value(address) {
-                Value::Text(text) => text,
+                Value::Text(text) => text.to_string(),
                 Value::Number(value) => value.to_string(),
                 Value::Boolean(value) => if value { "TRUE" } else { "FALSE" }.into(),
                 Value::Null => String::new(),

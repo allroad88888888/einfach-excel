@@ -83,7 +83,7 @@ fn table_excludes_headers_totals_and_other_scopes_without_reapplying_them() {
 #[test]
 fn all_pages_cover_more_than_a_thousand_distinct_values_without_truncating() {
     let mut book = Workbook::new();
-    for row in 1..=1200 { book.set_cell(0, &format!("A{}", row + 1), Value::Text(format!("Item {row:04}"))); }
+    for row in 1..=1200 { book.set_cell(0, &format!("A{}", row + 1), Value::Text(format!("Item {row:04}").into())); }
     book.apply_filter_range(0, range("A1", "A1201"), &[]).unwrap();
     let mut values = Vec::new();
     for offset in (0..1200).step_by(100) {

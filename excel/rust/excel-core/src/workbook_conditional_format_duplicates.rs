@@ -78,7 +78,7 @@ impl DuplicateRule {
         let duplicate = keys
             .data
             .binary_search_by(|value| match value {
-                Value::Text(text) => text.as_str().cmp(key.as_str()),
+                Value::Text(text) => text.as_ref().cmp(key.as_str()),
                 _ => std::cmp::Ordering::Less,
             })
             .is_ok();

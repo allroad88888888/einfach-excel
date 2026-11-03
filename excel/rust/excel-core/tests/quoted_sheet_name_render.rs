@@ -76,7 +76,7 @@ fn formulatext_keeps_the_quotes() {
         wb.set_formula(0, "F1", "=FORMULATEXT(E1)");
         assert_eq!(
             wb.get_cell("Sheet1", "F1"),
-            Value::Text(src.to_string()),
+            Value::Text(src.to_string().into()),
             "formula text must round-trip: {src}"
         );
     }
@@ -110,7 +110,7 @@ fn structural_edit_does_not_break_quoted_refs() {
         let body = src.trim_start_matches('=');
         assert_eq!(
             wb.get_cell("Sheet1", "G1"),
-            Value::Text(format!("=({}+(A2*0))", body)),
+            Value::Text(format!("=({}+(A2*0))", body).into()),
             "quoted sheet name lost its quotes after insert_rows: {src}"
         );
     }

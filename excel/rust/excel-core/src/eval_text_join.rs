@@ -85,7 +85,7 @@ pub(super) fn text_join_delimited(args: &[Expr], provider: &dyn EvalProvider) ->
 
     match acc.err {
         Some(e) => Value::Error(e),
-        None => Value::Text(acc.out),
+        None => Value::Text(acc.out.into()),
     }
 }
 

@@ -125,7 +125,7 @@ pub(super) fn eval_fn_lookup_classic(
             let wildcard_pattern: Option<&str> = if match_type == 0 {
                 if let Value::Text(p) = &needle {
                     if pattern_has_wildcard(p) {
-                        Some(p.as_str())
+                        Some(p.as_ref())
                     } else {
                         None
                     }

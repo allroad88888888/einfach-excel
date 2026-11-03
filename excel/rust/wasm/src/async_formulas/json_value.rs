@@ -10,7 +10,7 @@ fn json_formula_scalar(js: &JsValue, text_bytes: &mut usize) -> Option<Value> {
     if let Some(boolean) = js.as_bool() { return Some(Value::Boolean(boolean)); }
     if let Some(text) = js.as_string() {
         *text_bytes = text_bytes.checked_add(text.len())?;
-        return (*text_bytes <= 1_048_576).then_some(Value::Text(text));
+        return (*text_bytes <= 1_048_576).then_some(Value::Text(text.into()));
     }
     None
 }

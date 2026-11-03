@@ -24,5 +24,5 @@ pub(super) fn render_array_to_text(arr: &Arc<ArrayData>, strict: bool) -> Value 
             grid[r][c] = render_value_to_text(&v, strict);
         }
     }
-    Value::Text(format_grid(&grid, strict))
+    Value::Text(format_grid(&grid, strict).into())
 }

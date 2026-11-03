@@ -38,7 +38,7 @@ impl TableCreation {
                 .map(|(offset, text)| {
                     CellSnapshot::value(
                         CellAddress::new(range.start.row, range.start.col + offset as u32),
-                        Value::Text(text.clone()),
+                        Value::Text(text.clone().into()),
                     )
                 })
                 .collect(),

@@ -9,7 +9,7 @@ async function setCell(page: Page, address: string, coord: string, text: string)
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
   await page.getByRole('button', { name: 'New sheet' }).click()
   await expect(page.getByRole('tab', { name: 'Sheet3' })).toHaveAttribute('aria-selected', 'true')

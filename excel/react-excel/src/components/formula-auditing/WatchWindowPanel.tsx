@@ -6,6 +6,7 @@ import {
 import { useLingui } from '@lingui/react/macro'
 import type { JSX } from 'react'
 import './formula-auditing.css'
+import './watch-window.css'
 
 export function WatchWindowPanel(): JSX.Element | null {
   const { t } = useLingui()
@@ -21,14 +22,16 @@ export function WatchWindowPanel(): JSX.Element | null {
       aria-label={t`Watch Window`}
     >
       <div className="watch-window-header">
-        <span>{t`Watch Window`}</span>
+        <h2>{t`Watch Window`}</h2>
         <button
           type="button"
-          className="workbook-button"
+          className="auditing-panel-button auditing-panel-close"
+          aria-label={t`Close`}
+          title={t`Close`}
           data-watch-action="close"
           onClick={() => void runWatch('close')}
         >
-          {t`Close`}
+          <span aria-hidden="true">×</span>
         </button>
       </div>
 
@@ -52,7 +55,7 @@ export function WatchWindowPanel(): JSX.Element | null {
         />
         <button
           type="button"
-          className="workbook-button"
+          className="auditing-panel-button auditing-panel-primary"
           data-watch-action="add"
           onClick={() => void runWatch('add-selection')}
         >
@@ -60,7 +63,7 @@ export function WatchWindowPanel(): JSX.Element | null {
         </button>
         <button
           type="button"
-          className="workbook-button"
+          className="auditing-panel-button"
           data-watch-action="delete"
           disabled={!panel.selectedId}
           onClick={() => void runWatch('delete-selected')}
@@ -70,7 +73,7 @@ export function WatchWindowPanel(): JSX.Element | null {
       </div>
 
       {panel.error ? (
-        <div className="watch-window-error" data-watch-error="true">
+        <div className="auditing-panel-error" data-watch-error="true" role="alert">
           {panel.error}
         </div>
       ) : null}
@@ -100,6 +103,14 @@ export function WatchWindowPanel(): JSX.Element | null {
                     className="watch-window-row"
                     data-watch-row={entry.id}
                     data-selected={isSelected ? 'true' : 'false'}
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        void runWatch({ navigate: entry.id })
+                      }
+                    }}
                     onClick={() => {
                       void runWatch({ navigate: entry.id })
                     }}
@@ -107,11 +118,11 @@ export function WatchWindowPanel(): JSX.Element | null {
                       void runWatch({ navigate: entry.id })
                     }}
                   >
-                    <td data-watch-col="sheet">{entry.sheetName}</td>
-                    <td data-watch-col="name">{entry.name}</td>
+                    <td data-watch-col="sheet" title={entry.sheetName}>{entry.sheetName}</td>
+                    <td data-watch-col="name" title={entry.name}>{entry.name}</td>
                     <td data-watch-col="cell">{entry.addr}</td>
-                    <td data-watch-col="value">{entry.value}</td>
-                    <td data-watch-col="formula">{entry.formula}</td>
+                    <td data-watch-col="value" title={entry.value}>{entry.value}</td>
+                    <td data-watch-col="formula" title={entry.formula}>{entry.formula}</td>
                   </tr>
                 )
               })}

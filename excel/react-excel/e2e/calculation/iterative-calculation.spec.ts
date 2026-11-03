@@ -4,7 +4,7 @@ import { select } from '../support/clipboard'
 test('iterative calculation converges circular formulas and respects maxIterations / maxChange', async ({
   page,
 }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
 
   // Create a blank sheet so we have clean cells D1, E1, F1

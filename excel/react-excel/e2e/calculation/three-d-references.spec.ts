@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
 })
 

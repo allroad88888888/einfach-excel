@@ -7,6 +7,7 @@ import {
   formulaViewAvailableAtom, showFormulasAtom, toggleFormulaViewAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { Trans, useLingui } from '@lingui/react/macro'
+import './calculation-tools.css'
 
 /** 计算模式与计算范围由用户选择；显示公式是独立的当前表视图开关。 */
 export function CalculationTools() {
@@ -22,7 +23,7 @@ export function CalculationTools() {
   const toggle = useSetAtom(toggleFormulaViewAtom)
   const viewAvailable = useAtomValue(formulaViewAvailableAtom)
   return <>
-    <select className="tool-select paste-options-select" aria-label={t`Calculation mode`} value={mode}
+    <select className="tool-select calculation-mode-select" aria-label={t`Calculation mode`} value={mode}
       disabled={!available} onChange={(event) => {
         const next = event.currentTarget.value
         if (next === 'automatic' || next === 'manual') void setMode(next)
@@ -30,7 +31,7 @@ export function CalculationTools() {
       <option value="automatic"><Trans>Automatic</Trans></option>
       <option value="manual"><Trans>Manual</Trans></option>
     </select>
-    <select className="tool-select paste-options-select" aria-label={t`Recalculate`} value="" disabled={!available}
+    <select className="tool-select calculation-recalculate-select" aria-label={t`Recalculate`} value="" disabled={!available}
       onChange={(event) => {
         const scope = event.currentTarget.value
         if (scope === 'sheet' || scope === 'workbook') void calculate(scope)
@@ -39,13 +40,15 @@ export function CalculationTools() {
       <option value="sheet"><Trans>Current worksheet</Trans></option>
       <option value="workbook"><Trans>Entire workbook</Trans></option>
     </select>
-    <button type="button" className="tool-button" data-testid="iterative-calculation-toggle"
+    <button type="button" className="tool-button calculation-iteration-toggle" data-testid="iterative-calculation-toggle"
       aria-label={t`Iterative calculation`} title={t`Iterative calculation`}
       aria-pressed={iterative.enabled} disabled={!available}
       onClick={() => void setIterative({ ...iterative, enabled: !iterative.enabled })}>
-      <Trans>Iterative</Trans>
+      <span aria-hidden="true">↻</span><Trans>Iterative</Trans>
     </button>
-    <input type="number" className="tool-input" data-testid="iterative-max-iterations"
+    <label className="calculation-parameter">
+      <span><Trans>Max iterations</Trans></span>
+      <input type="number" className="calculation-parameter-input" data-testid="iterative-max-iterations"
       aria-label={t`Max iterations`} title={t`Max iterations`}
       min={1} max={32767} step={1} defaultValue={iterative.maxIterations}
       disabled={!available} onChange={(event) => {
@@ -56,7 +59,10 @@ export function CalculationTools() {
           void setIterative({ ...iterative, maxIterations: Math.trunc(next) })
         }
       }} />
-    <input type="number" className="tool-input" data-testid="iterative-max-change"
+    </label>
+    <label className="calculation-parameter">
+      <span><Trans>Max change</Trans></span>
+      <input type="number" className="calculation-parameter-input calculation-change-input" data-testid="iterative-max-change"
       aria-label={t`Max change`} title={t`Max change`}
       min={0} step="any" defaultValue={iterative.maxChange}
       disabled={!available} onChange={(event) => {
@@ -67,10 +73,11 @@ export function CalculationTools() {
           void setIterative({ ...iterative, maxChange: next })
         }
       }} />
+    </label>
     <button type="button" className="tool-button" aria-label={t`Show formulas`} title={t`Show formulas`}
       aria-pressed={show} disabled={!viewAvailable} onClick={() => toggle()}>=</button>
-    {feedback.busy && <span role="status"><Trans>Recalculating…</Trans></span>}
-    {!feedback.busy && feedback.message && <span role="status">{translateFeedback(i18n, feedback.message)}</span>}
-    {feedback.error && <span role="alert">{translateFeedback(i18n, feedback.error)}</span>}
+    {feedback.busy && <span className="calculation-feedback" role="status"><Trans>Recalculating…</Trans></span>}
+    {!feedback.busy && feedback.message && <span className="calculation-feedback" role="status">{translateFeedback(i18n, feedback.message)}</span>}
+    {feedback.error && <span className="calculation-feedback" role="alert">{translateFeedback(i18n, feedback.error)}</span>}
   </>
 }

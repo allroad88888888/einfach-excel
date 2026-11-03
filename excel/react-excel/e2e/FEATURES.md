@@ -871,6 +871,8 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | CALC-065 | 三维引用循环迭代收敛 | `calculation/iterative-reference-integration.spec.ts` | iterative calculation converges a cycle through a three dimensional reference |
 | CALC-066 | 工作表级命名公式循环迭代收敛 | `calculation/iterative-reference-integration.spec.ts` | iterative calculation converges a cycle through a scoped named formula |
 | CALC-067 | 带工作表前缀的命名公式追踪 | `calculation/formula-auditing.spec.ts` | trace precedents follows a sheet qualified named formula |
+| CALC-068 | Escape 关闭公式求值并恢复工具栏焦点 | `calculation/formula-auditing.spec.ts` | Escape closes formula evaluation and restores its toolbar trigger |
+| CALC-069 | 键盘激活监视项并定位单元格 | `calculation/formula-auditing.spec.ts` | keyboard activation of a watch row returns to its cell |
 | STAT-001 | 整列统计包含视口外记录 | `selection/statistics-actions.spec.ts` | column statistics include all offscreen native records at 1280px |
 | STAT-002 | 恢复全部统计默认显示 | `selection/statistics-preferences.spec.ts` | restore default statistics resets all six without changing redo at 1280px |
 | STAT-003 | 复制求和完整精度 | `selection/statistics-actions.spec.ts` | copies full precision to the real system clipboard and pastes as a scalar |

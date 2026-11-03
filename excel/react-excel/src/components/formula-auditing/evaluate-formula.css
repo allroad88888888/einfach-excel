@@ -1,0 +1,98 @@
+/* A focused native dialog using the same surface and controls as other workbook tools. */
+:where(.einfach-spreadsheet) .evaluate-formula-dialog {
+  width: 480px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: 0 16px 48px rgb(20 25 45 / 18%);
+  font-size: 13px;
+}
+
+:where(.einfach-spreadsheet) .evaluate-formula-dialog[open] { display: grid; gap: 16px; }
+:where(.einfach-spreadsheet) .evaluate-formula-dialog::backdrop { background: rgb(20 25 45 / 25%); }
+
+:where(.einfach-spreadsheet) .evaluate-formula-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+:where(.einfach-spreadsheet) .evaluate-formula-header h2 { margin: 0; font-size: 17px; font-weight: 650; }
+:where(.einfach-spreadsheet) .evaluate-formula-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+:where(.einfach-spreadsheet) .evaluate-formula-meta strong { font-weight: 600; }
+:where(.einfach-spreadsheet) .evaluate-formula-box {
+  min-height: 88px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--chrome);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+:where(.einfach-spreadsheet) .evaluate-formula-focus {
+  padding: 2px 3px;
+  border-radius: 3px;
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+  font-weight: 600;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+:where(.einfach-spreadsheet) .evaluate-formula-step-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--chrome);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+:where(.einfach-spreadsheet) .evaluate-formula-step-preview strong {
+  min-width: 0;
+  color: var(--primary-strong);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-align: right;
+}
+
+:where(.einfach-spreadsheet) .evaluate-formula-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+@container einfach-spreadsheet (max-width: 480px) {
+  :where(.einfach-spreadsheet) .evaluate-formula-dialog { padding: 16px; }
+  :where(.einfach-spreadsheet) .evaluate-formula-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

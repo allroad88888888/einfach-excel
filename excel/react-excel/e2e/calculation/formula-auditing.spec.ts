@@ -22,7 +22,7 @@ async function watchF1(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/base-sales-orders/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
   await page.getByRole('button', { name: 'New sheet' }).click()
   await expect(page.getByRole('tab', { name: 'Sheet3' })).toHaveAttribute('aria-selected', 'true')
@@ -104,6 +104,20 @@ test('close dismisses formula evaluation without changing the formula', async ({
   await expect(page.locator('td[data-cell="0:5"]')).toHaveText('25')
 })
 
+test('Escape closes formula evaluation and restores its toolbar trigger', async ({ page }) => {
+  const dialog = await evaluateF1(page)
+  await expect(dialog.getByRole('button', { name: 'Evaluate', exact: true })).toBeFocused()
+  await dialog.getByRole('button', { name: 'Close', exact: true }).focus()
+  await page.keyboard.press('Shift+Tab')
+  await expect(dialog.getByRole('button', { name: 'Restart', exact: true })).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Evaluate Formula', exact: true })).toBeFocused()
+  await expect(page.locator('td[data-cell="0:5"]')).toHaveText('25')
+})
+
 test('add watch keeps the watched formula value current after upstream edits', async ({ page }) => {
   const row = await watchF1(page)
   await expect(row.locator('[data-watch-col="cell"]')).toHaveText('F1')
@@ -119,6 +133,17 @@ test('watch row click navigates back to its worksheet and cell', async ({ page }
   await row.click()
   await expect(page.getByRole('tab', { name: 'Sheet3' })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('F1')
+})
+
+test('keyboard activation of a watch row returns to its cell', async ({ page }) => {
+  const row = await watchF1(page)
+  await expect(row.locator('[data-watch-col="value"]')).toHaveText('25')
+  await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
+  await row.focus()
+  await row.press('Enter')
+  await expect(page.getByRole('tab', { name: 'Sheet3' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('F1')
+  await expect(page.locator('td[data-cell="0:5"]')).toHaveText('25')
 })
 
 test('delete watch removes the selected watch without changing its cell', async ({ page }) => {

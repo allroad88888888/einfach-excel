@@ -1,0 +1,61 @@
+/* Calculation controls share the ribbon's compact sizing and workbook theme. */
+:where(.einfach-spreadsheet) .calculation-mode-select { width: 92px; }
+:where(.einfach-spreadsheet) .calculation-recalculate-select { width: 112px; }
+
+:where(.einfach-spreadsheet) .tool-button.calculation-iteration-toggle {
+  display: inline-flex;
+  width: auto;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+:where(.einfach-spreadsheet) .calculation-iteration-toggle > span {
+  font-size: 17px;
+  line-height: 1;
+}
+
+:where(.einfach-spreadsheet) .calculation-parameter {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  margin-inline: 4px;
+  color: var(--text);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+:where(.einfach-spreadsheet) .calculation-parameter-input {
+  width: 60px;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+:where(.einfach-spreadsheet) .calculation-change-input { width: 78px; }
+:where(.einfach-spreadsheet) .calculation-parameter-input:hover { border-color: var(--border-strong); }
+:where(.einfach-spreadsheet) .calculation-parameter-input:disabled { opacity: .4; }
+:where(.einfach-spreadsheet) :is(.calculation-parameter-input, .calculation-iteration-toggle):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+:where(.einfach-spreadsheet) .calculation-feedback {
+  flex: none;
+  max-width: 240px;
+  margin-inline: 6px;
+  overflow: hidden;
+  color: var(--primary-strong);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where(.einfach-spreadsheet) .calculation-feedback[role='alert'] { color: #a12622; }

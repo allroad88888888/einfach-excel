@@ -143,12 +143,24 @@ export const selectionBoundsStateAtom: Atom<SelectionBounds> = atom(
 )
 selectionBoundsStateAtom.debugLabel = 'spreadsheet.selection.internal.boundsState'
 
-export const _multiSelectionAtom: Atom<MultiRangeSelectionState> = atom((get) =>
-  projectMergedSelection(
+function sameMultiSelection(left: MultiRangeSelectionState, right: MultiRangeSelectionState) {
+  return (
+    left.primaryIndex === right.primaryIndex &&
+    left.regions.length === right.regions.length &&
+    left.regions.every((region, index) => sameSelectionState(region, right.regions[index]!))
+  )
+}
+
+export const _multiSelectionAtom: Atom<MultiRangeSelectionState> = atom((get) => {
+  const next = projectMergedSelection(
     get(selectionAuthorityStateAtom).multi,
     get(projectionSnapshotBackingAtom).result,
-  ),
-)
+  )
+  // 每次滚动投影都会换快照；合并展开后的选区没变就沿用旧对象，
+  // 否则选区下游（状态栏统计、网格选中态）会跟着每次投影重算、重新请求。
+  const previous: MultiRangeSelectionState | undefined = get(_multiSelectionAtom)
+  return previous !== undefined && sameMultiSelection(previous, next) ? previous : next
+})
 _multiSelectionAtom.debugLabel = 'spreadsheet.selection._multi'
 
 export function captureSelectionWriteAuthority(get: Getter): SelectionWriteAuthority {

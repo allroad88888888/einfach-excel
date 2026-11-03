@@ -1,3 +1,5 @@
+import { countAxisSizesBefore, getAxisSizeIndex } from './axis-size-index'
+
 /** Calculates pixel geometry for a sparse, optionally hidden spreadsheet axis. */
 export function getAxisOffsetForIndex(
   index: number,
@@ -7,23 +9,10 @@ export function getAxisOffsetForIndex(
   hidden?: ReadonlySet<number>,
 ): number {
   const clampedIndex = Math.max(0, Math.min(count, Math.trunc(index)))
-  let offset = clampedIndex * fallbackSize
-  for (const [key, size] of Object.entries(overrides ?? {})) {
-    const overrideIndex = Number(key)
-    if (!Number.isInteger(overrideIndex) || overrideIndex < 0 || overrideIndex >= clampedIndex) {
-      continue
-    }
-    if (hidden?.has(overrideIndex)) continue
-    offset += size - fallbackSize
-  }
-  if (hidden) {
-    for (const hiddenIndex of hidden) {
-      if (Number.isInteger(hiddenIndex) && hiddenIndex >= 0 && hiddenIndex < clampedIndex) {
-        offset -= fallbackSize
-      }
-    }
-  }
-  return Math.max(0, offset)
+  // Scrolling calls this hundreds of times per frame; never walk every override.
+  const sizes = getAxisSizeIndex(overrides, hidden)
+  const explicit = countAxisSizesBefore(sizes, clampedIndex)
+  return Math.max(0, (clampedIndex - explicit) * fallbackSize + sizes.prefix[explicit]!)
 }
 
 export function getAxisSpanSize(

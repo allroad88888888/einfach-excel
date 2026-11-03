@@ -1,7 +1,7 @@
 import { createStore } from '@einfach/core'
 import { expect, test, vi } from 'vitest'
 import {
-  selectionAggregatesAtom, setSelectionAtom, setSelectionBoundsAtom,
+  selectionAggregatesAtom, selectionRegionsAtom, setSelectionAtom, setSelectionBoundsAtom,
   configureSelectionStatisticsAtom, copySelectionStatisticAtom, selectionStatisticCopyFeedbackAtom,
   type RustWorkbookConnection, type RustWorkbookCommands,
 } from '../src'
@@ -53,6 +53,40 @@ test('scrolling at the same revision does not query again; a data revision does'
   r.project(1, 900)
   expect(await r.read()).toMatchObject({ numbers: { sum: 30 } })
   expect(r.request).toHaveBeenCalledTimes(2)
+  unsubscribe()
+})
+
+test('scroll projections with merged cells keep the selection and do not query again', async () => {
+  // 回归：合并格让每次投影都产出新的选区对象，状态栏随滚动反复进入 Suspense 闪烁。
+  const r = setup()
+  const scroll = (rowStart: number, status: 'loading' | 'ready') =>
+    r.store.setter(projectionSnapshotBackingAtom, {
+      status, result: {
+        kind: 'visible-window', sheetId: 's', requestId: rowStart, revision: 0,
+        window: { rowStart, rowEnd: rowStart + 9, colStart: 0, colEnd: 9 }, cells: [],
+        mergedRanges: [
+          { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 },
+          { rowStart: rowStart + 2, rowEnd: rowStart + 3, colStart: 4, colEnd: 5 },
+        ],
+      },
+    })
+  scroll(0, 'ready')
+  const unsubscribe = r.store.sub(selectionAggregatesAtom, () => {})
+  await r.read()
+  const regions = r.store.getter(selectionRegionsAtom)
+  // A1 落在 A1:B2 合并格里，选区按合并展开；后续滚动投影都不改变它。
+  expect(regions[0]).toMatchObject({ kind: 'range', focus: { row: 1, col: 1 } })
+  const queries = r.request.mock.calls.length
+  for (const rowStart of [10, 20, 30]) {
+    scroll(rowStart, 'loading')
+    scroll(rowStart, 'ready')
+  }
+  await r.read()
+  expect(r.store.getter(selectionRegionsAtom)).toBe(regions)
+  expect(r.request).toHaveBeenCalledTimes(queries)
+  r.select(5)
+  await r.read()
+  expect(r.request).toHaveBeenCalledTimes(queries + 1)
   unsubscribe()
 })
 

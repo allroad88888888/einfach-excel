@@ -1,19 +1,19 @@
 import { useAtomValue } from '@einfach/react'
 import {
   getViewportColumnWidth, getViewportRowHeight, getViewportRangeRectangle,
-  projectionSnapshotAtom, viewportGeometrySizesAtom, viewportMetricsAtom, type CellRange,
+  viewportGeometrySizesAtom, viewportMetricsAtom, type CellRange,
+  type VisibleProjectionResult, type ViewportMetrics, type ViewportSizeOverrideState,
 } from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { createGridBorderStyles } from './grid-border-style'
 
-/** 只画窗口内的合并外沿，复用普通格的共边归属；不展开合并内部。 */
-export function MergedCellBorders({ range, window }: { range: CellRange; window: CellRange }) {
-  const result = useAtomValue(projectionSnapshotAtom).result
-  const metrics = useAtomValue(viewportMetricsAtom)
-  const sizes = useAtomValue(viewportGeometrySizesAtom)
-  if (result?.kind !== 'visible-window' || result.sheetId !== metrics.sheetId) return null
+/** 同一窗口的合并框共享边框查询表，不为每个框重新索引整片投影。 */
+export function createMergedBorderStyle(
+  result: VisibleProjectionResult, window: CellRange,
+  metrics: ViewportMetrics, sizes: ViewportSizeOverrideState,
+) {
   const region = result.frozen?.regions.find((item) => item.window === window)
-  const borderStyle = createGridBorderStyles({
+  return createGridBorderStyles({
     cells: region?.cells ?? result.cells, window, projection: result,
     scrollTop: metrics.scrollTop, scrollLeft: metrics.scrollLeft,
     isCellVisible: (row, col) => {
@@ -31,6 +31,16 @@ export function MergedCellBorders({ range, window }: { range: CellRange; window:
     columnWidths: Array.from({ length: window.colEnd - window.colStart + 1 }, (_, i) =>
       getViewportColumnWidth(sizes, result.sheetId, window.colStart + i, metrics.colWidth)),
   })
+}
+
+/** 只画窗口内的合并外沿，复用普通格的共边归属；不展开合并内部。 */
+export function MergedCellBorders({ range, window, borderStyle }: {
+  range: CellRange
+  window: CellRange
+  borderStyle: ReturnType<typeof createMergedBorderStyle>
+}) {
+  const metrics = useAtomValue(viewportMetricsAtom)
+  const sizes = useAtomValue(viewportGeometrySizesAtom)
   const origin = getViewportRangeRectangle(metrics, sizes, range)
   const visible = getViewportRangeRectangle(metrics, sizes, window)
   const edges = []

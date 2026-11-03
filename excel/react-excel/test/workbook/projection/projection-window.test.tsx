@@ -21,6 +21,27 @@ import {
 } from '../../support/projection-harness'
 
 describe('Rust workbook projection window', () => {
+  it('does not rewind native scrolling that advanced before the React effect commits', async () => {
+    const controlled = createProjectionConnection()
+    renderSalesOrdersProjectionWorksheet(controlled.connection)
+    await waitFor(() => expect(document.querySelector('[data-cell="0:0"]')).not.toBeNull())
+    const scroll = screen.getByTestId('sheet-scroll')
+    Object.defineProperties(scroll, {
+      clientHeight: { configurable: true, value: 500 },
+      scrollHeight: { configurable: true, value: 28000 },
+      clientWidth: { configurable: true, value: 500 },
+      scrollWidth: { configurable: true, value: 1920 },
+    })
+    act(() => {
+      fireEvent.scroll(scroll, { target: { scrollTop: 28, scrollLeft: 120 } })
+      // The compositor can move again before its next scroll event reaches React.
+      scroll.scrollTop = 56
+      scroll.scrollLeft = 240
+    })
+    expect(scroll.scrollTop).toBe(56)
+    expect(scroll.scrollLeft).toBe(240)
+  })
+
   it('requests a bounded orders window and only mounts that projection', async () => {
     const controlled = createProjectionConnection()
     const store = renderSalesOrdersProjectionWorksheet(controlled.connection)

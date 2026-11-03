@@ -13,7 +13,7 @@ import {
   projectedFreezeAtom,
   type WorkbookDocumentSheet,
 } from '@einfach-excel/spreadsheet-ui-core'
-import type { CSSProperties } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use-workbook-viewport'
 import { CellRenderer } from './CellRenderer'
 import { CellEditor } from '../editor/CellEditor'
@@ -82,18 +82,19 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   const clipboard = useGridClipboard(viewport.retained)
   const frozenRows = freeze?.sheetId === activeSheet.id ? freeze.rows : 0
   const frozenCols = freeze?.sheetId === activeSheet.id ? freeze.cols : 0
-  const bodyWindow = {
+  const bodyWindow = useMemo(() => ({
     ...viewport.window,
     rowStart: Math.max(viewport.window.rowStart, frozenRows),
     colStart: Math.max(viewport.window.colStart, frozenCols),
-  }
-  const rows = rowNumbers(bodyWindow.rowStart, bodyWindow.rowEnd)
+  }), [viewport.window, frozenRows, frozenCols])
+  const rows = useMemo(() => rowNumbers(bodyWindow.rowStart, bodyWindow.rowEnd), [bodyWindow])
   const rowHeights = sizeOverrides.rowHeightsBySheet[activeSheet.id]
   // 只取投影窗口内的列：空白工作簿有 16384 列，整行表头会让一次替换卡住主线程数秒。
   const columnCount = Math.max(0, bodyWindow.colEnd - bodyWindow.colStart + 1)
-  const columnWidths = Array.from({ length: columnCount }, (_, index) =>
+  const columnWidths = useMemo(() => Array.from({ length: columnCount }, (_, index) =>
     getViewportColumnWidth(
-      sizeOverrides, activeSheet.id, bodyWindow.colStart + index, WORKBOOK_GRID_COLUMN_WIDTH))
+      sizeOverrides, activeSheet.id, bodyWindow.colStart + index, WORKBOOK_GRID_COLUMN_WIDTH)),
+  [columnCount, sizeOverrides, activeSheet.id, bodyWindow.colStart])
   const columnOffset = (index: number) =>
     getAxisOffsetForIndex(
       index,
@@ -102,14 +103,14 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
       sizeOverrides.colWidthsBySheet[activeSheet.id],
     )
   const sheetContentWidth = columnOffset(activeSheet.colCount)
-  const visibleRowHeights = rows.map((_, index) =>
+  const visibleRowHeights = useMemo(() => rows.map((_, index) =>
     getViewportRowHeight(
       sizeOverrides,
       activeSheet.id,
       bodyWindow.rowStart + index,
       WORKBOOK_GRID_ROW_HEIGHT,
     ),
-  )
+  ), [rows, sizeOverrides, activeSheet.id, bodyWindow.rowStart])
   const sheetContentHeight = getAxisOffsetForIndex(
     activeSheet.rowCount,
     activeSheet.rowCount,

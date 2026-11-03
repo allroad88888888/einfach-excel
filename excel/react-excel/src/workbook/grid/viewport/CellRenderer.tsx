@@ -3,7 +3,7 @@ import { projectionSnapshotAtom, type DisplayCell } from '@einfach-excel/spreads
 import { SpreadsheetGrid, MergedCells, type SpreadsheetGridProps } from '@einfach-excel/react-cells'
 import { CanvasCells } from './CanvasCells'
 import { useLingui } from '@lingui/react/macro'
-import { useContext } from 'react'
+import { useContext, useMemo } from 'react'
 import { WorkbookPresentationContext } from '../../../page/WorkbookPresentationProvider'
 
 /** Select the display backend while preserving the host's viewport and interaction commands. */
@@ -12,7 +12,8 @@ export function CellRenderer(props: SpreadsheetGridProps & {
   interactive?: boolean
 }) {
   const { t } = useLingui()
-  const metadataLabels = { note: t`Cell has a note`, comment: t`Cell has comments` }
+  const note = t`Cell has a note`, comment = t`Cell has comments`
+  const metadataLabels = useMemo(() => ({ note, comment }), [note, comment])
   const projection = useAtomValue(projectionSnapshotAtom).result
   const anchors = props.anchors ?? (projection?.kind === 'visible-window' ? projection.mergeAnchors : undefined)
   const { renderer } = useContext(WorkbookPresentationContext)

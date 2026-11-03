@@ -66,6 +66,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const shiftCells = useGridShiftCells()
   const gridRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const nativeScroll = useRef<{ sheetId?: string; scrollTop: number; scrollLeft: number }>()
   useWorkbookGridViewportMeasurement(scrollRef)
   const focusGrid = useCallback(() => gridRef.current?.focus({ preventScroll: true }), [])
   const pointerHandlers = useGridPointerSelection({
@@ -116,16 +117,25 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   useEffect(() => {
     const scroll = scrollRef.current
     if (scroll === null) return
-    const maxScrollTop = Math.max(0, scroll.scrollHeight - scroll.clientHeight)
-    const nextScrollTop = Math.min(viewportMetrics.scrollTop, maxScrollTop)
-    if (scroll.scrollTop !== nextScrollTop) scroll.scrollTop = nextScrollTop
-    const maxScrollLeft = Math.max(0, scroll.scrollWidth - scroll.clientWidth)
-    const nextScrollLeft = Math.min(viewportMetrics.scrollLeft, maxScrollLeft)
-    if (scroll.scrollLeft !== nextScrollLeft) scroll.scrollLeft = nextScrollLeft
-  }, [viewportMetrics.scrollLeft, viewportMetrics.scrollTop])
+    // A compositor scroll may already be ahead of the last delivered DOM event.
+    // Echoing that event back would rewind it; only apply a new commanded position.
+    const native = nativeScroll.current?.sheetId === viewportMetrics.sheetId
+      ? nativeScroll.current : undefined
+    if (native?.scrollTop !== viewportMetrics.scrollTop) {
+      const max = Math.max(0, scroll.scrollHeight - scroll.clientHeight)
+      const next = Math.min(viewportMetrics.scrollTop, max)
+      if (scroll.scrollTop !== next) scroll.scrollTop = next
+    }
+    if (native?.scrollLeft !== viewportMetrics.scrollLeft) {
+      const max = Math.max(0, scroll.scrollWidth - scroll.clientWidth)
+      const next = Math.min(viewportMetrics.scrollLeft, max)
+      if (scroll.scrollLeft !== next) scroll.scrollLeft = next
+    }
+  }, [viewportMetrics.sheetId, viewportMetrics.scrollLeft, viewportMetrics.scrollTop])
 
   const onScroll = (event: ReactUiEvent<HTMLDivElement>) => {
     const { scrollLeft, scrollTop } = event.currentTarget
+    nativeScroll.current = { sheetId: viewportMetrics.sheetId, scrollTop, scrollLeft }
     setViewportScroll({ scrollTop, scrollLeft })
   }
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {

@@ -10,10 +10,11 @@ import {
   type DisplayCell,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
-import { MergedCellBorders } from './MergedCellBorders'
+import { createMergedBorderStyle, MergedCellBorders } from './MergedCellBorders'
 import { CellDataBar } from './CellDataBar'
 import { CellHyperlink } from './hyperlink/CellHyperlink'
 import { CellMetadata, type CellMetadataLabels } from './cell-metadata/CellMetadata'
+import { useMemo } from 'react'
 import './merged-cells.css'
 
 /** 叠加完整合并框并裁到可见窗口，滚动不改变文本在原矩形里的位置。 */
@@ -28,11 +29,15 @@ export function MergedCells({ window, anchors, metadataLabels }: {
   const metrics = useAtomValue(viewportMetricsAtom)
   const showFormulas = useAtomValue(showFormulasAtom)
   const result = snapshot.result
-  if (result?.kind !== 'visible-window' || result.sheetId !== metrics.sheetId) return null
+  const visibleAnchors = anchors ?? (result?.kind === 'visible-window' ? result.mergeAnchors : undefined)
+  const borderStyle = useMemo(() => result?.kind === 'visible-window' && visibleAnchors?.length
+    ? createMergedBorderStyle(result, window ?? result.window, metrics, sizes) : undefined,
+  [result, window, metrics, sizes, visibleAnchors])
+  if (!borderStyle || result?.kind !== 'visible-window' || result.sheetId !== metrics.sheetId) return null
   const origin = getViewportRangeRectangle(metrics, sizes, window ?? result.window)
   return (
     <div className="merged-cell-layer">
-      {(anchors ?? result.mergeAnchors)?.map((cell) => {
+      {visibleAnchors?.map((cell) => {
         const span = cell.mergedSpan!
         const range = {
           rowStart: cell.row,
@@ -71,7 +76,8 @@ export function MergedCells({ window, anchors, metadataLabels }: {
                     : 'flex-end',
             }}
           >
-            <MergedCellBorders range={range} window={window ?? result.window} />
+            <MergedCellBorders range={range} window={window ?? result.window}
+              borderStyle={borderStyle} />
             <CellDataBar bar={cell.dataBar} />
             <CellMetadata cell={cell} labels={metadataLabels} />
             <span className="cell-content" data-conditional-icon-value={cell.conditionalIcon

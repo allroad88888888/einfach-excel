@@ -72,14 +72,19 @@ export function createCellBorderResolver({
     lastRow: before(range.rowEnd, hiddenRows),
     firstCol: after(range.colStart, range.colEnd, hiddenCols),
     lastCol: before(range.colEnd, hiddenCols),
-  }))
+  })) ?? []
+  const mergesByRow = new Map<number, typeof merges>()
   const format = (
     row: number | undefined, col: number | undefined, current?: SpreadsheetCellFormat,
   ): SpreadsheetCellFormat | undefined => {
     if (row === undefined || col === undefined) return undefined
     const raw = current ?? all.get(`${row}:${col}`)
-    const visible = merges?.find(({ range: m }) =>
-      row >= m.rowStart && row <= m.rowEnd && col >= m.colStart && col <= m.colEnd)
+    let rowMerges = mergesByRow.get(row)
+    if (!rowMerges) {
+      rowMerges = merges.filter(({ range }) => range.rowStart <= row && row <= range.rowEnd)
+      mergesByRow.set(row, rowMerges)
+    }
+    const visible = rowMerges.find(({ range }) => range.colStart <= col && col <= range.colEnd)
     if (!visible) return raw
     const merge = visible.range
     const anchor = anchors.get(`${merge.rowStart}:${merge.colStart}`)?.borders

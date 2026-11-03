@@ -922,6 +922,7 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | VIEW-009 | 横向滚动保持旧格真实坐标 | `workbook/scroll-stability.spec.ts` | horizontal scroll reuses buffered cells at their actual sheet coordinates |
 | VIEW-010 | 斜向滚动保持旧格真实坐标 | `workbook/scroll-stability.spec.ts` | diagonal scroll reuses buffered cells at their actual sheet coordinates |
 | VIEW-011 | 定位多行内容后公式栏与视口稳定 | `workbook/name-box-scroll.spec.ts` | multiline target keeps its formula bar and viewport stable at 1280px |
+| VIEW-012 | 连续滚轮输入时双向滚动保持视口覆盖 | `workbook/wheel-scroll-coverage.spec.ts` | rapid wheel scrolling keeps the populated viewport covered in both directions |
 | FILE-001 | 下载原生工作簿 | `workbook/workbook-files.spec.ts` | download preserves workbook data and history at 1280px |
 | FILE-002 | 无效文件不破坏当前工作簿 | `workbook/workbook-files.spec.ts` | invalid native content leaves values, selection, history and current file usable |
 | FILE-003 | 新建空白工作簿 | `workbook/workbook-files.spec.ts` | new workbook cancellation keeps data before confirmed replacement at 1280px |

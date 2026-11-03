@@ -10,6 +10,8 @@ export function getAxisOffsetForIndex(
 ): number {
   const clampedIndex = Math.max(0, Math.min(count, Math.trunc(index)))
   // Scrolling calls this hundreds of times per frame; never walk every override.
+  // 主要写入路径是整数像素（手动尺寸取整、自动适应向上取整），但投影尺寸也接受有限小数；
+  // 小数时前缀和与逐项累加的末位浮点可能不同，严格比较的命中边界可能差一格。
   const sizes = getAxisSizeIndex(overrides, hidden)
   const explicit = countAxisSizesBefore(sizes, clampedIndex)
   return Math.max(0, (clampedIndex - explicit) * fallbackSize + sizes.prefix[explicit]!)

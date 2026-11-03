@@ -77,6 +77,9 @@ export * from './shared'
 export * from './projection'
 export * from './projection/editable-source-text'
 export * from './projection/run-visible-projection'
+export {
+  publishedGeometryCurrentAtom, viewVisibleProjection, type VisibleProjectionView,
+} from './projection/covering-result'
 export * from './remove-duplicates'
 export * from './selection'
 export * from './selection/pointer-selection-commands'

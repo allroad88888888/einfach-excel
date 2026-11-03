@@ -14,6 +14,8 @@ const byHidden = new WeakMap<object, WeakMap<ReadonlySet<number>, AxisSizeIndex>
 /**
  * Size maps are immutable atom state: any change publishes a new object, so the
  * object identity is the cache key and scrolling reuses one index per map.
+ * 契约：传进来的尺寸 map 与 hidden Set 读过之后不得原地修改，否则会一直读到旧索引；
+ * 一次性的临时 map 也能用，只是每个新对象都要建一次索引。
  */
 export function getAxisSizeIndex(
   overrides: Record<string, number> | undefined,

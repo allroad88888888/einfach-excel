@@ -10,6 +10,7 @@ test(`${direction} during resize is not discarded at ${width}px`, async ({ page 
     let release: (() => void) | null = null
     Object.defineProperties(window, {
       holdHistoryResize: { value: () => { armed = true } },
+      historyResizeHeld: { value: () => release !== null },
       releaseHistoryResize: { value: () => { const send = release; release = null; send?.() } },
     })
     Worker.prototype.postMessage = function (
@@ -37,7 +38,8 @@ test(`${direction} during resize is not discarded at ${width}px`, async ({ page 
   await page.evaluate(() => Reflect.get(window, 'holdHistoryResize')())
   await page.setViewportSize({ width, height: 650 })
   const grid = page.locator('[data-workbook-grid]')
-  await expect(grid).toHaveAttribute('data-projection-retained', 'true')
+  // 以真实扣住的读取为准：缩窗后的窗口可能仍被旧结果覆盖，retained 不是可靠的在途信号。
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, 'historyResizeHeld')())).toBe(true)
   await grid.press(direction === 'undo' ? 'Control+z' : 'Control+y')
   await page.evaluate(() => Reflect.get(window, 'releaseHistoryResize')())
   await expect(grid).toHaveAttribute('data-projection-retained', 'false')

@@ -2,8 +2,10 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   DEFAULT_MAX_PROJECTION_CELLS,
   projectionSnapshotAtom,
+  publishedGeometryCurrentAtom,
   resetProjectionAtom,
   runVisibleProjectionAtom,
+  viewVisibleProjection,
   viewportMetricsAtom,
   type CellRange,
   type ProjectionSnapshot,
@@ -33,7 +35,7 @@ export interface WorkbookViewport {
   readonly mergedRanges?: readonly CellRange[]
   /** True once this sheet has any projection that can keep the grid mounted. */
   readonly hasResult: boolean
-  /** True while the previous projection is awaiting the requested window. */
+  /** True while the painted projection does not cover the requested window. */
   readonly retained: boolean
   readonly status: ProjectionStatus
   readonly error: SpreadsheetError | undefined
@@ -94,33 +96,13 @@ function clampWindow(
   }
 }
 
-function sameWindow(left: CellRange, right: CellRange): boolean {
-  return (
-    left.rowStart === right.rowStart &&
-    left.rowEnd === right.rowEnd &&
-    left.colStart === right.colStart &&
-    left.colEnd === right.colEnd
-  )
-}
-
-function isCurrentRequest(
-  snapshot: ProjectionSnapshot,
-  sheetId: string,
-  window: CellRange,
-): boolean {
-  return (
-    snapshot.request?.kind === 'visible-window' &&
-    snapshot.request.sheetId === sheetId &&
-    sameWindow(snapshot.request.window, window)
-  )
-}
-
 /**
  * Reads a caller-controlled visible window and delegates scrolling back to its owner.
  * Projection state remains in the nearest workbook Einfach store.
  */
 export function useWorkbookViewport(options: UseWorkbookViewportOptions): WorkbookViewport {
   const snapshot: ProjectionSnapshot = useAtomValue(projectionSnapshotAtom)
+  const geometryCurrent = useAtomValue(publishedGeometryCurrentAtom)
   const metrics = useAtomValue(viewportMetricsAtom)
   const { viewportHeight: height, viewportWidth: width, rowHeight, colWidth } = metrics
   const projectionViewport = useMemo(
@@ -173,6 +155,7 @@ export function useWorkbookViewport(options: UseWorkbookViewportOptions): Workbo
       reason: 'viewport',
       retainResult: true,
       maxCells,
+      reuseCoveringResult: true,
     })
   }, [
     maxCells,
@@ -200,13 +183,11 @@ export function useWorkbookViewport(options: UseWorkbookViewportOptions): Workbo
     if (outcome.status === 'superseded') throw new Error('Projection refresh was superseded.')
   }
 
-  const current = isCurrentRequest(snapshot, sheetId, requestedWindow)
-  const result =
-    snapshot.result?.kind === 'visible-window' && snapshot.result.sheetId === sheetId
-      ? snapshot.result
-      : undefined
+  // 换缓冲桶仍等新窗口；只看可见区覆盖会让 VIEW-012 空白变多，原因未查明。
+  const { result, current, retained } = viewVisibleProjection(snapshot, {
+    sheetId, window: requestedWindow, viewport: projectionViewport, maxCells, geometryCurrent,
+  })
   const window = result?.window ?? requestedWindow
-  const retained = result !== undefined && !sameWindow(result.window, requestedWindow)
   return {
     window,
     cells: result?.cells ?? [],

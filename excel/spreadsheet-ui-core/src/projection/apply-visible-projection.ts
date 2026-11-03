@@ -14,6 +14,7 @@ import type {
   ApplyVisibleProjectionOutcome,
 } from './types'
 import { applyProjectionSizes } from './projection-sizes'
+import { recordPublishedGeometry } from './covering-result'
 import { applySheetVisibility } from '../viewport/hidden-state'
 import { setSheetProtectionAtom } from '../protection'
 import { hydrateCustomFormulaDefinitionsAtom } from '../custom-formulas/expression-catalog'
@@ -63,6 +64,7 @@ export const applyVisibleProjectionAtom = atom(
       )
       applyProjectionSizes(get, set, result)
       if (result.visibility) applySheetVisibility(get, set, result.sheetId, result.visibility)
+      recordPublishedGeometry(get, set)
       if (result.protection)
         set(setSheetProtectionAtom, { sheetId: result.sheetId, state: result.protection })
       if (result.calculationMode) set(hydrateCalculationModeAtom, result.calculationMode)

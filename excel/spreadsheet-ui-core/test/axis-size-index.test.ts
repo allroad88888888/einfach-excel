@@ -55,6 +55,15 @@ test('indexed offsets match the reference for sparse, hidden and malformed sizes
   expect(getAxisOffsetForIndex(10, 100, 24, undefined, new Set([2]))).toBe(216)
 })
 
+test('fractional offsets agree with the reference up to floating-point rounding', () => {
+  // 只证明偏移在容差内一致，不证明小数边界上的命中结果一致（24.2+24.2 → 48.4 vs 48.400000000000006）。
+  const overrides = { '0': 24.2, '1': 24.2, '5': 30.7 }
+  for (let index = 0; index <= 10; index += 1) {
+    expect(getAxisOffsetForIndex(index, 100, 24, overrides))
+      .toBeCloseTo(referenceOffset(index, 100, 24, overrides), 9)
+  }
+})
+
 test('offset searches stay inverse to offsets with many explicit sizes', () => {
   const overrides: Record<string, number> = {}
   for (let row = 0; row < 50_000; row += 1) overrides[String(row)] = 22 + (row % 3)

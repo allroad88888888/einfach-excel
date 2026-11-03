@@ -9,13 +9,18 @@ import {
   resolveProjectionAtom,
 } from './index'
 import type { BeginVisibleProjectionInput } from './types'
+import { publishedGeometryCurrentAtom, readyResultCoversRequest } from './covering-result'
+import { projectionLaneBackingAtom } from './state'
 import { selectionSnapshotAtom } from '../selection'
 import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
 import { getViewportScrollForCell, scrollToCellAtom, viewportMetricsAtom } from '../viewport/metrics'
 import { projectedFreezeAtom } from '../viewport/projected-freeze'
 import { isCellInVisibleWindow, visibleWindowAtom } from '../viewport/visible-window'
 
-export type RunVisibleProjectionInput = Omit<BeginVisibleProjectionInput, 'kind'>
+export type RunVisibleProjectionInput = Omit<BeginVisibleProjectionInput, 'kind'> & {
+  /** 仅滚动驱动的窗口变化使用：已发布结果完整覆盖新窗口时不再读取。 */
+  readonly reuseCoveringResult?: boolean
+}
 export type RunVisibleProjectionOutcome =
   | { readonly status: 'ready' }
   | { readonly status: 'superseded' }
@@ -129,8 +134,15 @@ function projectionOutcome(
 export const runVisibleProjectionAtom = atom(
   null,
   async (get, set, input: RunVisibleProjectionInput): Promise<RunVisibleProjectionOutcome> => {
+    const { reuseCoveringResult, ...request } = input
+    const lanes = get(projectionLaneBackingAtom).visibleWindow
+    if (reuseCoveringResult && lanes.active === null && lanes.queued === null &&
+      get(publishedGeometryCurrentAtom) &&
+      readyResultCoversRequest(get(projectionSnapshotAtom), request)) {
+      return Object.freeze({ status: 'ready' })
+    }
     const previousSheetId = get(projectionSnapshotAtom).result?.sheetId
-    const begin = set(beginProjectionAtom, { ...input, kind: 'visible-window' })
+    const begin = set(beginProjectionAtom, { ...request, kind: 'visible-window' })
     if (begin.status === 'invalid' || begin.status === 'exhausted') {
       return Object.freeze({ status: 'failed', error: begin.error.message })
     }

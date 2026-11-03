@@ -17,7 +17,7 @@
   flex-wrap: nowrap;
   gap: 4px 12px;
   padding-block: 6px;
-  height: 28px;
+  height: var(--footer-row-height);
   align-items: center;
   overflow-x: auto;
   scrollbar-width: none;
@@ -44,7 +44,7 @@
 }
 :where(.einfach-spreadsheet) .selection-statistic:focus-visible,
 :where(.einfach-spreadsheet) .statistics-settings-button:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--sheet-active);
   outline-offset: 2px;
 }
 :where(.einfach-spreadsheet) .status-items .statistics-settings-button {
@@ -115,7 +115,7 @@
     box-sizing: border-box;
     gap: 8px;
     padding-inline: 8px;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--sheet-divider);
   }
   :where(.einfach-spreadsheet) .selection-status {
     flex: 1;

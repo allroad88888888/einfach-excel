@@ -1,13 +1,17 @@
 /* Owns the shared workbook footer styling. */
 :where(.einfach-spreadsheet) .workbook-footer {
+  --footer-row-height: 30px;
+  --sheet-strip: #f2f2f2;
+  --sheet-divider: #d0d0d0;
+  --sheet-active: #217346;
   display: flex;
-  min-height: 34px;
+  min-height: calc(var(--footer-row-height) + 1px);
   flex: none;
   align-items: stretch;
   justify-content: space-between;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--sheet-divider);
   color: #505463;
-  background: #ffffff;
+  background: var(--sheet-strip);
   font-size: 11px;
 }
 
@@ -84,9 +88,8 @@
 }
 
 :where(.einfach-spreadsheet) .workbook-sheet-controls {
-  --sheet-strip: #f2f2f2;
-  --sheet-divider: #d0d0d0;
-  --sheet-active: #217346;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   flex: 1;
   background: var(--sheet-strip);
@@ -101,10 +104,10 @@
   box-shadow: inset 0 -2px 0 #8d95a3;
 }
 :where(.einfach-spreadsheet) .sheet-tabs {
-  height: 28px;
-  min-height: 28px;
+  height: var(--footer-row-height);
+  min-height: var(--footer-row-height);
+  flex: 1;
   align-items: stretch;
-  border-bottom: 1px solid var(--sheet-divider);
 }
 :where(.einfach-spreadsheet) .sheet-tab-list {
   display: flex;
@@ -193,8 +196,10 @@
 }
 
 :where(.einfach-spreadsheet) .status-items {
-  gap: 18px;
-  padding-left: 18px;
+  min-height: var(--footer-row-height);
+  gap: 12px;
+  padding-left: 12px;
+  background: var(--sheet-strip);
 }
 
 :where(.einfach-spreadsheet) .clipboard-feedback {
@@ -218,7 +223,6 @@
 
 @container einfach-spreadsheet (max-width: 760px) {
   :where(.einfach-spreadsheet) .workbook-footer {
-    min-height: 30px;
     flex-wrap: wrap;
   }
 

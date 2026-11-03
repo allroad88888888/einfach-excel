@@ -563,6 +563,7 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | SHEET-029 | Shift+F10 打开工作表菜单 | `sheet-management/tab-strip.spec.ts` | Shift+F10 opens the focused sheet menu and Escape restores tab focus |
 | SHEET-030 | 菜单键打开工作表菜单 | `sheet-management/tab-strip.spec.ts` | ContextMenu opens the focused sheet menu and Escape restores tab focus |
 | SHEET-031 | 紧凑工作表栏及右键菜单布局 | `sheet-management/tab-strip.spec.ts` | Excel sheet strip keeps controls compact and its right-click menu in view at 1280px |
+| SHEET-032 | Sheet 栏与统计缩放区同高同底色，窄屏连续换行 | `workbook/footer-layout.spec.ts` | sheet tabs and status controls share a continuous aligned footer at 1700px en |
 | TABLE-001 | 创建 Table | `workbook/tables.spec.ts` | create a table preserves its source and undoes once at 1280px |
 | TABLE-002 | Table 重命名 | `workbook/tables.spec.ts` | rename a seeded table rewrites only its references at 1280px |
 | TABLE-003 | Table 转普通区域 | `workbook/tables.spec.ts` | convert a seeded table keeps data and visible formatting at 1280px |

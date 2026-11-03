@@ -3,6 +3,12 @@
 mod bulk;
 #[path = "protection/structure.rs"]
 mod structure;
+#[path = "protection/add_sheet.rs"]
+mod add_sheet;
+#[path = "protection/delete_sheet.rs"]
+mod delete_sheet;
+#[path = "protection/sheet_tabs.rs"]
+mod sheet_tabs;
 use einfach_core::Value;
 use einfach_excel_core::{CellAddress, CellRange, CellStyle, StyleScope, Workbook};
 use einfach_excel_core::protection::{ProtectionChange, ProtectionMode, ProtectionRange, SheetProtection};
@@ -128,7 +134,7 @@ fn clipboard_cannot_forge_unlocked_policy_or_clear_a_newly_locked_cut_source() {
 }
 
 #[test]
-fn protected_metadata_and_topology_reject_without_rewriting_other_sheets() {
+fn protected_cell_geometry_and_shared_table_metadata_stay_locked() {
     let mut book = Workbook::new();
     book.add_sheet("Other");
     let mut history = WorkbookHistory::default();
@@ -138,9 +144,9 @@ fn protected_metadata_and_topology_reject_without_rewriting_other_sheets() {
         einfach_excel_core::shift::ShiftEdit::RowInsert { at: 0, count: 1 }).is_err());
     assert!(history.set_data_validation(&mut book, 0, range(0, 0, 0, 0), None).is_err());
     assert!(book.define_table(Some("Blocked"), 0, range(0, 0, 1, 1), true).is_err());
-    assert!(!book.rename_sheet(0, "Renamed"));
-    assert!(!book.move_sheet(0, 1));
-    assert_eq!(book.name(0), Some("Sheet1"));
+    assert!(book.rename_sheet(0, "Renamed"));
+    assert!(book.move_sheet(0, 1));
+    assert_eq!(book.name(1), Some("Renamed"));
     assert_eq!(book.sheet_count(), 2);
     assert_eq!(history.undo_count(), 0);
 }

@@ -76,7 +76,6 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err("Cannot change sheets during a custom formula call.");
         }
-        self.ensure_workbook_unprotected()?;
         if index >= self.sheets.len() {
             return Err("The worksheet no longer exists.");
         }

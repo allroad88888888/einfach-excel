@@ -59,22 +59,9 @@ impl ArchivedWorksheet {
             + self.remaining_keys.len() * 8
     }
 
-    /// 撤销“新增”时，原先指向不存在表名的公式仍应保留原始源，而不是永久改成 #REF!。
-    pub(crate) fn restore_missing_reference_sources(&self, workbook: &mut Workbook) {
-        for (sheet, addr, source) in &self.references {
-            let index = if *sheet > self.index {
-                sheet - 1
-            } else {
-                *sheet
-            };
-            workbook.set_formula(index, &addr.to_string_repr(), source);
-        }
-    }
-
     /// 拒绝跨 Workbook 恢复或覆盖另一次拓扑修改；失败时把原资源完整交还调用者。
     pub fn restore(mut self, workbook: &mut Workbook) -> Result<usize, Self> {
         if workbook.is_inside_custom_call()
-            || workbook.ensure_workbook_unprotected().is_err()
             || !self
                 .origin
                 .upgrade()
@@ -138,7 +125,7 @@ impl ArchivedWorksheet {
             workbook.apply_conditional_rule_sources(&self.conditional_references);
             workbook.apply_validation_rule_sources(&self.validation_references);
             for (sheet, addr, source) in self.references.drain(..) {
-                workbook.set_formula(sheet, &addr.to_string_repr(), &source);
+                workbook.install_formula_source(sheet, addr, &source);
             }
         });
         Ok(index)
@@ -166,7 +153,6 @@ impl Workbook {
         preserve: bool,
     ) -> Option<ArchivedWorksheet> {
         if self.is_inside_custom_call()
-            || self.ensure_workbook_unprotected().is_err()
             || self.sheet_count() <= 1
         {
             return None;
@@ -180,10 +166,12 @@ impl Workbook {
             .into_iter()
             .filter_map(|(owner, _)| (owner != key).then_some(owner))
             .collect();
-        let conditional_references = self.capture_conditional_rule_sources(&rule_keys);
+        let conditional_references = if preserve { Vec::new() }
+            else { self.capture_conditional_rule_sources(&rule_keys) };
         let validation_keys = self.validation_sheet_ref_rewrites(&name, None).into_iter()
             .filter_map(|(owner, _)| (owner != key).then_some(owner)).collect();
-        let validation_references = self.capture_validation_rule_sources(&validation_keys);
+        let validation_references = if preserve { Vec::new() }
+            else { self.capture_validation_rule_sources(&validation_keys) };
         let tables = self
             .tables
             .values()
@@ -196,7 +184,7 @@ impl Workbook {
             .filter(|((sk, _), _)| *sk == key)
             .map(|((_, k), entry)| (k.clone(), entry.clone()))
             .collect();
-        let references = self
+        let references = if preserve { Vec::new() } else { self
             .sheet_ref_rewrites(&name, None)
             .into_iter()
             .filter(|(sheet, _, _)| *sheet != index)
@@ -207,7 +195,7 @@ impl Workbook {
                     self.sheets[sheet].formula_text_at(addr).unwrap(),
                 )
             })
-            .collect();
+            .collect() };
         // 保存实际写入的闭包/模板差异；重算闭包会改变身份，逆推模板会丢失原始源。
         let (sheet, lambdas, templates) = self.remove_sheet_with_conditional_refs(index, preserve)?;
         Some(ArchivedWorksheet {

@@ -228,7 +228,7 @@ impl SheetHistoryChange {
                         .ok_or("Could not rename the worksheet.")
                         .map(|_| {
                             for (sheet, addr, source) in sources {
-                                workbook.set_formula(*sheet, &addr.to_string_repr(), source);
+                                workbook.install_formula_source(*sheet, *addr, source);
                             }
                         });
                 });
@@ -257,9 +257,6 @@ impl SheetHistoryChange {
                     let mut saved = None;
                     store.batch(|_| {
                         saved = workbook.archive_sheet_with_conditional_refs(*index, *created);
-                        if let Some(saved) = saved.as_ref().filter(|_| *created) {
-                            saved.restore_missing_reference_sources(workbook);
-                        }
                     });
                     let saved = saved.ok_or("Could not delete the worksheet.")?;
                     *bytes = saved.retained_bytes();

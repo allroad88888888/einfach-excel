@@ -21,7 +21,9 @@ impl Workbook {
         if idx >= self.sheets.len() || self.sheets.len() <= 1 {
             return None;
         }
-        let rewrites = self.sheet_ref_rewrites(&self.names[idx], None);
+        let rewrites = if preserve { Vec::new() } else {
+            self.sheet_ref_rewrites(&self.names[idx], None)
+        };
         let conditional = if preserve {
             Vec::new()
         } else {
@@ -101,7 +103,7 @@ impl Workbook {
                 } else {
                     original_index
                 };
-                self.set_formula(index, &addr.to_string_repr(), &text);
+                self.install_formula_source(index, addr, &text);
             }
             removed = Some(sheet);
         });

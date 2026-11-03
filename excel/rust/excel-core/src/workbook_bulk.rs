@@ -37,6 +37,16 @@ impl Workbook {
         formulas: HashMap<CellAddress, String>,
     ) -> Result<BulkInstallStats, InstallError> {
         self.ensure_workbook_unprotected().map_err(|_| InstallError::ProtectedWorkbook)?;
+        self.install_sheet_bulk_preflighted(sheet_idx, primitives, formulas)
+    }
+
+    /// Caller owns the write preflight; copying uses only a newly created, open target sheet.
+    pub(super) fn install_sheet_bulk_preflighted(
+        &mut self,
+        sheet_idx: usize,
+        primitives: HashMap<CellAddress, Value>,
+        formulas: HashMap<CellAddress, String>,
+    ) -> Result<BulkInstallStats, InstallError> {
         let store = self.store.clone();
         let mut result = None;
         store.batch(|_| {

@@ -88,7 +88,6 @@ impl Workbook {
 
     /// 在源表之后创建副本并返回其索引；任何一步失败都会撤回已创建的新表。
     pub fn copy_sheet_after(&mut self, source: usize, name: &str) -> Result<usize, &'static str> {
-        self.ensure_workbook_unprotected()?;
         let old_name = self.name(source).ok_or("The worksheet no longer exists.")?.to_owned();
         let appended = self.edit_sheet(None, name)?;
         let target = source + 1;
@@ -116,9 +115,12 @@ impl Workbook {
         self.copy_cells(source, target, &renames)?;
         self.copy_sheet_data(source, target)?;
         self.copy_workbook_sheet_config(source, target);
-        self.copy_filter(source, target)?;
+        self.copy_filter(source, target);
         let color = self.sheets[source].tab_color.clone();
         self.sheets[target].tab_color = color;
+        // Protection belongs to the copied sheet identity, after its data has been installed.
+        let protection = self.read_protection(source)?;
+        self.protection.insert(self.sheet_keys[target], protection);
         Ok(())
     }
 
@@ -206,7 +208,8 @@ impl Workbook {
         if primitives.is_empty() && formulas.is_empty() {
             return Ok(());
         }
-        self.install_workbook_bulk(vec![(target, primitives, formulas)])
+        self.ensure_sheet_unprotected(target)?;
+        self.install_sheet_bulk_preflighted(target, primitives, formulas)
             .map(|_| ())
             .map_err(|_| "Could not copy the worksheet cells.")
     }
@@ -263,15 +266,10 @@ impl Workbook {
         self.sheets[target].set_conditional_rules(rules);
     }
 
-    fn copy_filter(&mut self, source: usize, target: usize) -> Result<(), &'static str> {
-        let mut states = self.snapshot_filters().into_sheets();
-        let Some(mut copy) = states.iter().find(|s| s.sheet_index == source).cloned() else {
-            return Ok(());
-        };
-        copy.sheet_index = target;
-        states.push(copy);
-        self.restore_filters(FilterSnapshot::from_sheets(states))
-            .map(|_| ())
-            .map_err(|_| "Could not copy the worksheet filter.")
+    fn copy_filter(&mut self, source: usize, target: usize) {
+        let filter = self.sheets[source].filter().cloned();
+        if self.sheets[target].commit_filter_state(filter) {
+            self.republish_hidden(target);
+        }
     }
 }

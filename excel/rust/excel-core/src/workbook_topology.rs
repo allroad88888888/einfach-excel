@@ -6,7 +6,7 @@ use super::*;
 
 impl Workbook {
     pub fn add_sheet(&mut self, name: &str) -> usize {
-        if self.is_inside_custom_call() || self.ensure_workbook_unprotected().is_err() {
+        if self.is_inside_custom_call() {
             // Re-entrancy guard. Return the existing index if the name
             // happens to exist (idempotent — matches the dup-name branch
             // below) or 0 (Sheet1, always exists) so the caller gets a
@@ -18,6 +18,7 @@ impl Workbook {
         if let Some(&idx) = self.by_name.get(name) {
             return idx;
         }
+        // Appending an empty sheet does not write existing protected cells or their sources.
         let idx = self.sheets.len();
         // P3: every sheet shares the workbook's single store, so cross-sheet
         // dependencies can live as ordinary in-store edges (P6).
@@ -82,7 +83,7 @@ impl Workbook {
         restored_lambdas: Option<(&[FormulaLambdaChange], bool)>,
         restored_templates: Option<(&[FormulaSourceChange], bool)>,
     ) -> bool {
-        if self.is_inside_custom_call() || self.ensure_workbook_unprotected().is_err() {
+        if self.is_inside_custom_call() {
             return false; // re-entrancy guard
         }
         if self.by_name.contains_key(new_name) {
@@ -163,7 +164,7 @@ impl Workbook {
             self.apply_conditional_rule_sources(&conditional);
             self.apply_validation_rule_sources(&validations);
             for (sheet, addr, text) in rewrites {
-                self.set_formula(sheet, &addr.to_string_repr(), &text);
+                self.install_formula_source(sheet, addr, &text);
             }
         });
         true
@@ -181,7 +182,7 @@ impl Workbook {
     /// Formula ASTs store sheet names, so reordering updates the shared
     /// topology atom after the vectors and lookup are rebuilt.
     pub fn move_sheet(&mut self, from: usize, to: usize) -> bool {
-        if self.is_inside_custom_call() || self.ensure_workbook_unprotected().is_err() {
+        if self.is_inside_custom_call() {
             return false; // re-entrancy guard
         }
         if from >= self.sheets.len() || to >= self.sheets.len() {

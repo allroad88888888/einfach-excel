@@ -9,7 +9,6 @@ impl WorkbookHistory {
         source: usize,
     ) -> Result<usize, &'static str> {
         self.require_idle()?;
-        workbook.ensure_workbook_unprotected()?;
         let name = workbook.unique_copy_name(source)?;
         let index = workbook.copy_sheet_after(source, &name)?;
         let change = SheetHistoryChange::created(workbook, index);

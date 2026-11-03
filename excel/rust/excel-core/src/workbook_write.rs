@@ -3,55 +3,6 @@
 use super::*;
 
 impl Workbook {
-    pub fn set_formula(&mut self, sheet_idx: usize, addr_str: &str, formula_text: &str) -> bool {
-        if self.is_inside_custom_call() {
-            return false; // re-entrancy guard; see `set_cell` for rationale
-        }
-        if sheet_idx >= self.sheets.len() {
-            return false;
-        }
-        let addr = match CellAddress::parse(addr_str) {
-            Some(a) => a,
-            None => return false,
-        };
-        if self.ensure_range_editable(sheet_idx, CellRange::single(addr)).is_err() {
-            return false;
-        }
-        let rows = self.insert_rows_for_writes([(sheet_idx, addr)]);
-        if !rows.is_empty() && self.ensure_workbook_unprotected().is_err() { return false; }
-        self.write_with_insert_rows(rows, |book| {
-            let array_dependents = book.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
-            let expr = match parse_formula(formula_text) {
-                Some(e) => e,
-                None => {
-                    book.cyclic_formulas.remove(&(sheet_idx, addr));
-                    book.sheets[sheet_idx].set_formula(addr_str, formula_text);
-                    book.recompute_array_formula_groups(array_dependents);
-                    return false;
-                }
-            };
-
-            if book.closes_workbook_cycle(sheet_idx, addr, &expr) {
-                if book.iterative_calculation.enabled {
-                    book.cyclic_formulas.remove(&(sheet_idx, addr));
-                    book.atom_context.mark_installed_cycles();
-                } else {
-                    book.cyclic_formulas
-                        .insert((sheet_idx, addr), formula_text.to_string());
-                    book.sheets[sheet_idx].write_error(addr, ValueError::CyclicRef);
-                    book.recompute_array_formula_groups(array_dependents);
-                    return false;
-                }
-            } else {
-                book.cyclic_formulas.remove(&(sheet_idx, addr));
-            }
-
-            let ok = book.sheets[sheet_idx].set_formula(addr_str, formula_text);
-            book.recompute_array_formula_groups(array_dependents);
-            ok
-        })
-    }
-
     /// Workbook-routed cell write. The target sheet's source atom belongs to
     /// the workbook-scoped Store, so materialized same- and cross-sheet
     /// formulas rederive through their normal dynamic dependencies.
@@ -213,7 +164,7 @@ impl Workbook {
         sheet.spill_blocker(addr)
     }
 
-    fn cross_sheet_array_dependents_for_addr(
+    pub(super) fn cross_sheet_array_dependents_for_addr(
         &self,
         source_sheet: usize,
         addr: CellAddress,

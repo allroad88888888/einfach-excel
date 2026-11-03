@@ -203,6 +203,8 @@ mod workbook_merge;
 mod workbook_visibility_types;
 #[path = "workbook_write.rs"]
 mod workbook_write;
+#[path = "workbook_formula_write.rs"]
+mod workbook_formula_write;
 pub use workbook_merge::MergeAction;
 
 pub(crate) use self::workbook_bulk_types::CustomCallScope;

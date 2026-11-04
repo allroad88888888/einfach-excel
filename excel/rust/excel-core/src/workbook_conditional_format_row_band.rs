@@ -44,8 +44,8 @@ impl FormulaRuleChange {
         map: &impl Fn(CellRange) -> Result<Vec<CellRange>, &'static str>,
         limit_error: &'static str,
     ) -> Result<Vec<Self>, &'static str> {
-        // 包括其它工作表的公式消费者；保留未实现的旧规则原文。
-        let mut changes = Self::prepare(workbook, &|owner, _, expr| rewrite(owner, expr));
+        // 包括其它工作表的公式消费者；保留未实现的旧规则原文。本表的验证规则随区域位移由调用者改写。
+        let mut changes = Self::prepare_except(workbook, &|owner, _, expr| rewrite(owner, expr), Some(sheet));
         let key = workbook.sheet_keys[sheet];
         for before in &workbook.conditional_formats[sheet].rules {
             let mut ranges = Vec::new();
@@ -56,7 +56,7 @@ impl FormulaRuleChange {
             let change = if let Some(index) = changes.iter().position(|change| change.sheet_key == key) {
                 &mut changes[index]
             } else {
-                changes.push(Self { sheet_key: key, entries: Vec::new() });
+                changes.push(Self { sheet_key: key, entries: Vec::new(), validations: Vec::new() });
                 changes.last_mut().unwrap()
             };
             let after = if let Some(index) = change.entries.iter().position(|(old, _)| old.id == before.id) {

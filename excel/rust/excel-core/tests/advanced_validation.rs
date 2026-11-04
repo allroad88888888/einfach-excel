@@ -22,6 +22,8 @@ mod confirmation;
 mod fill_history;
 #[path = "advanced_validation/formulas.rs"]
 mod formulas;
+#[path = "advanced_validation/reference_rewrites.rs"]
+mod reference_rewrites;
 #[path = "advanced_validation/repeated_references.rs"]
 mod repeated_references;
 #[path = "advanced_validation/table_candidate_rows.rs"]

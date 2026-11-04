@@ -5,6 +5,7 @@
 //! | `mod`（本文件） | 位移几何：方向、正交带、受影响矩形与单格映射；历史条目的数据形状 |
 //! | `preflight` | Excel 拒绝的情形：合并格、Table、溢出数组、筛选、保护与推出画布 |
 //! | `prepare` | 一次性生成前后像：带内内容、带外公式、条件格式、验证、名称 |
+//! | `validation` | 本表自定义公式验证的锚点与公式随位移改写 |
 //! | `apply` | 校验当前状态后在一个 Store batch 内安装某一侧的前后像 |
 //!
 //! 首次执行与重做走同一条 `apply(undo = false)` 路径，撤销安装前像。
@@ -20,6 +21,7 @@ use crate::shift::ShiftEdit;
 mod apply;
 mod preflight;
 mod prepare;
+mod validation;
 #[cfg(test)]
 mod tests;
 

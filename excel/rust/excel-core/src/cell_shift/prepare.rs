@@ -86,8 +86,9 @@ impl CellShiftChange {
         let validations_before = target.data_validations().to_vec();
         let mut validations_after = Vec::new();
         for region in &validations_before {
+            let rule = shift.shift_validation_rule(&region.rule, region.range, &name);
             for range in band_shift_range(region.range, edit, band) {
-                validations_after.push(DataValidationRegion { range, rule: region.rule.clone() });
+                validations_after.push(DataValidationRegion { range, rule: rule.clone() });
             }
         }
         if validations_after.len() > crate::data_validation::MAX_VALIDATION_REGIONS {

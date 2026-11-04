@@ -1,5 +1,6 @@
-//! 公式改写历史只保留确实变化的条件规则；不回滚同表的不相关规则。
+//! 公式改写历史只保留确实变化的条件格式与数据验证规则；不回滚同表的不相关规则。
 use super::*;
+use crate::data_validation::{DataValidationKind, DataValidationRegion};
 
 #[path = "workbook_conditional_format_row_band.rs"]
 mod row_band;
@@ -8,12 +9,23 @@ mod row_band;
 pub(super) struct FormulaRuleChange {
     pub sheet_key: u64,
     entries: Vec<(ConditionalFormatRuleEntry, ConditionalFormatRuleEntry)>,
+    /// 自定义公式验证规则的前后像；区域不变，只改写公式。
+    validations: Vec<(DataValidationRegion, DataValidationRegion)>,
 }
 
 impl FormulaRuleChange {
     pub fn prepare(
         workbook: &Workbook,
         rewrite: &impl Fn(usize, CellRange, &mut Expr) -> bool,
+    ) -> Vec<Self> {
+        Self::prepare_except(workbook, rewrite, None)
+    }
+
+    /// `own_validations` 的验证规则由调用者随区域位移一并改写，这里跳过以免重复。
+    pub(super) fn prepare_except(
+        workbook: &Workbook,
+        rewrite: &impl Fn(usize, CellRange, &mut Expr) -> bool,
+        own_validations: Option<usize>,
     ) -> Vec<Self> {
         let mut changes = Vec::new();
         for (sheet, config) in workbook.conditional_formats.iter().enumerate() {
@@ -39,10 +51,14 @@ impl FormulaRuleChange {
                     entries.push((entry.clone(), after));
                 }
             }
-            if !entries.is_empty() {
+            let validations = if own_validations == Some(sheet) { Vec::new() } else {
+                rewritten_validations(&workbook.sheets[sheet], &|range, expr| rewrite(sheet, range, expr))
+            };
+            if !entries.is_empty() || !validations.is_empty() {
                 changes.push(Self {
                     sheet_key: workbook.sheet_keys[sheet],
                     entries,
+                    validations,
                 });
             }
         }
@@ -65,6 +81,12 @@ impl FormulaRuleChange {
                 return Err("A referring conditional formula changed outside history.");
             }
         }
+        let regions = workbook.sheets[sheet].data_validations();
+        for (before, after) in &self.validations {
+            if !regions.contains(if undo { after } else { before }) {
+                return Err("A referring validation formula changed outside history.");
+            }
+        }
         Ok(())
     }
 
@@ -74,6 +96,15 @@ impl FormulaRuleChange {
             .iter()
             .position(|key| *key == self.sheet_key)
             .expect("named-rule preflight checked worksheet identity");
+        if !self.validations.is_empty() {
+            let regions = &mut workbook.sheets[sheet].data_validations;
+            for (before, after) in &self.validations {
+                let (expected, next) = if undo { (after, before) } else { (before, after) };
+                *regions.iter_mut().find(|region| *region == expected)
+                    .expect("named-rule preflight checked validation identity") = next.clone();
+            }
+        }
+        if self.entries.is_empty() { return; }
         let mut rules = workbook.conditional_formats[sheet].rules.clone();
         for (before, after) in &self.entries {
             let next = if undo { before } else { after };
@@ -86,4 +117,23 @@ impl FormulaRuleChange {
             .replace_conditional_format_rules(sheet, rules)
             .expect("named-rule preflight checked revision");
     }
+}
+
+/// 自定义公式验证规则按回调改写；相对引用以规则锚点为基准，与公式所在区域无关。
+fn rewritten_validations(
+    sheet: &crate::sheet::Sheet,
+    rewrite: &impl Fn(CellRange, &mut Expr) -> bool,
+) -> Vec<(DataValidationRegion, DataValidationRegion)> {
+    sheet.data_validations().iter().filter_map(|region| {
+        let DataValidationKind::CustomFormula { formula, .. } = &region.rule.kind else { return None };
+        let mut expr = parse_formula(formula)?;
+        if !rewrite(region.range, &mut expr) { return None; }
+        let next = crate::render_formula(&expr);
+        if next == *formula { return None; }
+        let mut after = region.clone();
+        if let DataValidationKind::CustomFormula { formula, .. } = &mut Arc::make_mut(&mut after.rule).kind {
+            *formula = next;
+        }
+        Some((region.clone(), after))
+    }).collect()
 }

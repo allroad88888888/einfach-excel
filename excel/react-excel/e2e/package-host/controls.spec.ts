@@ -6,6 +6,7 @@ import {
   button,
   select,
   edit,
+  formula,
   snapshot,
   eventCount,
   noNewEvents,
@@ -191,7 +192,8 @@ for (const bundler of ['vite', 'rspack']) {
     await expect(cell(page, '0:0')).toHaveText('7')
     await select(page, 'A2', '1:0')
     const count = await eventCount(page)
-    await edit(page, '9')
+    // 锁定格的公式栏只读，不能输入；值与宿主事件都不变。
+    await expect(formula(page)).not.toBeEditable()
     await expect(cell(page, '1:0')).toHaveText('2')
     await noNewEvents(page, count)
     await book(page)

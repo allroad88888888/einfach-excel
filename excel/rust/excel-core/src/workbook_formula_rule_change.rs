@@ -142,16 +142,32 @@ impl FormulaRuleChange {
     }
 }
 
-/// 自定义公式验证规则按回调改写。公式文本以规则锚点为基准（区域可能已被拆分或移开），
-/// 所以回调的位置上下文是锚点格，而不是区域：隐式本行引用按锚点所在行换算。
+/// 自定义公式验证规则按回调改写。验证在区域各格求值、公式文本却以锚点为基准：先把公式平移到
+/// 区域起点交给回调（Table 引用按区域判断归属、本行与动态取行），改写后再平移回锚点。平移会让
+/// 原本有效的引用越界成 #REF! 时，不平移、直接以区域为上下文改写。
 fn rewritten_validations(
     sheet: &crate::sheet::Sheet,
     rewrite: &impl Fn(CellRange, &mut Expr) -> bool,
 ) -> Vec<(DataValidationRegion, DataValidationRegion)> {
+    let ref_errors = |expr: &Expr| crate::render_formula(expr).matches("#REF!").count();
     sheet.data_validations().iter().filter_map(|region| {
         let DataValidationKind::CustomFormula { formula, anchor } = &region.rule.kind else { return None };
-        let mut expr = parse_formula(formula)?;
-        if !rewrite(CellRange::single(*anchor), &mut expr) { return None; }
+        let original = parse_formula(formula)?;
+        let rows = i64::from(region.range.start.row) - i64::from(anchor.row);
+        let cols = i64::from(region.range.start.col) - i64::from(anchor.col);
+        let at_start = crate::shift::shift_copy_formula(&original, rows, cols).ok()
+            .filter(|expr| ref_errors(expr) <= ref_errors(&original));
+        let expr = match at_start {
+            Some(mut expr) => {
+                if !rewrite(region.range, &mut expr) { return None; }
+                crate::shift::shift_copy_formula(&expr, -rows, -cols).ok()?
+            }
+            None => {
+                let mut expr = original;
+                if !rewrite(region.range, &mut expr) { return None; }
+                expr
+            }
+        };
         let next = crate::render_formula(&expr);
         if next == *formula { return None; }
         let mut after = region.clone();

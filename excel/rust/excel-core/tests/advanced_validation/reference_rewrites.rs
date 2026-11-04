@@ -167,3 +167,100 @@ fn appending_a_table_row_rewrites_validations_on_its_sheet() {
     history.undo(&mut book).unwrap();
     assert!(same_formula(rule_at(&book, 0, "C1"), "=$A$4=5", "C1"));
 }
+
+#[test]
+fn a_whole_column_validation_survives_a_cell_insert_at_its_first_row() {
+    // 回归：整列区域位移前后范围相同，按"已移动"求位移前位置时 0 - 1 下溢。
+    let mut book = Workbook::new();
+    let mut history = WorkbookHistory::default();
+    install(&mut book, range("B1", "B1048576"), formula("=B1>0", "B1"));
+    let down = CellShiftDirection::InsertDown;
+    assert!(history.shift_cells(&mut book, 0, range("B1", "B1"), down).unwrap());
+    assert!(rule_at(&book, 0, "B5").is_some());
+}
+
+#[test]
+fn an_unrelated_cell_shift_leaves_a_partly_out_of_range_rule_intact() {
+    // 回归：未移动的规则也被重定到区域起点，B1 处越界的引用变成 #REF!，B2、B3 随之全部失效。
+    let mut book = Workbook::new();
+    let mut history = WorkbookHistory::default();
+    book.set_cell(0, "A1", Value::Number(1.0));
+    install(&mut book, range("B1", "B3"), formula("=$A1>0", "B2"));
+    assert!(book.set_cell_input(0, "B2", "1").is_ok());
+    let down = CellShiftDirection::InsertDown;
+    assert!(history.shift_cells(&mut book, 0, range("D1", "D1"), down).unwrap());
+    assert!(same_formula(rule_at(&book, 0, "B2"), "=$A1>0", "B2"));
+    assert!(book.set_cell_input(0, "B2", "2").is_ok());
+}
+
+/// `Sheet1!A1:B4` is Table `Sales` (Amount 2, 3, 4 in A2:A4) for validation context tests.
+fn sales_table() -> (Workbook, WorkbookHistory) {
+    let mut book = Workbook::new();
+    let mut history = WorkbookHistory::default();
+    book.set_cell(0, "A1", Value::Text("Amount".into()));
+    book.set_cell(0, "B1", Value::Text("Check".into()));
+    for row in 2..=4 {
+        book.set_cell(0, &format!("A{row}"), Value::Number(row as f64));
+    }
+    history.create_table(&mut book, 0, range("A1", "B4"), Some("Sales")).unwrap();
+    (book, history)
+}
+
+#[test]
+fn converting_a_table_handles_a_validation_anchored_on_the_header() {
+    // 回归：以表头锚点解析本行引用直接得到错误表达式，转换后所有输入都被拒。
+    let (mut book, mut history) = sales_table();
+    install(&mut book, range("B2", "B3"), formula("=Sales[@Amount]>0", "B1"));
+    assert!(book.set_cell_input(0, "B2", "x").is_ok());
+    history.convert_table_to_range(&mut book, "Sales").unwrap();
+    assert!(book.set_cell_input(0, "B2", "y").is_ok());
+    assert!(book.set_cell_input(0, "B3", "z").is_ok());
+}
+
+#[test]
+fn renaming_a_column_rewrites_a_validation_anchored_outside_the_table() {
+    // 回归：以表外锚点判断裸列引用的归属，改名被跳过，验证仍引用旧列。
+    let (mut book, mut history) = sales_table();
+    install(&mut book, range("B2", "B3"), formula("=[@Amount]>0", "D1"));
+    assert!(book.set_cell_input(0, "B2", "x").is_ok());
+    assert!(history.rename_table_column(&mut book, "Sales", "Amount", "Total").unwrap());
+    assert!(book.set_cell_input(0, "B2", "y").is_ok());
+}
+
+/// B2:B4 checks column C row by row; C5 is 0 so a rule that slips one row down rejects B5.
+fn expanded_piece(table: bool) {
+    let mut book = Workbook::new();
+    let mut history = WorkbookHistory::default();
+    if table {
+        book.set_cell(0, "A1", Value::Text("Qty".into()));
+        book.set_cell(0, "B1", Value::Text("Check".into()));
+        book.set_cell(0, "A2", Value::Number(1.0));
+        history.create_table(&mut book, 0, range("A1", "B2"), Some("Lines")).unwrap();
+    }
+    for row in 2..=4 {
+        book.set_cell(0, &format!("C{row}"), Value::Number(1.0));
+    }
+    book.set_cell(0, "C5", Value::Number(0.0));
+    install(&mut book, range("B2", "B4"), formula("=$C2>0", "B2"));
+    assert!(book.set_cell_input(0, "B4", "9").is_ok());
+    if table {
+        history.append_table_row(&mut book, "Lines", 1_048_576).unwrap();
+    } else {
+        let down = CellShiftDirection::InsertDown;
+        assert!(history.shift_cells(&mut book, 0, range("B3", "B3"), down).unwrap());
+    }
+    assert_eq!(book.get_cell("Sheet1", "B5"), Value::Number(9.0));
+    assert!(book.set_cell_input(0, "B5", "10").is_ok());
+    assert!(book.set_cell_input(0, "B2", "1").is_ok());
+}
+
+#[test]
+fn the_moved_part_of_an_expanded_region_keeps_checking_its_own_row() {
+    // 回归：跨过插入线的区域只有一个锚点，移到 B5 的原 B4 改为检查 C5。
+    expanded_piece(false);
+}
+
+#[test]
+fn a_table_row_insert_keeps_the_moved_validation_on_its_own_row() {
+    expanded_piece(true);
+}

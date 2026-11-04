@@ -93,24 +93,42 @@ pub const MAX_VALIDATION_LIST_ITEMS: usize = 1024;
 pub const MAX_VALIDATION_LIST_BYTES: usize = 64 * 1024;
 
 impl DataValidationRule {
-    /// 区域拆分/位移后的一块以自身起点 `start` 为锚点：公式先平移到该块位移前的起点 `origin`，
-    /// 再由 `rewrite` 按位移改写引用；移动的块与留在原处的块都保持各自格子的原求值。
+    /// 位移后的一块（块内各格位移相同，为 `delta`（行, 列））对应的规则；`before` 是该块位移前的区域。
+    /// 原锚点落在这一块里时，锚点随块平移、公式从锚点视角改写，不做平移复制；否则把公式重定到
+    /// 该块位移前的起点再改写、以块起点为锚点。重定会让原本有效的引用越界成 #REF! 时，退回锚点视角。
     /// 不是自定义公式或无法解析时原样共享。
-    pub(crate) fn rebased_for_piece(
+    pub(crate) fn for_shifted_piece(
         self: &Arc<Self>,
-        origin: crate::CellAddress,
-        start: crate::CellAddress,
+        before: CellRange,
+        delta: (i64, i64),
         rewrite: impl FnOnce(&mut crate::formula::Expr) -> bool,
     ) -> Arc<Self> {
         let DataValidationKind::CustomFormula { formula, anchor } = &self.kind else {
             return self.clone();
         };
-        let Some(expr) = crate::parse_formula(formula) else { return self.clone() };
-        let rows = i64::from(origin.row) - i64::from(anchor.row);
-        let cols = i64::from(origin.col) - i64::from(anchor.col);
-        let Ok(mut expr) = crate::shift::shift_copy_formula(&expr, rows, cols) else {
-            return self.clone();
+        let Some(original) = crate::parse_formula(formula) else { return self.clone() };
+        let moved = |addr: crate::CellAddress| {
+            let row = i64::from(addr.row) + delta.0;
+            let col = i64::from(addr.col) + delta.1;
+            (row >= 0 && col >= 0 && row < i64::from(crate::sheet::EXCEL_MAX_ROWS)
+                && col < i64::from(crate::sheet::EXCEL_MAX_COLS))
+                .then(|| crate::CellAddress::new(row as u32, col as u32))
         };
+        let ref_errors = |expr: &crate::formula::Expr| crate::render_formula(expr).matches("#REF!").count();
+        let keep_anchor = || moved(*anchor).map(|at| (original.clone(), at));
+        let rebase = || {
+            let rows = i64::from(before.start.row) - i64::from(anchor.row);
+            let cols = i64::from(before.start.col) - i64::from(anchor.col);
+            let rebased = crate::shift::shift_copy_formula(&original, rows, cols).ok()?;
+            (ref_errors(&rebased) <= ref_errors(&original)).then_some(())?;
+            Some((rebased, moved(before.start)?))
+        };
+        let chosen = if before.contains(*anchor) {
+            keep_anchor().or_else(rebase)
+        } else {
+            rebase().or_else(keep_anchor)
+        };
+        let Some((mut expr, start)) = chosen else { return self.clone() };
         rewrite(&mut expr);
         let kind = DataValidationKind::CustomFormula { formula: crate::render_formula(&expr), anchor: start };
         if kind == self.kind { return self.clone(); }

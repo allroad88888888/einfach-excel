@@ -50,6 +50,71 @@ pub(crate) fn band_shift_range(bounds: CellRange, edit: ShiftEdit, band: (u32, u
     next
 }
 
+/// `band_shift_range` 的同质拆分：每块内各格位移相同，返回（位移前区域, 位移量, 位移后区域）。
+/// 插入时带内"未动部分 + 插入格"为一块、位移 0，其后部分整体移动；删除时被删部分消失。
+/// 数据验证按块各自换算公式锚点；位移量是（行, 列）。
+pub(crate) fn band_shift_pieces(
+    bounds: CellRange, edit: ShiftEdit, band: (u32, u32),
+) -> Vec<(CellRange, (i64, i64), CellRange)> {
+    let rows = edit.is_row_edit();
+    let (o_start, o_end, a_start, a_end) = if rows {
+        (bounds.start.col, bounds.end.col, bounds.start.row, bounds.end.row)
+    } else {
+        (bounds.start.row, bounds.end.row, bounds.start.col, bounds.end.col)
+    };
+    let (at, count, insert, limit) = match edit {
+        ShiftEdit::RowInsert { at, count } => (at, count, true, EXCEL_MAX_ROWS),
+        ShiftEdit::RowDelete { at, count } => (at, count, false, EXCEL_MAX_ROWS),
+        ShiftEdit::ColInsert { at, count } => (at, count, true, EXCEL_MAX_COLS),
+        ShiftEdit::ColDelete { at, count } => (at, count, false, EXCEL_MAX_COLS),
+    };
+    let full_axis = a_start == 0 && a_end == limit - 1;
+    if count == 0 || o_end < band.0 || o_start > band.1 || a_end < at || full_axis {
+        return vec![(bounds, (0, 0), bounds)];
+    }
+    let piece = |o: (u32, u32), a: (u32, u32)| if rows {
+        CellRange::new(CellAddress::new(a.0, o.0), CellAddress::new(a.1, o.1))
+    } else {
+        CellRange::new(CellAddress::new(o.0, a.0), CellAddress::new(o.1, a.1))
+    };
+    let delta = |by: i64| if rows { (by, 0) } else { (0, by) };
+    let mut next = Vec::with_capacity(4);
+    if o_start < band.0 {
+        let side = piece((o_start, band.0 - 1), (a_start, a_end));
+        next.push((side, (0, 0), side));
+    }
+    let middle = (o_start.max(band.0), o_end.min(band.1));
+    if insert {
+        if a_start < at {
+            // 跨过插入线的部分不动，插入格并入其后。
+            let after = (a_start, (at + count - 1).min(limit - 1));
+            next.push((piece(middle, (a_start, at - 1)), (0, 0), piece(middle, after)));
+        }
+        let first = a_start.max(at);
+        if first + count < limit {
+            let after = (first + count, (a_end + count).min(limit - 1));
+            let before = (first, after.1 - count);
+            next.push((piece(middle, before), delta(i64::from(count)), piece(middle, after)));
+        }
+    } else {
+        let last_deleted = at + count - 1;
+        if a_start < at {
+            let kept = piece(middle, (a_start, a_end.min(at - 1)));
+            next.push((kept, (0, 0), kept));
+        }
+        if a_end > last_deleted {
+            let before = (a_start.max(last_deleted + 1), a_end);
+            let after = (before.0 - count, before.1 - count);
+            next.push((piece(middle, before), delta(-i64::from(count)), piece(middle, after)));
+        }
+    }
+    if o_end > band.1 {
+        let side = piece((band.1 + 1, o_end), (a_start, a_end));
+        next.push((side, (0, 0), side));
+    }
+    next
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

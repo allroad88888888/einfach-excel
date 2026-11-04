@@ -5,6 +5,7 @@ import type { RustWorkbookConnection } from '../rust-workbook/commands'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { sheetTabsAtom } from '../sheet-tabs/state'
+import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../projection'
 import { isProjectionCommandReady } from '../projection/command-ready'
@@ -105,6 +106,10 @@ export const runCustomFormulaAtom = atom(null, async (get, set,
     set(panelAtom, { ...state, selected: definition.name, name: definition.name,
       parameters: definition.parameters.join(', '), expression: definition.expression, error: '' }); return true
   }
+  // 与名称一致：自定义公式是工作簿元数据，原生不按工作表保护拦截，只在当前工作表受保护时拒绝修改。
+  // 按钮保持可点，提交时给出原因，而不是静默禁用。
+  if (getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected')
+    return fail('Unprotect the worksheet before changing custom formulas.')
   if (!panel.available || visible?.kind !== 'visible-window' || result?.kind !== 'visible-window')
     return fail('Finish the current operation before changing a custom formula.')
   if (result.revision !== state.revision)

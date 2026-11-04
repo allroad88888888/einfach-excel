@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { setRustWorkbookConnectionAtom } from '../../src'
+import { setRustWorkbookConnectionAtom, setSheetProtectionAtom } from '../../src'
 import { customFormulaFunctionSpecsAtom, nativeCustomFormulaDefinitionsAtom } from '../../src/custom-formulas/expression-catalog'
 import { DOUBLE, setup } from './fixture'
 
@@ -66,4 +66,16 @@ test('native rejection retains draft; stale and malformed replies never install 
   expect(f.store.getter(nativeCustomFormulaDefinitionsAtom)).toEqual([])
   f.store.setter(setRustWorkbookConnectionAtom, null)
   expect(f.panel().open).toBe(false)
+})
+
+test('a protected active sheet refuses saving or removing, as in Excel; Rust no longer does', async () => {
+  // 回归：原生改为不按工作表保护拦截自定义公式后，受保护的当前工作表上仍能保存和删除。
+  const f = setup([DOUBLE])
+  await f.run('open'); await f.run({ select: 'DOUBLE' })
+  f.store.setter(setSheetProtectionAtom, { sheetId: 's', state: { mode: 'protected', unlockedRanges: [] } })
+  for (const action of ['save', 'remove'] as const) {
+    expect(await f.run(action)).toBe(false)
+    expect(f.panel().error).toBe('Unprotect the worksheet before changing custom formulas.')
+  }
+  expect(f.request.mock.calls.map(([command]) => command)).not.toContain('customFormula.change')
 })

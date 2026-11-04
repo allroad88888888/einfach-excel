@@ -106,7 +106,7 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'The named range no longer exists.': msg`The named range no longer exists.`,
   'The workbook changed. Reopen the name editor.': msg`The workbook changed. Reopen the name editor.`,
   'The view changed. Reopen the name editor.': msg`The view changed. Reopen the name editor.`,
-  'Unprotect the worksheets before changing workbook names.': msg`Unprotect the worksheets before changing workbook names.`,
+  'Unprotect the worksheet before changing workbook names.': msg`Unprotect the worksheet before changing workbook names.`,
   'Enter a defined name or a valid A1 or R1C1 reference, optionally prefixed by a worksheet name.': msg`Enter a defined name or a valid A1 or R1C1 reference, optionally prefixed by a worksheet name.`,
   'This recent location is no longer available.': msg`This recent location is no longer available.`,
   'Select one continuous range before using Go to special.': msg`Select one continuous range before using Go to special.`,

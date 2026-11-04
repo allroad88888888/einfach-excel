@@ -109,17 +109,19 @@ test('invalid targets and stale revisions are rejected before writing', async ()
   expect(request).not.toHaveBeenCalled()
 })
 
-test('protected workbook rejects changes and native rejection preserves the draft for retry', async () => {
+test('only a protected active sheet rejects changes; native rejection preserves the draft', async () => {
+  // 回归：任一工作表受保护就拒绝修改名称。与 Excel 一致，只有当前工作表受保护时才不可编辑。
   const { store, request, run } = setup()
   await run('open'); await run({ name: 'Revenue' })
-  store.setter(setSheetProtectionAtom, {
-    sheetId: 'source', state: { mode: 'protected', unlockedRanges: [] },
-  })
+  const protect = (sheetId: string, mode: 'open' | 'protected') =>
+    store.setter(setSheetProtectionAtom, { sheetId, state: { mode, unlockedRanges: [] } })
+  protect('view', 'protected')
   expect(await run('save')).toBe(false)
   expect(request).not.toHaveBeenCalled()
-  store.setter(setSheetProtectionAtom, {
-    sheetId: 'source', state: { mode: 'open', unlockedRanges: [] },
-  })
+  expect(store.getter(nativeNameManagerAtom).error)
+    .toBe('Unprotect the worksheet before changing workbook names.')
+  protect('view', 'open')
+  protect('source', 'protected')
   request.mockRejectedValueOnce(new Error('Name already in use'))
   expect(await run('save')).toBe(false)
   expect(store.getter(nativeNameManagerAtom)).toMatchObject({

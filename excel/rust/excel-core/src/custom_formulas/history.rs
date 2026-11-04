@@ -12,7 +12,6 @@ impl WorkbookHistory {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.");
         }
-        workbook.ensure_workbook_unprotected()?;
         let sheet_key = workbook
             .sheet_key(active_sheet)
             .ok_or("The worksheet no longer exists.")?;

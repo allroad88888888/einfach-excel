@@ -103,7 +103,8 @@ fn named_ranges_and_existing_host_callback_names_cannot_be_redefined() {
 }
 
 #[test]
-fn protected_workbook_rejects_registration_replacement_removal_and_replay_before_writes() {
+fn a_protected_sheet_does_not_lock_workbook_custom_formulas_or_their_replay() {
+    // 自定义公式是工作簿元数据（与 Excel 的 LAMBDA 名称一致），不受工作表保护限制。
     let mut book = Workbook::new();
     let mut history = WorkbookHistory::default();
     history
@@ -122,11 +123,12 @@ fn protected_workbook_rejects_registration_replacement_removal_and_replay_before
     ] {
         assert!(history
             .change_custom_formula(&mut book, 0, candidate)
-            .is_err());
-        assert_eq!(book.custom_formula_definitions(), before);
-        assert_eq!(history.undo_count(), 1);
+            .unwrap());
     }
-    assert!(history.undo(&mut book).is_err());
+    assert_eq!(history.undo_count(), 4);
+    for _ in 0..3 {
+        history.undo(&mut book).unwrap();
+    }
     assert_eq!(book.custom_formula_definitions(), before);
 }
 

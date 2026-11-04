@@ -43,6 +43,7 @@ export const sevenFeatureFeedback: Readonly<Record<string, MessageDescriptor>> =
   'Enter a custom formula name and expression.': msg`Enter a custom formula name and expression.`,
   'The workbook changed. Reopen the custom formula editor.': msg`The workbook changed. Reopen the custom formula editor.`,
   'Finish the current operation before changing a custom formula.': msg`Finish the current operation before changing a custom formula.`,
+  'Unprotect the worksheet before changing custom formulas.': msg`Unprotect the worksheet before changing custom formulas.`,
   'Rust returned a mismatched custom formula result.': msg`Rust returned a mismatched custom formula result.`,
   'Rust returned an invalid custom formula directory.': msg`Rust returned an invalid custom formula directory.`,
   'Rust custom formula editing is unavailable.': msg`Rust custom formula editing is unavailable.`,

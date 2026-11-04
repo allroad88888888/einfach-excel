@@ -7,7 +7,6 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(WorkbookError::MutationDuringCustomCall);
         }
-        self.ensure_workbook_unprotected().map_err(|_| WorkbookError::ProtectedWorkbook)?;
         let expr = parse_formula(formula).ok_or(WorkbookError::ParseFailed)?;
 
         // Evaluate against a workbook provider rooted on sheet 0. Sheet
@@ -43,7 +42,6 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(WorkbookError::MutationDuringCustomCall);
         }
-        self.ensure_workbook_unprotected().map_err(|_| WorkbookError::ProtectedWorkbook)?;
         Self::validate_name(name)?;
         let key = name.to_uppercase();
         if is_builtin_function_name(&key) {
@@ -74,7 +72,7 @@ impl Workbook {
     /// the same way `define_name` does, so formulas that recorded that Store
     /// dependency re-evaluate and now surface `#NAME?`.
     pub fn undefine_name(&mut self, name: &str) -> bool {
-        if self.is_inside_custom_call() || self.ensure_workbook_unprotected().is_err() {
+        if self.is_inside_custom_call() {
             return false; // re-entrancy guard
         }
         let key = name.to_uppercase();

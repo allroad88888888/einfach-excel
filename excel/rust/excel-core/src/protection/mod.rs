@@ -142,7 +142,7 @@ impl Workbook {
         })
     }
 
-    /// Bulk content and shared metadata writes require all affected sheets to be open.
+    /// Whole-workbook restores and bulk installs require every sheet to be open.
     pub fn ensure_workbook_unprotected(&self) -> Result<(), &'static str> {
         (0..self.sheet_count()).try_for_each(|sheet| self.ensure_sheet_unprotected(sheet))
     }

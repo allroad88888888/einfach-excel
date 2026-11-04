@@ -13,8 +13,6 @@ impl CustomFormulaChange {
         workbook: &Workbook,
         action: CustomFormulaAction,
     ) -> Result<Option<Self>, &'static str> {
-        // Recompute may touch every sheet: guard before definitions or history writes.
-        workbook.ensure_workbook_unprotected()?;
         let (key, after) = match action {
             CustomFormulaAction::Upsert { definition } => {
                 let definition = validation::normalize(definition)?;
@@ -80,7 +78,6 @@ impl CustomFormulaChange {
     }
 
     pub(crate) fn apply(&self, workbook: &mut Workbook, undo: bool) -> Result<(), &'static str> {
-        workbook.ensure_workbook_unprotected()?;
         let expected = if undo { &self.after } else { &self.before };
         if workbook.named_values.get(&self.key) != expected.as_ref() {
             return Err("The custom formula changed outside history.");

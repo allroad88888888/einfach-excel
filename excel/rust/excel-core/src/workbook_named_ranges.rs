@@ -24,7 +24,6 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(WorkbookError::MutationDuringCustomCall);
         }
-        self.ensure_workbook_unprotected().map_err(|_| WorkbookError::ProtectedWorkbook)?;
         let scope_key = match scope_sheet {
             None => None,
             Some(scope) => Some(
@@ -61,7 +60,6 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(WorkbookError::MutationDuringCustomCall);
         }
-        self.ensure_workbook_unprotected().map_err(|_| WorkbookError::ProtectedWorkbook)?;
         let scope_key = match scope_sheet {
             None => None,
             Some(scope) => Some(
@@ -89,7 +87,7 @@ impl Workbook {
     }
 
     pub fn undefine_scoped_name(&mut self, scope_sheet: Option<usize>, name: &str) -> bool {
-        if self.is_inside_custom_call() || self.ensure_workbook_unprotected().is_err() {
+        if self.is_inside_custom_call() {
             return false;
         }
         let scope_key = match scope_sheet {

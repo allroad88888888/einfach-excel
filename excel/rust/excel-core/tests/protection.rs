@@ -11,6 +11,8 @@ mod delete_sheet;
 mod sheet_tabs;
 #[path = "protection/tables.rs"]
 mod tables;
+#[path = "protection/names.rs"]
+mod names;
 use einfach_core::Value;
 use einfach_excel_core::{CellAddress, CellRange, CellStyle, StyleScope, Workbook};
 use einfach_excel_core::protection::{ProtectionChange, ProtectionMode, ProtectionRange, SheetProtection};

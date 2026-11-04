@@ -61,7 +61,6 @@ impl NamedRangeChange {
         workbook: &Workbook,
         action: NamedRangeAction,
     ) -> Result<Option<Self>, &'static str> {
-        workbook.ensure_workbook_unprotected()?;
         let resolve_scope = |scope: Option<usize>| -> Result<Option<u64>, &'static str> {
             match scope {
                 None => Ok(None),
@@ -319,7 +318,6 @@ impl NamedRangeChange {
     }
 
     pub(crate) fn apply(&self, workbook: &mut Workbook, undo: bool) -> Result<(), &'static str> {
-        workbook.ensure_workbook_unprotected()?;
         if workbook.is_inside_custom_call() {
             return Err("Cannot edit names during a custom call.");
         }

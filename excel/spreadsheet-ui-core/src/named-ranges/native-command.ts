@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'
+import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustWorkbookConnection } from '../rust-workbook/commands'
 import { editingSessionAtom } from '../editing/session-atoms'
@@ -39,9 +39,9 @@ export const changeNativeNamedRangeAtom = atom(null, async (get, set,
   if (get(editingSessionAtom).source || get(rustHistoryPanelAtom).busy ||
     get(sheetTabsAtom).mutation)
     throw new Error('Finish the current edit or history operation first.')
-  if (get(workbookDocumentAtom).sheets.some((s) =>
-    getSheetProtection(get(sheetProtectionAtom), s.id).mode === 'protected'))
-    throw new Error('Unprotect the worksheets before changing workbook names.')
+  // 与 Excel 一致：名称是工作簿元数据，只在当前工作表受保护时不可编辑。
+  if (getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected')
+    throw new Error('Unprotect the worksheet before changing workbook names.')
   if (input.revision !== undefined && input.revision !== result.revision)
     throw new Error('The workbook changed. Reopen the name editor.')
   const requestId = set(issueProjectionRequestIdAtom)

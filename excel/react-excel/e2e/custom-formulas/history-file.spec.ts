@@ -82,7 +82,7 @@ test('protected worksheet rejects custom definition mutation without changing na
   await choose(page)
   await page.getByLabel('Formula expression', { exact: true }).fill('=amount*3')
   await button(page, 'Replace formula').click()
-  await expect(page.getByRole('alert')).toContainText('protected')
+  await expect(page.getByRole('alert')).toContainText('Unprotect the worksheet')
   await button(page, 'Cancel').click(); await expect(cell(page, '2:10')).toHaveText('4')
   await neighbors(page)
 })

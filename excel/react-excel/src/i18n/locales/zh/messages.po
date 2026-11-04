@@ -6259,6 +6259,10 @@ msgstr "替换前，请先取消目标工作表保护。"
 msgid "Unprotect the worksheet before changing conditional formatting."
 msgstr "修改条件格式前，请先取消工作表保护。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Unprotect the worksheet before changing custom formulas."
+msgstr "修改自定义公式前，请先取消工作表保护。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheet before changing data validation."
 msgstr "修改数据验证前，请先取消工作表保护。"
@@ -6274,6 +6278,10 @@ msgstr "修改行高或列宽前，请先取消工作表保护。"
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheet before changing tables."
 msgstr "修改表格前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing workbook names."
+msgstr "修改工作簿名称前，请先取消工作表保护。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheet before filling cells."
@@ -6302,10 +6310,6 @@ msgstr "粘贴列宽前，请先取消工作表保护。"
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheet before sorting cells."
 msgstr "排序前，请先取消工作表保护。"
-
-#: src/i18n/feedback-messages.ts
-msgid "Unprotect the worksheets before changing workbook names."
-msgstr "修改工作簿名称前，请先取消工作表保护。"
 
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "Unprotect worksheet"

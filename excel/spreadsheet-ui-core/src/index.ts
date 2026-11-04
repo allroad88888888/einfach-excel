@@ -80,6 +80,7 @@ export * from './projection/run-visible-projection'
 export {
   publishedGeometryCurrentAtom, viewVisibleProjection, type VisibleProjectionView,
 } from './projection/covering-result'
+export { projectionCommandReadyAtom } from './projection/command-ready'
 export * from './remove-duplicates'
 export * from './selection'
 export * from './selection/pointer-selection-commands'

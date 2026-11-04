@@ -79,6 +79,11 @@ export interface BeginVisibleProjectionInput extends BeginProjectionBaseInput {
   readonly kind: 'visible-window'
   readonly window: CellRange
   readonly viewport?: VisibleProjectionRequest['viewport']
+  /**
+   * 只跟随用户浏览（滚动、缩窗、缩放）的窗口读取：背后没有数据变化。
+   * 在途时已发布结果仍是当前数据，命令可照常开始；刷新、写后读取、核对不得标记。
+   */
+  readonly browsing?: boolean
 }
 
 export interface BeginRangeProjectionInput extends BeginProjectionBaseInput {

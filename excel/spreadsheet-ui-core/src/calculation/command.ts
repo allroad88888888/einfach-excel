@@ -7,6 +7,7 @@ import {
   applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom,
 } from '../projection'
+import { isProjectionCommandReady } from '../projection/command-ready'
 import { validateProjectionResult } from '../projection/contracts'
 import type { RustWorkbookConnection } from '../rust-workbook/commands'
 import {
@@ -44,7 +45,7 @@ export const calculationAvailableAtom = atom((get) => {
   const feedback = get(feedbackAtom)
   return get(quickFormulaAvailableAtom) && !get(nativeTableFeedbackAtom).busy &&
     !(feedback.connection === get(rustWorkbookConnectionAtom) && feedback.busy) &&
-    projection.status === 'ready' &&
+    isProjectionCommandReady(get) &&
     projection.request?.sheetId === get(activeWorkbookSheetAtom)?.id
 })
 calculationAvailableAtom.debugLabel = 'spreadsheet.calculation.available'

@@ -155,7 +155,7 @@ export function useWorkbookViewport(options: UseWorkbookViewportOptions): Workbo
       reason: 'viewport',
       retainResult: true,
       maxCells,
-      reuseCoveringResult: true,
+      browsing: true,
     })
   }, [
     maxCells,

@@ -5,6 +5,7 @@ import {
   activeWorkbookSheetAtom,
   freezeFeedbackAtom,
   projectedFreezeAtom,
+  projectionCommandReadyAtom,
   projectionSnapshotAtom,
   runFreezeAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
@@ -26,7 +27,8 @@ export function FreezeTools() {
   const freeze = useAtomValue(projectedFreezeAtom)
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const projection = useAtomValue(projectionSnapshotAtom)
-  const ready = projection.status === 'ready' && projection.request?.sheetId === sheet?.id
+  const commandReady = useAtomValue(projectionCommandReadyAtom)
+  const ready = commandReady && projection.request?.sheetId === sheet?.id
   const editing = useAtomValue(editingSessionAtom).source !== null
   const frozen = Boolean(freeze && freeze.sheetId === sheet?.id && (freeze.rows || freeze.cols))
   return (

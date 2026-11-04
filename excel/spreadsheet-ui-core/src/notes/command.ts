@@ -7,6 +7,7 @@ import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../projection'
+import { isProjectionCommandReady } from '../projection/command-ready'
 import { isCellInRange, validateProjectionResult } from '../projection/contracts'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { sheetTabsAtom } from '../sheet-tabs/state'
@@ -39,7 +40,7 @@ export const notePanelAtom = atom((get) => {
   const selection = get(selectionSnapshotAtom)
   const current = state.connection === connection && state.sheetId === sheet?.id
   const ready =
-    projection.status === 'ready' &&
+    isProjectionCommandReady(get) &&
     result?.kind === 'visible-window' &&
     result.sheetId === sheet?.id &&
     result.revision !== undefined

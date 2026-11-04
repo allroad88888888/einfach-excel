@@ -1,8 +1,9 @@
 import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { directionalFillFeedbackAtom, dragFillHandleAtom, editingSessionAtom, fillHandleDragAtom,
-  projectedFreezeAtom, projectionSnapshotAtom, selectionSnapshotAtom, selectionRegionsAtom,
-  viewportGeometrySizesAtom, viewportMetricsAtom } from '@einfach-excel/spreadsheet-ui-core'
+  projectedFreezeAtom, projectionCommandReadyAtom, projectionSnapshotAtom, selectionSnapshotAtom,
+  selectionRegionsAtom, viewportGeometrySizesAtom, viewportMetricsAtom,
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useCallback, useEffect, useRef, type PointerEvent, type RefObject } from 'react'
 import { useGridDragAutoscroll } from '../../selection/use-grid-drag-autoscroll'
 import { workbookCellAtViewportPoint } from '../viewport/workbook-grid-hit-test'
@@ -22,6 +23,7 @@ export function FillHandle({ scrollRef, focusGrid }: {
   const sizes = useAtomValue(viewportGeometrySizesAtom)
   const projectedFreeze = useAtomValue(projectedFreezeAtom)
   const projection = useAtomValue(projectionSnapshotAtom)
+  const commandReady = useAtomValue(projectionCommandReadyAtom)
   const editing = useAtomValue(editingSessionAtom)
   const feedback = useAtomValue(directionalFillFeedbackAtom)
   const drag = useAtomValue(fillHandleDragAtom)
@@ -31,7 +33,7 @@ export function FillHandle({ scrollRef, focusGrid }: {
   const pointer = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null)
   const freeze = projectedFreeze?.sheetId === metrics.sheetId ? projectedFreeze : null
   const enabled = ['cell', 'range'].includes(selection.selection.kind) && regions.length === 1 &&
-    !editing.source && !feedback.busy && projection.status === 'ready' &&
+    !editing.source && !feedback.busy && commandReady &&
     projection.result?.sheetId === selection.selection.sheetId
   const update = ({ clientX, clientY }: { clientX: number; clientY: number }) => {
     const scroll = scrollRef.current

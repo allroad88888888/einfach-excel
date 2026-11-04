@@ -7,6 +7,7 @@ import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../projection'
+import { isProjectionCommandReady } from '../projection/command-ready'
 import { validateProjectionResult } from '../projection/contracts'
 import type { ProjectionRevision } from '../contracts'
 import { hydrateCustomFormulaDefinitionsAtom, nativeCustomFormulaDefinitionsAtom } from './expression-catalog'
@@ -39,7 +40,7 @@ export const customFormulaPanelAtom = atom(get => {
   const current = state.connection === connection && state.sheetId === sheet?.id
   return { ...state, open: Boolean(current && connection), busy: Boolean(current && state.phase),
     definitions: get(nativeCustomFormulaDefinitionsAtom),
-    available: Boolean(connection && sheet && projection.status === 'ready' &&
+    available: Boolean(connection && sheet && isProjectionCommandReady(get) &&
       projection.result?.kind === 'visible-window' && projection.result.sheetId === sheet.id &&
       projection.result.revision !== undefined && !get(editingSessionAtom).source &&
       !get(rustHistoryPanelAtom).busy && !get(sheetTabsAtom).mutation) }

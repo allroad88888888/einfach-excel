@@ -27,6 +27,7 @@ import {
   projectionSnapshotAtom,
   projectionSnapshotBackingAtom,
   sameProjectionRequest,
+  successorAfterFailedRead,
   type ProjectionLaneTicket,
 } from './state'
 import type {
@@ -129,11 +130,14 @@ export const beginProjectionAtom = atom(
     set(projectionRequestSequenceBackingAtom, requestId)
 
     if (request.kind === 'visible-window') {
+      const current = get(projectionSnapshotBackingAtom)
       const ticket: ProjectionLaneTicket<VisibleProjectionRequest> = Object.freeze({
         request,
         retainResult: input.retainResult === true,
+        // 刷新义务不随浏览读取消失：顶替的排队读取未完成，或保留的是失败快照里的旧结果。
+        publishedCurrent: input.kind === 'visible-window' && input.browsing === true &&
+          current.status !== 'error' && lanes.visibleWindow.queued?.publishedCurrent !== false,
       })
-      const current = get(projectionSnapshotBackingAtom)
 
       if (lanes.visibleWindow.active !== null) {
         // Capacity is exactly one: a newer visible intent replaces the queued
@@ -214,7 +218,9 @@ export const resolveProjectionAtom = atom(
         validation = undefined
       }
 
-      const successor = lanes.visibleWindow.queued
+      const settled = validation?.ok === true && result !== undefined
+      const successor = settled ? lanes.visibleWindow.queued
+        : successorAfterFailedRead(active, lanes.visibleWindow.queued)
       set(
         projectionLaneBackingAtom,
         Object.freeze({
@@ -223,7 +229,7 @@ export const resolveProjectionAtom = atom(
         }),
       )
 
-      if (validation === undefined || !validation.ok || result === undefined) {
+      if (!settled || result === undefined) {
         // A malformed response settles only the exact active transport. If a
         // successor exists it was already made active and the old mismatch
         // must not become the final product error.
@@ -368,7 +374,7 @@ export const rejectProjectionAtom = atom(
         return Object.freeze({ status: 'ignored', reason: 'stale' })
       }
 
-      const successor = lanes.visibleWindow.queued
+      const successor = successorAfterFailedRead(active, lanes.visibleWindow.queued)
       set(
         projectionLaneBackingAtom,
         Object.freeze({

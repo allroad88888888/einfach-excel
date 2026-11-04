@@ -3,7 +3,7 @@ import type { ProjectionViewport, VisibleProjectionResult } from '../contracts'
 import type { CellRange } from '../shared'
 import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
 import { DEFAULT_MAX_PROJECTION_CELLS } from './contracts'
-import type { ProjectionSnapshot } from './types'
+import type { ProjectionRequest, ProjectionSnapshot } from './types'
 
 /** 外层矩形完整包含内层矩形；空的内层矩形视为被包含。 */
 export function cellRangeContains(outer: CellRange, inner: CellRange): boolean {
@@ -33,6 +33,16 @@ function sameViewport(left?: ProjectionViewport, right?: ProjectionViewport): bo
     left.rowHeight === right.rowHeight &&
     left.colWidth === right.colWidth
   )
+}
+
+/** 两个请求读的是同一张表、同一窗口、同一像素预算。 */
+export function sameVisibleView(
+  left: ProjectionRequest | undefined,
+  right: ProjectionRequest | undefined,
+): boolean {
+  return left?.kind === 'visible-window' && right?.kind === 'visible-window' &&
+    left.sheetId === right.sheetId && sameWindow(left.window, right.window) &&
+    sameViewport(left.viewport, right.viewport)
 }
 
 function boundedRange(range: CellRange, maxCells: number): boolean {

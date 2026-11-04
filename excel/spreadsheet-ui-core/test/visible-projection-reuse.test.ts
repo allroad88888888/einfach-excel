@@ -31,7 +31,7 @@ function setup() {
   const run = (next = window, extra: Record<string, unknown> = {}) =>
     store.setter(runVisibleProjectionAtom, {
       sheetId: 's', reason: 'viewport', retainResult: true, window: next, viewport,
-      reuseCoveringResult: true, ...extra,
+      browsing: true, ...extra,
     })
   return { store, read, run }
 }
@@ -49,7 +49,7 @@ test('a size-backfill shrink inside the published window is not read again', asy
 test.each([
   ['a different pixel budget (frozen reads depend on it)', shrunk, { viewport: { ...viewport, height: 900 } }],
   ['an explicit revision', shrunk, { revision: 1 }],
-  ['a plain read without reuse (refresh, host write, outcome check)', shrunk, { reuseCoveringResult: undefined }],
+  ['a plain read without reuse (refresh, host write, outcome check)', shrunk, { browsing: undefined }],
   ['a larger window', { ...window, rowEnd: 140 }, {}],
 ])('reuse never stands in for %s', async (_case, next, extra) => {
   const r = setup()

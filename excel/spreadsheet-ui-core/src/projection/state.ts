@@ -25,6 +25,21 @@ export const IDLE_PROJECTION_SNAPSHOT: ProjectionSnapshot = Object.freeze({
 export interface ProjectionLaneTicket<Request extends ProjectionRequest = ProjectionRequest> {
   readonly request: Request
   readonly retainResult: boolean
+  /**
+   * 这次读取在途期间，已发布结果仍等于 Rust 状态。来自 BeginVisibleProjectionInput.browsing；
+   * 顶替未完成的非浏览读取、从失败快照开始、修改投影被它顶掉、前一读取带着刷新义务失败时都为 false。
+   */
+  readonly publishedCurrent?: boolean
+}
+
+/** 在途读取失败：它没完成的刷新义务转给后继读取。 */
+export function successorAfterFailedRead<Request extends ProjectionRequest>(
+  failed: ProjectionLaneTicket<Request>,
+  successor: ProjectionLaneTicket<Request> | null,
+): ProjectionLaneTicket<Request> | null {
+  if (successor === null || failed.publishedCurrent === true || successor.publishedCurrent !== true)
+    return successor
+  return Object.freeze({ ...successor, publishedCurrent: false })
 }
 
 export interface ProjectionLaneState {

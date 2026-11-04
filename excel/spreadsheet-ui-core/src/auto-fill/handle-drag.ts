@@ -1,6 +1,7 @@
 import { atom } from '@einfach/core'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { projectionSnapshotAtom } from '../projection'
+import { isProjectionCommandReady } from '../projection/command-ready'
 import { selectionSnapshotAtom, selectionRegionsAtom, selectionBoundsAtom, setSelectionAtom } from '../selection'
 import { rangeEquals, type CellCoord, type CellRange } from '../shared'
 import { directionalFillFeedbackAtom, fillSelectionAtom } from './directional-command'
@@ -44,7 +45,7 @@ export const dragFillHandleAtom = atom(null, async (get, set, action: Action): P
     if (!sheetId || !['cell', 'range'].includes(selection.selection.kind) ||
       get(selectionRegionsAtom).length !== 1 ||
       get(directionalFillFeedbackAtom).busy || get(editingSessionAtom).source ||
-      projection.status !== 'ready' || projection.result?.sheetId !== sheetId) return
+      !isProjectionCommandReady(get) || projection.result?.sheetId !== sheetId) return
     set(dragAtom, { sheetId, source: selection.range, range: selection.range,
       direction: null, copy: action.copy })
     return

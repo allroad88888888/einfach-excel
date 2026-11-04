@@ -8,6 +8,7 @@ import { selectionRegionsAtom, selectionSnapshotAtom } from '../../selection'
 import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../../projection'
 import { isCellInRange, validateProjectionResult } from '../../projection/contracts'
+import { isProjectionCommandReady } from '../../projection/command-ready'
 import { rustHistoryPanelAtom } from '../../history/rust-history-command'
 import { sheetTabsAtom } from '../../sheet-tabs/state'
 import type { CellCoord } from '../../shared'
@@ -41,7 +42,7 @@ export const nativeCommentPanelAtom = atom((get) => {
   const selection = get(selectionSnapshotAtom)
   const current = state.connection === connection && state.sheetId === sheet?.id
   const ready =
-    projection.status === 'ready' &&
+    isProjectionCommandReady(get) &&
     result?.kind === 'visible-window' &&
     result.sheetId === sheet?.id &&
     result.revision !== undefined

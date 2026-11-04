@@ -27,7 +27,7 @@ impl Workbook {
         }
         let rows = self.insert_rows_for_writes([(sheet_idx, addr)]);
         if !rows.is_empty() && !matches!(value, Value::Null)
-            && self.ensure_workbook_unprotected().is_err() { return; }
+            && self.ensure_tables_unprotected(&rows).is_err() { return; }
         self.write_with_insert_rows(rows, |book| {
             book.cyclic_formulas.remove(&(sheet_idx, addr));
             let array_dependents = book.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
@@ -80,7 +80,7 @@ impl Workbook {
             .map_err(|_| SheetError::ProtectedCell)?;
         let rows = self.insert_rows_for_writes([(sheet_idx, addr)]);
         if !rows.is_empty() && !matches!(value, Value::Null) {
-            self.ensure_workbook_unprotected().map_err(|_| SheetError::ProtectedCell)?;
+            self.ensure_tables_unprotected(&rows).map_err(|_| SheetError::ProtectedCell)?;
         }
         self.write_with_insert_rows(rows, |book| {
             book.cyclic_formulas.remove(&(sheet_idx, addr));
@@ -139,9 +139,8 @@ impl Workbook {
         let addr = CellAddress::parse(addr_str).ok_or(SheetError::InvalidAddress)?;
         self.ensure_range_editable(sheet_idx, CellRange::single(addr))
             .map_err(|_| SheetError::ProtectedCell)?;
-        if !self.insert_rows_for_writes([(sheet_idx, addr)]).is_empty() {
-            self.ensure_workbook_unprotected().map_err(|_| SheetError::ProtectedCell)?;
-        }
+        self.ensure_tables_unprotected(&self.insert_rows_for_writes([(sheet_idx, addr)]))
+            .map_err(|_| SheetError::ProtectedCell)?;
         Ok(self.set_formula(sheet_idx, addr_str, formula_text))
     }
 

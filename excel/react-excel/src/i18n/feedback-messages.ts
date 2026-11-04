@@ -279,7 +279,7 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'Rename failed: the column name is invalid.': msg`Rename failed: the column name is invalid.`,
   'Delete failed: the table could not be found.': msg`Delete failed: the table could not be found.`,
   'Table operation failed.': msg`Table operation failed.`,
-  'Unprotect the worksheets before changing tables.': msg`Unprotect the worksheets before changing tables.`,
+  'Unprotect the worksheet before changing tables.': msg`Unprotect the worksheet before changing tables.`,
   'Preparing download…': msg`Preparing download…`,
   'Opening workbook…': msg`Opening workbook…`,
   'Download requested. Keep the file to save your work.': msg`Download requested. Keep the file to save your work.`,

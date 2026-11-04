@@ -61,7 +61,7 @@ impl TableDefinitionChange {
         }) else {
             return Ok(None);
         };
-        workbook.ensure_workbook_unprotected()?;
+        workbook.ensure_tables_unprotected([before])?;
         let mut after = before.clone();
         after.insert_row = false;
         if inherit_columns {

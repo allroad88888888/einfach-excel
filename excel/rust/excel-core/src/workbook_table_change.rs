@@ -63,7 +63,6 @@ impl TableDefinitionChange {
         name: &str,
         new_name: &str,
     ) -> Result<Option<Self>, TableError> {
-        workbook.ensure_workbook_unprotected().map_err(|_| TableError::ProtectedWorkbook)?;
         if workbook.is_inside_custom_call() {
             return Err(TableError::MutationDuringCustomCall);
         }
@@ -78,6 +77,8 @@ impl TableDefinitionChange {
         let sheet = workbook
             .index_of(before.sheet_name())
             .ok_or(TableError::SheetNotFound)?;
+        // 只锁 Table 所在工作表；其他工作表（含受保护的）里的结构化引用照常改写。
+        workbook.ensure_sheet_unprotected(sheet).map_err(|_| TableError::ProtectedWorkbook)?;
         let mut after = before.clone();
         after.canonical_name = new_name.into();
         let rewrite =
@@ -115,7 +116,7 @@ impl TableDefinitionChange {
     }
 
     pub(crate) fn apply(&self, workbook: &mut Workbook, undo: bool) -> Result<(), &'static str> {
-        workbook.ensure_workbook_unprotected()?;
+        workbook.ensure_sheet_unprotected(self.sheet)?;
         if workbook.is_inside_custom_call() {
             return Err("Cannot change a table during a custom call.");
         }

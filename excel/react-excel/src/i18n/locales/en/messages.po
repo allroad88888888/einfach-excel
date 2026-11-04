@@ -6272,6 +6272,10 @@ msgid "Unprotect the worksheet before changing row or column sizes."
 msgstr "Unprotect the worksheet before changing row or column sizes."
 
 #: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing tables."
+msgstr "Unprotect the worksheet before changing tables."
+
+#: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheet before filling cells."
 msgstr "Unprotect the worksheet before filling cells."
 
@@ -6298,10 +6302,6 @@ msgstr "Unprotect the worksheet before pasting column widths."
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheet before sorting cells."
 msgstr "Unprotect the worksheet before sorting cells."
-
-#: src/i18n/feedback-messages.ts
-msgid "Unprotect the worksheets before changing tables."
-msgstr "Unprotect the worksheets before changing tables."
 
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheets before changing workbook names."

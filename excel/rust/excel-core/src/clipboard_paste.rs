@@ -100,7 +100,7 @@ impl Workbook {
             && !self
                 .insert_rows_for_writes(planned.iter().map(|(addr, _, _)| (sheet_idx, *addr)))
                 .is_empty();
-        if enters_table { self.ensure_workbook_unprotected()?; }
+        if enters_table { self.ensure_sheet_unprotected(sheet_idx)?; }
         let mut history = history
             .or_else(|| (enters_table || !validation_formulas.is_empty()).then_some(&mut rollback));
         let sheet = self.sheet(sheet_idx).unwrap();
@@ -135,7 +135,7 @@ impl Workbook {
         for addr in borders.keys() {
             self.ensure_range_editable(sheet_idx, CellRange::single(*addr))?;
         }
-        if expansion.is_some() { self.ensure_workbook_unprotected()?; }
+        if expansion.is_some() { self.ensure_sheet_unprotected(sheet_idx)?; }
 
         if let Some(change) = expansion {
             let mut affected = range;

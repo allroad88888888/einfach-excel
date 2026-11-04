@@ -18,10 +18,8 @@ impl HistoryEntry {
                     workbook.ensure_range_editable(*sheet, snapshot.range)?;
                 }
                 dimensions.validate(workbook, undo)?;
-                if !table_rows.is_empty() {
-                    // Activating/deactivating an insert row changes the shared Table definition.
-                    workbook.ensure_workbook_unprotected()?;
-                }
+                // Activating/deactivating an insert row changes the Table on its own worksheet.
+                workbook.ensure_tables_unprotected(table_rows)?;
                 Ok(())
             }
             // Worksheet protection governs cell edits, not sheet structure or tab metadata.
@@ -33,10 +31,11 @@ impl HistoryEntry {
             HistoryChange::Structure(_) | HistoryChange::CellShift(_) => std::iter::once(self.sheet)
                 .chain(self.affected_indices.iter().copied())
                 .try_for_each(|sheet| workbook.ensure_sheet_unprotected(sheet)),
+            // Table definitions lock only their own sheet; structured references follow.
+            HistoryChange::TableDefinition(_) | HistoryChange::TableCreate(_) =>
+                workbook.ensure_sheet_unprotected(self.sheet),
             HistoryChange::NamedRange(_)
-            | HistoryChange::CustomFormula(_)
-            | HistoryChange::TableDefinition(_)
-            | HistoryChange::TableCreate(_) => workbook.ensure_workbook_unprotected(),
+            | HistoryChange::CustomFormula(_) => workbook.ensure_workbook_unprotected(),
             _ => workbook.ensure_sheet_unprotected(self.sheet),
         }
     }

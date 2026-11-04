@@ -211,7 +211,7 @@ impl<'a> WorkbookLoader<'a> {
                 )
             })
         }));
-        if !rows.is_empty() && wb.ensure_workbook_unprotected().is_err() { return; }
+        if wb.ensure_tables_unprotected(&rows).is_err() { return; }
         wb.write_with_insert_rows(rows, |wb| {
             for (sheet_idx, ops) in ops_by_sheet {
                 let Some(sheet) = wb.sheets.get_mut(sheet_idx) else {

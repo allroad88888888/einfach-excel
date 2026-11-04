@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'
+import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
@@ -31,10 +31,9 @@ export const changeNativeTableAtom = atom(null, async (get, set, change: TableCh
   if (get(editingSessionAtom).source || get(rustHistoryPanelAtom).busy ||
     get(sheetTabsAtom).mutation)
     return fail('Finish the current edit or history operation first.')
-  // Table 结构化引用可跨表；保护任一表时不能改写工作簿消费者。
-  if (get(workbookDocumentAtom).sheets.some((s) =>
-    getSheetProtection(get(sheetProtectionAtom), s.id).mode === 'protected'))
-    return fail('Unprotect the worksheets before changing tables.')
+  // 只锁 Table 所在工作表；其他工作表里的结构化引用由 Rust 照常改写，与 Excel 一致。
+  if (getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected')
+    return fail('Unprotect the worksheet before changing tables.')
   const requestId = set(issueProjectionRequestIdAtom)
   if (requestId === null) return fail('Table request identity space is exhausted.')
   const projection = createVisibleProjectionRequest({ sheetId: sheet.id, requestId,

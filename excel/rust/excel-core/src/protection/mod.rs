@@ -2,7 +2,7 @@
 mod coverage;
 mod structure;
 
-use crate::{CellAddress, CellRange, Workbook};
+use crate::{CellAddress, CellRange, TableEntry, Workbook};
 use serde::{Deserialize, Serialize};
 
 pub const MAX_UNLOCKED_RANGES: usize = 256;
@@ -128,6 +128,18 @@ impl Workbook {
         if self.read_protection(sheet)?.mode == ProtectionMode::Protected {
             Err(PROTECTED_ERROR)
         } else { Ok(()) }
+    }
+
+    /// A Table's definition is part of its own worksheet; structured references elsewhere follow it.
+    pub fn ensure_tables_unprotected<'a>(&self, tables: impl IntoIterator<Item = &'a TableEntry>)
+        -> Result<(), &'static str>
+    {
+        // 历史快照里的 Table 可能带着改名前的工作表名，找不到时保守地按全簿检查。
+        // 这里只判定保护，不证明 Table 身份；回放另行比较完整的 Table 快照。
+        tables.into_iter().try_for_each(|table| match self.index_of(table.sheet_name()) {
+            Some(sheet) => self.ensure_sheet_unprotected(sheet),
+            None => self.ensure_workbook_unprotected(),
+        })
     }
 
     /// Bulk content and shared metadata writes require all affected sheets to be open.

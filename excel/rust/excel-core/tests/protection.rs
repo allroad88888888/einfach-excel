@@ -9,6 +9,8 @@ mod add_sheet;
 mod delete_sheet;
 #[path = "protection/sheet_tabs.rs"]
 mod sheet_tabs;
+#[path = "protection/tables.rs"]
+mod tables;
 use einfach_core::Value;
 use einfach_excel_core::{CellAddress, CellRange, CellStyle, StyleScope, Workbook};
 use einfach_excel_core::protection::{ProtectionChange, ProtectionMode, ProtectionRange, SheetProtection};

@@ -6272,6 +6272,10 @@ msgid "Unprotect the worksheet before changing row or column sizes."
 msgstr "修改行高或列宽前，请先取消工作表保护。"
 
 #: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing tables."
+msgstr "修改表格前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheet before filling cells."
 msgstr "填充单元格前，请先取消工作表保护。"
 
@@ -6298,10 +6302,6 @@ msgstr "粘贴列宽前，请先取消工作表保护。"
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheet before sorting cells."
 msgstr "排序前，请先取消工作表保护。"
-
-#: src/i18n/feedback-messages.ts
-msgid "Unprotect the worksheets before changing tables."
-msgstr "修改表格前，请先取消工作表保护。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheets before changing workbook names."

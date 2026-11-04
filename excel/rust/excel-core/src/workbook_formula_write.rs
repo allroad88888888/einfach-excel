@@ -11,7 +11,7 @@ impl Workbook {
             return false;
         }
         let rows = self.insert_rows_for_writes([(sheet_idx, addr)]);
-        if !rows.is_empty() && self.ensure_workbook_unprotected().is_err() { return false; }
+        if self.ensure_tables_unprotected(&rows).is_err() { return false; }
         self.write_with_insert_rows(rows, |book| {
             book.install_formula_source(sheet_idx, addr, formula_text)
         })

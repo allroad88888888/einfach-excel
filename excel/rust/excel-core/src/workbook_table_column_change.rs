@@ -9,7 +9,6 @@ impl TableDefinitionChange {
         old_column: &str,
         new_column: &str,
     ) -> Result<Option<Self>, TableError> {
-        workbook.ensure_workbook_unprotected().map_err(|_| TableError::ProtectedWorkbook)?;
         if workbook.is_inside_custom_call() {
             return Err(TableError::MutationDuringCustomCall);
         }
@@ -22,6 +21,7 @@ impl TableDefinitionChange {
             .get_table(name)
             .ok_or(TableError::NotFound)?
             .clone();
+        workbook.ensure_tables_unprotected([&before]).map_err(|_| TableError::ProtectedWorkbook)?;
         let index = before
             .columns
             .iter()

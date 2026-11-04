@@ -39,9 +39,7 @@ impl WorkbookHistory {
             workbook.ensure_range_editable(*sheet, *range)?;
         }
         let table_rows = workbook.insert_rows_for_ranges(targets);
-        if !table_rows.is_empty() {
-            workbook.ensure_workbook_unprotected()?;
-        }
+        workbook.ensure_tables_unprotected(&table_rows)?;
         self.pending = Some(PendingEdit {
             label: label.to_owned(),
             sheet,

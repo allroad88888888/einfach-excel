@@ -120,11 +120,11 @@ impl TableDefinitionChange {
 }
 
 fn totals_target(workbook: &Workbook, name: &str) -> Result<(usize, TableEntry), TableError> {
-    workbook.ensure_workbook_unprotected().map_err(|_| TableError::ProtectedWorkbook)?;
     if workbook.is_inside_custom_call() {
         return Err(TableError::MutationDuringCustomCall);
     }
     let table = workbook.get_table(name).ok_or(TableError::NotFound)?;
+    workbook.ensure_tables_unprotected([table]).map_err(|_| TableError::ProtectedWorkbook)?;
     let sheet = workbook
         .index_of(table.sheet_name())
         .ok_or(TableError::SheetNotFound)?;

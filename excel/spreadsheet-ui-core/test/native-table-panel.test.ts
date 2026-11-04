@@ -7,10 +7,11 @@ import { initializeWorkbookDocumentAtom, setRustWorkbookConnectionAtom, beginPro
 type Input = RustWorkbookCommands['table.change']['payload']
 const tables = [{ name: 'Sales', sheet: 'Sheet', sheetIndex: 0, range: 'A1:B4',
   hasHeaders: true, hasTotals: false, columns: ['Product', 'Amount'] }]
-function setup(catalog: NativeTable[] = tables) {
+function setup(catalog: NativeTable[] = tables, neighbours = false) {
   const store = createStore()
   store.setter(initializeWorkbookDocumentAtom, { title: 'Book', sheets: [
     { id: 's', index: 0, name: 'Sheet', rowCount: 100, colCount: 8 },
+    ...(neighbours ? [{ id: 'locked', index: 1, name: 'Locked', rowCount: 100, colCount: 8 }] : []),
   ] })
   const request = vi.fn(async (_: string, input: Input) => ({ changed: true,
     projection: { ...input.projection, cells: [], revision: 2, tables: [] as NativeTable[] } }))
@@ -241,7 +242,18 @@ test('pending command blocks double submit, and replacement workbook ignores the
   expect(await pending).toBe(false)
   expect(store.getter(nativeTablePanelAtom)).toMatchObject({ open: false, busy: false })
 })
-test('protected workbook and stale draft are rejected before dispatch', async () => {
+test('a protected neighbour sheet does not block changing a table on an open sheet', async () => {
+  // 回归：任一工作表受保护就拒绝修改 Table，演示里的受保护样表让所有 Table 都不能改样式、改名。
+  const { store, request, run } = setup(tables, true)
+  store.setter(setSheetProtectionAtom, {
+    sheetId: 'locked', state: { mode: 'protected', unlockedRanges: [] },
+  })
+  await run('open'); await run({ edit: 'Sales' })
+  expect(await run({ style: { preset: 'green' } })).toBe(true)
+  expect(request).toHaveBeenCalledTimes(1)
+})
+
+test('protected table sheet and stale draft are rejected before dispatch', async () => {
   const { store, request, run } = setup()
   await run('open'); await run({ edit: 'Sales' })
   store.setter(setSheetProtectionAtom, {

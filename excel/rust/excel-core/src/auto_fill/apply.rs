@@ -97,7 +97,7 @@ impl Workbook {
             .insert_rows_for_writes(cells.iter().map(|cell| (sheet, cell.addr)))
             .is_empty()
         {
-            self.ensure_workbook_unprotected()
+            self.ensure_sheet_unprotected(sheet)
                 .map_err(AutoFillError::InvalidGeometry)?;
         }
         Ok(())

@@ -157,7 +157,7 @@ impl WorkbookHistory {
                 )
             });
         if let Some((table, column)) = header {
-            workbook.ensure_workbook_unprotected()?;
+            workbook.ensure_sheet_unprotected(sheet)?;
             // 表头保存列名文字；数字/公式形状也不转成数据值，前导引号仍是输入标记。
             let name = input.strip_prefix('\'').unwrap_or(input);
             if let Some(change) = crate::workbook::TableDefinitionChange::prepare_column_rename(

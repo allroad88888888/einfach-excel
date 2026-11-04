@@ -151,8 +151,13 @@ fn raw_input_cannot_activate_empty_table_metadata_inside_an_editable_range() {
     book.paste_clipboard_with_history(&text, 0,
         &ClipboardPasteOptions::new(range(2, 0, 2, 0)), &mut history).unwrap();
     assert!(!book.get_table("Orders").unwrap().has_insert_row());
+    // Only the Table's own sheet locks its insert-row state; a protected neighbour does not.
     book.change_protection(1, ProtectionChange::Protect).unwrap();
+    protect(&mut book);
     assert!(history.undo(&mut book).is_err());
     assert_eq!(book.get_cell("Sheet1", "A3"), Value::Number(7.0));
     assert!(!book.get_table("Orders").unwrap().has_insert_row());
+    unprotect(&mut book);
+    history.undo(&mut book).unwrap();
+    assert!(book.get_table("Orders").unwrap().has_insert_row());
 }

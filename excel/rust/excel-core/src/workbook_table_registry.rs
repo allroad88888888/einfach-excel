@@ -25,13 +25,13 @@ impl Workbook {
         range: CellRange,
         has_headers: bool,
     ) -> Result<TableEntry, TableError> {
-        self.ensure_workbook_unprotected().map_err(|_| TableError::ProtectedWorkbook)?;
         if self.is_inside_custom_call() {
             return Err(TableError::MutationDuringCustomCall);
         }
         if sheet_index >= self.sheets.len() {
             return Err(TableError::SheetNotFound);
         }
+        self.ensure_sheet_unprotected(sheet_index).map_err(|_| TableError::ProtectedWorkbook)?;
         let range = range.normalize();
         let sheet_name = self.names[sheet_index].clone();
 
@@ -75,12 +75,12 @@ impl Workbook {
     /// 仅删除低层注册项，引用它的公式会失效；这不是用户的“转换为区域”。
     /// 交互转换使用 WorkbookHistory::convert_table_to_range，同时改写公式并记录历史。
     pub fn delete_table(&mut self, name: &str) -> Result<(), TableError> {
-        self.ensure_workbook_unprotected().map_err(|_| TableError::ProtectedWorkbook)?;
         if self.is_inside_custom_call() {
             return Err(TableError::MutationDuringCustomCall);
         }
         let key = name.to_ascii_uppercase();
         let table = self.tables.get(&key).ok_or(TableError::NotFound)?;
+        self.ensure_tables_unprotected([table]).map_err(|_| TableError::ProtectedWorkbook)?;
         let filtered_sheet = table.auto_filter().and_then(|_| self.index_of(table.sheet_name()));
         let arrays = if filtered_sheet.is_some() {
             self.array_dependents_for_atoms(&self.atom_context.filter_dependent_atoms())

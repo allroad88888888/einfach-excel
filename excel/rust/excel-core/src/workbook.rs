@@ -125,6 +125,7 @@ mod workbook_formula_rule_change;
 mod workbook_formula_lambda_change;
 #[path = "workbook_formula_source_change.rs"]
 mod workbook_formula_source_change;
+pub(crate) use workbook_formula_source_change::FormulaSourceChange;
 #[path = "workbook_named_range_snapshot.rs"]
 mod workbook_named_range_snapshot;
 pub use workbook_named_range_snapshot::NamedRangeSnapshot;

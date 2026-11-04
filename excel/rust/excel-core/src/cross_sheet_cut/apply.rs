@@ -44,7 +44,7 @@ pub(super) fn move_cells(
                 }
             }
             for (sheet, addr, text) in dependents {
-                loader.set_formula_at(*sheet, *addr, text);
+                loader.rewrite_formula_at(*sheet, *addr, text);
             }
         });
         let source = &mut workbook.sheets[source_sheet];

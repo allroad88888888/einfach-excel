@@ -25,17 +25,53 @@ fn raw_and_inferred_fill_reject_a_locked_tail_without_changing_an_editable_prefi
 }
 
 #[test]
-fn cut_rewriting_a_locked_formula_on_another_sheet_is_atomic() {
+fn cut_rewrites_a_locked_formula_on_another_sheet_and_replays_only_its_source() {
+    // 回归（#16）：剪切把被动的跨表引用改写当作编辑受保护单元格，整次剪切被拒绝。
     let mut book = Workbook::new();
     book.set_cell(0, "A1", Value::Number(7.0));
     book.add_sheet("Other");
     book.set_formula(1, "A1", "=Sheet1!A1");
     let cut = book.capture_clipboard(0, range(0, 0, 0, 0), true).unwrap();
     book.change_protection(1, ProtectionChange::Protect).unwrap();
-    assert!(book.paste_clipboard(&cut, 0, &ClipboardPasteOptions::new(range(1, 1, 1, 1))).is_err());
+    let mut history = WorkbookHistory::default();
+    book.paste_clipboard_with_history(&cut, 0,
+        &ClipboardPasteOptions::new(range(1, 1, 1, 1)), &mut history).unwrap();
+    let other = |book: &Workbook| book.sheet(1).unwrap().get_formula("A1");
+    assert_eq!(other(&book).as_deref(), Some("=Sheet1!B2"));
+    assert_eq!(book.get_cell("Other", "A1"), Value::Number(7.0));
+    // 不在该历史里的格式修改，撤销/重做只还原引用方的源码，不覆盖它。
+    book.sheet_mut(1).unwrap().set_format("A1", einfach_excel_core::CellFormat { bold: true, ..Default::default() });
+    history.undo(&mut book).unwrap();
     assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(7.0));
     assert_eq!(book.get_cell("Sheet1", "B2"), Value::Null);
+    assert_eq!(other(&book).as_deref(), Some("=Sheet1!A1"));
+    assert!(book.sheet(1).unwrap().get_format("A1").bold);
+    history.redo(&mut book).unwrap();
+    assert_eq!(other(&book).as_deref(), Some("=Sheet1!B2"));
+    // 剪切源或粘贴目标锁定时仍整体拒绝，引用方不变。
+    let cut = book.capture_clipboard(0, range(1, 1, 1, 1), true).unwrap();
+    protect(&mut book);
+    assert!(book.paste_clipboard(&cut, 0, &ClipboardPasteOptions::new(range(2, 2, 2, 2))).is_err());
+    assert_eq!(book.get_cell("Sheet1", "B2"), Value::Number(7.0));
+    assert_eq!(other(&book).as_deref(), Some("=Sheet1!B2"));
+}
+
+#[test]
+fn cross_sheet_cut_rewrites_a_locked_formula_on_a_third_sheet() {
+    let mut book = Workbook::new();
+    book.set_cell(0, "A1", Value::Number(7.0));
+    book.add_sheet("Other");
+    book.add_sheet("Third");
+    book.set_formula(1, "A1", "=Sheet1!A1");
+    let cut = book.capture_clipboard(0, range(0, 0, 0, 0), true).unwrap();
+    book.change_protection(1, ProtectionChange::Protect).unwrap();
+    let mut history = WorkbookHistory::default();
+    book.paste_clipboard_with_history(&cut, 2,
+        &ClipboardPasteOptions::new(range(1, 1, 1, 1)), &mut history).unwrap();
+    assert_eq!(book.sheet(1).unwrap().get_formula("A1").as_deref(), Some("=Third!B2"));
+    history.undo(&mut book).unwrap();
     assert_eq!(book.sheet(1).unwrap().get_formula("A1").as_deref(), Some("=Sheet1!A1"));
+    assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(7.0));
 }
 
 #[test]

@@ -102,8 +102,8 @@ pub(super) fn paste(
             .into_iter()
             .map(|addr| (target_sheet, addr))
             .collect();
+    // 引用源格的公式只被动改写（与插删行列一致），不要求所在格可编辑。
     for (sheet, addr, _) in &dependents {
-        workbook.ensure_range_editable(*sheet, CellRange::single(*addr))?;
         if workbook.sheets[*sheet].data_validation_at(*addr).is_some() {
             validation.push((*sheet, *addr));
         }
@@ -125,11 +125,6 @@ pub(super) fn paste(
         (source_sheet, snapshot.source, true),
         (target_sheet, range, true),
     ];
-    targets.extend(
-        dependents
-            .iter()
-            .map(|(sheet, addr, _)| (*sheet, CellRange::single(*addr), true)),
-    );
     for (sheet, borders) in [
         (source_sheet, &source_borders),
         (target_sheet, &target_borders),
@@ -146,7 +141,9 @@ pub(super) fn paste(
     // 未提供宿主历史时也用同一事务回滚验证失败；成功后临时历史自然释放。
     let mut temporary = crate::workbook_history::WorkbookHistory::default();
     let history = history.unwrap_or(&mut temporary);
-    history.begin_ranges(workbook, target_sheet, range, "Move cells", &targets, false)?;
+    let references: Vec<_> = dependents.iter().map(|(sheet, addr, _)| (*sheet, *addr)).collect();
+    history.begin_ranges_with_references(
+        workbook, target_sheet, range, "Move cells", &targets, &references, false)?;
     apply::move_cells(
         workbook,
         snapshot,

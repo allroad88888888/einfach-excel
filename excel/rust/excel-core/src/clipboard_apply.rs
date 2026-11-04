@@ -66,7 +66,7 @@ pub(super) fn apply_paste(
                     }
                 }
                 for (sheet, addr, text) in dependents {
-                    loader.set_formula_at(*sheet, *addr, text);
+                    loader.rewrite_formula_at(*sheet, *addr, text);
                 }
             });
         }

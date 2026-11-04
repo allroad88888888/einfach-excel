@@ -39,11 +39,12 @@ impl HistoryEntry {
             }
         };
         match &self.change {
-            HistoryChange::Cells { before, after, table_rows, .. } => {
+            HistoryChange::Cells { before, after, table_rows, references, .. } => {
                 metadata_keys.clear();
                 for ((sheet, before), (_, after)) in before.iter().zip(after) {
                     for range in crate::host::changed_ranges(before, after) { add(*sheet, Some(range)); }
                 }
+                for change in references { add(change.sheet, change.mutation_range()); }
                 if !table_rows.is_empty() { metadata_keys.extend(&self.affected_keys); }
             }
             HistoryChange::Structure(change) => {

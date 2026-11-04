@@ -30,6 +30,21 @@ impl WorkbookHistory {
         targets: &[(usize, CellRange, bool)],
         merges: bool,
     ) -> Result<(), &'static str> {
+        self.begin_ranges_with_references(workbook, sheet, range, label, targets, &[], merges)
+    }
+
+    /// `references` 只被动改写公式源码（剪切移动的引用方）：与插删行列一致，不要求所在格可编辑，
+    /// 回放也只还原源码，不覆盖这些格上的其他内容。
+    pub(crate) fn begin_ranges_with_references(
+        &mut self,
+        workbook: &Workbook,
+        sheet: usize,
+        range: CellRange,
+        label: &str,
+        targets: &[(usize, CellRange, bool)],
+        references: &[(usize, crate::CellAddress)],
+        merges: bool,
+    ) -> Result<(), &'static str> {
         if self.pending.is_some() {
             return Err("Another history command is pending.");
         }
@@ -40,11 +55,15 @@ impl WorkbookHistory {
         }
         let table_rows = workbook.insert_rows_for_ranges(targets);
         workbook.ensure_tables_unprotected(&table_rows)?;
+        let references = references.iter().filter_map(|(index, addr)| {
+            Some((*index, *addr, workbook.sheet(*index)?.formula_text_at(*addr)?))
+        }).collect();
         self.pending = Some(PendingEdit {
             label: label.to_owned(),
             sheet,
             range,
             table_rows,
+            references,
             dimension_generations: targets
                 .iter()
                 .map(|(sheet, _, _)| {
@@ -106,20 +125,27 @@ impl WorkbookHistory {
                 workbook.get_table(before.name()) == Some(&before.clone().with_insert_row(false))
             })
             .collect();
-        if pending.before == after && table_rows.is_empty() {
+        let references: Vec<_> = pending.references.into_iter().filter_map(|(sheet, addr, before)|
+            FormulaSourceChange::cell(workbook, sheet, addr, before)).collect();
+        if pending.before == after && table_rows.is_empty() && references.is_empty() {
             return Ok(());
         }
+        let rollback = |workbook: &mut Workbook| {
+            references.iter().for_each(|change| change.apply(workbook, true));
+            workbook.restore_cell_history(&pending.before, &table_rows, true)
+        };
         if !success {
-            return workbook.restore_cell_history(&pending.before, &table_rows, true);
+            return rollback(workbook);
         }
         if let Err(error) = workbook.validate_insert_row_arrays(&table_rows) {
-            workbook.restore_cell_history(&pending.before, &table_rows, true)?;
+            rollback(workbook)?;
             return Err(error);
         }
         let affected_indices: Vec<_> = pending
             .before
             .iter()
             .map(|(sheet, _)| *sheet)
+            .chain(references.iter().map(|change| change.sheet))
             .collect::<std::collections::BTreeSet<_>>()
             .into_iter()
             .collect();
@@ -146,6 +172,7 @@ impl WorkbookHistory {
                 after,
                 table_rows,
                 dimensions,
+                references,
             },
         });
         Ok(())

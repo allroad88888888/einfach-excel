@@ -7,7 +7,6 @@ pub(super) fn targets(
     sheet: usize,
     options: &ClipboardPasteOptions,
     planned: impl Iterator<Item = CellAddress>,
-    dependents: &[(usize, CellAddress, String)],
 ) -> Vec<(usize, CellRange, bool)> {
     let content = options.mode != ClipboardPasteMode::Formats;
     let mut targets = Vec::new();
@@ -33,11 +32,7 @@ pub(super) fn targets(
     if snapshot.cut {
         targets.push((sheet, snapshot.source, true));
     }
-    targets.extend(
-        dependents
-            .iter()
-            .map(|(sheet, addr, _)| (*sheet, CellRange::single(*addr), true)),
-    );
+    // 剪切的引用方只改写源码，作为历史的被动引用记录，不是编辑目标。
     targets
 }
 

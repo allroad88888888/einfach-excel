@@ -43,6 +43,8 @@ pub struct WorkbookLoader<'a> {
     /// Per-sheet ordered op queues so the replay inside each sheet's
     /// `Sheet::bulk_load` preserves the caller's order.
     ops_by_sheet: HashMap<usize, Vec<WorkbookOp>>,
+    /// 被动改写的公式（剪切移动的引用方）：不是编辑，flush 时不受所在格锁定约束。
+    passive: HashSet<(usize, CellAddress)>,
 }
 
 impl<'a> WorkbookLoader<'a> {
@@ -50,6 +52,7 @@ impl<'a> WorkbookLoader<'a> {
         WorkbookLoader {
             wb,
             ops_by_sheet: HashMap::new(),
+            passive: HashSet::new(),
         }
     }
 
@@ -88,6 +91,12 @@ impl<'a> WorkbookLoader<'a> {
         let Some(addr) = CellAddress::parse(addr_str) else {
             return false;
         };
+        self.set_formula_at(sheet_idx, addr, source)
+    }
+
+    /// 只改写引用的公式（剪切移动的引用方），与插删行列一致不要求所在格可编辑；写入路径相同。
+    pub(crate) fn rewrite_formula_at(&mut self, sheet_idx: usize, addr: CellAddress, source: &str) -> bool {
+        self.passive.insert((sheet_idx, addr));
         self.set_formula_at(sheet_idx, addr, source)
     }
 
@@ -192,12 +201,13 @@ impl<'a> WorkbookLoader<'a> {
     /// 顺序：投影必须在整批回放**之后**。同一批里的一个字面量可能正好落在
     /// 另一条公式的溢出矩形里，先投影会让碰撞判定看到半个世界。
     pub(crate) fn flush(self) {
-        let WorkbookLoader { wb, ops_by_sheet } = self;
+        let WorkbookLoader { wb, ops_by_sheet, passive } = self;
         // 原始批量端口也必须整批拒绝；逐格跳过会留下半次跨表写入。
         if ops_by_sheet.iter().any(|(sheet, ops)| ops.iter().any(|op| {
             let addr = match op { WorkbookOp::SetCell { addr, .. }
                 | WorkbookOp::SetFormula { addr, .. } | WorkbookOp::ClearCell { addr } => *addr };
-            wb.ensure_range_editable(*sheet, CellRange::single(addr)).is_err()
+            !passive.contains(&(*sheet, addr))
+                && wb.ensure_range_editable(*sheet, CellRange::single(addr)).is_err()
         })) { return; }
         let rows = wb.insert_rows_for_writes(ops_by_sheet.iter().flat_map(|(sheet, ops)| {
             ops.iter().map(move |op| {

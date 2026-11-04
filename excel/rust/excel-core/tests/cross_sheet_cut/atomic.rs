@@ -97,7 +97,8 @@ fn partial_reference_rejects_without_clearing_source_target_or_redo_then_snapsho
 
 #[test]
 fn each_actual_write_sheet_is_checked_again_after_capture() {
-    for locked in [0, 1, 2] {
+    // 源表与目标表是实际写入；引用表只被动改写公式（#16），另见下方用例。
+    for locked in [0, 1] {
         let mut book = workbook();
         book.set_cell(0, "A1", Value::Number(4.));
         book.set_cell(1, "C4", Value::Number(9.));
@@ -118,6 +119,24 @@ fn each_actual_write_sheet_is_checked_again_after_capture() {
         assert_eq!(history.undo_count(), 0);
         assert!(!history.is_pending());
     }
+}
+
+#[test]
+fn a_protected_referencing_sheet_follows_the_move_through_history() {
+    // 回归（#16）：引用表受保护时整次剪切被拒；与插删行列一致，被动改写的引用照常跟随。
+    let mut book = workbook();
+    book.set_cell(0, "A1", Value::Number(4.));
+    book.set_formula(2, "A1", "='Source O''Brien'!A1");
+    let clip = cut(&book, "A1", "A1");
+    book.change_protection(2, ProtectionChange::Protect).unwrap();
+    let mut history = WorkbookHistory::default();
+    book.paste_clipboard_with_history(&clip, 1, &options("C4"), &mut history).unwrap();
+    let formula = |book: &Workbook| book.sheet(2).unwrap().get_formula("A1");
+    assert_eq!(formula(&book).as_deref(), Some("='Target O''Brien'!C4"));
+    assert_eq!(book.get_cell("Audit", "A1"), Value::Number(4.));
+    history.undo(&mut book).unwrap();
+    assert_eq!(formula(&book).as_deref(), Some("='Source O''Brien'!A1"));
+    assert_eq!(book.get_cell("Source O'Brien", "A1"), Value::Number(4.));
 }
 
 #[test]

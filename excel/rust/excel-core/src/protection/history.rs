@@ -8,11 +8,13 @@ impl HistoryEntry {
         undo: bool,
     ) -> Result<(), &'static str> {
         match &self.change {
+            // 被动改写的引用源码不是编辑目标，与插删行列一致不受所在格锁定约束。
             HistoryChange::Cells {
                 before,
                 after,
                 table_rows,
                 dimensions,
+                ..
             } => {
                 for (sheet, snapshot) in before.iter().chain(after) {
                     workbook.ensure_range_editable(*sheet, snapshot.range)?;

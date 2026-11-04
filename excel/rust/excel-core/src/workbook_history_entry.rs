@@ -60,10 +60,18 @@ impl HistoryEntry {
                 after,
                 table_rows,
                 dimensions,
+                references,
             } => {
+                for change in references.iter() {
+                    change.validate(workbook, undo)?;
+                }
                 let snapshots =
                     dimensions.restore_parts(workbook, if undo { before } else { after }, undo);
-                workbook.restore_cell_history(&snapshots, table_rows, undo)
+                workbook.restore_cell_history(&snapshots, table_rows, undo)?;
+                for change in references.iter() {
+                    change.apply(workbook, undo);
+                }
+                Ok(())
             }
             HistoryChange::Sheet(change) => change.apply(workbook, undo),
             HistoryChange::SheetTab(change) => {
@@ -105,12 +113,14 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
             after,
             table_rows,
             dimensions,
+            references,
         } => {
             before
                 .iter()
                 .chain(after)
                 .map(|(_, snapshot)| snapshot.retained_bytes())
                 .sum::<usize>()
+                + references.iter().map(FormulaSourceChange::retained_bytes).sum::<usize>()
                 + table_rows
                     .iter()
                     .map(crate::sheet::metadata_bytes)

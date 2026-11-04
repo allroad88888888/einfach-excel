@@ -129,9 +129,7 @@ impl Workbook {
         for (addr, _, _) in &planned {
             self.ensure_range_editable(sheet_idx, CellRange::single(*addr))?;
         }
-        for (sheet, addr, _) in &dependents {
-            self.ensure_range_editable(*sheet, CellRange::single(*addr))?;
-        }
+        // 引用源格的公式只被动改写（与插删行列一致），不要求所在格可编辑。
         for addr in borders.keys() {
             self.ensure_range_editable(sheet_idx, CellRange::single(*addr))?;
         }
@@ -165,12 +163,12 @@ impl Workbook {
                 sheet_idx,
                 options,
                 planned.iter().map(|(addr, _, _)| *addr),
-                &dependents,
             );
             for affected in crate::sheet::border_plan_ranges(&borders) {
                 targets.push((sheet_idx, affected, false));
             }
-            history.begin_ranges(
+            let references: Vec<_> = dependents.iter().map(|(sheet, addr, _)| (*sheet, *addr)).collect();
+            history.begin_ranges_with_references(
                 self,
                 sheet_idx,
                 history_targets::affected_range(snapshot, range, sheet_idx, &dependents),
@@ -180,6 +178,7 @@ impl Workbook {
                     options.arithmetic.history_label()
                 },
                 &targets,
+                &references,
                 merges.changed(),
             )?;
         }

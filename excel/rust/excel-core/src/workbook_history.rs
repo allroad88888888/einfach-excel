@@ -1,7 +1,7 @@
 //! Rust 权威的有限历史；JS 只接收标签、计数与目标范围。
 use crate::history_snapshot::HistorySnapshot;
 use crate::sheet::WorkbookAtomContext;
-use crate::workbook::{SheetHistoryChange, StructuralHistoryChange, TableEntry};
+use crate::workbook::{FormulaSourceChange, SheetHistoryChange, StructuralHistoryChange, TableEntry};
 use crate::{CellRange, Workbook};
 use std::collections::VecDeque;
 use std::rc::{Rc, Weak};
@@ -103,6 +103,8 @@ enum HistoryChange {
         after: Vec<(usize, HistorySnapshot)>,
         table_rows: Vec<TableEntry>,
         dimensions: CellDimensionChanges,
+        /// 被动改写的公式源码（剪切移动时引用源格的公式）；不是编辑目标，不受其所在格锁定约束。
+        references: Vec<FormulaSourceChange>,
     },
     Sheet(Box<SheetHistoryChange>),
     SheetTab(SheetTabChange),
@@ -128,6 +130,7 @@ struct PendingEdit {
     before: Vec<(usize, HistorySnapshot)>,
     table_rows: Vec<TableEntry>,
     dimension_generations: std::collections::BTreeMap<usize, [u64; 2]>,
+    references: Vec<(usize, crate::CellAddress, String)>,
 }
 
 #[derive(Default)]

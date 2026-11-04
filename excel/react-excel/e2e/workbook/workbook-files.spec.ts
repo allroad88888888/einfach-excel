@@ -2,6 +2,8 @@ import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 
+// 演示工作簿：Sales Orders、Summary，以及整表只读与局部可编辑两张保护演示表。
+const DEMO_SHEETS = 4
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const panel = (page: Page) => page.getByRole('dialog', { name: 'Workbook files' })
@@ -43,7 +45,7 @@ test('download edited workbook, create blank, open file and continue native edit
   const file = JSON.parse(text)
   expect(file.format).toBe('einfach-workbook')
   expect(file.workbook.version).toBe(1)
-  expect(file.canvases).toHaveLength(2)
+  expect(file.canvases).toHaveLength(DEMO_SHEETS)
   await blank(page)
   await expect(panel(page)).toHaveCount(0)
   await expect(page.getByRole('tab', { name: 'Sheet1', exact: true })).toBeVisible()
@@ -144,7 +146,7 @@ for (const width of [1280, 390]) test.describe(`${width}px independent file acti
     const file = JSON.parse(text)
     expect(file.format).toBe('einfach-workbook')
     expect(file.workbook.version).toBe(1)
-    expect(file.canvases).toHaveLength(2)
+    expect(file.canvases).toHaveLength(DEMO_SHEETS)
     expect(text).toContain('Download only')
     await expect(cell(page, '1:0')).toHaveText('Download only')
     await button(page, 'Undo').click()

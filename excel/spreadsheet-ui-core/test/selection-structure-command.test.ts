@@ -132,19 +132,25 @@ test('failed native request preserves geometry and can retry', async () => {
   expect(await store.setter(runSelectionStructureAtom, 'insert-rows')).toBe(true)
 })
 
-test('protected reference sheets prevent structural writes', async () => {
+test('only the edited sheet\'s protection prevents structural writes', async () => {
+  // 回归：受保护的引用表让所有工作表都无法插删行列；其他表里的引用由 Rust 改写，与 Excel 一致。
   const { store, change } = await setup()
   store.setter(initializeWorkbookDocumentAtom, {
     title: 'Test',
     sheets: [sheet, { ...sheet, id: 'summary', key: '2', index: 1 }],
   })
-  store.setter(setSheetProtectionAtom, {
-    sheetId: 'summary',
+  const protect = (sheetId: string) => store.setter(setSheetProtectionAtom, {
+    sheetId,
     state: { mode: 'protected', unlockedRanges: [] },
   })
-  expect(await store.setter(runSelectionStructureAtom, 'delete-columns')).toBe(false)
-  expect(change).not.toHaveBeenCalled()
-  expect(store.getter(selectionStructureFeedbackAtom).error).toContain('Unprotect')
+  protect('summary')
+  expect(await store.setter(runSelectionStructureAtom, 'insert-rows')).toBe(true)
+  expect(change).toHaveBeenCalledTimes(1)
+  protect('s')
+  expect(await store.setter(runSelectionStructureAtom, 'insert-rows')).toBe(false)
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(store.getter(selectionStructureFeedbackAtom).error)
+    .toBe('Unprotect the worksheet before inserting or deleting rows and columns.')
 })
 
 test('mismatched native metadata is rejected before publishing any canvas state', async () => {

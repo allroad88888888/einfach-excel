@@ -6279,6 +6279,14 @@ msgstr "填充单元格前，请先取消工作表保护。"
 msgid "Unprotect the worksheet before hiding or showing rows and columns."
 msgstr "隐藏或显示行列前，请先取消工作表保护。"
 
+#: src/i18n/shift-cells-feedback.ts
+msgid "Unprotect the worksheet before inserting or deleting cells."
+msgstr "插入或删除单元格前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before inserting or deleting rows and columns."
+msgstr "插入或删除行列前，请先取消工作表保护。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheet before merging cells."
 msgstr "合并单元格前，请先取消工作表保护。"
@@ -6298,14 +6306,6 @@ msgstr "修改表格前，请先取消工作表保护。"
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheets before changing workbook names."
 msgstr "修改工作簿名称前，请先取消工作表保护。"
-
-#: src/i18n/shift-cells-feedback.ts
-msgid "Unprotect the worksheets before inserting or deleting cells."
-msgstr "插入或删除单元格前，请先取消工作表保护。"
-
-#: src/i18n/feedback-messages.ts
-msgid "Unprotect the worksheets before inserting or deleting rows and columns."
-msgstr "插入或删除行列前，请先取消工作表保护。"
 
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "Unprotect worksheet"

@@ -158,7 +158,7 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'The selection changed. Choose Merge again.': msg`The selection changed. Choose Merge again.`,
   'Select cells on one worksheet before changing them.': msg`Select cells on one worksheet before changing them.`,
   'Unprotect the worksheet before changing row or column sizes.': msg`Unprotect the worksheet before changing row or column sizes.`,
-  'Unprotect the worksheets before inserting or deleting rows and columns.': msg`Unprotect the worksheets before inserting or deleting rows and columns.`,
+  'Unprotect the worksheet before inserting or deleting rows and columns.': msg`Unprotect the worksheet before inserting or deleting rows and columns.`,
   'Unprotect the worksheet before hiding or showing rows and columns.': msg`Unprotect the worksheet before hiding or showing rows and columns.`,
   'Select one continuous fill range.': msg`Select one continuous fill range.`,
   'The fill source selection changed. Drag again.': msg`The fill source selection changed. Drag again.`,

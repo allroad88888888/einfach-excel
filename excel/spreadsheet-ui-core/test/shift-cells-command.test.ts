@@ -21,7 +21,11 @@ type Input = RustWorkbookCommands['range.shiftCells']['payload']
 const range = { rowStart: 1, rowEnd: 2, colStart: 1, colEnd: 1 }
 const project = (p: VisibleProjectionRequest) => ({ ...p, revision: 1, cells: [] })
 
-async function setup() {
+type SheetInput = {
+  id: string; key: string; index: number; name: string; rowCount: number; colCount: number
+}
+
+async function setup(extraSheets: SheetInput[] = []) {
   const shift = vi.fn(async (input: Input) => ({
     changed: true,
     projection: project(input.projection),
@@ -36,7 +40,7 @@ async function setup() {
   })
   store.setter(initializeWorkbookDocumentAtom, {
     title: 'Test',
-    sheets: [{ id: 's', key: '1', index: 0, name: 'Sheet', rowCount: 100, colCount: 8 }],
+    sheets: [{ id: 's', key: '1', index: 0, name: 'Sheet', rowCount: 100, colCount: 8 }, ...extraSheets],
   })
   store.setter(selectionAtom, {
     kind: 'range',
@@ -91,7 +95,7 @@ test('native rejection keeps the dialog open with the Rust message', async () =>
   })
 })
 
-test('protected worksheets never reach Rust', async () => {
+test('a protected target worksheet never reaches Rust', async () => {
   const r = await setup()
   r.store.setter(setSheetProtectionAtom, {
     sheetId: 's',
@@ -101,8 +105,20 @@ test('protected worksheets never reach Rust', async () => {
   expect(await r.store.setter(confirmShiftCellsAtom)).toBe(false)
   expect(r.shift).not.toHaveBeenCalled()
   expect(r.store.getter(shiftCellsDialogAtom).error).toBe(
-    'Unprotect the worksheets before inserting or deleting cells.',
+    'Unprotect the worksheet before inserting or deleting cells.',
   )
+})
+
+test('a protected neighbour worksheet does not stop the shift', async () => {
+  // 回归：任一工作表受保护就拒绝位移，演示里的受保护样表让所有工作表都不能插删单元格。
+  const r = await setup([{ id: 'other', key: '2', index: 1, name: 'Other', rowCount: 100, colCount: 8 }])
+  r.store.setter(setSheetProtectionAtom, {
+    sheetId: 'other',
+    state: { mode: 'protected', unlockedRanges: [] },
+  })
+  await r.store.setter(openShiftCellsDialogAtom, { mode: 'delete' })
+  expect(await r.store.setter(confirmShiftCellsAtom)).toBe(true)
+  expect(r.shift).toHaveBeenCalledTimes(1)
 })
 
 test('keyboard on whole rows runs the row command instead of opening the dialog', async () => {

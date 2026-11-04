@@ -6279,6 +6279,14 @@ msgstr "Unprotect the worksheet before filling cells."
 msgid "Unprotect the worksheet before hiding or showing rows and columns."
 msgstr "Unprotect the worksheet before hiding or showing rows and columns."
 
+#: src/i18n/shift-cells-feedback.ts
+msgid "Unprotect the worksheet before inserting or deleting cells."
+msgstr "Unprotect the worksheet before inserting or deleting cells."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before inserting or deleting rows and columns."
+msgstr "Unprotect the worksheet before inserting or deleting rows and columns."
+
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheet before merging cells."
 msgstr "Unprotect the worksheet before merging cells."
@@ -6298,14 +6306,6 @@ msgstr "Unprotect the worksheets before changing tables."
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheets before changing workbook names."
 msgstr "Unprotect the worksheets before changing workbook names."
-
-#: src/i18n/shift-cells-feedback.ts
-msgid "Unprotect the worksheets before inserting or deleting cells."
-msgstr "Unprotect the worksheets before inserting or deleting cells."
-
-#: src/i18n/feedback-messages.ts
-msgid "Unprotect the worksheets before inserting or deleting rows and columns."
-msgstr "Unprotect the worksheets before inserting or deleting rows and columns."
 
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "Unprotect worksheet"

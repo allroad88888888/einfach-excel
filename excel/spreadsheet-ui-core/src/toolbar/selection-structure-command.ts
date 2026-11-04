@@ -16,7 +16,6 @@ import {
   activeWorkbookSheetAtom,
   publishWorkbookSheetAtom,
   syncWorkbookCanvasAtom,
-  workbookDocumentAtom,
 } from '../runtime/workbook-document'
 import {
   structureSheet,
@@ -64,13 +63,9 @@ export const runSelectionStructureAtom = atom(
       set(selectionStructureFeedbackAtom, { busy: false, error })
       return false
     }
-    // 插删会改写跨表公式；保护能力尚未由原生统一管理，不能绕开受保护的引用表。
-    if (
-      get(workbookDocumentAtom).sheets.some(
-        (item) => getSheetProtection(get(sheetProtectionAtom), item.id).mode === 'protected',
-      )
-    )
-      return fail('Unprotect the worksheets before inserting or deleting rows and columns.')
+    // 与 Rust 一致：只锁被编辑工作表的几何，其他工作表里的引用照常改写。
+    if (getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected')
+      return fail('Unprotect the worksheet before inserting or deleting rows and columns.')
     try {
       const rows = action.endsWith('rows')
       const range = selection.range

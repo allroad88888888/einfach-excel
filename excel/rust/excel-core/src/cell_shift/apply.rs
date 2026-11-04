@@ -6,7 +6,7 @@ impl CellShiftChange {
         if workbook.is_inside_custom_call() {
             return Err("Cannot shift cells during a custom call.");
         }
-        workbook.ensure_workbook_unprotected()?;
+        workbook.ensure_sheet_unprotected(self.sheet)?;
         if workbook.sheet_key(self.sheet) != Some(self.sheet_key) {
             return Err("The worksheet changed outside history.");
         }

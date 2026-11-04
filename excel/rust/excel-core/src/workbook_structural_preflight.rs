@@ -35,7 +35,8 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err("Cannot edit worksheet structure during a custom call.");
         }
-        self.ensure_workbook_unprotected()?;
+        // 只锁被编辑工作表的几何；其他工作表（含受保护的）里的引用照常改写，与 Excel 一致。
+        self.ensure_sheet_unprotected(sheet_index)?;
         let sheet = self
             .sheet(sheet_index)
             .ok_or("The worksheet no longer exists.")?;

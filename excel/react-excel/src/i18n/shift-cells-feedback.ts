@@ -17,7 +17,7 @@ export const shiftCellsFeedback: Readonly<Record<string, MessageDescriptor>> = {
     msg`Shifting these cells exceeds the 32 MiB undo budget.`,
   'Select one continuous range to insert or delete cells.':
     msg`Select one continuous range to insert or delete cells.`,
-  'Unprotect the worksheets before inserting or deleting cells.':
-    msg`Unprotect the worksheets before inserting or deleting cells.`,
+  'Unprotect the worksheet before inserting or deleting cells.':
+    msg`Unprotect the worksheet before inserting or deleting cells.`,
   'Choose how to shift the cells.': msg`Choose how to shift the cells.`,
 }

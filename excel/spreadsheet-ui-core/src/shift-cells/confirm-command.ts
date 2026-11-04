@@ -12,7 +12,7 @@ import { validateProjectionResult } from '../projection/contracts'
 import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import type { RustShiftCellsDirection } from '../rust-workbook/shift-cells-commands'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
-import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'
+import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
@@ -66,13 +66,9 @@ export const confirmShiftCellsAtom = atom(null, async (get, set): Promise<boolea
     return fail('Wait for the worksheet to finish loading.')
   if (get(selectionRegionsAtom).length !== 1)
     return fail('Select one continuous range to insert or delete cells.')
-  // 位移会改写跨表公式，与行列插删一样要求所有工作表未受保护。
-  if (
-    get(workbookDocumentAtom).sheets.some(
-      (item) => getSheetProtection(get(sheetProtectionAtom), item.id).mode === 'protected',
-    )
-  )
-    return fail('Unprotect the worksheets before inserting or deleting cells.')
+  // 与行列插删一致：只要求目标工作表未受保护。
+  if (getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected')
+    return fail('Unprotect the worksheet before inserting or deleting cells.')
   const requestId = set(issueProjectionRequestIdAtom)
   if (requestId === null) return fail('Could not allocate a projection request.')
   const projection = createVisibleProjectionRequest({

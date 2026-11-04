@@ -37,8 +37,8 @@ impl Workbook {
         if selection.end.row >= EXCEL_MAX_ROWS || selection.end.col >= EXCEL_MAX_COLS {
             return Err("Invalid cell range.");
         }
-        // 带外引用会被改写；与插删行列一样要求所有工作表都未保护。
-        self.ensure_workbook_unprotected()?;
+        // 与插删行列一致：只要求目标工作表未保护，带外引用照常改写。
+        self.ensure_sheet_unprotected(sheet)?;
         if target.merged_ranges().iter().any(|merged| !rect_moves_whole(shift, *merged)) {
             return Err(MERGE_ERROR);
         }

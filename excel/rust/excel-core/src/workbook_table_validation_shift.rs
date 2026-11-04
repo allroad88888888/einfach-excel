@@ -1,6 +1,8 @@
-//! 表头局部插行的验证区域前后像；只保存受影响矩形，共享原规则。
+//! 表头局部插行的验证区域前后像；只保存受影响的区域。自定义公式随插行改写，
+//! 每一块以自身起点为锚点（见 `DataValidationRule::rebased_for_piece`）。
 use crate::data_validation::{DataValidationRegion, MAX_VALIDATION_REGIONS};
-use crate::shift::insert_row_band_range;
+use crate::shift::{insert_row_band_range, rewrite_row_band_insert};
+use crate::CellAddress;
 
 #[derive(Debug, Default)]
 pub(super) struct ValidationShift {
@@ -10,14 +12,22 @@ pub(super) struct ValidationShift {
 impl ValidationShift {
     pub(super) fn prepare(
         regions: &[DataValidationRegion], row: u32, columns: (u32, u32), row_count: u32,
+        sheet_name: &str,
     ) -> Result<Self, &'static str> {
+        // 列带内、插入行以下的格整体下移一行；其余位置不动。
+        let origin = |addr: CellAddress| if (columns.0..=columns.1).contains(&addr.col) && addr.row > row {
+            CellAddress::new(addr.row - 1, addr.col)
+        } else { addr };
         let mut entries = Vec::new();
         for entry in regions {
             let ranges = insert_row_band_range(entry.range, row, columns, row_count)
                 .map_err(|_| "The header insertion would move data validation outside this worksheet.")?;
-            if ranges == [entry.range] { continue; }
-            let next = ranges.into_iter().map(|range|
-                DataValidationRegion { range, rule: entry.rule.clone() }).collect();
+            let next: Vec<_> = ranges.into_iter().map(|range| DataValidationRegion {
+                range,
+                rule: entry.rule.rebased_for_piece(origin(range.start), range.start,
+                    |expr| rewrite_row_band_insert(expr, sheet_name, true, row, columns)),
+            }).collect();
+            if next == [entry.clone()] { continue; }
             entries.push((entry.clone(), next));
         }
         let change = Self { entries };

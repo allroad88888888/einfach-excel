@@ -141,3 +141,26 @@ fn undo_restores_only_rewritten_sources_on_a_referencing_sheet() {
         assert!(book.sheet(1).unwrap().data_validation_at(einfach_excel_core::CellAddress::parse("C1").unwrap()).is_some());
     }
 }
+
+#[test]
+fn a_validation_only_rewrite_replays_despite_an_exhausted_unrelated_rule_revision() {
+    // 回归：只有验证规则变化，却在回放时检查无关的条件格式修订号，撤销被拒。
+    let mut book = Workbook::new();
+    book.add_sheet("Other");
+    let rule = einfach_excel_core::data_validation::DataValidationRule {
+        kind: einfach_excel_core::data_validation::DataValidationKind::CustomFormula {
+            formula: "=Sheet1!A2>0".into(), anchor: einfach_excel_core::CellAddress::parse("B1").unwrap(),
+        },
+        ignore_blank: false, operator: Default::default(), options: Default::default(),
+    };
+    book.sheet_mut(1).unwrap().set_data_validation(range("B1", "B1"), Some(rule)).unwrap();
+    install(&mut book, 1, "=$C2>5");
+    let mut configs = book.snapshot_conditional_formats();
+    assert_eq!(configs.len(), 1);
+    configs[0].revision = u64::MAX;
+    book.restore_conditional_formats(configs).unwrap();
+    let mut history = WorkbookHistory::default();
+    history.edit_structure(&mut book, 0, ShiftEdit::RowInsert { at: 0, count: 1 }).unwrap();
+    history.undo(&mut book).unwrap();
+    history.redo(&mut book).unwrap();
+}

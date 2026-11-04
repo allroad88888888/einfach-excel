@@ -93,6 +93,30 @@ pub const MAX_VALIDATION_LIST_ITEMS: usize = 1024;
 pub const MAX_VALIDATION_LIST_BYTES: usize = 64 * 1024;
 
 impl DataValidationRule {
+    /// 区域拆分/位移后的一块以自身起点 `start` 为锚点：公式先平移到该块位移前的起点 `origin`，
+    /// 再由 `rewrite` 按位移改写引用；移动的块与留在原处的块都保持各自格子的原求值。
+    /// 不是自定义公式或无法解析时原样共享。
+    pub(crate) fn rebased_for_piece(
+        self: &Arc<Self>,
+        origin: crate::CellAddress,
+        start: crate::CellAddress,
+        rewrite: impl FnOnce(&mut crate::formula::Expr) -> bool,
+    ) -> Arc<Self> {
+        let DataValidationKind::CustomFormula { formula, anchor } = &self.kind else {
+            return self.clone();
+        };
+        let Some(expr) = crate::parse_formula(formula) else { return self.clone() };
+        let rows = i64::from(origin.row) - i64::from(anchor.row);
+        let cols = i64::from(origin.col) - i64::from(anchor.col);
+        let Ok(mut expr) = crate::shift::shift_copy_formula(&expr, rows, cols) else {
+            return self.clone();
+        };
+        rewrite(&mut expr);
+        let kind = DataValidationKind::CustomFormula { formula: crate::render_formula(&expr), anchor: start };
+        if kind == self.kind { return self.clone(); }
+        Arc::new(Self { kind, ..(**self).clone() })
+    }
+
     fn bounds(&self) -> Option<(f64, f64)> {
         match &self.kind {
             DataValidationKind::WholeNumber { min, max }

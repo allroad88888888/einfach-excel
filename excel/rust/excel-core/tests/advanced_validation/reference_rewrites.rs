@@ -115,3 +115,55 @@ fn deleting_a_validation_anchor_rebases_onto_the_first_surviving_cell() {
     assert_eq!(book.set_cell_input(0, "B2", "1"), Err("DATA_VALIDATION_FAILED"));
     assert!(book.set_cell_input(0, "B2", "6").is_ok());
 }
+
+#[test]
+fn a_split_validation_keeps_the_unmoved_piece_on_its_own_cells() {
+    // 回归：区域拆成移动与不动两块却共用移动后的锚点，不动的 C2 改为检查 $A1。
+    let mut book = Workbook::new();
+    let mut history = WorkbookHistory::default();
+    book.set_cell(0, "A1", Value::Number(0.0));
+    book.set_cell(0, "A2", Value::Number(1.0));
+    install(&mut book, range("B2", "C2"), formula("=$A2>0", "B2"));
+    let down = CellShiftDirection::InsertDown;
+    assert!(history.shift_cells(&mut book, 0, range("B1", "B1"), down).unwrap());
+    assert!(same_formula(rule_at(&book, 0, "C2"), "=$A2>0", "C2"));
+    assert!(same_formula(rule_at(&book, 0, "B3"), "=$A2>0", "B3"));
+    assert!(book.set_cell_input(0, "C2", "1").is_ok());
+    assert!(book.set_cell_input(0, "B3", "1").is_ok());
+}
+
+#[test]
+fn converting_a_table_reads_this_row_references_from_the_rule_anchor() {
+    // 回归：按区域起点 B3 换算本行引用、却保留锚点 B2，求值时再偏移一行，B3 改为检查 A4。
+    let mut book = Workbook::new();
+    let mut history = WorkbookHistory::default();
+    book.set_cell(0, "A1", Value::Text("Amount".into()));
+    book.set_cell(0, "B1", Value::Text("Check".into()));
+    for (row, amount) in [(2, 2.0), (3, 3.0), (4, 4.0)] {
+        book.set_cell(0, &format!("A{row}"), Value::Number(amount));
+    }
+    history.create_table(&mut book, 0, range("A1", "B4"), Some("Sales")).unwrap();
+    install(&mut book, range("B2", "B3"), formula("=Sales[@Amount]=3", "B2"));
+    book.sheet_mut(0).unwrap().set_data_validation(range("B2", "B2"), None).unwrap();
+    assert!(book.set_cell_input(0, "B3", "x").is_ok());
+    history.convert_table_to_range(&mut book, "Sales").unwrap();
+    assert!(book.set_cell_input(0, "B3", "y").is_ok());
+}
+
+#[test]
+fn appending_a_table_row_rewrites_validations_on_its_sheet() {
+    // 回归：Table 行带插入跳过本表验证规则，C1 仍检查已经移走的 A4。
+    let mut book = Workbook::new();
+    let mut history = WorkbookHistory::default();
+    book.set_cell(0, "A1", Value::Text("Qty".into()));
+    book.set_cell(0, "A2", Value::Number(1.0));
+    book.set_cell(0, "A4", Value::Number(5.0));
+    history.create_table(&mut book, 0, range("A1", "A2"), Some("Lines")).unwrap();
+    install(&mut book, range("C1", "C1"), formula("=$A$4=5", "C1"));
+    history.append_table_row(&mut book, "Lines", 1_048_576).unwrap();
+    assert_eq!(book.get_cell("Sheet1", "A5"), Value::Number(5.0));
+    assert!(same_formula(rule_at(&book, 0, "C1"), "=$A$5=5", "C1"));
+    assert!(book.set_cell_input(0, "C1", "1").is_ok());
+    history.undo(&mut book).unwrap();
+    assert!(same_formula(rule_at(&book, 0, "C1"), "=$A$4=5", "C1"));
+}

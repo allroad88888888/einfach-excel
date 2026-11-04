@@ -94,7 +94,8 @@ impl FormulaRuleChange {
             .position(|key| *key == self.sheet_key)
             .ok_or("The conditional-format worksheet changed outside history.")?;
         let config = &workbook.conditional_formats[sheet];
-        if config.revision == u64::MAX {
+        // 只有确实要改条件格式时才消耗修订号；仅验证规则变化不受其约束。
+        if !self.entries.is_empty() && config.revision == u64::MAX {
             return Err("Conditional-format revision is exhausted.");
         }
         for (before, after) in &self.entries {
@@ -141,15 +142,16 @@ impl FormulaRuleChange {
     }
 }
 
-/// 自定义公式验证规则按回调改写；相对引用以规则锚点为基准，与公式所在区域无关。
+/// 自定义公式验证规则按回调改写。公式文本以规则锚点为基准（区域可能已被拆分或移开），
+/// 所以回调的位置上下文是锚点格，而不是区域：隐式本行引用按锚点所在行换算。
 fn rewritten_validations(
     sheet: &crate::sheet::Sheet,
     rewrite: &impl Fn(CellRange, &mut Expr) -> bool,
 ) -> Vec<(DataValidationRegion, DataValidationRegion)> {
     sheet.data_validations().iter().filter_map(|region| {
-        let DataValidationKind::CustomFormula { formula, .. } = &region.rule.kind else { return None };
+        let DataValidationKind::CustomFormula { formula, anchor } = &region.rule.kind else { return None };
         let mut expr = parse_formula(formula)?;
-        if !rewrite(region.range, &mut expr) { return None; }
+        if !rewrite(CellRange::single(*anchor), &mut expr) { return None; }
         let next = crate::render_formula(&expr);
         if next == *formula { return None; }
         let mut after = region.clone();

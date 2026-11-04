@@ -1,7 +1,7 @@
 //! 生成插入/删除单元格的完整前后像；只读工作簿，不做任何写入。
 use super::preflight::OFF_SHEET_ERROR;
 use super::*;
-use crate::shift::{band_shift_range, rewrite_band_shift};
+use crate::shift::rewrite_band_shift;
 
 /// 带内地址列表的统一搬运：删除区丢弃，推出画布即拒绝（只对有内容的条目）。
 fn move_entries<T>(shift: &CellShift, entries: &mut Vec<(CellAddress, T)>) -> Result<(), &'static str> {
@@ -86,10 +86,7 @@ impl CellShiftChange {
         let validations_before = target.data_validations().to_vec();
         let mut validations_after = Vec::new();
         for region in &validations_before {
-            let rule = shift.shift_validation_rule(&region.rule, region.range, &name);
-            for range in band_shift_range(region.range, edit, band) {
-                validations_after.push(DataValidationRegion { range, rule: rule.clone() });
-            }
+            validations_after.extend(shift.shift_validation_region(region, &name));
         }
         if validations_after.len() > crate::data_validation::MAX_VALIDATION_REGIONS {
             return Err("Too many data-validation regions.");

@@ -42,7 +42,8 @@ pub(super) fn prepare(
         return Err("The table row insertion would move the table outside this worksheet.".into());
     }
     let rules = FormulaRuleChange::prepare_row_band_insert(workbook, sheet, row, columns, row_count)?;
-    let validations = ValidationShift::prepare(target.data_validations(), row, columns, row_count)?;
+    let validations = ValidationShift::prepare(
+        target.data_validations(), row, columns, row_count, &workbook.names[sheet])?;
     let filter = match target.filter() {
         Some(before) => before.after_row_band_insert(row, columns, row_count)?
             .map(|after| (Some(before.clone()), Some(after))),

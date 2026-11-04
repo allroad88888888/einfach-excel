@@ -1,5 +1,7 @@
 //! 结构历史只保留被位移的稀疏带及带外真正改写的公式，不复制无关工作表。
+//! 带外（含其他工作表）只记录公式文本与规则公式的前后像，回放不覆盖这些格上的其他内容。
 use super::workbook_formula_lambda_change::FormulaLambdaChange;
+use super::workbook_formula_rule_change::FormulaRuleChange;
 use super::workbook_formula_source_change::FormulaSourceChange;
 use super::*;
 use crate::shift::{rewrite_parked_source, rewrite_qualified_source, ShiftEdit, SourceRewrite};
@@ -17,6 +19,10 @@ pub(crate) struct StructuralHistoryChange {
     named_ranges: Vec<NamedRangeShift>,
     named_lambdas: Vec<FormulaLambdaChange>,
     templates: Vec<FormulaSourceChange>,
+    /// 位移带外被改写的公式（本表与其他工作表）。
+    references: Vec<FormulaSourceChange>,
+    /// 其他工作表上被改写的条件格式与数据验证公式，附记录时的工作表序号。
+    rules: Vec<(usize, FormulaRuleChange)>,
 }
 
 impl StructuralHistoryChange {
@@ -24,7 +30,8 @@ impl StructuralHistoryChange {
         self.before.cells.iter().zip(&self.after.cells)
             .flat_map(|((sheet, before), (_, after))|
                 crate::host::changed_ranges(before, after).into_iter().map(|range| (*sheet, Some(range))))
-            .chain(self.templates.iter().map(|change| (change.sheet, change.mutation_range())))
+            .chain(self.templates.iter().chain(&self.references)
+                .map(|change| (change.sheet, change.mutation_range())))
             .collect()
     }
 
@@ -71,6 +78,8 @@ impl StructuralHistoryChange {
                 .filter(|cell| !tail.contains(cell.addr))
                 .map(|cell| (sheet, CellRange::single(cell.addr))),
         );
+        // 带外公式不移动，只改写源码：记录改写前的源码，位移后读回实际结果。
+        let mut sources = Vec::new();
         for (index, current) in workbook.sheets.iter().enumerate() {
             let mut addrs: Vec<_> = current
                 .formula_addrs_in_range(CellRange::new(CellAddress::new(0, 0), end))
@@ -88,11 +97,11 @@ impl StructuralHistoryChange {
                         SourceRewrite::Unchanged
                     );
                 if local_changed || rewrite_qualified_source(&source, &name, edit).is_some() {
-                    targets.push((index, CellRange::new(addr, addr)));
+                    sources.push((index, addr, source));
                 }
             }
         }
-        // 只捕获实际改变的目录；跨表引用不能只靠目标表的历史快照恢复。
+        // 只捕获实际改变的目录；本表规则随区域位移整份保存，其他表只记录被改写的规则公式。
         let rule_sheets: Vec<_> = workbook
             .conditional_formats
             .iter()
@@ -102,14 +111,15 @@ impl StructuralHistoryChange {
                     .then_some(owner)
             })
             .collect();
-        let validation_sheets = workbook.validation_reference_sheets(sheet, edit);
-        let before = StructuralSnapshot::capture(
-            workbook,
-            sheet,
-            &targets,
-            &rule_sheets,
-            &validation_sheets,
-        );
+        let own_rules: Vec<_> = rule_sheets.iter().copied().filter(|owner| *owner == sheet).collect();
+        let referenced: Vec<_> = rule_sheets.iter().copied()
+            .chain(workbook.validation_reference_sheets(sheet, edit))
+            .filter(|owner| *owner != sheet)
+            .collect::<BTreeSet<_>>().into_iter()
+            .map(|owner| (owner, workbook.conditional_formats[owner].rules.clone(),
+                workbook.sheets[owner].data_validations().to_vec()))
+            .collect();
+        let before = StructuralSnapshot::capture(workbook, sheet, &targets, &own_rules);
         let named_ranges = workbook.shifted_named_ranges(sheet, edit);
         if !inherited.is_empty() {
             let bytes = inherited
@@ -169,13 +179,12 @@ impl StructuralHistoryChange {
                     })
                     .and_then(|_| workbook.validate_inserted_table_arrays(sheet, edit));
             }
-            let after = StructuralSnapshot::capture(
-                workbook,
-                sheet,
-                &targets,
-                &rule_sheets,
-                &validation_sheets,
-            );
+            let after = StructuralSnapshot::capture(workbook, sheet, &targets, &own_rules);
+            let references = sources.iter().filter_map(|(index, addr, source)|
+                FormulaSourceChange::cell(workbook, *index, *addr, source.clone())).collect();
+            let rules = referenced.iter().filter_map(|(owner, rules, validations)|
+                FormulaRuleChange::between(workbook, *owner, rules, validations)
+                    .map(|change| (*owner, change))).collect();
             let change = Self {
                 edit,
                 name,
@@ -184,6 +193,8 @@ impl StructuralHistoryChange {
                 named_ranges,
                 named_lambdas,
                 templates,
+                references,
+                rules,
             };
             if !inherited.is_empty() && change.retained_bytes() > crate::workbook_history::MAX_BYTES
             {
@@ -213,13 +224,8 @@ impl StructuralHistoryChange {
             .cells
             .iter()
             .map(|(sheet, _)| *sheet)
-            .chain(self.templates.iter().map(|change| change.sheet))
-            .chain(
-                self.before
-                    .referenced_validations
-                    .iter()
-                    .map(|(sheet, _)| *sheet),
-            )
+            .chain(self.templates.iter().chain(&self.references).map(|change| change.sheet))
+            .chain(self.rules.iter().map(|(sheet, _)| *sheet))
             .chain(
                 self.before
                     .conditional_formats
@@ -245,8 +251,11 @@ impl StructuralHistoryChange {
         for lambda in &self.named_lambdas {
             lambda.validate(workbook, undo)?;
         }
-        for template in &self.templates {
-            template.validate(workbook, undo)?;
+        for change in self.templates.iter().chain(&self.references) {
+            change.validate(workbook, undo)?;
+        }
+        for (_, rules) in &self.rules {
+            rules.validate(workbook, undo)?;
         }
         for (owner, rules) in &snapshot.conditional_formats {
             let config = &workbook.conditional_formats[*owner];
@@ -280,6 +289,11 @@ impl StructuralHistoryChange {
         };
         for (owner, cells) in &snapshot.cells {
             arrays.extend(workbook.array_dependents_for_range(*owner, cells.range));
+        }
+        for change in &self.references {
+            if let Some(range) = change.mutation_range() {
+                arrays.extend(workbook.array_dependents_for_range(change.sheet, range));
+            }
         }
         // Table 数组消费者可能没有源码变化，不能只暂停快照所属表的直接监听。
         let observers: Vec<_> = workbook
@@ -318,9 +332,6 @@ impl StructuralHistoryChange {
             workbook.sheets[sheet]
                 .data_validations
                 .clone_from(&snapshot.data_validations);
-            for (owner, rules) in &snapshot.referenced_validations {
-                workbook.sheets[*owner].data_validations.clone_from(rules);
-            }
             // 权限不进入内容历史；只让当前配置随本次回放的几何移动。
             let edit = if undo {
                 match self.edit {
@@ -354,8 +365,11 @@ impl StructuralHistoryChange {
             for lambda in &self.named_lambdas {
                 lambda.apply(workbook, undo);
             }
-            for template in &self.templates {
-                template.apply(workbook, undo);
+            for change in self.templates.iter().chain(&self.references) {
+                change.apply(workbook, undo);
+            }
+            for (_, rules) in &self.rules {
+                rules.apply(workbook, undo);
             }
             workbook.restore_named_range_coordinates(&self.named_ranges, undo);
             if self.named_ranges.is_empty() && !self.named_lambdas.is_empty() {
@@ -380,8 +394,10 @@ impl StructuralHistoryChange {
             + self
                 .templates
                 .iter()
+                .chain(&self.references)
                 .map(FormulaSourceChange::retained_bytes)
                 .sum::<usize>()
+            + crate::sheet::metadata_bytes(&self.rules)
             + self
                 .named_ranges
                 .iter()

@@ -62,7 +62,6 @@ fn row_edits_on_an_open_sheet_rewrite_references_in_a_protected_sheet() {
     assert_eq!(other_formula(&book).as_deref(), Some("=Sheet1!A3"));
     assert_eq!(book.get_cell("Other", "A1"), Value::Number(5.0));
     assert!(book.try_structural_edit(1, ShiftEdit::RowInsert { at: 0, count: 1 }).is_err());
-    set_other(&mut book, ProtectionChange::Unprotect);
     history.undo(&mut book).unwrap();
     assert_eq!(other_formula(&book).as_deref(), Some("=Sheet1!A2"));
     history.redo(&mut book).unwrap();
@@ -70,8 +69,8 @@ fn row_edits_on_an_open_sheet_rewrite_references_in_a_protected_sheet() {
 }
 
 #[test]
-fn replay_never_restores_snapshots_into_a_protected_referencing_sheet() {
-    // 回归：撤销会整份恢复引用表的快照（格式、列宽、规则目录），受保护引用表上的列宽被改回。
+fn replay_restores_only_rewritten_formulas_on_a_protected_referencing_sheet() {
+    // 回归（#17）：撤销整份恢复引用表快照，受保护引用表上之后改的列宽被改回。
     let mut book = open_sheet_beside_protected_reference();
     set_other(&mut book, ProtectionChange::Unprotect);
     book.sheet_mut(1).unwrap().set_col_width(0, 80);
@@ -79,7 +78,10 @@ fn replay_never_restores_snapshots_into_a_protected_referencing_sheet() {
     history.edit_structure(&mut book, 0, ShiftEdit::RowInsert { at: 0, count: 1 }).unwrap();
     book.sheet_mut(1).unwrap().set_col_width(0, 200);
     set_other(&mut book, ProtectionChange::Protect);
-    assert!(history.undo(&mut book).is_err());
+    history.undo(&mut book).unwrap();
+    assert_eq!(book.sheet(1).unwrap().col_width(0), Some(200));
+    assert_eq!(other_formula(&book).as_deref(), Some("=Sheet1!A2"));
+    history.redo(&mut book).unwrap();
     assert_eq!(book.sheet(1).unwrap().col_width(0), Some(200));
     assert_eq!(other_formula(&book).as_deref(), Some("=Sheet1!A3"));
 }
@@ -91,11 +93,8 @@ fn cell_shifts_on_an_open_sheet_follow_into_a_protected_sheet() {
     let down = einfach_excel_core::CellShiftDirection::InsertDown;
     assert!(history.shift_cells(&mut book, 0, range(0, 0, 0, 0), down).unwrap());
     assert_eq!(other_formula(&book).as_deref(), Some("=Sheet1!A3"));
-    assert!(history.undo(&mut book).is_err());
-    set_other(&mut book, ProtectionChange::Unprotect);
     history.undo(&mut book).unwrap();
     assert_eq!(other_formula(&book).as_deref(), Some("=Sheet1!A2"));
-    set_other(&mut book, ProtectionChange::Protect);
     assert!(history.shift_cells(&mut book, 1, range(0, 0, 0, 0), down).is_err());
 }
 

@@ -65,6 +65,28 @@ impl FormulaRuleChange {
         changes
     }
 
+    /// 由改写前的目录与当前目录得出变化（结构编辑在原生位移后调用）；规则只改公式，不移动区域。
+    pub(super) fn between(
+        workbook: &Workbook,
+        sheet: usize,
+        rules: &[ConditionalFormatRuleEntry],
+        validations: &[DataValidationRegion],
+    ) -> Option<Self> {
+        let entries: Vec<_> = rules.iter().filter_map(|before| {
+            let after = workbook.conditional_formats[sheet].rules.iter()
+                .find(|entry| entry.id == before.id)?;
+            (after != before).then(|| (before.clone(), after.clone()))
+        }).collect();
+        let current = workbook.sheets[sheet].data_validations();
+        let validations: Vec<_> = if current.len() == validations.len() {
+            validations.iter().zip(current)
+                .filter(|(before, after)| before != after)
+                .map(|(before, after)| (before.clone(), after.clone())).collect()
+        } else { Vec::new() };
+        (!entries.is_empty() || !validations.is_empty())
+            .then(|| Self { sheet_key: workbook.sheet_keys[sheet], entries, validations })
+    }
+
     pub fn validate(&self, workbook: &Workbook, undo: bool) -> Result<(), &'static str> {
         let sheet = workbook
             .sheet_keys

@@ -25,6 +25,15 @@ impl FormulaSourceChange {
         self.sheet == sheet && self.table_key.is_none() && range.contains(self.addr)
     }
 
+    /// 已知前后源码的单元格改写（结构编辑在原生位移后读回实际结果）；未变化返回 None。
+    pub(crate) fn cell(workbook: &Workbook, sheet: usize, addr: CellAddress, before: String)
+        -> Option<Self> {
+        let after = workbook.sheets[sheet].formula_text_at(addr)?;
+        (after != before).then(|| Self {
+            sheet, sheet_key: workbook.sheet_keys[sheet], addr, table_key: None, before, after,
+        })
+    }
+
     pub fn prepare(
         workbook: &Workbook,
         // range 决定隐式 Table 归属；Some(origin) 标记模板，不受单元格快照排除。

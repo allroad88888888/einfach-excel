@@ -95,7 +95,7 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | XSCUT-004 | Stop 验证拒绝后修正跨表剪切目标 | `cross-sheet-cut/recovery.spec.ts` | XSCUT-04 stop validation rolls back the cross-sheet cut and permits a corrected destination |
 | XSCUT-005 | Warning 取消与明确继续跨表剪切 | `cross-sheet-cut/recovery.spec.ts` | XSCUT-05 warning cancel keeps the cut and explicit continue moves it with one history entry |
 | XSCUT-006 | 合并目标拒绝后保留剪切并重试普通格 | `cross-sheet-cut/recovery.spec.ts` | XSCUT-06 merged destination rejects atomically and the same cut can move to an ordinary cell |
-| XSCUT-007 | 解除第三表依赖保护后重试跨表剪切 | `cross-sheet-cut/protection.spec.ts` | XSCUT-07 protected third-sheet dependents block a cross-sheet cut until explicitly unprotected |
+| XSCUT-007 | 第三表受保护时跨表剪切照常改写其依赖并可撤销 | `cross-sheet-cut/protection.spec.ts` | XSCUT-07 a protected third-sheet dependent follows a cross-sheet cut and its undo |
 | XSCUT-008 | 浏览器剪切写入失败后保留原复制 | `cross-sheet-cut/browser-failure.spec.ts` | XSCUT-08 failed browser cut write leaves the source untouched and preserves the previous copy across tabs |
 | SEL-001 | 单元格点击单选 | `selection/basic-selection.spec.ts` | single cell click replaces the selection at 1280px |
 | SEL-002 | 鼠标拖拽矩形选区 | `selection/basic-selection.spec.ts` | pointer drag selects a rectangle at 1280px |

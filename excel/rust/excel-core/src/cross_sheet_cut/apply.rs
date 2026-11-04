@@ -9,7 +9,7 @@ pub(super) fn move_cells(
     range: CellRange,
     planned: Vec<PlannedCell>,
     dependents: &[(usize, CellAddress, String)],
-    passive: &[bool],
+    cycles: &super::move_refs::CutCycles,
     source_borders: crate::sheet::BorderPlan,
     target_borders: crate::sheet::BorderPlan,
     validation: &[(usize, CellAddress)],
@@ -30,10 +30,14 @@ pub(super) fn move_cells(
             for addr in snapshot.source.iter() {
                 loader.clear_cell_at(source_sheet, addr);
             }
-            for (addr, value, _) in &planned {
+            for (index, (addr, value, _)) in planned.iter().enumerate() {
                 match value {
                     Some(ClipboardValue::Formula { source, .. }) => {
-                        loader.set_formula_at(target_sheet, *addr, source);
+                        if cycles.targets.get(index) == Some(&true) {
+                            loader.set_checked_formula_at(target_sheet, *addr, source);
+                        } else {
+                            loader.set_formula_at(target_sheet, *addr, source);
+                        }
                     }
                     Some(ClipboardValue::Literal(Value::Null)) => {
                         loader.clear_cell_at(target_sheet, *addr)
@@ -44,7 +48,7 @@ pub(super) fn move_cells(
                     None => {}
                 }
             }
-            for ((sheet, addr, text), passive) in dependents.iter().zip(passive) {
+            for ((sheet, addr, text), passive) in dependents.iter().zip(&cycles.passive) {
                 if *passive { loader.rewrite_formula_at(*sheet, *addr, text); }
                 else { loader.set_formula_at(*sheet, *addr, text); }
             }

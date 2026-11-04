@@ -33,6 +33,15 @@ enum WorkbookOp {
     ClearCell { addr: CellAddress },
 }
 
+impl WorkbookOp {
+    fn addr(&self) -> CellAddress {
+        match self {
+            WorkbookOp::SetCell { addr, .. } | WorkbookOp::SetFormula { addr, .. }
+            | WorkbookOp::ClearCell { addr } => *addr,
+        }
+    }
+}
+
 /// In-progress workbook bulk-load session. Buffers operations until
 /// `flush` runs at the end of `Workbook::bulk_load`. Inside the closure
 /// callers see synchronous returns from `set_formula` (parse / cycle
@@ -94,17 +103,22 @@ impl<'a> WorkbookLoader<'a> {
         self.set_formula_at(sheet_idx, addr, source)
     }
 
-    /// 只改写引用的公式（剪切移动的引用方），与插删行列一致不要求所在格可编辑。调用方已按最终
-    /// 写入计划判定不成环，这里不再按排队时的旧依赖图重判：旧图会把已被覆盖的目标格误判为环。
-    pub(crate) fn rewrite_formula_at(&mut self, sheet_idx: usize, addr: CellAddress, source: &str) -> bool {
+    /// 调用方已按全部写入之后的状态判定不成环（`Workbook::formula_writes_close_cycles`）的公式：
+    /// 直接排入，不再按排队时的旧依赖图重判——旧图会把即将被覆盖的格误判为环。
+    pub(crate) fn set_checked_formula_at(&mut self, sheet_idx: usize, addr: CellAddress, source: &str) -> bool {
         if self.wb.is_inside_custom_call() || sheet_idx >= self.wb.sheets.len() { return false; }
         let Some(expr) = parse_formula(source) else { return self.set_formula_at(sheet_idx, addr, source) };
         self.wb.cyclic_formulas.remove(&(sheet_idx, addr));
-        self.passive.insert((sheet_idx, addr));
         self.ops_by_sheet.entry(sheet_idx).or_default().push(WorkbookOp::SetFormula {
             addr, source: source.to_string(), expr: Some(expr),
         });
         true
+    }
+
+    /// 只改写引用的公式（剪切移动的引用方），已判定不成环；与插删行列一致不要求所在格可编辑。
+    pub(crate) fn rewrite_formula_at(&mut self, sheet_idx: usize, addr: CellAddress, source: &str) -> bool {
+        self.passive.insert((sheet_idx, addr));
+        self.set_checked_formula_at(sheet_idx, addr, source)
     }
 
     /// Typed-address twin of `set_formula` (A-9 follow-up) — same
@@ -211,24 +225,13 @@ impl<'a> WorkbookLoader<'a> {
         let WorkbookLoader { wb, ops_by_sheet, passive } = self;
         // 原始批量端口也必须整批拒绝；逐格跳过会留下半次跨表写入。
         if ops_by_sheet.iter().any(|(sheet, ops)| ops.iter().any(|op| {
-            let addr = match op { WorkbookOp::SetCell { addr, .. }
-                | WorkbookOp::SetFormula { addr, .. } | WorkbookOp::ClearCell { addr } => *addr };
             // 被动豁免只覆盖公式写入，不能借此把值或清空写进锁定格。
-            !(passive.contains(&(*sheet, addr)) && matches!(op, WorkbookOp::SetFormula { .. }))
-                && wb.ensure_range_editable(*sheet, CellRange::single(addr)).is_err()
+            !(passive.contains(&(*sheet, op.addr())) && matches!(op, WorkbookOp::SetFormula { .. }))
+                && wb.ensure_range_editable(*sheet, CellRange::single(op.addr())).is_err()
         })) { return; }
-        let rows = wb.insert_rows_for_writes(ops_by_sheet.iter().flat_map(|(sheet, ops)| {
-            ops.iter().map(move |op| {
-                (
-                    *sheet,
-                    match op {
-                        WorkbookOp::SetCell { addr, .. }
-                        | WorkbookOp::SetFormula { addr, .. }
-                        | WorkbookOp::ClearCell { addr } => *addr,
-                    },
-                )
-            })
-        }));
+        let rows = wb.insert_rows_for_writes(
+            ops_by_sheet.iter().flat_map(|(sheet, ops)| ops.iter().map(move |op| (*sheet, op.addr()))),
+        );
         if wb.ensure_tables_unprotected(&rows).is_err() { return; }
         wb.write_with_insert_rows(rows, |wb| {
             for (sheet_idx, ops) in ops_by_sheet {

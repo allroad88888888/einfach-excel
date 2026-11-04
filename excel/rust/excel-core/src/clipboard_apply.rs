@@ -9,7 +9,7 @@ pub(super) fn apply_paste(
     options: &ClipboardPasteOptions,
     planned: Vec<paste_values::PlannedCell>,
     dependents: &[(usize, CellAddress, String)],
-    passive: &[bool],
+    cycles: &move_refs::CutCycles,
     merges: &merge::MergePastePlan,
     borders: crate::sheet::BorderPlan,
     validation_formulas: &[CellAddress],
@@ -52,10 +52,14 @@ pub(super) fn apply_paste(
                         loader.clear_cell_at(sheet_idx, addr);
                     }
                 }
-                for (addr, value, _) in &planned {
+                for (index, (addr, value, _)) in planned.iter().enumerate() {
                     match value {
                         Some(ClipboardValue::Formula { source, .. }) => {
-                            loader.set_formula_at(sheet_idx, *addr, source);
+                            if cycles.targets.get(index) == Some(&true) {
+                                loader.set_checked_formula_at(sheet_idx, *addr, source);
+                            } else {
+                                loader.set_formula_at(sheet_idx, *addr, source);
+                            }
                         }
                         Some(ClipboardValue::Literal(Value::Null)) => {
                             loader.clear_cell_at(sheet_idx, *addr)
@@ -66,7 +70,7 @@ pub(super) fn apply_paste(
                         None => {}
                     }
                 }
-                for ((sheet, addr, text), passive) in dependents.iter().zip(passive) {
+                for ((sheet, addr, text), passive) in dependents.iter().zip(&cycles.passive) {
                     if *passive { loader.rewrite_formula_at(*sheet, *addr, text); }
                     else { loader.set_formula_at(*sheet, *addr, text); }
                 }

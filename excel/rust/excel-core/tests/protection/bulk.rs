@@ -78,6 +78,25 @@ fn cut_judges_reference_cycles_against_the_final_writes() {
 }
 
 #[test]
+fn cut_targets_judge_cycles_against_the_final_writes_too() {
+    // 回归：目标公式仍按旧图判环——排队 B1=C1 时旧 C1 还指向 B1，B1 被写成循环错误值。
+    let mut book = Workbook::new();
+    book.set_cell(0, "B1", Value::Number(7.0));
+    assert!(book.set_formula(0, "C1", "=B1"));
+    assert!(book.set_formula(0, "A1", "=C1"));
+    book.add_sheet("Other");
+    assert!(book.set_formula(1, "A1", "=Sheet1!A1"));
+    book.change_protection(1, ProtectionChange::Protect).unwrap();
+    let cut = book.capture_clipboard(0, range(0, 0, 0, 1), true).unwrap();
+    let mut history = WorkbookHistory::default();
+    book.paste_clipboard_with_history(&cut, 0,
+        &ClipboardPasteOptions::new(range(0, 1, 0, 2)), &mut history).unwrap();
+    assert_eq!(book.sheet(0).unwrap().get_formula("B1").as_deref(), Some("=C1"));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(7.0));
+    assert_eq!(book.get_cell("Other", "A1"), Value::Number(7.0));
+}
+
+#[test]
 fn undoing_a_cut_publishes_the_reference_only_once_it_is_restored() {
     // 回归：撤销先恢复源/目标、再恢复引用源码，订阅者看到引用方指向已清空目标时的中间值。
     let mut book = Workbook::new();

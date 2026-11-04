@@ -112,27 +112,45 @@ pub(super) fn dependent_writes(
     Ok(writes)
 }
 
-/// 引用方改写在最终写入计划下不成环才算被动，可越过锁定格（与插删行列一致，#16）；
-/// 成环的仍按普通写入要求所在格可编辑，排队时也走普通判环。
-pub(super) fn passive_rewrites(
-    workbook: &Workbook,
-    writes: &[(usize, CellAddress, Option<&str>)],
-    dependents: &[(usize, CellAddress, String)],
-) -> Result<Vec<bool>, &'static str> {
-    if dependents.is_empty() { return Ok(Vec::new()); }
-    let cyclic = workbook.passive_rewrites_close_cycles(writes, dependents);
-    for ((sheet, addr, _), cyclic) in dependents.iter().zip(&cyclic) {
-        if *cyclic { workbook.ensure_range_editable(*sheet, CellRange::single(*addr))?; }
-    }
-    Ok(cyclic.into_iter().map(|cyclic| !cyclic).collect())
+/// 剪切移动的判环结果（#16）：目标公式与引用方都按全部写入之后的状态判断，排队时不再用旧图重判。
+/// `targets[i]` 为真表示 `planned[i]` 是已确认不成环的公式；`passive[i]` 为真表示第 i 个引用方
+/// 不成环、可作为被动改写越过锁定格（与插删行列一致），成环的引用方仍须可编辑。
+#[derive(Default)]
+pub(super) struct CutCycles {
+    pub(super) targets: Vec<bool>,
+    pub(super) passive: Vec<bool>,
 }
 
-/// 粘贴计划在目标表上的覆盖；跳过空白等不写入的位置不计入。
-pub(super) fn planned_writes(sheet: usize, planned: &[paste_values::PlannedCell])
-    -> Vec<(usize, CellAddress, Option<&str>)> {
-    planned.iter().filter_map(|(addr, value, _)| match value {
-        Some(ClipboardValue::Formula { source, .. }) => Some((sheet, *addr, Some(source.as_str()))),
-        Some(ClipboardValue::Literal(_)) => Some((sheet, *addr, None)),
-        None => None,
-    }).collect()
+pub(super) fn plan_cut_cycles(
+    workbook: &Workbook,
+    source: (usize, CellRange),
+    target_sheet: usize,
+    planned: &[paste_values::PlannedCell],
+    dependents: &[(usize, CellAddress, String)],
+) -> Result<CutCycles, &'static str> {
+    // 与 loader 的排队顺序一致：先清空剪切源，再写目标，最后改写引用方；同址以后者为准。
+    let mut writes: Vec<_> = source.1.iter().map(|addr| (source.0, addr, None)).collect();
+    let mut target_writes = Vec::new();
+    for (index, (addr, value, _)) in planned.iter().enumerate() {
+        let source = match value {
+            Some(ClipboardValue::Formula { source, .. }) => Some(source.as_str()),
+            Some(ClipboardValue::Literal(_)) => None,
+            None => continue,
+        };
+        target_writes.push((index, writes.len()));
+        writes.push((target_sheet, *addr, source));
+    }
+    let first_dependent = writes.len();
+    writes.extend(dependents.iter().map(|(sheet, addr, text)| (*sheet, *addr, Some(text.as_str()))));
+    let cyclic = workbook.formula_writes_close_cycles(&writes);
+    let mut targets = vec![false; planned.len()];
+    for (index, write) in target_writes {
+        targets[index] = writes[write].2.is_some() && !cyclic[write];
+    }
+    let mut passive = Vec::with_capacity(dependents.len());
+    for ((sheet, addr, _), cyclic) in dependents.iter().zip(&cyclic[first_dependent..]) {
+        if *cyclic { workbook.ensure_range_editable(*sheet, CellRange::single(*addr))?; }
+        passive.push(!cyclic);
+    }
+    Ok(CutCycles { targets, passive })
 }

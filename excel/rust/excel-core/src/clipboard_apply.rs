@@ -9,6 +9,7 @@ pub(super) fn apply_paste(
     options: &ClipboardPasteOptions,
     planned: Vec<paste_values::PlannedCell>,
     dependents: &[(usize, CellAddress, String)],
+    passive: &[bool],
     merges: &merge::MergePastePlan,
     borders: crate::sheet::BorderPlan,
     validation_formulas: &[CellAddress],
@@ -65,8 +66,9 @@ pub(super) fn apply_paste(
                         None => {}
                     }
                 }
-                for (sheet, addr, text) in dependents {
-                    loader.rewrite_formula_at(*sheet, *addr, text);
+                for ((sheet, addr, text), passive) in dependents.iter().zip(passive) {
+                    if *passive { loader.rewrite_formula_at(*sheet, *addr, text); }
+                    else { loader.set_formula_at(*sheet, *addr, text); }
                 }
             });
         }

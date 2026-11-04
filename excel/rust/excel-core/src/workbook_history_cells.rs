@@ -55,24 +55,23 @@ impl WorkbookHistory {
         }
         let table_rows = workbook.insert_rows_for_ranges(targets);
         workbook.ensure_tables_unprotected(&table_rows)?;
-        let references = references.iter().filter_map(|(index, addr)| {
-            Some((*index, *addr, workbook.sheet(*index)?.formula_text_at(*addr)?))
+        let references: Vec<_> = references.iter().filter_map(|(index, addr)| {
+            let sheet = workbook.sheet(*index)?;
+            let snapshot = HistorySnapshot::capture(sheet, CellRange::single(*addr), true);
+            Some((*index, *addr, sheet.formula_text_at(*addr)?, snapshot))
         }).collect();
         self.pending = Some(PendingEdit {
             label: label.to_owned(),
             sheet,
             range,
             table_rows,
-            references,
             dimension_generations: targets
                 .iter()
-                .map(|(sheet, _, _)| {
-                    (
-                        *sheet,
-                        workbook.sheet(*sheet).unwrap().dimension_generations(),
-                    )
-                })
+                .map(|(sheet, _, _)| *sheet)
+                .chain(references.iter().map(|(sheet, ..)| *sheet))
+                .map(|sheet| (sheet, workbook.sheet(sheet).unwrap().dimension_generations()))
                 .collect(),
+            references,
             before: targets
                 .iter()
                 .map(|(index, range, content)| {
@@ -96,6 +95,14 @@ impl WorkbookHistory {
             .pending
             .take()
             .ok_or("No history command is pending.")?;
+        // 被动引用通常只改源码；若后像已不是公式（如被判为环），退回整格快照，撤销照常还原。
+        let mut references = Vec::new();
+        for (sheet, addr, before, snapshot) in std::mem::take(&mut pending.references) {
+            match workbook.sheet(sheet).and_then(|target| target.formula_text_at(addr)) {
+                Some(_) => references.extend(FormulaSourceChange::cell(workbook, sheet, addr, before)),
+                None => pending.before.push((sheet, snapshot)),
+            }
+        }
         // 邻边等额外快照可能在后续子操作前追加；撤销必须倒放这些 before-image，
         // 最后恢复事务起点，不能让较晚的中间态覆盖最早的原值。
         pending.before.reverse();
@@ -125,14 +132,11 @@ impl WorkbookHistory {
                 workbook.get_table(before.name()) == Some(&before.clone().with_insert_row(false))
             })
             .collect();
-        let references: Vec<_> = pending.references.into_iter().filter_map(|(sheet, addr, before)|
-            FormulaSourceChange::cell(workbook, sheet, addr, before)).collect();
         if pending.before == after && table_rows.is_empty() && references.is_empty() {
             return Ok(());
         }
         let rollback = |workbook: &mut Workbook| {
-            references.iter().for_each(|change| change.apply(workbook, true));
-            workbook.restore_cell_history(&pending.before, &table_rows, true)
+            workbook.restore_cell_history_with_references(&pending.before, &table_rows, &references, true)
         };
         if !success {
             return rollback(workbook);

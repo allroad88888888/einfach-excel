@@ -67,11 +67,7 @@ impl HistoryEntry {
                 }
                 let snapshots =
                     dimensions.restore_parts(workbook, if undo { before } else { after }, undo);
-                workbook.restore_cell_history(&snapshots, table_rows, undo)?;
-                for change in references.iter() {
-                    change.apply(workbook, undo);
-                }
-                Ok(())
+                workbook.restore_cell_history_with_references(&snapshots, table_rows, references, undo)
             }
             HistoryChange::Sheet(change) => change.apply(workbook, undo),
             HistoryChange::SheetTab(change) => {

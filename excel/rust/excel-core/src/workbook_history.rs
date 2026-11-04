@@ -130,7 +130,8 @@ struct PendingEdit {
     before: Vec<(usize, HistorySnapshot)>,
     table_rows: Vec<TableEntry>,
     dimension_generations: std::collections::BTreeMap<usize, [u64; 2]>,
-    references: Vec<(usize, crate::CellAddress, String)>,
+    /// 被动引用：编辑前的源码与整格快照；后像不再是公式时退回快照记录。
+    references: Vec<(usize, crate::CellAddress, String, HistorySnapshot)>,
 }
 
 #[derive(Default)]

@@ -111,3 +111,28 @@ pub(super) fn dependent_writes(
     }
     Ok(writes)
 }
+
+/// 引用方改写在最终写入计划下不成环才算被动，可越过锁定格（与插删行列一致，#16）；
+/// 成环的仍按普通写入要求所在格可编辑，排队时也走普通判环。
+pub(super) fn passive_rewrites(
+    workbook: &Workbook,
+    writes: &[(usize, CellAddress, Option<&str>)],
+    dependents: &[(usize, CellAddress, String)],
+) -> Result<Vec<bool>, &'static str> {
+    if dependents.is_empty() { return Ok(Vec::new()); }
+    let cyclic = workbook.passive_rewrites_close_cycles(writes, dependents);
+    for ((sheet, addr, _), cyclic) in dependents.iter().zip(&cyclic) {
+        if *cyclic { workbook.ensure_range_editable(*sheet, CellRange::single(*addr))?; }
+    }
+    Ok(cyclic.into_iter().map(|cyclic| !cyclic).collect())
+}
+
+/// 粘贴计划在目标表上的覆盖；跳过空白等不写入的位置不计入。
+pub(super) fn planned_writes(sheet: usize, planned: &[paste_values::PlannedCell])
+    -> Vec<(usize, CellAddress, Option<&str>)> {
+    planned.iter().filter_map(|(addr, value, _)| match value {
+        Some(ClipboardValue::Formula { source, .. }) => Some((sheet, *addr, Some(source.as_str()))),
+        Some(ClipboardValue::Literal(_)) => Some((sheet, *addr, None)),
+        None => None,
+    }).collect()
+}

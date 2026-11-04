@@ -57,6 +57,79 @@ fn cut_rewrites_a_locked_formula_on_another_sheet_and_replays_only_its_source() 
 }
 
 #[test]
+fn cut_judges_reference_cycles_against_the_final_writes() {
+    // 回归：排队时按旧依赖图判环，覆盖前的 B1 让引用方被误判为环并写成 #CYCLE，锁定格的原公式随之丢失。
+    let mut book = Workbook::new();
+    book.set_cell(0, "A1", Value::Number(7.0));
+    book.add_sheet("Other");
+    book.set_formula(1, "A1", "=Sheet1!A1");
+    book.set_formula(0, "B1", "=Other!A1");
+    let cut = book.capture_clipboard(0, range(0, 0, 0, 0), true).unwrap();
+    book.change_protection(1, ProtectionChange::Protect).unwrap();
+    let mut history = WorkbookHistory::default();
+    book.paste_clipboard_with_history(&cut, 0,
+        &ClipboardPasteOptions::new(range(0, 1, 0, 1)), &mut history).unwrap();
+    assert_eq!(book.sheet(1).unwrap().get_formula("A1").as_deref(), Some("=Sheet1!B1"));
+    assert_eq!(book.get_cell("Other", "A1"), Value::Number(7.0));
+    history.undo(&mut book).unwrap();
+    assert_eq!(book.sheet(1).unwrap().get_formula("A1").as_deref(), Some("=Sheet1!A1"));
+    assert_eq!(book.sheet(0).unwrap().get_formula("B1").as_deref(), Some("=Other!A1"));
+    assert_eq!(book.get_cell("Other", "A1"), Value::Number(7.0));
+}
+
+#[test]
+fn undoing_a_cut_publishes_the_reference_only_once_it_is_restored() {
+    // 回归：撤销先恢复源/目标、再恢复引用源码，订阅者看到引用方指向已清空目标时的中间值。
+    let mut book = Workbook::new();
+    book.set_cell(0, "A1", Value::Number(7.0));
+    book.add_sheet("Other");
+    book.set_formula(1, "A1", "=Sheet1!A1+1");
+    let cut = book.capture_clipboard(0, range(0, 0, 0, 0), true).unwrap();
+    let mut history = WorkbookHistory::default();
+    book.paste_clipboard_with_history(&cut, 0,
+        &ClipboardPasteOptions::new(range(0, 1, 0, 1)), &mut history).unwrap();
+    assert_eq!(book.get_cell("Other", "A1"), Value::Number(8.0));
+    let fires = std::rc::Rc::new(std::cell::Cell::new(0));
+    let seen = fires.clone();
+    let _sub = book.sheet_mut(1).unwrap().subscribe_cell("A1", move || seen.set(seen.get() + 1));
+    history.undo(&mut book).unwrap();
+    assert_eq!(book.get_cell("Other", "A1"), Value::Number(8.0));
+    assert_eq!(fires.get(), 0, "the reference's value never left 8");
+}
+
+#[test]
+fn a_cyclic_source_moves_as_its_error_value_and_the_locked_reference_follows() {
+    // 非迭代模式下成环格只存错误值，剪切把它当字面量移动，改写后的引用不成环，照常跟随。
+    let mut book = Workbook::new();
+    book.add_sheet("Other");
+    book.set_formula(1, "A1", "=Sheet1!A1");
+    book.set_formula(0, "A1", "=Other!A1+1");
+    let cut = book.capture_clipboard(0, range(0, 0, 0, 0), true).unwrap();
+    book.change_protection(1, ProtectionChange::Protect).unwrap();
+    book.paste_clipboard(&cut, 0, &ClipboardPasteOptions::new(range(0, 1, 0, 1))).unwrap();
+    assert_eq!(book.sheet(1).unwrap().get_formula("A1").as_deref(), Some("=Sheet1!B1"));
+}
+
+#[test]
+fn an_iterative_cycle_through_a_locked_reference_refuses_the_cut() {
+    // 迭代计算下环以真公式存在：引用方改写在最终写入里成环时不算被动，锁定格仍拒绝整次剪切。
+    let mut book = Workbook::new();
+    book.add_sheet("Other");
+    assert!(book.set_iterative_calculation(einfach_excel_core::IterativeConfig {
+        enabled: true, max_iterations: 10, max_change: 0.001,
+    }));
+    book.set_formula(1, "A1", "=Sheet1!A1");
+    book.set_formula(0, "A1", "=Other!A1+1");
+    assert_eq!(book.sheet(0).unwrap().get_formula("A1").as_deref(), Some("=Other!A1+1"));
+    let cut = book.capture_clipboard(0, range(0, 0, 0, 0), true).unwrap();
+    book.change_protection(1, ProtectionChange::Protect).unwrap();
+    assert!(book.paste_clipboard(&cut, 0, &ClipboardPasteOptions::new(range(0, 1, 0, 1))).is_err());
+    assert_eq!(book.sheet(1).unwrap().get_formula("A1").as_deref(), Some("=Sheet1!A1"));
+    assert_eq!(book.sheet(0).unwrap().get_formula("A1").as_deref(), Some("=Other!A1+1"));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Null);
+}
+
+#[test]
 fn cross_sheet_cut_rewrites_a_locked_formula_on_a_third_sheet() {
     let mut book = Workbook::new();
     book.set_cell(0, "A1", Value::Number(7.0));

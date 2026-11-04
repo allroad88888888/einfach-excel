@@ -3,6 +3,38 @@ use super::*;
 use crate::history_snapshot::HistorySnapshot;
 
 impl Workbook {
+    /// 单元格快照与被动引用源码在同一事务、同一通知暂停内恢复，订阅者不观察只恢复一半的中间态。
+    pub(crate) fn restore_cell_history_with_references(
+        &mut self,
+        snapshots: &[(usize, HistorySnapshot)],
+        rows: &[TableEntry],
+        references: &[FormulaSourceChange],
+        undo: bool,
+    ) -> Result<(), &'static str> {
+        if references.is_empty() {
+            return self.restore_cell_history(snapshots, rows, undo);
+        }
+        let arrays: Vec<_> = references.iter()
+            .filter_map(|change| Some((change.sheet, change.mutation_range()?)))
+            .flat_map(|(sheet, range)| self.array_dependents_for_range(sheet, range))
+            .collect();
+        let observers: Vec<_> = self.sheets.iter_mut()
+            .map(Sheet::suspend_structure_notifications).collect();
+        let store = self.store.clone();
+        let mut result = Ok(());
+        store.batch(|_| {
+            result = self.restore_cell_history(snapshots, rows, undo);
+            if result.is_ok() {
+                references.iter().for_each(|change| change.apply(self, undo));
+            }
+        });
+        self.recompute_array_formula_groups(arrays);
+        for (sheet, observer) in self.sheets.iter_mut().zip(observers) {
+            sheet.resume_structure_notifications(observer);
+        }
+        result
+    }
+
     /// 多表/多范围在同一 Store batch 内恢复，不向订阅者发布一半完成的移动。
     pub(crate) fn restore_history_snapshots(
         &mut self,

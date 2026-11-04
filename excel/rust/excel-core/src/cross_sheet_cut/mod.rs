@@ -102,7 +102,10 @@ pub(super) fn paste(
             .into_iter()
             .map(|addr| (target_sheet, addr))
             .collect();
-    // 引用源格的公式只被动改写（与插删行列一致），不要求所在格可编辑。
+    // 引用源格的公式只被动改写（与插删行列一致）：按最终写入计划不成环时不要求所在格可编辑。
+    let writes: Vec<_> = snapshot.source.iter().map(|addr| (source_sheet, addr, None))
+        .chain(super::move_refs::planned_writes(target_sheet, &planned)).collect();
+    let passive = super::move_refs::passive_rewrites(workbook, &writes, &dependents)?;
     for (sheet, addr, _) in &dependents {
         if workbook.sheets[*sheet].data_validation_at(*addr).is_some() {
             validation.push((*sheet, *addr));
@@ -151,6 +154,7 @@ pub(super) fn paste(
         range,
         planned,
         &dependents,
+        &passive,
         source_borders,
         target_borders,
         &validation,

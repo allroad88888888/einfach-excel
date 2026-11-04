@@ -129,7 +129,12 @@ impl Workbook {
         for (addr, _, _) in &planned {
             self.ensure_range_editable(sheet_idx, CellRange::single(*addr))?;
         }
-        // 引用源格的公式只被动改写（与插删行列一致），不要求所在格可编辑。
+        // 引用源格的公式只被动改写（与插删行列一致）：按最终写入计划不成环时不要求所在格可编辑。
+        let passive = if dependents.is_empty() { Vec::new() } else {
+            let writes: Vec<_> = snapshot.source.iter().map(|addr| (sheet_idx, addr, None))
+                .chain(move_refs::planned_writes(sheet_idx, &planned)).collect();
+            move_refs::passive_rewrites(self, &writes, &dependents)?
+        };
         for addr in borders.keys() {
             self.ensure_range_editable(sheet_idx, CellRange::single(*addr))?;
         }
@@ -149,7 +154,7 @@ impl Workbook {
             let mut temporary = crate::workbook_history::WorkbookHistory::default();
             history.as_deref_mut().unwrap_or(&mut temporary).paste_expanding_table(
                 self, change, affected, |workbook| apply::apply_paste(
-                    workbook, snapshot, sheet_idx, options, planned, &dependents, &merges,
+                    workbook, snapshot, sheet_idx, options, planned, &dependents, &passive, &merges,
                     borders, &validation_formulas, None,
                 ),
             )?;
@@ -190,6 +195,7 @@ impl Workbook {
             options,
             planned,
             &dependents,
+            &passive,
             &merges,
             borders,
             &validation_formulas,

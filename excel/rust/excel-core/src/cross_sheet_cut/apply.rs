@@ -9,6 +9,7 @@ pub(super) fn move_cells(
     range: CellRange,
     planned: Vec<PlannedCell>,
     dependents: &[(usize, CellAddress, String)],
+    passive: &[bool],
     source_borders: crate::sheet::BorderPlan,
     target_borders: crate::sheet::BorderPlan,
     validation: &[(usize, CellAddress)],
@@ -43,8 +44,9 @@ pub(super) fn move_cells(
                     None => {}
                 }
             }
-            for (sheet, addr, text) in dependents {
-                loader.rewrite_formula_at(*sheet, *addr, text);
+            for ((sheet, addr, text), passive) in dependents.iter().zip(passive) {
+                if *passive { loader.rewrite_formula_at(*sheet, *addr, text); }
+                else { loader.set_formula_at(*sheet, *addr, text); }
             }
         });
         let source = &mut workbook.sheets[source_sheet];

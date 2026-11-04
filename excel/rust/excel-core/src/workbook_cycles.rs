@@ -16,6 +16,28 @@ impl Workbook {
         self.closes_workbook_cycle_with_overlay(target_idx, target, expr, &FormulaOverlay::new())
     }
 
+    /// 剪切引用方的被动改写，逐个判断在最终写入计划下是否成环。`writes` 为同一批的覆盖
+    /// （`Some` 公式源码，`None` 字面量或清空）；其他引用方的新公式也计入，排队时的旧依赖图
+    /// 会把已被覆盖的目标格误判为环。解析失败按成环处理。
+    pub(crate) fn passive_rewrites_close_cycles(
+        &self,
+        writes: &[(usize, CellAddress, Option<&str>)],
+        rewrites: &[(usize, CellAddress, String)],
+    ) -> Vec<bool> {
+        let written: Vec<_> = writes.iter().map(|(_, _, source)| source.and_then(parse_formula)).collect();
+        let rewritten: Vec<_> = rewrites.iter().map(|(_, _, source)| parse_formula(source)).collect();
+        let mut overlay = FormulaOverlay::new();
+        for ((sheet, addr, _), expr) in writes.iter().zip(&written) {
+            overlay.insert((*sheet, *addr), expr.as_ref());
+        }
+        for ((sheet, addr, _), expr) in rewrites.iter().zip(&rewritten) {
+            overlay.insert((*sheet, *addr), expr.as_ref());
+        }
+        rewrites.iter().zip(&rewritten).map(|((sheet, addr, _), expr)| expr.as_ref()
+            .map_or(true, |expr| self.closes_workbook_cycle_with_overlay(*sheet, *addr, expr, &overlay)))
+            .collect()
+    }
+
     fn closes_workbook_cycle_with_overlay(
         &self,
         target_idx: usize,

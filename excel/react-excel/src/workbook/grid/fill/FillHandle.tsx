@@ -8,14 +8,15 @@ import { useCallback, useEffect, useRef, type PointerEvent, type RefObject } fro
 import { useGridDragAutoscroll } from '../../selection/use-grid-drag-autoscroll'
 import { workbookCellAtViewportPoint } from '../viewport/workbook-grid-hit-test'
 import { gridZoomOf } from '../../zoom/grid-zoom'
-import { WORKBOOK_GRID_ROW_HEADER_WIDTH, WORKBOOK_GRID_ROW_HEIGHT } from '../viewport/workbook-grid-config'
 import { fillHandleGeometry } from './fill-handle-geometry'
 import './fill-handle.css'
+import { useGridGutter } from '../viewport/grid-gutter'
 
 /** 一个填充柄覆盖所有冻结分区；指针捕获与滚动归 DOM，预览与提交归 command。 */
 export function FillHandle({ scrollRef, focusGrid }: {
   scrollRef: RefObject<HTMLDivElement>; focusGrid: () => void
 }) {
+  const { gutter, heading } = useGridGutter()
   const { t } = useLingui()
   const selection = useAtomValue(selectionSnapshotAtom)
   const regions = useAtomValue(selectionRegionsAtom)
@@ -41,12 +42,12 @@ export function FillHandle({ scrollRef, focusGrid }: {
     const bounds = scroll.getBoundingClientRect()
     const zoom = gridZoomOf(scroll)
     const coord = workbookCellAtViewportPoint({
-      clientX: Math.max(bounds.left + WORKBOOK_GRID_ROW_HEADER_WIDTH * zoom + 1,
+      clientX: Math.max(bounds.left + gutter * zoom + 1,
         Math.min(bounds.left + scroll.clientWidth * zoom - 1, clientX)),
-      clientY: Math.max(bounds.top + WORKBOOK_GRID_ROW_HEIGHT * zoom + 1,
+      clientY: Math.max(bounds.top + heading * zoom + 1,
         Math.min(bounds.top + scroll.clientHeight * zoom - 1, clientY)),
       bounds, zoom, scrollTop: scroll.scrollTop, scrollLeft: scroll.scrollLeft,
-      rowHeaderWidth: WORKBOOK_GRID_ROW_HEADER_WIDTH,
+      rowHeaderWidth: gutter, columnHeaderHeight: heading,
       rowCount: metrics.rowCount, colCount: metrics.colCount,
       rowHeight: metrics.rowHeight, colWidth: metrics.colWidth,
       rowHeights: sizes.rowHeightsBySheet[metrics.sheetId ?? ''],
@@ -103,8 +104,6 @@ export function FillHandle({ scrollRef, focusGrid }: {
     void command(cancel ? { type: 'cancel' } : { type: 'finish', copy: event.ctrlKey || event.metaKey })
     focusGrid()
   }
-  const gutter = WORKBOOK_GRID_ROW_HEADER_WIDTH
-  const heading = WORKBOOK_GRID_ROW_HEIGHT
   return <div className="fill-handle-viewport"
     style={{ width: metrics.viewportWidth + gutter, height: metrics.viewportHeight + heading }}>
     {preview && drag?.direction && <div className="fill-handle-preview" data-testid="fill-preview"

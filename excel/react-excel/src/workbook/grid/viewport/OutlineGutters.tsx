@@ -17,15 +17,16 @@ import {
 import type { CSSProperties } from 'react'
 import {
   WORKBOOK_GRID_COLUMN_WIDTH,
-  WORKBOOK_GRID_ROW_HEADER_WIDTH,
   WORKBOOK_GRID_ROW_HEIGHT,
 } from './workbook-grid-config'
 import './outline.css'
+import { useGridGutter } from './grid-gutter'
 
 const STEP = 20
 
 /** 大纲放在滚动容器外；只投影像素位置，不进入格子事件或保存分组副本。 */
 export function OutlineGutters({ focusGrid }: { readonly focusGrid: () => void }) {
+  const { gutter, heading } = useGridGutter()
   const { t } = useLingui()
   const outline = useAtomValue(nativeOutlineAtom)
   const sheet = useAtomValue(activeWorkbookSheetAtom)
@@ -74,7 +75,7 @@ export function OutlineGutters({ focusGrid }: { readonly focusGrid: () => void }
         const fallback = vertical ? WORKBOOK_GRID_ROW_HEIGHT : WORKBOOK_GRID_COLUMN_WIDTH
         const overrides = (vertical ? sizes.rowHeightsBySheet : sizes.colWidthsBySheet)[sheet.id]
         const offset = (index: number) => getAxisOffsetForIndex(index, count, fallback, overrides)
-        const header = vertical ? WORKBOOK_GRID_ROW_HEIGHT : WORKBOOK_GRID_ROW_HEADER_WIDTH
+        const header = vertical ? heading : gutter
         const scroll = vertical ? metrics.scrollTop : metrics.scrollLeft
         const extent = header + (vertical ? metrics.viewportHeight : metrics.viewportWidth)
         const frozen = freeze?.sheetId === sheet.id ? (vertical ? freeze.rows : freeze.cols) : 0

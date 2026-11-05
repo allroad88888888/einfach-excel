@@ -114,6 +114,9 @@ export interface RustWorkbookSheet {
   readonly hidden?: boolean
   /** 页签颜色，大写 #RRGGBB；缺省为无颜色。 */
   readonly tabColor?: string
+  /** 视图选项：隐藏网格线／行列标题；缺省为显示。 */
+  readonly hideGridlines?: boolean
+  readonly hideHeadings?: boolean
 }
 
 /** 导入坐标为零基：row=0、col=0 表示 A1。 */

@@ -4,12 +4,10 @@ import { dragMoveFeedbackAtom, dragMoveSessionAtom, editingSessionAtom, formatPa
   projectedFreezeAtom, projectionSnapshotAtom, selectionRegionsAtom, selectionSnapshotAtom,
   viewportGeometrySizesAtom, viewportMetricsAtom } from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties, RefObject } from 'react'
-import {
-  WORKBOOK_GRID_ROW_HEADER_WIDTH, WORKBOOK_GRID_ROW_HEIGHT,
-} from '../grid/viewport/workbook-grid-config'
 import { selectionEdgeGeometry } from './selection-edge-geometry'
 import { useSelectionMoveDrag } from './use-selection-move-drag'
 import './drag-move.css'
+import { useGridGutter } from '../grid/viewport/grid-gutter'
 
 const EDGE = 6
 type Side = 'top' | 'bottom' | 'left' | 'right'
@@ -19,6 +17,7 @@ const SIDES: readonly Side[] = ['top', 'bottom', 'left', 'right']
 export function SelectionMoveBorder({ scrollRef, focusGrid }: {
   scrollRef: RefObject<HTMLDivElement>; focusGrid: () => void
 }) {
+  const { gutter, heading } = useGridGutter()
   const { t } = useLingui()
   const selection = useAtomValue(selectionSnapshotAtom)
   const regions = useAtomValue(selectionRegionsAtom)
@@ -37,8 +36,6 @@ export function SelectionMoveBorder({ scrollRef, focusGrid }: {
     projection.result?.sheetId === selection.selection.sheetId
   const frame = selectionEdgeGeometry(selection.range, metrics, sizes, freeze)
   const preview = session && selectionEdgeGeometry(session.target, metrics, sizes, freeze)
-  const gutter = WORKBOOK_GRID_ROW_HEADER_WIDTH
-  const heading = WORKBOOK_GRID_ROW_HEIGHT
   const edgeStyle = (side: Side): CSSProperties => {
     const left = gutter + frame.left
     const top = heading + frame.top

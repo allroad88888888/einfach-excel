@@ -8,12 +8,13 @@ import {
   refreshNativeValidationListAtom,
   viewportGeometrySizesAtom, viewportMetricsAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
-import { WORKBOOK_GRID_COLUMN_WIDTH, WORKBOOK_GRID_ROW_HEADER_WIDTH,
-  WORKBOOK_GRID_ROW_HEIGHT } from '../viewport/workbook-grid-config'
+import { WORKBOOK_GRID_COLUMN_WIDTH, WORKBOOK_GRID_ROW_HEIGHT } from '../viewport/workbook-grid-config'
+import { useGridGutter } from '../viewport/grid-gutter'
 import './cell-validation-list.css'
 
 /** 原生 select 只负责选项交互；选项写入复用普通编辑 command。 */
 export function CellValidationList({ focusGrid }: { readonly focusGrid: () => void }) {
+  const { gutter, heading } = useGridGutter()
   const { t } = useLingui()
   const target = useAtomValue(nativeValidationTargetAtom)
   const state = useAtomValue(nativeValidationListAtom)
@@ -41,11 +42,11 @@ export function CellValidationList({ focusGrid }: { readonly focusGrid: () => vo
   const frozenCol = freeze?.sheetId === sheet.id && target.col < freeze.cols
   const width = Math.min(22, rect.width)
   const height = Math.min(24, rect.height)
-  const top = WORKBOOK_GRID_ROW_HEIGHT + rect.top + (frozenRow ? metrics.scrollTop : 0)
-  const left = WORKBOOK_GRID_ROW_HEADER_WIDTH + rect.left + rect.width - width +
+  const top = heading + rect.top + (frozenRow ? metrics.scrollTop : 0)
+  const left = gutter + rect.left + rect.width - width +
     (frozenCol ? metrics.scrollLeft : 0)
-  const viewTop = metrics.scrollTop + WORKBOOK_GRID_ROW_HEIGHT
-  const viewLeft = metrics.scrollLeft + WORKBOOK_GRID_ROW_HEADER_WIDTH
+  const viewTop = metrics.scrollTop + heading
+  const viewLeft = metrics.scrollLeft + gutter
   const clipTop = Math.max(0, viewTop + (frozenRow ? 0 : freeze?.height ?? 0) - top)
   const clipLeft = Math.max(0, viewLeft + (frozenCol ? 0 : freeze?.width ?? 0) - left)
   const clipRight = Math.max(0, left + width - viewLeft - metrics.viewportWidth)

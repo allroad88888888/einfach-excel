@@ -28,6 +28,11 @@ export interface RustSheetManagementCommands {
     Target & { readonly color: string | null },
     SheetManagementResult
   >
+  /** 未给出的选项保持原值。 */
+  readonly 'workbook.setSheetView': WorkerCommand<
+    Target & { readonly hideGridlines?: boolean; readonly hideHeadings?: boolean },
+    SheetManagementResult
+  >
 }
 
 type Known = Map<string, RustWorkbookSheet>
@@ -113,5 +118,21 @@ export function setWorkbookSheetTabColor(
   if (!workbook.set_sheet_tab_color) throw new Error('Rust sheet tab color is unavailable.')
   if (input.projection) sheetOf(known, input.projection.sheetId)
   const changed = native(() => workbook.set_sheet_tab_color!(sheet.index, input.color ?? undefined))
+  return finish(workbook, known, sheet.id, input.projection, changed ? revision + 1 : revision)
+}
+
+export function setWorkbookSheetView(
+  workbook: WasmWorkbook,
+  known: Known,
+  input: Target & { readonly hideGridlines?: boolean; readonly hideHeadings?: boolean },
+  revision: number,
+): SheetManagementResult {
+  const sheet = sheetOf(known, input.sheetId)
+  if (!workbook.set_sheet_view || !workbook.sheet_view_flags)
+    throw new Error('Rust sheet view options are unavailable.')
+  if (input.projection) sheetOf(known, input.projection.sheetId)
+  const flags = workbook.sheet_view_flags(sheet.index)
+  const changed = native(() => workbook.set_sheet_view!(sheet.index,
+    input.hideGridlines ?? (flags & 1) !== 0, input.hideHeadings ?? (flags & 2) !== 0))
   return finish(workbook, known, sheet.id, input.projection, changed ? revision + 1 : revision)
 }

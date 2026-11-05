@@ -58,41 +58,29 @@ describe('viewport chrome state', () => {
     }
   })
 
-  const TOGGLE_CASES = [
-    [
-      'gridlines',
-      viewportShowGridlinesAtom,
-      toggleGridlinesAtom,
-      'spreadsheet.viewport.toggleGridlines',
-    ],
-    [
-      'headings',
-      viewportShowHeadingsAtom,
-      toggleHeadingsAtom,
-      'spreadsheet.viewport.toggleHeadings',
-    ],
-    [
-      'formula bar',
-      viewportShowFormulaBarAtom,
-      toggleFormulaBarAtom,
-      'spreadsheet.viewport.toggleFormulaBar',
-    ],
-  ] as const
-  test.each(TOGGLE_CASES)(
-    '%s toggle is the writable state transition',
-    (_label, stateAtom, toggleAtom, debugLabel) => {
-      const store = createStore()
+  test('formula bar toggle is the writable per-mount state transition', () => {
+    const store = createStore()
 
-      expect(toggleAtom.debugLabel).toBe(debugLabel)
-      expect(store.getter(stateAtom)).toBe(true)
-      expect(store.getter(toggleAtom)).toBe(true)
-      store.setter(toggleAtom)
-      expect(store.getter(stateAtom)).toBe(false)
-      expect(store.getter(toggleAtom)).toBe(false)
-      store.setter(toggleAtom)
-      expect(store.getter(stateAtom)).toBe(true)
-    },
-  )
+    expect(toggleFormulaBarAtom.debugLabel).toBe('spreadsheet.viewport.toggleFormulaBar')
+    expect(store.getter(viewportShowFormulaBarAtom)).toBe(true)
+    expect(store.getter(toggleFormulaBarAtom)).toBe(true)
+    store.setter(toggleFormulaBarAtom)
+    expect(store.getter(viewportShowFormulaBarAtom)).toBe(false)
+    expect(store.getter(toggleFormulaBarAtom)).toBe(false)
+    store.setter(toggleFormulaBarAtom)
+    expect(store.getter(viewportShowFormulaBarAtom)).toBe(true)
+  })
+
+  // 网格线与行列标题是 Rust 工作表视图选项，命令行为见 sheet-view.test.ts。
+  test('gridlines and headings default to shown without an active sheet', async () => {
+    const store = createStore()
+    expect(toggleGridlinesAtom.debugLabel).toBe('spreadsheet.viewport.toggleGridlines')
+    expect(toggleHeadingsAtom.debugLabel).toBe('spreadsheet.viewport.toggleHeadings')
+    expect(store.getter(viewportShowGridlinesAtom)).toBe(true)
+    expect(store.getter(viewportShowHeadingsAtom)).toBe(true)
+    expect(await store.setter(toggleGridlinesAtom)).toBe(false)
+    expect(store.getter(viewportShowGridlinesAtom)).toBe(true)
+  })
 })
 
 describe('getVisibleWindow', () => {

@@ -19,6 +19,7 @@ import { RemoveDuplicatesTools } from './RemoveDuplicatesTools'
 import { StructureTools } from './StructureTools'
 import { MergeTools } from './MergeTools'
 import { FreezeTools } from './FreezeTools'
+import { ViewOptionsTools } from './ViewOptionsTools'
 import { FindReplaceTools } from './FindReplaceTools'
 import { GoToTools } from './GoToTools'
 import { GoToSpecialTools } from './GoToSpecialTools'
@@ -119,6 +120,7 @@ export function WorkbookRibbon() {
             <OutlineTools />
             <FreezeTools />
             <SelectionSizeTools />
+            <ViewOptionsTools />
           </div>
           <div className="ribbon-tool-group" data-inactive={!all && tab !== 'Insert'}>
             <StructureTools />

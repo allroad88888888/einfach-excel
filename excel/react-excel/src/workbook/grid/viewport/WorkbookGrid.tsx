@@ -11,6 +11,7 @@ import {
   getViewportColumnWidth,
   viewportGeometrySizesAtom,
   projectedFreezeAtom,
+  viewportShowGridlinesAtom,
   type WorkbookDocumentSheet,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { useMemo, type CSSProperties } from 'react'
@@ -23,7 +24,6 @@ import { ValidationErrorAlert } from '../../advanced-validation/ValidationErrorA
 import { ResizeGuide } from './ResizeGuide'
 import {
   WORKBOOK_GRID_COLUMN_WIDTH,
-  WORKBOOK_GRID_ROW_HEADER_WIDTH,
   WORKBOOK_GRID_ROW_HEIGHT,
 } from './workbook-grid-config'
 import { useWorkbookGridEvents } from './use-workbook-grid-events'
@@ -38,6 +38,7 @@ import { FillHandle } from '../fill/FillHandle'
 import { SelectionMoveBorder } from '../../drag-move/SelectionMoveBorder'
 import { useGridZoomWheel } from '../../zoom/use-grid-zoom-wheel'
 import { PluginEditorAdornments } from '../../../plugin/PluginMounts'
+import { useGridGutter } from './grid-gutter'
 import './grid.css'
 
 function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
@@ -79,6 +80,8 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   })
   const events = useWorkbookGridEvents(viewport)
   const zoom = useAtomValue(activeSheetZoomAtom)
+  const { gutter, heading } = useGridGutter()
+  const showGridlines = useAtomValue(viewportShowGridlinesAtom)
   useGridZoomWheel(events.scrollRef)
   const clipboard = useGridClipboard(viewport.retained)
   const frozenRows = freeze?.sheetId === activeSheet.id ? freeze.rows : 0
@@ -127,11 +130,11 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   )
   const frameStyle = {
     '--grid-column-width': `${WORKBOOK_GRID_COLUMN_WIDTH}px`,
-    '--grid-row-height': `${WORKBOOK_GRID_ROW_HEIGHT}px`,
-    '--grid-row-header-width': `${WORKBOOK_GRID_ROW_HEADER_WIDTH}px`,
+    '--grid-row-height': `${heading}px`,
+    '--grid-row-header-width': `${gutter}px`,
     '--grid-sheet-content-width': `${sheetContentWidth}px`,
-    '--grid-sheet-height': `${sheetContentHeight + WORKBOOK_GRID_ROW_HEIGHT}px`,
-    '--grid-sheet-width': `${sheetContentWidth + WORKBOOK_GRID_ROW_HEADER_WIDTH}px`,
+    '--grid-sheet-height': `${sheetContentHeight + heading}px`,
+    '--grid-sheet-width': `${sheetContentWidth + gutter}px`,
   } as CSSProperties
   const windowStyle = {
     '--grid-window-offset': `${windowOffset}px`,
@@ -178,6 +181,9 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           data-frozen-rows={frozenRows}
           data-format-painter={painter.mode === 'idle' ? undefined : painter.mode}
           data-frozen-cols={frozenCols}
+          data-gutter={gutter}
+          data-heading={heading}
+          data-gridlines={showGridlines ? undefined : 'hidden'}
           style={frameStyle}
           onCopy={clipboard.onCopy}
           onCut={clipboard.onCut}
@@ -191,7 +197,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           onPointerCancel={events.onPointerCancel}
           onLostPointerCapture={events.onPointerCancel}
         >
-          <GridHeaders
+          {heading > 0 && <GridHeaders
             rowStart={bodyWindow.rowStart}
             rowHeights={visibleRowHeights}
             colStart={bodyWindow.colStart}
@@ -199,7 +205,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             rowStyle={windowStyle}
             columnStyle={columnWindowStyle}
             focusGrid={events.focusGrid}
-          />
+          />}
           <div
             ref={events.gridRef}
             className="grid-surface grid-window"

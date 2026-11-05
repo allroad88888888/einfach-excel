@@ -5,9 +5,7 @@ import { dragMoveSelectionAtom, dragMoveSessionAtom, projectedFreezeAtom,
 import { useCallback, useEffect, useRef, type PointerEvent, type RefObject } from 'react'
 import { useGridDragAutoscroll } from '../selection/use-grid-drag-autoscroll'
 import { workbookCellAtViewportPoint } from '../grid/viewport/workbook-grid-hit-test'
-import {
-  WORKBOOK_GRID_ROW_HEADER_WIDTH, WORKBOOK_GRID_ROW_HEIGHT,
-} from '../grid/viewport/workbook-grid-config'
+import { useGridGutter } from '../grid/viewport/grid-gutter'
 import { gridZoomOf } from '../zoom/grid-zoom'
 import { dragCopyModifierKey, isDragCopyModifier } from './copy-modifier'
 
@@ -18,6 +16,7 @@ export function useSelectionMoveDrag({ scrollRef, focusGrid }: {
   scrollRef: RefObject<HTMLDivElement>; focusGrid: () => void
 }) {
   const { t } = useLingui()
+  const { gutter, heading } = useGridGutter()
   const metrics = useAtomValue(viewportMetricsAtom)
   const sizes = useAtomValue(viewportGeometrySizesAtom)
   const projectedFreeze = useAtomValue(projectedFreezeAtom)
@@ -32,12 +31,12 @@ export function useSelectionMoveDrag({ scrollRef, focusGrid }: {
     const bounds = scroll.getBoundingClientRect()
     const zoom = gridZoomOf(scroll)
     return workbookCellAtViewportPoint({
-      clientX: Math.max(bounds.left + WORKBOOK_GRID_ROW_HEADER_WIDTH * zoom + 1,
+      clientX: Math.max(bounds.left + gutter * zoom + 1,
         Math.min(bounds.left + scroll.clientWidth * zoom - 1, clientX)),
-      clientY: Math.max(bounds.top + WORKBOOK_GRID_ROW_HEIGHT * zoom + 1,
+      clientY: Math.max(bounds.top + heading * zoom + 1,
         Math.min(bounds.top + scroll.clientHeight * zoom - 1, clientY)),
       bounds, zoom, scrollTop: scroll.scrollTop, scrollLeft: scroll.scrollLeft,
-      rowHeaderWidth: WORKBOOK_GRID_ROW_HEADER_WIDTH,
+      rowHeaderWidth: gutter, columnHeaderHeight: heading,
       rowCount: metrics.rowCount, colCount: metrics.colCount,
       rowHeight: metrics.rowHeight, colWidth: metrics.colWidth,
       rowHeights: sizes.rowHeightsBySheet[metrics.sheetId ?? ''],

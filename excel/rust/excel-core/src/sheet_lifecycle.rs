@@ -67,6 +67,7 @@ impl Sheet {
             spill_blocked: Default::default(),
             tab_hidden: false,
             tab_color: None,
+            view: Default::default(),
             bulk_notify_probe_count: Cell::new(0),
         }
     }

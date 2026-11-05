@@ -191,3 +191,26 @@ fn sheet_scoped_defined_names_and_named_formulas_round_trip_through_xlsx() {
     let back = to_native(bytes);
     assert_eq!(back["workbook"]["namedRanges"], native["workbook"]["namedRanges"]);
 }
+
+#[test]
+fn hidden_gridlines_and_headings_round_trip_through_sheet_view() {
+    let native = serde_json::json!({
+        "format": "einfach-workbook", "version": 1, "title": "View",
+        "canvases": [{"rowCount": 1048576, "colCount": 16384}, {"rowCount": 1048576, "colCount": 16384}],
+        "workbook": {
+            "version": 1,
+            "sheets": [{"idx": 0, "name": "Plain", "hideGridlines": true},
+                {"idx": 1, "name": "Frozen", "hideHeadings": true}],
+            "cells": [], "formats": [],
+            "freeze": [{"sheet": 1, "rows": 1, "cols": 0}],
+        }
+    });
+    let bytes = einfach_xlsx::native_to_xlsx(&native.to_string()).unwrap();
+    let back = to_native(bytes);
+    let sheets = &back["workbook"]["sheets"];
+    assert_eq!(sheets[0]["hideGridlines"], true);
+    assert!(sheets[0].get("hideHeadings").is_none(), "shown options add no field");
+    assert_eq!(sheets[1]["hideHeadings"], true);
+    assert!(sheets[1].get("hideGridlines").is_none());
+    assert_eq!(back["workbook"]["freeze"][0]["rows"], 1, "a frozen pane still sits inside the view");
+}

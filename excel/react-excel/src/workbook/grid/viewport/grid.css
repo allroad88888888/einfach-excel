@@ -155,3 +155,8 @@
 :where(.einfach-spreadsheet) .grid-viewport-frame[data-format-painter] [data-merged-cell] {
   cursor: crosshair;
 }
+
+/* 隐藏网格线只清掉普通格线色；显式边框带自己的颜色，不受影响。行列标题不在这些容器内。 */
+:where(.einfach-spreadsheet) .sheet-grid-frame[data-gridlines='hidden'] :is(.grid-surface, .frozen-pane) {
+  --gridline: transparent;
+}

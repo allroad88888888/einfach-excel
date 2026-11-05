@@ -11,11 +11,12 @@ import {
 import type { CSSProperties } from 'react'
 import { CellRenderer } from './CellRenderer'
 import { GridHeading } from './GridHeading'
-import { WORKBOOK_GRID_ROW_HEADER_WIDTH, WORKBOOK_GRID_ROW_HEIGHT } from './workbook-grid-config'
 import './frozen-grid.css'
+import { useGridGutter } from './grid-gutter'
 
 /** 固定区域只摆放同一投影里的小矩形；选区、格式、编辑仍使用公共组件及命令。 */
 export function FrozenGrid({ focusGrid }: { focusGrid: () => void }) {
+  const { gutter, heading } = useGridGutter()
   const result = useAtomValue(projectionSnapshotAtom).result
   const metrics = useAtomValue(viewportMetricsAtom)
   const sizes = useAtomValue(viewportGeometrySizesAtom)
@@ -25,8 +26,6 @@ export function FrozenGrid({ focusGrid }: { focusGrid: () => void }) {
   if (!freeze || (!freeze.rows && !freeze.cols)) return null
   const width = Math.min(frozen.width, metrics.viewportWidth)
   const height = Math.min(frozen.height, metrics.viewportHeight)
-  const gutter = WORKBOOK_GRID_ROW_HEADER_WIDTH
-  const heading = WORKBOOK_GRID_ROW_HEIGHT
   const rect = (range: CellRange) => getViewportRangeRectangle(metrics, sizes, range)
   const rowHeight = (row: number) =>
     getViewportRowHeight(sizes, result.sheetId, row, metrics.rowHeight)

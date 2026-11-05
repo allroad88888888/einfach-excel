@@ -2623,6 +2623,10 @@ msgstr "Formula"
 msgid "Formula arguments"
 msgstr "Formula arguments"
 
+#: src/workbook/chrome/ribbon/ViewOptionsTools.tsx
+msgid "Formula bar"
+msgstr "Formula bar"
+
 #. placeholder {0}: coordToA1(info.anchor)
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Formula cell: {0}"
@@ -2761,6 +2765,10 @@ msgstr "Greater than or equal to"
 msgid "Green"
 msgstr "Green"
 
+#: src/workbook/chrome/ribbon/ViewOptionsTools.tsx
+msgid "Gridlines"
+msgstr "Gridlines"
+
 #: src/i18n/feedback-messages.ts
 msgid "Group"
 msgstr "Group"
@@ -2785,6 +2793,10 @@ msgstr "Group selected rows"
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Header row"
 msgstr "Header row"
+
+#: src/workbook/chrome/ribbon/ViewOptionsTools.tsx
+msgid "Headings"
+msgstr "Headings"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Hex color"

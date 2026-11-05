@@ -189,6 +189,11 @@ struct WorkbookPersistenceSheetMetaJSON {
     hidden: bool,
     #[serde(default, rename = "tabColor", skip_serializing_if = "Option::is_none")]
     tab_color: Option<String>,
+    /// 视图选项只记隐藏；旧文件缺省为显示网格线与行列标题。
+    #[serde(default, rename = "hideGridlines", skip_serializing_if = "std::ops::Not::not")]
+    hide_gridlines: bool,
+    #[serde(default, rename = "hideHeadings", skip_serializing_if = "std::ops::Not::not")]
+    hide_headings: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

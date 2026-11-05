@@ -106,6 +106,12 @@ impl WasmWorkbook {
             workbook
                 .restore_sheet_tab(index, sheet.hidden, sheet.tab_color.as_deref())
                 .map_err(str::to_string)?;
+            workbook
+                .set_sheet_view_options(index, einfach_excel_core::workbook::SheetViewOptions {
+                    hide_gridlines: sheet.hide_gridlines,
+                    hide_headings: sheet.hide_headings,
+                })
+                .map_err(str::to_string)?;
         }
         if workbook.visible_sheet_count() == 0 {
             return Err(einfach_excel_core::workbook::SHEET_TAB_LAST_VISIBLE.into());

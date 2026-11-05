@@ -14,6 +14,14 @@ export {
 } from './grouping'
 export { switchAdjacentSheetAtom } from './navigate'
 export {
+  setSheetViewAtom,
+  toggleGridlinesAtom,
+  toggleHeadingsAtom,
+  viewportShowGridlinesAtom,
+  viewportShowHeadingsAtom,
+  type SheetViewInput,
+} from './sheet-view'
+export {
   chooseUnhideSheetAtom,
   closeSheetTabMenuAtom,
   closeUnhideDialogAtom,

@@ -64,7 +64,11 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
     let hidden_or_colored = workbook.sheets.iter().filter(|s| s.hidden || s.tab_color.is_some()).count();
     report.add("sheetVisibilityOrColor", hidden_or_colored);
 
-    let mut sheets: Vec<worksheet::SheetInput> = workbook.sheets.iter().map(|_| Default::default()).collect();
+    let mut sheets: Vec<worksheet::SheetInput> = workbook.sheets.iter().map(|meta| worksheet::SheetInput {
+        hide_gridlines: meta.hide_gridlines,
+        hide_headings: meta.hide_headings,
+        ..Default::default()
+    }).collect();
     let mut styles = styles::StyleTable::new();
 
     for cell in &workbook.cells {

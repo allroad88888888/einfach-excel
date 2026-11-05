@@ -37,10 +37,10 @@ import {
 } from './workbook-grid-hit-test'
 import {
   WORKBOOK_GRID_COLUMN_WIDTH,
-  WORKBOOK_GRID_ROW_HEADER_WIDTH,
   WORKBOOK_GRID_ROW_HEIGHT,
 } from './workbook-grid-config'
 import { useWorkbookGridViewportMeasurement } from './use-workbook-grid-viewport-measurement'
+import { useGridGutter } from './grid-gutter'
 import { useGridHyperlink } from '../../hyperlink/use-grid-hyperlink'
 import { gridZoomOf } from '../../zoom/grid-zoom'
 import { useGridShiftCells } from '../../shift-cells/use-grid-shift-cells'
@@ -67,6 +67,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const gridRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const nativeScroll = useRef<{ sheetId?: string; scrollTop: number; scrollLeft: number }>()
+  const { gutter, heading } = useGridGutter()
   useWorkbookGridViewportMeasurement(scrollRef)
   const focusGrid = useCallback(() => gridRef.current?.focus({ preventScroll: true }), [])
   const pointerHandlers = useGridPointerSelection({
@@ -92,7 +93,8 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
               rowHeight: WORKBOOK_GRID_ROW_HEIGHT,
               colWidth: WORKBOOK_GRID_COLUMN_WIDTH,
               colWidths: sizeOverrides.colWidthsBySheet[activeSheet.id],
-              rowHeaderWidth: WORKBOOK_GRID_ROW_HEADER_WIDTH,
+              rowHeaderWidth: gutter,
+              columnHeaderHeight: heading,
               rowCount: activeSheet.rowCount,
               colCount: activeSheet.colCount,
               rowHeights: sizeOverrides.rowHeightsBySheet[activeSheet.id],
@@ -101,7 +103,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
             }))
       if (coord !== null) updatePointerSelection({ sheetId: activeSheet.id, coord })
     },
-    [activeSheet, sizeOverrides, updatePointerSelection, freeze],
+    [activeSheet, sizeOverrides, updatePointerSelection, freeze, gutter, heading],
   )
   const dragAutoscroll = useGridDragAutoscroll({
     enabled: activeSheet !== null,

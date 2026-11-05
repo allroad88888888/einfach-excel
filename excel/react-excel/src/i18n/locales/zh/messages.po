@@ -2623,6 +2623,10 @@ msgstr "公式"
 msgid "Formula arguments"
 msgstr "公式参数"
 
+#: src/workbook/chrome/ribbon/ViewOptionsTools.tsx
+msgid "Formula bar"
+msgstr "公式栏"
+
 #. placeholder {0}: coordToA1(info.anchor)
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Formula cell: {0}"
@@ -2761,6 +2765,10 @@ msgstr "大于或等于"
 msgid "Green"
 msgstr "绿色"
 
+#: src/workbook/chrome/ribbon/ViewOptionsTools.tsx
+msgid "Gridlines"
+msgstr "网格线"
+
 #: src/i18n/feedback-messages.ts
 msgid "Group"
 msgstr "分组"
@@ -2785,6 +2793,10 @@ msgstr "将选中行分组"
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Header row"
 msgstr "表头行"
+
+#: src/workbook/chrome/ribbon/ViewOptionsTools.tsx
+msgid "Headings"
+msgstr "标题"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Hex color"

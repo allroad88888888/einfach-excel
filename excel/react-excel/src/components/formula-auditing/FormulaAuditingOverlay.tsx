@@ -15,13 +15,14 @@ import type { JSX } from 'react'
 import { selectionEdgeGeometry } from '../../workbook/drag-move/selection-edge-geometry'
 import {
   WORKBOOK_GRID_COLUMN_WIDTH,
-  WORKBOOK_GRID_ROW_HEADER_WIDTH,
   WORKBOOK_GRID_ROW_HEIGHT,
   workbookViewportMetrics,
 } from '../../workbook/grid/viewport/workbook-grid-config'
 import './formula-auditing.css'
+import { useGridGutter } from '../../workbook/grid/viewport/grid-gutter'
 
 export function FormulaAuditingOverlay(): JSX.Element | null {
+  const { gutter, heading } = useGridGutter()
   const { t } = useLingui()
   const arrows = useAtomValue(activeSheetTraceArrowsAtom)
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
@@ -45,8 +46,6 @@ export function FormulaAuditingOverlay(): JSX.Element | null {
     colWidth: WORKBOOK_GRID_COLUMN_WIDTH,
   }
   const freeze = projectedFreeze?.sheetId === sheetId ? projectedFreeze : null
-  const gutter = WORKBOOK_GRID_ROW_HEADER_WIDTH
-  const heading = WORKBOOK_GRID_ROW_HEIGHT
 
   const rangeRect = (range: CellRange) => {
     const frame = selectionEdgeGeometry(range, metrics, sizeOverrides, freeze)

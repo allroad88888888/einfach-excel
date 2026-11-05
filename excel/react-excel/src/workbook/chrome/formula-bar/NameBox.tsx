@@ -18,6 +18,7 @@ import { flushSync } from 'react-dom'
 import {
   getWorkbookGridViewportHeight, getWorkbookGridViewportWidth,
 } from '../../grid/viewport/use-workbook-grid-viewport-measurement'
+import { useGridGutter } from '../../grid/viewport/grid-gutter'
 
 function navigationCoord(target: NameBoxCommitTarget): CellCoord | null {
   if (target.kind === 'cell') return target.coord
@@ -34,6 +35,7 @@ function navigationCoord(target: NameBoxCommitTarget): CellCoord | null {
 /** Adapts the shared name-box atoms to one address input. */
 export function NameBox() {
   const { i18n, t } = useLingui()
+  const gutter = useGridGutter()
   const state = useAtomValue(nameBoxStateAtom)
   const busy = useAtomValue(nativeNameChangeBusyAtom)
   const errorId = useId()
@@ -52,8 +54,8 @@ export function NameBox() {
     const coord = navigationCoord(target)
     if (coord === null) return
     const scroll = inputRef.current?.closest('.workbook')?.querySelector('.sheet-scroll')
-    const viewportHeight = getWorkbookGridViewportHeight(scroll?.clientHeight ?? 0)
-    const viewportWidth = getWorkbookGridViewportWidth(scroll?.clientWidth ?? 0)
+    const viewportHeight = getWorkbookGridViewportHeight(scroll?.clientHeight ?? 0, gutter)
+    const viewportWidth = getWorkbookGridViewportWidth(scroll?.clientWidth ?? 0, gutter)
     scrollToCell({
       // 放得下时让范围末端的填充柄也可见；已经可见则不多滚。
       coord, rowAlign: 'nearest', colAlign: 'nearest',

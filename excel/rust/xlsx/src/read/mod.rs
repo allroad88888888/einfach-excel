@@ -91,7 +91,10 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         report.add("outline", data.outline);
         let name = sheet_name(&part.name, index, &mut used);
         let extras = features::read_sheet(&mut archive, &part.path, &xml, index, &name, &shared, &mut report);
-        workbook.sheets.push(SheetMeta { idx: index as u32, name, hidden: false, tab_color: None });
+        let (hide_gridlines, hide_headings) = data.view.unwrap_or_default();
+        workbook.sheets.push(SheetMeta {
+            idx: index as u32, name, hidden: false, tab_color: None, hide_gridlines, hide_headings,
+        });
         canvases.push(Canvas { row_count: MAX_ROWS, col_count: MAX_COLS });
 
         let mut cell_styles = Vec::new();

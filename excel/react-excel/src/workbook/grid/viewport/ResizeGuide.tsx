@@ -6,10 +6,11 @@ import {
   viewportGeometrySizesAtom,
   viewportMetricsAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
-import { WORKBOOK_GRID_ROW_HEADER_WIDTH, WORKBOOK_GRID_ROW_HEIGHT } from './workbook-grid-config'
+import { useGridGutter } from './grid-gutter'
 
 /** 参考线放在统一视口，避免被普通／冻结表头的容器裁掉。 */
 export function ResizeGuide() {
+  const { gutter, heading } = useGridGutter()
   const drag = useAtomValue(resizeDragAtom)
   const metrics = useAtomValue(viewportMetricsAtom)
   const sizes = useAtomValue(viewportGeometrySizesAtom)
@@ -29,18 +30,18 @@ export function ResizeGuide() {
   const style =
     drag.axis === 'row'
       ? {
-          top: WORKBOOK_GRID_ROW_HEIGHT + rect.top + drag.pixels + (frozen ? metrics.scrollTop : 0),
+          top: heading + rect.top + drag.pixels + (frozen ? metrics.scrollTop : 0),
           left: metrics.scrollLeft,
-          width: metrics.viewportWidth + WORKBOOK_GRID_ROW_HEADER_WIDTH,
+          width: metrics.viewportWidth + gutter,
         }
       : {
           left:
-            WORKBOOK_GRID_ROW_HEADER_WIDTH +
+            gutter +
             rect.left +
             drag.pixels +
             (frozen ? metrics.scrollLeft : 0),
           top: metrics.scrollTop,
-          height: metrics.viewportHeight + WORKBOOK_GRID_ROW_HEIGHT,
+          height: metrics.viewportHeight + heading,
         }
   return (
     <div className={`resize-guide resize-guide-${drag.axis}`} style={style}>

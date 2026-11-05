@@ -296,6 +296,9 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   duplicate_sheet?(index: number): number
   set_sheet_hidden?(index: number, hidden: boolean): boolean
   set_sheet_tab_color?(index: number, color: string | undefined): boolean
+  /** bit 0 = 隐藏网格线，bit 1 = 隐藏行列标题。 */
+  sheet_view_flags?(index: number): number
+  set_sheet_view?(index: number, hideGridlines: boolean, hideHeadings: boolean): boolean
   add_sheet(name: string): number
   edit_sheet(index: number | undefined, name: string): number
   remove_sheet(index: number): boolean

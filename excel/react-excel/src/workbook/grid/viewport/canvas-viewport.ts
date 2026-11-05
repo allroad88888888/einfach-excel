@@ -1,5 +1,5 @@
 import type { createCanvasCells } from '@einfach-excel/canvas-cells'
-import { WORKBOOK_GRID_ROW_HEADER_WIDTH, WORKBOOK_GRID_ROW_HEIGHT } from './workbook-grid-config'
+import { gridGutterOf } from './grid-gutter'
 import { gridZoomOf } from '../../zoom/grid-zoom'
 
 /** Keep a bounded painted margin for native scrolling ahead of the main thread. */
@@ -15,8 +15,9 @@ export function bindCanvasViewport(canvas: HTMLCanvasElement,
     const bounds = container.getBoundingClientRect(), origin = owner.getBoundingClientRect()
     // 矩形是屏幕像素，画布定位与 clientWidth 是缩放后网格内的逻辑像素。
     const zoom = gridZoomOf(canvas)
-    const gutter = pane ? 0 : WORKBOOK_GRID_ROW_HEADER_WIDTH
-    const heading = pane ? 0 : WORKBOOK_GRID_ROW_HEIGHT
+    const headers = gridGutterOf(frame)
+    const gutter = pane ? 0 : headers.gutter
+    const heading = pane ? 0 : headers.heading
     const width = Math.max(1, container.clientWidth - gutter)
     const height = Math.max(1, container.clientHeight - heading)
     // A bitmap ending at the visible edge exposes blank strips before scroll fires.

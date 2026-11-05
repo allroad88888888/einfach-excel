@@ -30,6 +30,11 @@ export type SheetManagementPayload =
   | { readonly command: 'workbook.duplicateSheet' }
   | { readonly command: 'workbook.setSheetHidden'; readonly hidden: boolean }
   | { readonly command: 'workbook.setSheetTabColor'; readonly color: string | null }
+  | {
+    readonly command: 'workbook.setSheetView'
+    readonly hideGridlines?: boolean
+    readonly hideHeadings?: boolean
+  }
 
 export interface SheetManagementSpec {
   readonly sheetId: string
@@ -50,6 +55,10 @@ function request(
     return connection.request(payload.command, base)
   if (payload.command === 'workbook.setSheetHidden')
     return connection.request(payload.command, { ...base, hidden: payload.hidden })
+  if (payload.command === 'workbook.setSheetView')
+    return connection.request(payload.command, {
+      ...base, hideGridlines: payload.hideGridlines, hideHeadings: payload.hideHeadings,
+    })
   return connection.request(payload.command, { ...base, color: payload.color })
 }
 

@@ -13,18 +13,19 @@ import {
 import { selectionEdgeGeometry } from '../drag-move/selection-edge-geometry'
 import {
   WORKBOOK_GRID_COLUMN_WIDTH,
-  WORKBOOK_GRID_ROW_HEADER_WIDTH,
   WORKBOOK_GRID_ROW_HEIGHT,
   workbookViewportMetrics,
 } from '../grid/viewport/workbook-grid-config'
 import { FORMULA_REFERENCE_COLORS, FORMULA_REFERENCE_FILLS } from './FormulaReferenceHighlight'
 import './formula-reference.css'
+import { useGridGutter } from '../grid/viewport/grid-gutter'
 
 /**
  * Non-interactive worksheet overlay that renders colored frames for every
  * reference token targeting the currently viewed worksheet.
  */
 export function FormulaReferenceOverlay() {
+  const { gutter, heading } = useGridGutter()
   const tokens = useAtomValue(activeSheetFormulaReferenceTokensAtom)
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   const viewportMetrics = useAtomValue(viewportMetricsAtom)
@@ -63,8 +64,6 @@ export function FormulaReferenceOverlay() {
     }
   }
 
-  const gutter = WORKBOOK_GRID_ROW_HEADER_WIDTH
-  const heading = WORKBOOK_GRID_ROW_HEIGHT
   const boxes = [...uniqueTokens.entries()].flatMap(([refText, token]) => {
     const displayRange =
       token.range.rowStart === token.range.rowEnd && token.range.colStart === token.range.colEnd

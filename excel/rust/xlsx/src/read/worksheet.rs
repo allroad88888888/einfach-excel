@@ -30,6 +30,8 @@ pub struct SheetData {
     pub row_heights: Vec<(u32, u32)>,
     pub merges: Vec<[u32; 4]>,
     pub freeze: Option<(u32, u32)>,
+    /// 只取第一个 sheetView（workbookViewId 0）的显示选项。
+    pub view: Option<(bool, bool)>,
     pub hidden_rows: Vec<u32>,
     pub hidden_cols: Vec<u32>,
     pub rich_text: usize,
@@ -162,6 +164,12 @@ pub fn parse(xml: &str, strings: &[String]) -> Result<SheetData, XlsxError> {
                     if let Some(range) = attr(&e, "ref").as_deref().and_then(parse_range) {
                         if range[0] != range[2] || range[1] != range[3] { data.merges.push(range) }
                     }
+                }
+                b"sheetView" if data.view.is_none() => {
+                    data.view = Some((
+                        !attr_bool(&e, "showGridLines", true),
+                        !attr_bool(&e, "showRowColHeaders", true),
+                    ));
                 }
                 b"pane" => {
                     let frozen = matches!(attr(&e, "state").as_deref(), Some("frozen" | "frozenSplit"));

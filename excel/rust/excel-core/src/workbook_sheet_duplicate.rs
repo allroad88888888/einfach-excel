@@ -118,6 +118,7 @@ impl Workbook {
         self.copy_filter(source, target);
         let color = self.sheets[source].tab_color.clone();
         self.sheets[target].tab_color = color;
+        self.sheets[target].view = self.sheets[source].view;
         // Protection belongs to the copied sheet identity, after its data has been installed.
         let protection = self.read_protection(source)?;
         self.protection.insert(self.sheet_keys[target], protection);

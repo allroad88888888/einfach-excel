@@ -1,6 +1,7 @@
 import type { RustWorkbookSheet } from './commands'
 import { WORKBOOK_FILE_MAX_BYTES, type WorkbookFileMetadata } from './file-commands'
 import type { RustWasmModule, WasmWorkbook } from './wasm-types'
+import { withSheetTabFacts } from './sheet-tab-facts'
 
 const FORMAT = 'einfach-workbook'
 const MAX_ROWS = 1_048_576
@@ -73,12 +74,10 @@ export function openWorkbookFile(
     workbook.restore_persistence_v1(file.workbook)
     if (workbook.sheet_count() !== canvases.length)
       throw new Error('The workbook file has mismatched sheet canvases.')
-    const sheets = canvases.map((canvas, index) => ({
+    const sheets = canvases.map((canvas, index) => withSheetTabFacts({
       ...canvas, id: `${idPrefix}-${index}`, index, name: workbook.sheet_name(index),
       ...(workbook.sheet_key ? { key: workbook.sheet_key(index) } : {}),
-      ...(workbook.sheet_hidden?.(index) ? { hidden: true } : {}),
-      ...(workbook.sheet_tab_color?.(index) ? { tabColor: workbook.sheet_tab_color(index) } : {}),
-    }))
+    }, workbook, index))
     return { workbook, metadata: { title, sheets } }
   } catch (error) {
     workbook.free?.()

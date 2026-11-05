@@ -15,6 +15,8 @@ interface WorkbookViewportPoint {
   readonly colWidth: number
   readonly colWidths?: Record<string, number>
   readonly rowHeaderWidth: number
+  /** 列标栏高；缺省与默认行高相同。隐藏行列标题时为 0。 */
+  readonly columnHeaderHeight?: number
   readonly rowCount: number
   readonly colCount: number
   readonly rowHeights?: Record<string, number>
@@ -48,7 +50,8 @@ export function workbookCellAtViewportPoint(input: WorkbookViewportPoint): CellC
   // 指针可以停在表头内；仍按当前滚动位置扩选，不能把负值误判为冻结区而丢弃。
   const zoom = input.zoom ?? 1
   const x = Math.max(0, (input.clientX - input.bounds.left) / zoom - input.rowHeaderWidth)
-  const y = Math.max(0, (input.clientY - input.bounds.top) / zoom - input.rowHeight)
+  const y = Math.max(0,
+    (input.clientY - input.bounds.top) / zoom - (input.columnHeaderHeight ?? input.rowHeight))
   const contentX = x + (x < (input.frozenWidth ?? 0) ? 0 : input.scrollLeft)
   const contentY = y + (y < (input.frozenHeight ?? 0) ? 0 : input.scrollTop)
   if (contentX < 0 || contentY < 0) return null

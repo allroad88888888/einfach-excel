@@ -249,14 +249,16 @@ describe('package boundary', () => {
       VIEWPORT_CHROME_COMMANDS_ARE_WRITABLE,
     )
 
-    const source = readFileSync(join(SRC_ROOT, 'viewport/chrome.ts'), 'utf8')
-    for (const name of [
-      'viewportShowGridlinesAtom',
-      'viewportShowHeadingsAtom',
-      'viewportShowFormulaBarAtom',
-    ]) {
-      expect(source).toMatch(new RegExp(`export const ${name}: Atom<boolean>`))
-      expect(source).not.toMatch(new RegExp(`set\\(${name}\\s*[,)]`))
+    // 公式栏是挂载状态；网格线与行列标题是 Rust 工作表视图选项的派生值。
+    for (const [file, names] of [
+      ['viewport/chrome.ts', ['viewportShowFormulaBarAtom']],
+      ['sheet-management/sheet-view.ts', ['viewportShowGridlinesAtom', 'viewportShowHeadingsAtom']],
+    ] as const) {
+      const source = readFileSync(join(SRC_ROOT, file), 'utf8')
+      for (const name of names) {
+        expect(source).toMatch(new RegExp(`export const ${name}: Atom<boolean>`))
+        expect(source).not.toMatch(new RegExp(`set\\(${name}\\s*[,)]`))
+      }
     }
   })
 

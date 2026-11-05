@@ -31,8 +31,8 @@ import { FormulaReferenceHighlight } from '../../formula-reference/FormulaRefere
 import {
   WORKBOOK_GRID_ROW_HEIGHT,
   WORKBOOK_GRID_COLUMN_WIDTH,
-  WORKBOOK_GRID_ROW_HEADER_WIDTH,
 } from '../viewport/workbook-grid-config'
+import { useGridGutter } from '../viewport/grid-gutter'
 
 export interface CellEditorProps {
   readonly focusGrid: () => void
@@ -40,6 +40,7 @@ export interface CellEditorProps {
 
 /** Renders the active in-cell input over its Rust-projected grid cell. */
 export function CellEditor({ focusGrid }: CellEditorProps) {
+  const { gutter, heading } = useGridGutter()
   const { i18n, t } = useLingui()
   const session = useAtomValue(editingSessionAtom)
   const draft = useAtomValue(editingDraftAtom)
@@ -190,11 +191,11 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
     if (!event.currentTarget.contains(event.relatedTarget)) void commitOnce(false)
   }
   const stopPointer = (event: PointerEvent<HTMLDivElement>) => event.stopPropagation()
-  const top = WORKBOOK_GRID_ROW_HEIGHT + rect.top + (frozenRow ? metrics.scrollTop : 0)
-  const left = WORKBOOK_GRID_ROW_HEADER_WIDTH + rect.left + (frozenCol ? metrics.scrollLeft : 0)
+  const top = heading + rect.top + (frozenRow ? metrics.scrollTop : 0)
+  const left = gutter + rect.left + (frozenCol ? metrics.scrollLeft : 0)
   const height = Math.max(rect.height, Math.min(5, draft.split('\n').length) * 18 + 6)
-  const viewportTop = metrics.scrollTop + WORKBOOK_GRID_ROW_HEIGHT
-  const viewportLeft = metrics.scrollLeft + WORKBOOK_GRID_ROW_HEADER_WIDTH
+  const viewportTop = metrics.scrollTop + heading
+  const viewportLeft = metrics.scrollLeft + gutter
   const frozenHeight = freeze?.sheetId === sheetId ? freeze.height : 0
   const frozenWidth = freeze?.sheetId === sheetId ? freeze.width : 0
   // 编辑器保持挂载以保留草稿／焦点，仅裁掉表头及其它固定区上的绘制与命中。

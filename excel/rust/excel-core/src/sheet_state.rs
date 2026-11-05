@@ -277,4 +277,6 @@ pub struct Sheet {
     /// 页签隐藏与颜色是工作表元数据：随 Sheet 移动、归档、恢复，不进入单元格 atom。
     pub(crate) tab_hidden: bool,
     pub(crate) tab_color: Option<String>,
+    /// 网格线、行列标题的显示是工作表视图选项；只改展现，不进入撤销历史。
+    pub(crate) view: crate::workbook::SheetViewOptions,
 }

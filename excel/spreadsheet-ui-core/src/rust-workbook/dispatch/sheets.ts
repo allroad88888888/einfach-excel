@@ -4,6 +4,7 @@ import {
   duplicateWorkbookSheet,
   setWorkbookSheetHidden,
   setWorkbookSheetTabColor,
+  setWorkbookSheetView,
 } from '../sheet-management'
 import { exportWorkbookFile } from '../file-io'
 import { importTables } from '../table-commands'
@@ -46,6 +47,11 @@ export const sheetHandlers: WorkbookHandlers = {
   'workbook.setSheetTabColor': (context, current, input) => {
     const result = setWorkbookSheetTabColor(current, context.sheetsById, input, context.revision)
     context.painterToken = undefined
+    context.revision = result.revision
+    return result
+  },
+  'workbook.setSheetView': (context, current, input) => {
+    const result = setWorkbookSheetView(current, context.sheetsById, input, context.revision)
     context.revision = result.revision
     return result
   },

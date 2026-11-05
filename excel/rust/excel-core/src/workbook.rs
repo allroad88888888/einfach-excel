@@ -164,6 +164,9 @@ mod workbook_history_restore_merged;
 mod workbook_sheet_edit;
 #[path = "workbook_sheet_tab.rs"]
 mod workbook_sheet_tab;
+#[path = "workbook_sheet_view.rs"]
+mod workbook_sheet_view;
+pub use workbook_sheet_view::SheetViewOptions;
 #[path = "workbook_sheet_duplicate.rs"]
 mod workbook_sheet_duplicate;
 pub use workbook_sheet_tab::{normalize_tab_color, SHEET_TAB_LAST_VISIBLE};

@@ -10,7 +10,7 @@ import './workbook.css'
 import '../../style.css'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runFindReplaceAtom, formatPainterAtom, runFormatPainterAtom,
-  runGoToReferenceAtom } from '@einfach-excel/spreadsheet-ui-core'
+  runGoToReferenceAtom, viewportShowFormulaBarAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { SelectSpecialStatus } from '../select-special/SelectSpecialStatus'
 import { useSelectSpecialKeys } from '../select-special/use-select-special-keys'
@@ -25,6 +25,7 @@ export function WorkbookView() {
   const painter = useAtomValue(formatPainterAtom)
   const runPainter = useSetAtom(runFormatPainterAtom)
   const selectSpecialKey = useSelectSpecialKeys()
+  const showFormulaBar = useAtomValue(viewportShowFormulaBarAtom)
   return (
     <div
       className="einfach-spreadsheet workbook"
@@ -62,7 +63,7 @@ export function WorkbookView() {
         Rust/WASM ready
       </Trans></div>
       <WorkbookRibbon />
-      <FormulaBar />
+      {showFormulaBar && <FormulaBar />}
       <WorkbookGrid />
       <SelectSpecialStatus />
       <WorkbookFooter />

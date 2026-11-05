@@ -89,6 +89,11 @@ pub struct SheetMeta {
     pub hidden: bool,
     #[serde(default, rename = "tabColor", skip_serializing)]
     pub tab_color: Option<String>,
+    /// 视图选项与原生格式同名，只在隐藏时写出（对应 sheetView 的 showGridLines / showRowColHeaders）。
+    #[serde(default, rename = "hideGridlines", skip_serializing_if = "std::ops::Not::not")]
+    pub hide_gridlines: bool,
+    #[serde(default, rename = "hideHeadings", skip_serializing_if = "std::ops::Not::not")]
+    pub hide_headings: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

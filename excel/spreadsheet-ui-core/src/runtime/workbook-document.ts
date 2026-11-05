@@ -28,6 +28,8 @@ export interface WorkbookDocumentSheet {
   readonly key?: string
   readonly hidden?: boolean
   readonly tabColor?: string
+  readonly hideGridlines?: boolean
+  readonly hideHeadings?: boolean
 }
 
 export interface WorkbookDocument {
@@ -132,8 +134,9 @@ export const publishWorkbookSheetStructureAtom = atom(
           ? { rowCount: sheet.rowCount!, colCount: sheet.colCount! }
           : undefined)
       if (!shape) throw new Error('Rust returned an unknown worksheet.')
-      // 隐藏与颜色以 Rust 返回的目录为准：缺省即可见／无色，不能残留旧值。
-      return Object.freeze({ ...shape, ...sheet, hidden: sheet.hidden, tabColor: sheet.tabColor })
+      // 隐藏、颜色与视图选项以 Rust 返回的目录为准：缺省即可见／无色／显示，不能残留旧值。
+      return Object.freeze({ ...shape, ...sheet, hidden: sheet.hidden, tabColor: sheet.tabColor,
+        hideGridlines: sheet.hideGridlines, hideHeadings: sheet.hideHeadings })
     })
     set(workbookDocumentBackingAtom, Object.freeze({ ...current, sheets: Object.freeze(sheets) }))
     set(setSheetTabsSheetsAtom, { sheets })

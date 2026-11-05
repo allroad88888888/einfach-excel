@@ -69,6 +69,8 @@ impl WasmWorkbook {
                 name,
                 hidden: self.workbook.sheet_hidden(sheet_idx),
                 tab_color: self.workbook.sheet_tab_color(sheet_idx).map(str::to_owned),
+                hide_gridlines: self.workbook.sheet_view_options(sheet_idx).hide_gridlines,
+                hide_headings: self.workbook.sheet_view_options(sheet_idx).hide_headings,
             });
 
             let snapshot = sheet.snapshot_format_range(Self::full_sheet_range());

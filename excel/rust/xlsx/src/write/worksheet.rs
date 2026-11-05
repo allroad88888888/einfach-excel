@@ -18,6 +18,8 @@ pub struct SheetInput<'a> {
     pub col_widths: BTreeMap<u32, u32>,
     pub merges: Vec<[u32; 4]>,
     pub freeze: Option<(u32, u32)>,
+    pub hide_gridlines: bool,
+    pub hide_headings: bool,
     pub hidden_rows: BTreeSet<u32>,
     pub hidden_cols: BTreeSet<u32>,
     /// `mergeCells` 之后的片段（条件格式、数据验证、超链接、批注与表引用），顺序须符合 schema。
@@ -62,9 +64,16 @@ fn cell_xml(cell: Option<&SparseCell>, row: u32, col: u32, style: u32, strings: 
     }
 }
 
-fn sheet_view(freeze: Option<(u32, u32)>) -> String {
-    let Some((rows, cols)) = freeze.filter(|(rows, cols)| *rows > 0 || *cols > 0) else {
-        return r#"<sheetViews><sheetView workbookViewId="0"/></sheetViews>"#.into();
+fn sheet_view(sheet: &SheetInput) -> String {
+    let mut view = String::new();
+    if sheet.hide_gridlines {
+        view.push_str(r#" showGridLines="0""#);
+    }
+    if sheet.hide_headings {
+        view.push_str(r#" showRowColHeaders="0""#);
+    }
+    let Some((rows, cols)) = sheet.freeze.filter(|(rows, cols)| *rows > 0 || *cols > 0) else {
+        return format!(r#"<sheetViews><sheetView{view} workbookViewId="0"/></sheetViews>"#);
     };
     let pane = match (rows > 0, cols > 0) {
         (true, true) => "bottomRight",
@@ -78,7 +87,7 @@ fn sheet_view(freeze: Option<(u32, u32)>) -> String {
     if rows > 0 {
         split.push_str(&format!(r#" ySplit="{rows}""#));
     }
-    format!(r#"<sheetViews><sheetView workbookViewId="0"><pane{split} topLeftCell="{}" activePane="{pane}" state="frozen"/></sheetView></sheetViews>"#,
+    format!(r#"<sheetViews><sheetView{view} workbookViewId="0"><pane{split} topLeftCell="{}" activePane="{pane}" state="frozen"/></sheetView></sheetViews>"#,
         cell_name(rows, cols))
 }
 
@@ -96,7 +105,7 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
 
     let mut xml = String::from(r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">"#);
-    xml.push_str(&sheet_view(sheet.freeze));
+    xml.push_str(&sheet_view(sheet));
     xml.push_str(r#"<sheetFormatPr defaultRowHeight="15"/>"#);
     let columns: BTreeSet<u32> = sheet.col_widths.keys().chain(&sheet.hidden_cols).copied().collect();
     if !columns.is_empty() {

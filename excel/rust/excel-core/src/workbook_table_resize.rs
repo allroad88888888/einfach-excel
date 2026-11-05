@@ -136,7 +136,7 @@ impl TableDefinitionChange {
                         && columns.rewrite(expr, Some((source_sheet, source_range)))
                 });
             let rules = FormulaRuleChange::prepare(workbook, &|sheet, range, expr| {
-                columns.rewrite(expr, Some((sheet, range)))
+                columns.rewrite(expr, range.map(|range| (sheet, range)))
             });
             let lambdas =
                 FormulaLambdaChange::prepare(workbook, &|expr| columns.rewrite(expr, None));

@@ -97,6 +97,23 @@ pub fn contains_invalid_ref(expr: &Expr) -> bool {
     }
 }
 
+/// 无效引用的个数：结构编辑留下的哨兵地址，加上平移复制越界产生的 `#REF!` 错误节点。
+/// 用来判断一次平移是否让原本有效的引用失效；只看语法树，名为 `#REF!` 的工作表不算。
+pub(crate) fn invalid_ref_count(expr: &Expr) -> usize {
+    let sum = |items: &[Expr]| items.iter().map(invalid_ref_count).sum::<usize>();
+    match expr {
+        Expr::Error(einfach_core::ValueError::InvalidRef) => 1,
+        Expr::Negate(inner) | Expr::Percent(inner) | Expr::SpillRef(inner) => invalid_ref_count(inner),
+        Expr::BinOp { left, right, .. } | Expr::DynamicRange { start: left, end: right } => {
+            invalid_ref_count(left) + invalid_ref_count(right)
+        }
+        Expr::FuncCall { args, .. } => sum(args),
+        Expr::Call(callee, args) => invalid_ref_count(callee) + sum(args),
+        Expr::MultiArea(items) | Expr::ArrayLit { data: items, .. } => sum(items),
+        _ => usize::from(contains_invalid_ref(expr)),
+    }
+}
+
 /// Adjust a single address for a row insertion at `at` (0-based) of `count`
 /// rows. References at or below `at` shift down by `count`. References
 /// above `at` are unchanged.

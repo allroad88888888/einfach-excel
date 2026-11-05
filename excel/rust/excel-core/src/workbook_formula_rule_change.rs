@@ -14,9 +14,10 @@ pub(super) struct FormulaRuleChange {
 }
 
 impl FormulaRuleChange {
+    /// 回调的区域是公式所在的规则区（公式以其起点为位置）；`None` 表示公式没有固定位置。
     pub fn prepare(
         workbook: &Workbook,
-        rewrite: &impl Fn(usize, CellRange, &mut Expr) -> bool,
+        rewrite: &impl Fn(usize, Option<CellRange>, &mut Expr) -> bool,
     ) -> Vec<Self> {
         Self::prepare_except(workbook, rewrite, None)
     }
@@ -24,7 +25,7 @@ impl FormulaRuleChange {
     /// `own_validations` 的验证规则由调用者随区域位移一并改写，这里跳过以免重复。
     pub(super) fn prepare_except(
         workbook: &Workbook,
-        rewrite: &impl Fn(usize, CellRange, &mut Expr) -> bool,
+        rewrite: &impl Fn(usize, Option<CellRange>, &mut Expr) -> bool,
         own_validations: Option<usize>,
     ) -> Vec<Self> {
         let mut changes = Vec::new();
@@ -41,7 +42,7 @@ impl FormulaRuleChange {
                 );
                 if !advanced_conditional_format::rewrite_rule_formulas(&mut json, |source| {
                     let mut expr = parse_formula(source)?;
-                    rewrite(sheet, range, &mut expr).then(|| crate::render_formula(&expr))
+                    rewrite(sheet, Some(range), &mut expr).then(|| crate::render_formula(&expr))
                 }) {
                     continue;
                 }
@@ -143,37 +144,41 @@ impl FormulaRuleChange {
 }
 
 /// 自定义公式验证规则按回调改写。验证在区域各格求值、公式文本却以锚点为基准：先把公式平移到
-/// 区域起点交给回调（Table 引用按区域判断归属、本行与动态取行），改写后再平移回锚点。平移会让
-/// 原本有效的引用越界成 #REF! 时，不平移、直接以区域为上下文改写。
+/// 区域起点交给回调（Table 引用按区域判断归属、本行与动态取行），改写后再平移回锚点；回到锚点会让
+/// 改写后的引用越界成 #REF! 时，以区域起点为新锚点。公式放不到起点（平移会让原本有效的引用越界）
+/// 时留在锚点，回调不给位置：Table 本行引用改成随求值格取行，不按区域起点写死。
 fn rewritten_validations(
     sheet: &crate::sheet::Sheet,
-    rewrite: &impl Fn(CellRange, &mut Expr) -> bool,
+    rewrite: &impl Fn(Option<CellRange>, &mut Expr) -> bool,
 ) -> Vec<(DataValidationRegion, DataValidationRegion)> {
-    let ref_errors = |expr: &Expr| crate::render_formula(expr).matches("#REF!").count();
+    use crate::shift::{invalid_ref_count, shift_copy_formula};
     sheet.data_validations().iter().filter_map(|region| {
         let DataValidationKind::CustomFormula { formula, anchor } = &region.rule.kind else { return None };
         let original = parse_formula(formula)?;
         let rows = i64::from(region.range.start.row) - i64::from(anchor.row);
         let cols = i64::from(region.range.start.col) - i64::from(anchor.col);
-        let at_start = crate::shift::shift_copy_formula(&original, rows, cols).ok()
-            .filter(|expr| ref_errors(expr) <= ref_errors(&original));
-        let expr = match at_start {
+        let at_start = shift_copy_formula(&original, rows, cols).ok()
+            .filter(|expr| invalid_ref_count(expr) <= invalid_ref_count(&original));
+        let (expr, next_anchor) = match at_start {
             Some(mut expr) => {
-                if !rewrite(region.range, &mut expr) { return None; }
-                crate::shift::shift_copy_formula(&expr, -rows, -cols).ok()?
+                if !rewrite(Some(region.range), &mut expr) { return None; }
+                match shift_copy_formula(&expr, -rows, -cols).ok()
+                    .filter(|back| invalid_ref_count(back) <= invalid_ref_count(&expr))
+                {
+                    Some(back) => (back, *anchor),
+                    None => (expr, region.range.start),
+                }
             }
             None => {
                 let mut expr = original;
-                if !rewrite(region.range, &mut expr) { return None; }
-                expr
+                if !rewrite(None, &mut expr) { return None; }
+                (expr, *anchor)
             }
         };
-        let next = crate::render_formula(&expr);
-        if next == *formula { return None; }
+        let kind = DataValidationKind::CustomFormula { formula: crate::render_formula(&expr), anchor: next_anchor };
+        if kind == region.rule.kind { return None; }
         let mut after = region.clone();
-        if let DataValidationKind::CustomFormula { formula, .. } = &mut Arc::make_mut(&mut after.rule).kind {
-            *formula = next;
-        }
+        Arc::make_mut(&mut after.rule).kind = kind;
         Some((region.clone(), after))
     }).collect()
 }

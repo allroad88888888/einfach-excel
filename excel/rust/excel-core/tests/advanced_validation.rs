@@ -10,6 +10,8 @@ use einfach_excel_core::{
     AutoFillDirection, AutoFillRequest, AutoFillSeries, CellAddress, CellRange, Workbook,
 };
 
+#[path = "advanced_validation/anchor_edges.rs"]
+mod anchor_edges;
 #[path = "advanced_validation/atomic.rs"]
 mod atomic;
 #[path = "advanced_validation/candidate_observers.rs"]

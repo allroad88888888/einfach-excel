@@ -52,6 +52,7 @@ pub(crate) fn band_shift_range(bounds: CellRange, edit: ShiftEdit, band: (u32, u
 
 /// `band_shift_range` 的同质拆分：每块内各格位移相同，返回（位移前区域, 位移量, 位移后区域）。
 /// 插入时带内"未动部分 + 插入格"为一块、位移 0，其后部分整体移动；删除时被删部分消失。
+/// 整轴区域位移后仍是整轴：带内的格照样移动，起点处插入的格与末端补进的空格并入相邻的块。
 /// 数据验证按块各自换算公式锚点；位移量是（行, 列）。
 pub(crate) fn band_shift_pieces(
     bounds: CellRange, edit: ShiftEdit, band: (u32, u32),
@@ -69,9 +70,10 @@ pub(crate) fn band_shift_pieces(
         ShiftEdit::ColDelete { at, count } => (at, count, false, EXCEL_MAX_COLS),
     };
     let full_axis = a_start == 0 && a_end == limit - 1;
-    if count == 0 || o_end < band.0 || o_start > band.1 || a_end < at || full_axis {
+    if count == 0 || o_end < band.0 || o_start > band.1 || a_end < at {
         return vec![(bounds, (0, 0), bounds)];
     }
+    let tail = |end: u32| if full_axis { limit - 1 } else { end };
     let piece = |o: (u32, u32), a: (u32, u32)| if rows {
         CellRange::new(CellAddress::new(a.0, o.0), CellAddress::new(a.1, o.1))
     } else {
@@ -94,17 +96,20 @@ pub(crate) fn band_shift_pieces(
         if first + count < limit {
             let after = (first + count, (a_end + count).min(limit - 1));
             let before = (first, after.1 - count);
-            next.push((piece(middle, before), delta(i64::from(count)), piece(middle, after)));
+            let start = if full_axis && a_start >= at { at } else { after.0 };
+            next.push((piece(middle, before), delta(i64::from(count)), piece(middle, (start, after.1))));
         }
     } else {
         let last_deleted = at + count - 1;
+        let moved = a_end > last_deleted;
         if a_start < at {
-            let kept = piece(middle, (a_start, a_end.min(at - 1)));
-            next.push((kept, (0, 0), kept));
+            let kept = (a_start, a_end.min(at - 1));
+            let end = if moved { kept.1 } else { tail(kept.1) };
+            next.push((piece(middle, kept), (0, 0), piece(middle, (kept.0, end))));
         }
-        if a_end > last_deleted {
+        if moved {
             let before = (a_start.max(last_deleted + 1), a_end);
-            let after = (before.0 - count, before.1 - count);
+            let after = (before.0 - count, tail(before.1 - count));
             next.push((piece(middle, before), delta(-i64::from(count)), piece(middle, after)));
         }
     }
@@ -132,6 +137,23 @@ mod tests {
             vec![r("A1", "A10"), r("B1", "B11"), r("C1", "C10")]
         );
         assert_eq!(band_shift_range(r("B1", "B3"), edit, (1, 1)), vec![r("B1", "B3")]);
+    }
+
+    #[test]
+    fn whole_axis_pieces_move_their_cells_and_still_cover_the_axis() {
+        let insert = ShiftEdit::RowInsert { at: 0, count: 1 };
+        assert_eq!(
+            band_shift_pieces(r("B1", "B1048576"), insert, (1, 1)),
+            vec![(r("B1", "B1048575"), (1, 0), r("B1", "B1048576"))]
+        );
+        let delete = ShiftEdit::RowDelete { at: 2, count: 2 };
+        assert_eq!(
+            band_shift_pieces(r("B1", "B1048576"), delete, (1, 1)),
+            vec![
+                (r("B1", "B2"), (0, 0), r("B1", "B2")),
+                (r("B5", "B1048576"), (-2, 0), r("B3", "B1048576")),
+            ]
+        );
     }
 
     #[test]

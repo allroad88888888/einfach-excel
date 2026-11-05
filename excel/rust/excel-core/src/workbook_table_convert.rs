@@ -21,9 +21,11 @@ impl TableDefinitionChange {
             name: before.name(),
             table: &table,
         };
-        let rewrite = |sheet, range, expr: &mut Expr| converter.rewrite(expr, Some((sheet, range)));
+        let rewrite = |sheet, range: Option<CellRange>, expr: &mut Expr| {
+            converter.rewrite(expr, range.map(|range| (sheet, range)))
+        };
         let mut formulas = FormulaSourceChange::prepare(workbook, &|sheet, range, origin, expr| {
-            rewrite(sheet, CellRange::single(origin.unwrap_or(range.start)), expr)
+            rewrite(sheet, Some(CellRange::single(origin.unwrap_or(range.start))), expr)
         });
         FormulaSourceChange::fold_table(&mut formulas, &before, None);
         let rules = FormulaRuleChange::prepare(workbook, &rewrite);

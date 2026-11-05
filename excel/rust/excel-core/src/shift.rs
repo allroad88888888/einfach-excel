@@ -29,7 +29,7 @@ mod row_band_range;
 mod band_range;
 pub(crate) use band_range::{band_shift_pieces, band_shift_range};
 pub(crate) use row_band_range::insert_row_band_range;
-pub(crate) use edit::shift_interval;
+pub(crate) use edit::{invalid_ref_count, shift_interval};
 mod parked;
 mod parked_band;
 mod parked_scan;

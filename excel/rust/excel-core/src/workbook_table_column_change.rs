@@ -85,7 +85,7 @@ impl TableDefinitionChange {
             });
         FormulaSourceChange::fold_table(&mut formulas, &before, Some(&mut after));
         let rules = FormulaRuleChange::prepare(workbook, &|sheet, range, expr| {
-            column_changed && renamer.rewrite(expr, Some((sheet, range)))
+            column_changed && renamer.rewrite(expr, range.map(|range| (sheet, range)))
         });
         let lambdas = FormulaLambdaChange::prepare(workbook, &|expr| {
             column_changed && renamer.rewrite(expr, None)

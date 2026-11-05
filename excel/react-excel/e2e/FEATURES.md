@@ -1183,3 +1183,4 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | UICFG-004 | 宿主关闭单元格右键菜单 | `ui-options/ui-options.spec.ts` | a host can turn the cell context menu off |
 | PASTEATT-001 | 选择性粘贴仅备注 | `paste-special/attachments.spec.ts` | paste notes only copies the note and keeps the destination value |
 | PASTEATT-002 | 选择性粘贴仅数据验证（公式引用随位置平移） | `paste-special/attachments.spec.ts` | paste validation only applies the rule with references moved to the destination |
+| TEXTCOL-MONTH-001 | 分列日期字段识别月份名称 | `editing/text-column-month-names.spec.ts` | date fields accept month names in their selected order |

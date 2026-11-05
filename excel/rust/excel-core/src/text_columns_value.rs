@@ -97,7 +97,21 @@ impl TextColumnValue {
     }
 }
 
+/// 英文月份全称或至少三个字母的前缀（含 Sept），以及「3月」写法；大小写不敏感。
+fn month_from_name(text: &str) -> Option<u32> {
+    const MONTHS: [&str; 12] = ["january", "february", "march", "april", "may", "june", "july",
+        "august", "september", "october", "november", "december"];
+    if let Some(number) = text.strip_suffix('月') {
+        return number.parse().ok().filter(|month| (1..=12).contains(month));
+    }
+    let name = text.trim_end_matches('.').to_ascii_lowercase();
+    if name.len() < 3 { return None; }
+    let name = if name == "sept" { "sep".to_owned() } else { name };
+    MONTHS.iter().position(|month| month.starts_with(&name)).map(|index| index as u32 + 1)
+}
+
 /// 数字日期接受 /、-、. 或无分隔的八位日期；两位年固定使用 00..29→2000，30..99→1900。
+/// 月份写成名称时（15 Mar 2024、Mar 15, 2024、15-Mar-24、2024/3月/5）也可用空格和逗号分隔。
 fn parse_ordered_date(text: &str, order: TextColumnDateOrder) -> Option<f64> {
     let text = text.trim();
     let indices = match order {
@@ -105,24 +119,67 @@ fn parse_ordered_date(text: &str, order: TextColumnDateOrder) -> Option<f64> {
         TextColumnDateOrder::Ymd => [0, 1, 2], TextColumnDateOrder::Myd => [1, 0, 2],
         TextColumnDateOrder::Dym => [1, 2, 0], TextColumnDateOrder::Ydm => [0, 2, 1],
     };
+    let named = text.chars().any(|c| c.is_alphabetic());
     let parts: Vec<&str> = if text.len() == 8 && text.bytes().all(|b| b.is_ascii_digit()) {
         let widths = std::array::from_fn::<_, 3, _>(|i| if i == indices[0] { 4 } else { 2 });
         vec![&text[..widths[0]], &text[widths[0]..widths[0] + widths[1]], &text[widths[0] + widths[1]..]]
+    } else if named {
+        text.split(|c: char| matches!(c, '/' | '-' | '.' | ',') || c.is_whitespace())
+            .filter(|part| !part.is_empty()).collect()
     } else {
         let separator = text.chars().find(|c| matches!(c, '/' | '-' | '.'))?;
         text.split(separator).map(str::trim).collect()
     };
-    if parts.len() != 3 || parts.iter().any(|part| part.is_empty() || !part.bytes().all(|b| b.is_ascii_digit())) {
+    let digits = |part: &str| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit());
+    if parts.len() != 3 || !digits(parts[indices[0]]) || !digits(parts[indices[2]]) {
         return None;
     }
     let year_text = parts[indices[0]];
-    if !matches!(year_text.len(), 2 | 4) || parts[indices[1]].len() > 2 || parts[indices[2]].len() > 2 {
+    if !matches!(year_text.len(), 2 | 4) || parts[indices[2]].len() > 2 {
         return None;
     }
     let mut year: i32 = year_text.parse().ok()?;
     if year_text.len() == 2 { year += if year < 30 { 2000 } else { 1900 }; }
-    let month = parts[indices[1]].parse().ok()?;
+    let month_text = parts[indices[1]];
+    let month = if digits(month_text) && month_text.len() <= 2 {
+        month_text.parse().ok()?
+    } else if named {
+        month_from_name(month_text)?
+    } else {
+        return None;
+    };
     let day = parts[indices[2]].parse().ok()?;
     if !(1900..=9999).contains(&year) || day == 0 { return None; }
     excel_date_parts_to_serial(ExcelDateParts { year, month, day, fraction: 0.0 })
+}
+
+#[cfg(test)]
+mod date_name_tests {
+    use super::{parse_ordered_date, TextColumnDateOrder as Order};
+
+    const MARCH_15_2024: f64 = 45366.0;
+
+    #[test]
+    fn month_names_parse_in_every_supported_shape() {
+        for (text, order) in [("15 Mar 2024", Order::Dmy), ("15-mar-24", Order::Dmy),
+            ("March 15, 2024", Order::Mdy), ("Mar. 15 2024", Order::Mdy), ("2024 Sept 15", Order::Ymd),
+            ("2024/3月/15", Order::Ymd), ("15 MARCH 2024", Order::Dmy)] {
+            let expected = if text.contains("Sept") { 45550.0 } else { MARCH_15_2024 };
+            assert_eq!(parse_ordered_date(text, order), Some(expected), "{text}");
+        }
+    }
+
+    #[test]
+    fn numeric_dates_keep_their_strict_single_separator_rules() {
+        assert_eq!(parse_ordered_date("15/03/2024", Order::Dmy), Some(MARCH_15_2024));
+        assert_eq!(parse_ordered_date("15/03-2024", Order::Dmy), None);
+        assert_eq!(parse_ordered_date("15 03 2024", Order::Dmy), None);
+    }
+
+    #[test]
+    fn unknown_or_ambiguous_month_names_are_rejected() {
+        for text in ["15 Ma 2024", "15 Marchy 2024", "15 13月 2024", "Mar 15 2024"] {
+            assert_eq!(parse_ordered_date(text, Order::Dmy), None, "{text}");
+        }
+    }
 }

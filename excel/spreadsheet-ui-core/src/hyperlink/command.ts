@@ -8,7 +8,8 @@ import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../projection'
 import { isProjectionCommandReady } from '../projection/command-ready'
-import { isCellInRange, validateProjectionResult } from '../projection/contracts'
+import { activeCellFactAtom } from '../projection/active-cell-fact'
+import { validateProjectionResult } from '../projection/contracts'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import { showFormulasAtom } from '../calculation/formula-view'
@@ -49,10 +50,7 @@ export const hyperlinkPanelAtom = atom((get) => {
   const ready = isProjectionCommandReady(get) && result?.kind === 'visible-window' &&
     result.sheetId === sheet?.id && result.revision !== undefined
   const selection = get(selectionSnapshotAtom)
-  const knownCell = result?.kind === 'visible-window' &&
-    (isCellInRange(selection.activeCell, result.window) ||
-      result.frozen?.regions.some((region) => isCellInRange(selection.activeCell, region.window)) ||
-      projectedCell(result, selection.activeCell) !== undefined)
+  const knownCell = get(activeCellFactAtom) !== undefined
   const single = selection.range.rowStart === selection.range.rowEnd &&
     selection.range.colStart === selection.range.colEnd
   const merged = result?.kind === 'visible-window' && result.mergedRanges?.some((range) =>
@@ -94,7 +92,7 @@ export const runHyperlinkAtom = atom(null, async (get, set,
   if (action === 'open') {
     if (!panel.available || result?.kind !== 'visible-window') return false
     const cell = get(selectionSnapshotAtom).activeCell
-    const source = projectedCell(result, cell)
+    const source = get(activeCellFactAtom)
     const text = source?.displayValue ?? ''
     set(panelAtom, { ...CLOSED, connection, sheetId: sheet.id,
       cell: { row: cell.row, col: cell.col },

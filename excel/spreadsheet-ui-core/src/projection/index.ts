@@ -1,12 +1,9 @@
-import { atom, type Atom } from '@einfach/core'
-import { cloneFormat } from '../contracts'
+import { atom } from '@einfach/core'
 import type {
   ProjectionRequestId,
   RangeProjectionRequest,
-  SpreadsheetCellFormat,
   VisibleProjectionRequest,
 } from '../contracts'
-import { selectionSnapshotAtom } from '../selection'
 import type { SpreadsheetError } from '../shared'
 import {
   createRangeProjectionRequest,
@@ -24,7 +21,6 @@ import {
   projectionErrorFrom,
   projectionLaneBackingAtom,
   projectionRequestSequenceBackingAtom,
-  projectionSnapshotAtom,
   projectionSnapshotBackingAtom,
   sameProjectionRequest,
   successorAfterFailedRead,
@@ -53,11 +49,12 @@ import {
 } from '../calculation/mode-state'
 import { syncWatchedCellsAtom } from '../formula-auditing/watch-command'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
-import { cellAtProjection } from './cell-at'
+import { forgetActiveCellFact, retainActiveCellFact } from './active-cell-fact'
 
 export * from './contracts'
 export * from './types'
 export { applyVisibleProjectionAtom } from './apply-visible-projection'
+export { activeCellFactAtom, activeCellFormatAtom } from './active-cell-fact'
 export {
   issueProjectionRequestIdAtom,
   nextProjectionRequestId,
@@ -152,6 +149,7 @@ export const beginProjectionAtom = atom(
             }),
           }),
         )
+        retainActiveCellFact(get, set)
         set(
           projectionSnapshotBackingAtom,
           freezeProjectionSnapshot({
@@ -171,6 +169,7 @@ export const beginProjectionAtom = atom(
           visibleWindow: Object.freeze({ active: ticket, queued: null }),
         }),
       )
+      retainActiveCellFact(get, set)
       set(
         projectionSnapshotBackingAtom,
         freezeProjectionSnapshot({
@@ -195,6 +194,7 @@ beginProjectionAtom.debugLabel = 'spreadsheet.projection.begin'
 
 /** Clears the display projection without releasing an in-flight backend lane. */
 export const resetProjectionAtom = atom(null, (_get, set): void => {
+  forgetActiveCellFact(set)
   set(projectionSnapshotBackingAtom, IDLE_PROJECTION_SNAPSHOT)
 })
 resetProjectionAtom.debugLabel = 'spreadsheet.projection.reset'
@@ -278,6 +278,7 @@ export const resolveProjectionAtom = atom(
             current.request !== undefined &&
             sameProjectionRequest(current.request, successor.request)
           ) {
+            retainActiveCellFact(get, set)
             set(projectionSnapshotBackingAtom, freezeProjectionSnapshot({ ...current, result }))
             if (result.kind === 'visible-window') applyProjectionSizes(get, set, result)
             if (result.kind === 'visible-window' && result.visibility)
@@ -311,6 +312,7 @@ export const resolveProjectionAtom = atom(
       ) {
         return Object.freeze({ status: 'ignored', reason: 'stale' })
       }
+      retainActiveCellFact(get, set)
       set(
         projectionSnapshotBackingAtom,
         freezeProjectionSnapshot({
@@ -434,27 +436,3 @@ export const reportProjectionErrorAtom = atom(
   },
 )
 reportProjectionErrorAtom.debugLabel = 'spreadsheet.projection.reportError'
-
-/**
- * Derived: the active cell's cell-level format, looked up in the current
- * visible-window projection result. Returns `{}` when the projection isn't
- * showing the selected sheet (no result yet, an error, or a range-only
- * projection) or when the active cell carries no format overrides.
- *
- * Every "open Format Cells for the active selection" entry point (toolbar
- * number-format dropdown, menu bar, grid Ctrl+1) must seed the dialog's
- * `initialFormat` with this value. Without a seed the dialog's category
- * detector falls back to `'general'`, and saving with no edits silently
- * overwrites the selection's real format with `{ kind: 'general' }`.
- */
-export const activeCellFormatAtom: Atom<SpreadsheetCellFormat> = atom((get) => {
-  const selection = get(selectionSnapshotAtom)
-  const result = get(projectionSnapshotAtom).result
-  if (result?.kind !== 'visible-window' || result.sheetId !== selection.selection.sheetId) {
-    return {}
-  }
-
-  const cell = cellAtProjection(result, selection.activeCell)
-  return cell?.format ? cloneFormat(cell.format) : {}
-})
-activeCellFormatAtom.debugLabel = 'spreadsheet.projection.activeCellFormat'

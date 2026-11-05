@@ -8,6 +8,7 @@ import { cancelPointerAtom } from '../pointer'
 import { fillSeriesStateAtom, INITIAL_FILL_SERIES_STATE } from '../auto-fill/series-state'
 import { resetSheetProtectionProjectionAtom } from '../protection'
 import { validationConfirmationBackingAtom } from '../data-validation/advanced/confirmation-state'
+import { forgetActiveCellFact } from '../projection/active-cell-fact'
 
 /** 只在工作簿连接被替换时回收旧视图；普通切表继续保留各表状态。 */
 export const resetWorkbookViewAtom = atom(null, (get, set): void => {
@@ -16,6 +17,7 @@ export const resetWorkbookViewAtom = atom(null, (get, set): void => {
   set(fillSeriesStateAtom, INITIAL_FILL_SERIES_STATE)
   set(projectionLaneBackingAtom, { visibleWindow: { active: null, queued: null }, range: null })
   set(projectionSnapshotBackingAtom, IDLE_PROJECTION_SNAPSHOT)
+  forgetActiveCellFact(set)
   set(viewportSizeOverridesAtom, DEFAULT_VIEWPORT_SIZE_OVERRIDES)
   rotateViewportMetadataProjectionIdentity(set)
   set(cancelPointerAtom)

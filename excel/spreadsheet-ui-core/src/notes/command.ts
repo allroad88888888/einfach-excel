@@ -8,7 +8,8 @@ import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../projection'
 import { isProjectionCommandReady } from '../projection/command-ready'
-import { isCellInRange, validateProjectionResult } from '../projection/contracts'
+import { validateProjectionResult } from '../projection/contracts'
+import { activeCellFactAtom } from '../projection/active-cell-fact'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import type { CellCoord } from '../shared'
@@ -44,10 +45,7 @@ export const notePanelAtom = atom((get) => {
     result?.kind === 'visible-window' &&
     result.sheetId === sheet?.id &&
     result.revision !== undefined
-  const known =
-    result?.kind === 'visible-window' &&
-    (isCellInRange(selection.activeCell, result.window) ||
-      result.frozen?.regions.some((region) => isCellInRange(selection.activeCell, region.window)))
+  const known = get(activeCellFactAtom) !== undefined
   const single =
     selection.range.rowStart === selection.range.rowEnd &&
     selection.range.colStart === selection.range.colEnd

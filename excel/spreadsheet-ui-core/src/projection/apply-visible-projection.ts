@@ -1,4 +1,4 @@
-import { atom, type Setter } from '@einfach/core'
+import { atom, type Getter, type Setter } from '@einfach/core'
 import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
 import { validateProjectionResult } from './contracts'
 import {
@@ -25,13 +25,15 @@ import {
 } from '../calculation/mode-state'
 import { syncWatchedCellsAtom } from '../formula-auditing/watch-command'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
+import { retainActiveCellFact } from './active-cell-fact'
 
 // 最近一次由修改发布（或因修改投影无效而置错）的快照。
 const mutationSnapshotBackingAtom = atom<ProjectionSnapshot | null>(null)
 mutationSnapshotBackingAtom.debugLabel = 'spreadsheet.projection.mutationSnapshot.state'
 
-function publish(set: Setter, snapshot: ProjectionSnapshot): void {
+function publish(get: Getter, set: Setter, snapshot: ProjectionSnapshot): void {
   const frozen = freezeProjectionSnapshot(snapshot)
+  retainActiveCellFact(get, set)
   set(projectionSnapshotBackingAtom, frozen)
   set(mutationSnapshotBackingAtom, frozen)
 }
@@ -70,10 +72,10 @@ export const applyVisibleProjectionAtom = atom(
           validation.error.message,
           validation.error.code,
         )
-        publish(set, { status: 'error', request, result: current.result, error })
+        publish(get, set, { status: 'error', request, result: current.result, error })
         return Object.freeze({ status: 'rejected', error })
       }
-      publish(set, { status: 'ready', request, result, error: undefined })
+      publish(get, set, { status: 'ready', request, result, error: undefined })
       applyProjectionSizes(get, set, result)
       if (result.visibility) applySheetVisibility(get, set, result.sheetId, result.visibility)
       recordPublishedGeometry(get, set)
@@ -92,7 +94,7 @@ export const applyVisibleProjectionAtom = atom(
       return Object.freeze({ status: 'applied' })
     } catch (cause) {
       const error = projectionErrorFrom(cause)
-      publish(set, { status: 'error', request: input.request, result: current.result, error })
+      publish(get, set, { status: 'error', request: input.request, result: current.result, error })
       return Object.freeze({ status: 'rejected', error })
     }
   },

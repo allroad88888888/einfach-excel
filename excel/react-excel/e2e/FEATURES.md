@@ -233,6 +233,7 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | EDIT-033 | 公式栏失焦拒绝后留原草稿纠正 | `editing/rejected-draft-replacement.spec.ts` | formula rejected blur cannot be replaced by another cell at 1280px |
 | EDIT-034 | 格内拒绝后显式取消再编辑 | `editing/rejected-draft-replacement.spec.ts` | cell rejected draft can explicitly cancel before editing the next cell |
 | EDIT-035 | 公式栏拒绝后显式取消再编辑 | `editing/rejected-draft-replacement.spec.ts` | formula rejected draft can explicitly cancel before editing the next cell |
+| EDIT-036 | 活动格滚出可见区后公式栏仍显示其内容 | `editing/formula-bar-scroll.spec.ts` | formula bar keeps the active cell after it scrolls out of view at 1280px |
 | LINK-001 | 插入超链接 | `hyperlink/hyperlink.spec.ts` | insert hyperlink is independent and undoes once at 1280px |
 | LINK-002 | 修改原生超链接 | `hyperlink/hyperlink.spec.ts` | edit hyperlink is independent and undoes once at 1280px |
 | LINK-003 | 移除原生超链接 | `hyperlink/hyperlink.spec.ts` | remove hyperlink is independent and undoes once at 1280px |

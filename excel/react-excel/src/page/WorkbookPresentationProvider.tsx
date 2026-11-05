@@ -5,6 +5,7 @@ import { createWorkbookI18n, type UiLocale } from '../i18n/runtime'
 import type { XlsxConverterLoader } from '../workbook/xlsx/xlsx-converter'
 import { assertUniquePluginIds, SpreadsheetPluginsContext } from '../plugin/plugin-context'
 import type { SpreadsheetPlugin } from '../plugin/types'
+import { WorkbookUiOptionsContext, type WorkbookUiOptions } from './workbook-ui-options'
 
 export interface WorkbookPresentationProps {
   readonly locale?: UiLocale
@@ -14,9 +15,12 @@ export interface WorkbookPresentationProps {
   readonly xlsx?: XlsxConverterLoader
   /** 可选功能包；按数组顺序挂载，核心不依赖其中任何一个。 */
   readonly plugins?: readonly SpreadsheetPlugin[]
+  /** 内置界面区域的显隐；缺省全部显示。 */
+  readonly ui?: WorkbookUiOptions
 }
 
 const NO_PLUGINS: readonly SpreadsheetPlugin[] = []
+const DEFAULT_UI: WorkbookUiOptions = {}
 
 export const WorkbookPresentationContext = createContext<{
   readonly controlledLocale: boolean
@@ -26,7 +30,7 @@ export const WorkbookPresentationContext = createContext<{
 
 /** 展现状态由 Lingui 实例持有，不新增业务 atom；显式 locale 的选择权归宿主。 */
 export function WorkbookPresentationProvider({
-  children, locale, i18n, renderer = 'dom', xlsx, plugins = NO_PLUGINS,
+  children, locale, i18n, renderer = 'dom', xlsx, plugins = NO_PLUGINS, ui = DEFAULT_UI,
 }:
   WorkbookPresentationProps & { readonly children: ReactNode }): ReactNode {
   const ownedI18n = useMemo(() => createWorkbookI18n(), [])
@@ -45,7 +49,9 @@ export function WorkbookPresentationProvider({
     [locale, renderer, xlsx])
   return <WorkbookPresentationContext.Provider value={presentation}>
     <SpreadsheetPluginsContext.Provider value={plugins}>
-      <I18nProvider i18n={instance}>{children}</I18nProvider>
+      <WorkbookUiOptionsContext.Provider value={ui}>
+        <I18nProvider i18n={instance}>{children}</I18nProvider>
+      </WorkbookUiOptionsContext.Provider>
     </SpreadsheetPluginsContext.Provider>
   </WorkbookPresentationContext.Provider>
 }

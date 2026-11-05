@@ -6,6 +6,7 @@ import { WorkbookStoreProvider } from '../../src/page/WorkbookStoreProvider'
 import { PluginEditorAdornments, PluginPanels } from '../../src/plugin/PluginMounts'
 import { assertUniquePluginIds } from '../../src/plugin/plugin-context'
 import type { SpreadsheetPlugin } from '../../src/plugin/types'
+import type { WorkbookUiOptions } from '../../src/page/workbook-ui-options'
 import { WorkbookRibbon } from '../../src/workbook/chrome/ribbon/WorkbookRibbon'
 import { CellContextMenu } from '../../src/workbook/shift-cells/CellContextMenu'
 import { createTestRustWorkbookConnection } from '../support/rust-workbook-connection'
@@ -26,11 +27,12 @@ const plugin: SpreadsheetPlugin = {
   messages: { zh: { 'fake.bump': '加一' } },
 }
 
-function renderWith(plugins: readonly SpreadsheetPlugin[], locale: 'en' | 'zh' = 'en') {
+function renderWith(plugins: readonly SpreadsheetPlugin[], locale: 'en' | 'zh' = 'en',
+  ui: WorkbookUiOptions = {}) {
   const store = createStore()
   render(
     <WorkbookStoreProvider connection={createTestRustWorkbookConnection({})} store={store}
-      plugins={plugins} locale={locale}>
+      plugins={plugins} locale={locale} ui={ui}>
       <WorkbookRibbon />
       <CellContextMenu />
       <PluginEditorAdornments />
@@ -85,5 +87,18 @@ describe('spreadsheet plugins', () => {
   it('rejects duplicate plugin ids', () => {
     expect(() => assertUniquePluginIds([plugin, { id: 'fake' }]))
       .toThrow('Duplicate spreadsheet plugin id: fake')
+  })
+
+  it('hides built-in and plugin context menu items by id', async () => {
+    const store = renderWith([plugin], 'en', { contextMenu: { hidden: ['cells.delete', 'fake.bump'] } })
+    await act(async () => { store.setter(openCellContextMenuAtom, { x: 0, y: 0 }) })
+    expect(screen.getAllByRole('menuitem').map(item => item.getAttribute('data-menu-item')))
+      .toEqual(['cells.insert'])
+  })
+
+  it('turns the whole context menu off', async () => {
+    const store = renderWith([plugin], 'en', { contextMenu: false })
+    await act(async () => { store.setter(openCellContextMenuAtom, { x: 0, y: 0 }) })
+    expect(screen.queryByRole('menu')).toBeNull()
   })
 })

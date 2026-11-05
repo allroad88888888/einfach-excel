@@ -85,6 +85,14 @@ Core Store/connection。仅向 `WorkbookStoreProvider` 传入 connection 不会�
 变化不会重建工作簿或清空历史。库不读取或改写宿主 URL、浏览器语言和 localStorage。
 演示站继续独立读取 `?locale=`、`?renderer=canvas`，并保存语言偏好。
 
+`ui?: WorkbookUiOptions` 控制内置界面区域的显隐，缺省全部显示：`header`、`ribbon`、
+`formulaBar`、`sheetBar`、`statusBar` 设为 `false` 即隐藏；`contextMenu: false` 关闭单元格右键菜单，
+`contextMenu: { hidden: ['cells.insert'] }` 按菜单项 id 隐藏内置或插件项。它只影响本挂载的展现，
+不写入工作簿，也不收回快捷键或宿主 API 的能力（要禁止修改请用 `configureHostControlsAtom`）。
+隐藏状态栏时剪贴板与文件反馈仍会朗读。
+
+`plugins?: SpreadsheetPlugin[]` 挂载可选功能包，契约见仓库 `plugins/README.md`。
+
 ## 构建与检查
 
 先构建 Core 的发行版 JS/声明并准备预编译 WASM，然后在仓库执行：

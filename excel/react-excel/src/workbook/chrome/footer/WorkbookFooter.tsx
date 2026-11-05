@@ -16,10 +16,12 @@ import { WorkbookSheetTabs } from './WorkbookSheetTabs'
 import { SelectionStatus } from './SelectionStatus'
 import { ZoomControl } from '../../zoom/ZoomControl'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { useWorkbookUiOptions } from '../../../page/workbook-ui-options'
 
 /** Renders sheet tabs and selection status for the active UI-core workbook. */
 export function WorkbookFooter() {
   const { i18n, t } = useLingui()
+  const ui = useWorkbookUiOptions()
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   const selectedCellCount = useAtomValue(selectionCellCountAtom)
   const multiple = useAtomValue(selectionRegionsAtom).length > 1
@@ -44,7 +46,7 @@ export function WorkbookFooter() {
         {selectedCellCount} cells selected in multiple areas.
         Clear and formatting apply to all areas. Borders require one continuous range.
       </Trans></div>}
-      <WorkbookSheetTabs />
+      {ui.sheetBar !== false && <WorkbookSheetTabs />}
       <div className="status-items">
         {fileNotice && !clipboard.message && !painting && (
           <div
@@ -67,12 +69,15 @@ export function WorkbookFooter() {
             {translateFeedback(i18n, clipboard.message)}
           </div>
         )}
-        {activeSheet === null ? null : (
-          <span className="record-status"><Trans>{activeSheet.rowCount} rows</Trans></span>
-        )}
-        <span><Trans>Selected: {selectedCellCount}</Trans></span>
-        <SelectionStatus />
-        <ZoomControl />
+        {/* 隐藏状态栏只去掉统计与缩放；剪贴板和文件反馈仍需朗读。 */}
+        {ui.statusBar !== false && <>
+          {activeSheet === null ? null : (
+            <span className="record-status"><Trans>{activeSheet.rowCount} rows</Trans></span>
+          )}
+          <span><Trans>Selected: {selectedCellCount}</Trans></span>
+          <SelectionStatus />
+          <ZoomControl />
+        </>}
       </div>
     </footer>
   )

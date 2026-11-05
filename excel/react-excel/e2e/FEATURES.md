@@ -1177,3 +1177,7 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | VIEWTGL-002 | 隐藏／显示行列标题且命中与编辑器对齐 | `view-options/view-options.spec.ts` | hiding headings removes row and column headers and keeps clicks on the right cell |
 | VIEWTGL-003 | 隐藏／显示公式栏 | `view-options/view-options.spec.ts` | the formula bar can be hidden and shown again |
 | VIEWTGL-004 | Canvas 渲染器隐藏网格线 | `view-options/view-options.spec.ts` | hidden gridlines repaint the canvas renderer without losing cells |
+| UICFG-001 | 宿主隐藏标题栏、功能区与公式栏 | `ui-options/ui-options.spec.ts` | a host can hide the header, ribbon and formula bar |
+| UICFG-002 | 宿主隐藏工作表标签与状态栏 | `ui-options/ui-options.spec.ts` | a host can hide the sheet tabs and the status bar |
+| UICFG-003 | 宿主按 id 隐藏右键菜单项 | `ui-options/ui-options.spec.ts` | a host can hide single context menu items |
+| UICFG-004 | 宿主关闭单元格右键菜单 | `ui-options/ui-options.spec.ts` | a host can turn the cell context menu off |

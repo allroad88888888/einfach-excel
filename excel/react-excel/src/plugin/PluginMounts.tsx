@@ -3,6 +3,7 @@ import { useLingui } from '@lingui/react/macro'
 import type { WorkbookRibbonTab } from '@einfach-excel/spreadsheet-ui-core'
 import { Fragment } from 'react'
 import { useSpreadsheetPlugins } from './plugin-context'
+import { contextMenuItemShown, useWorkbookUiOptions } from '../page/workbook-ui-options'
 import type { ContextMenuContribution } from './types'
 
 /** 插件功能区分组排在内置分组之后，沿用内置的分类显隐规则。 */
@@ -28,9 +29,10 @@ function PluginMenuItem({ item, close }: {
 
 export function PluginMenuItems({ close }: { readonly close: () => void }) {
   const plugins = useSpreadsheetPlugins()
-  return plugins.flatMap(plugin => (plugin.contextMenu ?? []).map(item => (
-    <PluginMenuItem key={`${plugin.id}:${item.id}`} item={item} close={close} />
-  )))
+  const ui = useWorkbookUiOptions()
+  return plugins.flatMap(plugin => (plugin.contextMenu ?? [])
+    .filter(item => contextMenuItemShown(ui, item.id))
+    .map(item => <PluginMenuItem key={`${plugin.id}:${item.id}`} item={item} close={close} />))
 }
 
 export function PluginEditorAdornments() {

@@ -7,6 +7,7 @@ import {
   openShiftCellsDialogAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { PluginMenuItems } from '../../plugin/PluginMounts'
+import { contextMenuItemShown, useWorkbookUiOptions } from '../../page/workbook-ui-options'
 import './shift-cells.css'
 
 /** 单元格右键菜单：内置插入/删除单元格，其后是插件菜单项；位置由 UI Core 保存。 */
@@ -16,6 +17,7 @@ export function CellContextMenu() {
   const close = useSetAtom(closeCellContextMenuAtom)
   const open = useSetAtom(openShiftCellsDialogAtom)
   const ref = useRef<HTMLDivElement>(null)
+  const ui = useWorkbookUiOptions()
   useLayoutEffect(() => {
     if (!menu) return
     ref.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus()
@@ -25,7 +27,7 @@ export function CellContextMenu() {
     document.addEventListener('pointerdown', dismiss, true)
     return () => document.removeEventListener('pointerdown', dismiss, true)
   }, [menu, close])
-  if (!menu) return null
+  if (!menu || ui.contextMenu === false) return null
   return (
     <div
       ref={ref}
@@ -47,14 +49,14 @@ export function CellContextMenu() {
         items[(index + step + items.length) % items.length]?.focus()
       }}
     >
-      <button type="button" role="menuitem" data-menu-item="cells.insert"
-        onClick={() => void open({ mode: 'insert', source: 'menu' })}>
+      {contextMenuItemShown(ui, 'cells.insert') && <button type="button" role="menuitem"
+        data-menu-item="cells.insert" onClick={() => void open({ mode: 'insert', source: 'menu' })}>
         {t`Insert…`}
-      </button>
-      <button type="button" role="menuitem" data-menu-item="cells.delete"
-        onClick={() => void open({ mode: 'delete', source: 'menu' })}>
+      </button>}
+      {contextMenuItemShown(ui, 'cells.delete') && <button type="button" role="menuitem"
+        data-menu-item="cells.delete" onClick={() => void open({ mode: 'delete', source: 'menu' })}>
         {t`Delete…`}
-      </button>
+      </button>}
       <PluginMenuItems close={close} />
     </div>
   )

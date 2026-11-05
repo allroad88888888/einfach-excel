@@ -16,6 +16,7 @@ import { SelectSpecialStatus } from '../select-special/SelectSpecialStatus'
 import { useSelectSpecialKeys } from '../select-special/use-select-special-keys'
 import { LockedCellDialog } from '../protection/LockedCellDialog'
 import { PluginPanels } from '../../plugin/PluginMounts'
+import { useWorkbookUiOptions } from '../../page/workbook-ui-options'
 
 /** Composes the shared spreadsheet chrome around the active Rust workbook. */
 export function WorkbookView() {
@@ -25,7 +26,8 @@ export function WorkbookView() {
   const painter = useAtomValue(formatPainterAtom)
   const runPainter = useSetAtom(runFormatPainterAtom)
   const selectSpecialKey = useSelectSpecialKeys()
-  const showFormulaBar = useAtomValue(viewportShowFormulaBarAtom)
+  const ui = useWorkbookUiOptions()
+  const showFormulaBar = useAtomValue(viewportShowFormulaBarAtom) && ui.formulaBar !== false
   return (
     <div
       className="einfach-spreadsheet workbook"
@@ -58,11 +60,11 @@ export function WorkbookView() {
         void runFind({ open: key === 'h' ? 'replace' : 'find' })
       }}
     >
-      <WorkbookHeader />
+      {ui.header !== false && <WorkbookHeader />}
       <div className="rust-runtime-status" role="status"><Trans>
         Rust/WASM ready
       </Trans></div>
-      <WorkbookRibbon />
+      {ui.ribbon !== false && <WorkbookRibbon />}
       {showFormulaBar && <FormulaBar />}
       <WorkbookGrid />
       <SelectSpecialStatus />

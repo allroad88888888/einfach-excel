@@ -1,6 +1,7 @@
 import { samplePlugin } from '@einfach-excel/plugin-sample'
 import { createWorkbookI18n, supportedUiLocale, type UiLocale } from '../../i18n/runtime'
 import type { SpreadsheetPlugin } from '../../plugin/types'
+import type { WorkbookUiOptions } from '../workbook-ui-options'
 
 export const UI_LOCALE_STORAGE_KEY = 'react-excel.ui-locale'
 
@@ -58,8 +59,22 @@ function demoPlugins(query: string): readonly SpreadsheetPlugin[] {
 
 const plugins = typeof window === 'undefined' ? [] : demoPlugins(window.location.search)
 
+/** `?hide=ribbon,sheetBar,menu,menu:cells.insert` 演示宿主的界面显隐配置。 */
+export function demoUiOptions(query: string): WorkbookUiOptions {
+  const ids = new URLSearchParams(query).get('hide')?.split(',').filter(Boolean) ?? []
+  const areas = ['header', 'ribbon', 'formulaBar', 'sheetBar', 'statusBar'] as const
+  const hiddenItems = ids.filter(id => id.startsWith('menu:')).map(id => id.slice(5))
+  return {
+    ...Object.fromEntries(areas.filter(area => ids.includes(area)).map(area => [area, false])),
+    ...(ids.includes('menu') ? { contextMenu: false as const }
+      : hiddenItems.length ? { contextMenu: { hidden: hiddenItems } } : {}),
+  }
+}
+
+const ui = typeof window === 'undefined' ? {} : demoUiOptions(window.location.search)
+
 export function demoPresentation() {
-  return { i18n, xlsx: loadXlsx, plugins,
+  return { i18n, xlsx: loadXlsx, plugins, ui,
     renderer: new URLSearchParams(window.location.search).get('renderer') === 'canvas'
       ? 'canvas' as const : 'dom' as const }
 }

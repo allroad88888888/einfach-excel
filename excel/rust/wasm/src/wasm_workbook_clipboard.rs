@@ -155,6 +155,8 @@ impl WasmWorkbook {
             "formulas-number-formats" => ClipboardPasteMode::FormulasAndNumberFormats,
             "values-number-formats" => ClipboardPasteMode::ValuesAndNumberFormats,
             "column-widths" => ClipboardPasteMode::ColumnWidths,
+            "notes" => ClipboardPasteMode::Notes,
+            "validation" => ClipboardPasteMode::Validation,
             _ => return Err(JsValue::from_str("CLIPBOARD_INVALID_MODE")),
         };
         let arithmetic = match policy.arithmetic.as_deref().unwrap_or("none") {

@@ -83,6 +83,12 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'This cell type cannot be used in paste arithmetic.': msg`This cell type cannot be used in paste arithmetic.`,
   'Column widths cannot be combined with arithmetic, transpose or skip blanks.': msg`Column widths cannot be combined with arithmetic, transpose or skip blanks.`,
   'Unprotect the worksheet before pasting column widths.': msg`Unprotect the worksheet before pasting column widths.`,
+  'Notes and validation cannot be combined with arithmetic, transpose or skip blanks.':
+    msg`Notes and validation cannot be combined with arithmetic, transpose or skip blanks.`,
+  'Copy one continuous range before pasting validation.':
+    msg`Copy one continuous range before pasting validation.`,
+  'A validation formula would refer outside the sheet at this destination.':
+    msg`A validation formula would refer outside the sheet at this destination.`,
   'Selection changed. Paste again.': msg`Selection changed. Paste again.`,
   'Wait for the selected sheet to load.': msg`Wait for the selected sheet to load.`,
   'The workbook is unavailable.': msg`The workbook is unavailable.`,

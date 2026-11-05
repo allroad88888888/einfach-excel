@@ -26,6 +26,8 @@ export type RustClipboardPasteMode =
   | 'formulas-number-formats'
   | 'values-number-formats'
   | 'column-widths'
+  | 'notes'
+  | 'validation'
 
 /** 文本属于系统剪贴板；公式/格式快照不离开 Rust。token 只识别当前 Worker 的快照。 */
 export interface RustClipboardCapture {

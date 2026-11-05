@@ -13,6 +13,10 @@ pub enum ClipboardPasteMode {
     FormulasAndNumberFormats,
     ValuesAndNumberFormats,
     ColumnWidths,
+    /// 只粘贴源格备注。
+    Notes,
+    /// 只粘贴源格数据验证。
+    Validation,
 }
 
 impl ClipboardPasteMode {
@@ -25,6 +29,8 @@ impl ClipboardPasteMode {
                 | Self::FormulasAndNumberFormats
                 | Self::ValuesAndNumberFormats
                 | Self::ColumnWidths
+                | Self::Notes
+                | Self::Validation
         )
     }
 }
@@ -79,6 +85,13 @@ impl ClipboardSnapshot {
         }
         if options.mode.requires_source_formats() && self.source_sheet.is_none() {
             return Err("CLIPBOARD_NO_FORMATS");
+        }
+        if matches!(options.mode, ClipboardPasteMode::Notes | ClipboardPasteMode::Validation)
+            && (options.transpose
+                || options.skip_blanks
+                || options.arithmetic != ClipboardArithmetic::None)
+        {
+            return Err("CLIPBOARD_METADATA_OPTIONS");
         }
         if options.mode == ClipboardPasteMode::ColumnWidths {
             if options.transpose

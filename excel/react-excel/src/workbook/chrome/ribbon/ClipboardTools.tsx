@@ -25,6 +25,8 @@ const PASTE_OPTIONS = [
   { value: 'multiply', label: msg`Paste and multiply`, paste: { arithmetic: 'multiply' } },
   { value: 'divide', label: msg`Paste and divide`, paste: { arithmetic: 'divide' } },
   { value: 'column-widths', label: msg`Paste column widths only`, paste: { mode: 'column-widths' } },
+  { value: 'notes', label: msg`Paste notes only`, paste: { mode: 'notes' } },
+  { value: 'validation', label: msg`Paste validation only`, paste: { mode: 'validation' } },
   { value: 'transpose', label: msg`Paste transposed`, paste: { transpose: true } },
   { value: 'skip-blanks', label: msg`Paste skipping blanks`, paste: { skipBlanks: true } },
   {

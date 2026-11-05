@@ -81,7 +81,8 @@ pub(super) fn plan_cells(
             None
         } else {
             match options.mode {
-                ClipboardPasteMode::Formats | ClipboardPasteMode::ColumnWidths => None,
+                ClipboardPasteMode::Formats | ClipboardPasteMode::ColumnWidths
+                | ClipboardPasteMode::Notes | ClipboardPasteMode::Validation => None,
                 ClipboardPasteMode::Values
                 | ClipboardPasteMode::ValuesAndFormats
                 | ClipboardPasteMode::ValuesAndNumberFormats => {

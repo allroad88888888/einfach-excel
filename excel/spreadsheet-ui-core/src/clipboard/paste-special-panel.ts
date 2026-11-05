@@ -98,7 +98,7 @@ export const runPasteSpecialPanelAtom = atom(
       return false
     if ('field' in action) {
       const next = { ...state, [action.field]: action.value, attempted: false }
-      if (next.mode === 'column-widths') {
+      if (next.mode === 'column-widths' || next.mode === 'notes' || next.mode === 'validation') {
         next.arithmetic = 'none'
         next.transpose = false
         next.skipBlanks = false

@@ -1181,3 +1181,5 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | UICFG-002 | 宿主隐藏工作表标签与状态栏 | `ui-options/ui-options.spec.ts` | a host can hide the sheet tabs and the status bar |
 | UICFG-003 | 宿主按 id 隐藏右键菜单项 | `ui-options/ui-options.spec.ts` | a host can hide single context menu items |
 | UICFG-004 | 宿主关闭单元格右键菜单 | `ui-options/ui-options.spec.ts` | a host can turn the cell context menu off |
+| PASTEATT-001 | 选择性粘贴仅备注 | `paste-special/attachments.spec.ts` | paste notes only copies the note and keeps the destination value |
+| PASTEATT-002 | 选择性粘贴仅数据验证（公式引用随位置平移） | `paste-special/attachments.spec.ts` | paste validation only applies the rule with references moved to the destination |

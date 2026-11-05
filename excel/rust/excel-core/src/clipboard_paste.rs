@@ -44,8 +44,13 @@ impl Workbook {
         if snapshot.cut {
             self.ensure_range_editable(snapshot.source_sheet.ok_or("CLIPBOARD_INVALID_SHEET")?, snapshot.source)?;
         }
-        if options.mode == ClipboardPasteMode::ColumnWidths {
-            return self.paste_column_widths(snapshot, sheet_idx, range, history);
+        match options.mode {
+            ClipboardPasteMode::ColumnWidths =>
+                return self.paste_column_widths(snapshot, sheet_idx, range, history),
+            ClipboardPasteMode::Notes => return self.paste_notes(snapshot, sheet_idx, range, history),
+            ClipboardPasteMode::Validation =>
+                return self.paste_validations(snapshot, sheet_idx, range, history),
+            _ => {}
         }
         if snapshot.cut {
             // 剪切后新应用的筛选也不能让粘贴暗中删除不可见源行。

@@ -20,6 +20,8 @@ mod blocks;
 mod apply;
 #[path = "clipboard_column_widths.rs"]
 mod column_widths;
+#[path = "clipboard_paste_metadata.rs"]
+mod paste_metadata;
 #[path = "clipboard_history_targets.rs"]
 mod history_targets;
 #[path = "clipboard_merge.rs"]
@@ -75,6 +77,10 @@ pub struct ClipboardSnapshot {
     column_widths: Vec<Option<u32>>,
     // 原生快照保留复制时的矩形，之后取消源合并也不改变剪贴板。
     merges: Vec<CellRange>,
+    // 「仅备注」：与 cells 同序的源备注；外部文本为空。
+    notes: Vec<Option<String>>,
+    // 「仅数据验证」：与源矩形相交并裁剪后的验证块。
+    validations: Vec<crate::data_validation::DataValidationRegion>,
 }
 
 impl ClipboardSnapshot {
@@ -199,6 +205,7 @@ impl Workbook {
             return Err("CLIPBOARD_PARTIAL_MERGE");
         }
         let mut cells = Vec::with_capacity(source_rows.len() * source_cols.len());
+        let mut notes = Vec::with_capacity(cells.capacity());
         let mut text = String::new();
         for &row in &source_rows {
             for &col in &source_cols {
@@ -220,6 +227,7 @@ impl Workbook {
                     cell.format = Some(format);
                 }
                 cells.push(cell);
+                notes.push(sheet.note(addr).map(str::to_owned));
             }
         }
         Ok(ClipboardSnapshot {
@@ -232,6 +240,8 @@ impl Workbook {
             cells,
             text,
             merges,
+            notes,
+            validations: paste_metadata::captured_validations(sheet, range),
         })
     }
 }

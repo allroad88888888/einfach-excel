@@ -106,6 +106,8 @@ impl ClipboardSnapshot {
             text: text.into(),
             column_widths: Vec::new(),
             merges: Vec::new(),
+            notes: Vec::new(),
+            validations: Vec::new(),
         })
     }
 }

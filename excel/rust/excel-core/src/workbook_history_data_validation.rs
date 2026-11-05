@@ -37,6 +37,29 @@ impl DataValidationChange {
 }
 
 impl WorkbookHistory {
+    /// 粘贴验证：区域内的验证整体替换为给定块，一步撤销。
+    pub fn replace_data_validations(
+        &mut self,
+        workbook: &mut Workbook,
+        sheet: usize,
+        range: CellRange,
+        pieces: Vec<DataValidationRegion>,
+    ) -> Result<(), &'static str> {
+        workbook.ensure_sheet_unprotected(sheet)?;
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.");
+        }
+        validate_target(workbook, sheet, range)?;
+        let target = workbook.sheet_mut(sheet).unwrap();
+        let before = target.data_validations().to_vec();
+        target.replace_data_validations(range, &pieces)?;
+        let after = target.data_validations().to_vec();
+        if before != after {
+            self.push_validation(workbook, sheet, range, "Paste validation", before, after);
+        }
+        Ok(())
+    }
+
     pub fn set_data_validation(
         &mut self,
         workbook: &mut Workbook,
@@ -57,14 +80,23 @@ impl WorkbookHistory {
         if before == after {
             return Ok(());
         }
+        let label = if clearing { "Clear data validation" } else { "Set data validation" };
+        self.push_validation(workbook, sheet, range, label, before, after);
+        Ok(())
+    }
+
+    fn push_validation(
+        &mut self,
+        workbook: &Workbook,
+        sheet: usize,
+        range: CellRange,
+        label: &str,
+        before: Vec<DataValidationRegion>,
+        after: Vec<DataValidationRegion>,
+    ) {
         let key = workbook.sheet_key(sheet).unwrap();
         self.push(HistoryEntry {
-            label: if clearing {
-                "Clear data validation"
-            } else {
-                "Set data validation"
-            }
-            .into(),
+            label: label.into(),
             sheet,
             range,
             sheet_key: key,
@@ -74,6 +106,5 @@ impl WorkbookHistory {
             origin: Rc::downgrade(&workbook.atom_context),
             change: HistoryChange::DataValidation(DataValidationChange { before, after }),
         });
-        Ok(())
     }
 }

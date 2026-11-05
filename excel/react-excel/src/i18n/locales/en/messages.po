@@ -223,6 +223,10 @@ msgstr "A name stored in this workbook, not an authenticated identity. Up to {CO
 msgid "A pasted value does not meet its cell’s data validation rule. Nothing was pasted."
 msgstr "A pasted value does not meet its cell’s data validation rule. Nothing was pasted."
 
+#: src/i18n/feedback-messages.ts
+msgid "A validation formula would refer outside the sheet at this destination."
+msgstr "A validation formula would refer outside the sheet at this destination."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "A worksheet supports at most 256 editable ranges."
 msgstr "A worksheet supports at most 256 editable ranges."
@@ -1238,6 +1242,10 @@ msgstr "Copy as plain text"
 #: src/i18n/feedback-messages.ts
 msgid "Copy conditional format"
 msgstr "Copy conditional format"
+
+#: src/i18n/feedback-messages.ts
+msgid "Copy one continuous range before pasting validation."
+msgstr "Copy one continuous range before pasting validation."
 
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
@@ -3775,6 +3783,14 @@ msgstr "Note text cannot contain a null character."
 msgid "Note text cannot exceed 32767 characters."
 msgstr "Note text cannot exceed 32767 characters."
 
+#: src/i18n/feedback-messages.ts
+msgid "Notes and validation cannot be combined with arithmetic, transpose or skip blanks."
+msgstr "Notes and validation cannot be combined with arithmetic, transpose or skip blanks."
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Notes only"
+msgstr "Notes only"
+
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Number"
@@ -4008,6 +4024,10 @@ msgid "Paste formulas only"
 msgstr "Paste formulas only"
 
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste notes only"
+msgstr "Paste notes only"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "Paste options"
 msgstr "Paste options"
 
@@ -4026,6 +4046,10 @@ msgstr "Paste special requires Copy, not Cut. The cut cells are unchanged."
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "Paste transposed"
 msgstr "Paste transposed"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste validation only"
+msgstr "Paste validation only"
 
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "Paste values and formatting"
@@ -6505,6 +6529,10 @@ msgstr "Validation input message"
 #: src/i18n/seven-feature-feedback.ts
 msgid "Validation messages cannot contain a null character."
 msgstr "Validation messages cannot contain a null character."
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Validation only"
+msgstr "Validation only"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Validation titles allow 32 characters and messages allow 255 characters."

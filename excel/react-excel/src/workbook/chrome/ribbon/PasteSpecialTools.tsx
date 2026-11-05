@@ -23,6 +23,8 @@ export function PasteSpecialTools() {
     ['formulas-number-formats', t`Formulas and number formats`],
     ['values-number-formats', t`Values and number formats`],
     ['column-widths', t`Column widths only`],
+    ['notes', t`Notes only`],
+    ['validation', t`Validation only`],
   ] as const
   const ARITHMETIC = [
     ['none', t`None`],
@@ -51,6 +53,8 @@ export function PasteSpecialTools() {
     }
   }, [target])
   const widths = state.mode === 'column-widths'
+  // 只贴附属数据时运算、转置、跳过空白都不适用。
+  const attachmentOnly = widths || state.mode === 'notes' || state.mode === 'validation'
   return (
     <>
       <button
@@ -104,7 +108,7 @@ export function PasteSpecialTools() {
             <select
               id={`${id}-arithmetic`}
               value={state.arithmetic}
-              disabled={state.busy || widths || state.mode === 'formats'}
+              disabled={state.busy || attachmentOnly || state.mode === 'formats'}
               onChange={(event) => {
                 const option = ARITHMETIC.find(([value]) => value === event.currentTarget.value)
                 if (option) void run({ field: 'arithmetic', value: option[0] })
@@ -122,7 +126,7 @@ export function PasteSpecialTools() {
                   <input
                     type="checkbox"
                     checked={state[field]}
-                    disabled={state.busy || widths}
+                    disabled={state.busy || attachmentOnly}
                     onChange={(event) => void run({ field, value: event.currentTarget.checked })}
                   />
                   {field === 'transpose' ? t`Transpose` : t`Skip blanks`}

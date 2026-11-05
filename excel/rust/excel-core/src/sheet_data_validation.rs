@@ -71,6 +71,24 @@ impl Sheet {
         Ok(())
     }
 
+    /// 先清空 `range` 再放入各块；任一块失败时恢复原目录，不留下半套验证。
+    pub(crate) fn replace_data_validations(
+        &mut self,
+        range: CellRange,
+        pieces: &[DataValidationRegion],
+    ) -> Result<(), &'static str> {
+        let before = self.data_validations.clone();
+        let result = self.set_data_validation(range, None).and_then(|()| {
+            pieces.iter().try_for_each(|piece| {
+                self.set_data_validation(piece.range, Some((*piece.rule).clone()))
+            })
+        });
+        if result.is_err() {
+            self.data_validations = before;
+        }
+        result
+    }
+
     pub(super) fn shift_data_validations(&mut self, edit: ShiftEdit) {
         self.data_validations.retain_mut(|entry| {
             let old_range = entry.range;

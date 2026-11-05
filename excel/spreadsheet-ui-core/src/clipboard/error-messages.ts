@@ -37,6 +37,12 @@ const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   CLIPBOARD_COLUMN_WIDTH_OPTIONS:
     'Column widths cannot be combined with arithmetic, transpose or skip blanks.',
   CLIPBOARD_COLUMN_WIDTH_LOCKED: 'Unprotect the worksheet before pasting column widths.',
+  CLIPBOARD_METADATA_OPTIONS:
+    'Notes and validation cannot be combined with arithmetic, transpose or skip blanks.',
+  CLIPBOARD_VALIDATION_BLOCKS:
+    'Copy one continuous range before pasting validation.',
+  CLIPBOARD_VALIDATION_REFERENCE:
+    'A validation formula would refer outside the sheet at this destination.',
 }
 
 /** 普通剪贴板与格式刷共享原生错误说明。 */

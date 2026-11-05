@@ -223,6 +223,10 @@ msgstr "此名称保存在工作簿中，并非已认证身份，最多 {COMMENT
 msgid "A pasted value does not meet its cell’s data validation rule. Nothing was pasted."
 msgstr "粘贴值不符合目标单元格的数据验证规则，未粘贴任何内容。"
 
+#: src/i18n/feedback-messages.ts
+msgid "A validation formula would refer outside the sheet at this destination."
+msgstr "粘贴到此处后，验证公式会引用工作表之外的单元格。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "A worksheet supports at most 256 editable ranges."
 msgstr "每个工作表最多支持 256 个允许编辑范围。"
@@ -1238,6 +1242,10 @@ msgstr "复制为纯文本"
 #: src/i18n/feedback-messages.ts
 msgid "Copy conditional format"
 msgstr "复制条件格式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Copy one continuous range before pasting validation."
+msgstr "粘贴数据验证前，请复制一个连续区域。"
 
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
@@ -3775,6 +3783,14 @@ msgstr "备注内容不能包含空字符。"
 msgid "Note text cannot exceed 32767 characters."
 msgstr "备注内容不能超过 32767 个字符。"
 
+#: src/i18n/feedback-messages.ts
+msgid "Notes and validation cannot be combined with arithmetic, transpose or skip blanks."
+msgstr "备注和数据验证不能与运算、转置或跳过空白同时使用。"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Notes only"
+msgstr "仅备注"
+
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Number"
@@ -4008,6 +4024,10 @@ msgid "Paste formulas only"
 msgstr "仅粘贴公式"
 
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste notes only"
+msgstr "仅粘贴备注"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "Paste options"
 msgstr "粘贴选项"
 
@@ -4026,6 +4046,10 @@ msgstr "选择性粘贴仅支持复制，不支持剪切。剪切的单元格保
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "Paste transposed"
 msgstr "转置粘贴"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste validation only"
+msgstr "仅粘贴数据验证"
 
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "Paste values and formatting"
@@ -6505,6 +6529,10 @@ msgstr "数据验证输入提示"
 #: src/i18n/seven-feature-feedback.ts
 msgid "Validation messages cannot contain a null character."
 msgstr "验证提示不能包含空字符。"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Validation only"
+msgstr "仅数据验证"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Validation titles allow 32 characters and messages allow 255 characters."

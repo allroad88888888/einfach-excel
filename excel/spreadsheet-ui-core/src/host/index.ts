@@ -6,3 +6,5 @@ export type { RawCellValue, RawWorkbookCell, RawWorkbookRange, WorkbookChangeEve
 export { hostControlsAtom, workbookChangeAtom, workbookReplacementErrorAtom } from './state'
 export { configureHostControlsAtom, readWorkbookRangesAtom, writeWorkbookCellsAtom } from './atoms'
 export { exportWorkbookSnapshotAtom, openWorkbookSnapshotAtom } from './snapshot'
+
+export * from './display-range'

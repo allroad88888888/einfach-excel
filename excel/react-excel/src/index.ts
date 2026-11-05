@@ -18,3 +18,5 @@ export type {
   SpreadsheetPlugin,
 } from './plugin/types'
 export type { WorkbookUiOptions } from './page/workbook-ui-options'
+
+export { renderSpreadsheetRangeAsPng } from './workbook/image-export/render-range'

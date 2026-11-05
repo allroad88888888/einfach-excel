@@ -348,6 +348,10 @@ msgstr "Allow trailing minus (123- becomes -123)"
 msgid "Already in order."
 msgstr "Already in order."
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
+msgid "Alternating colors"
+msgstr "Alternating colors"
+
 #: src/i18n/feedback-messages.ts
 msgid "An array result cannot be cut independently."
 msgstr "An array result cannot be cut independently."
@@ -364,6 +368,7 @@ msgstr "Another mutation is in progress."
 msgid "Apostrophe (')"
 msgstr "Apostrophe (')"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Applies to"
@@ -381,6 +386,7 @@ msgstr "Applies to rows {0}–{1} and columns {2}–{3}. Sizes are in pixels."
 msgid "Applies to this workbook session. Reloading restores all six summaries."
 msgstr "Applies to this workbook session. Reloading restores all six summaries."
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Apply"
@@ -533,6 +539,10 @@ msgstr "Average"
 msgid "AVERAGE — Mean"
 msgstr "AVERAGE — Mean"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
+msgid "Band color"
+msgstr "Band color"
+
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Banded columns"
 msgstr "Banded columns"
@@ -639,6 +649,7 @@ msgstr "Call only built-in functions or registered custom formulas in custom for
 
 #: src/workbook/advanced-validation/ValidationErrorAlert.tsx
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
@@ -2276,6 +2287,10 @@ msgstr "Fill down"
 msgid "Fill down (Ctrl/⌘+D)"
 msgstr "Fill down (Ctrl/⌘+D)"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
+msgid "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
+msgstr "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
+
 #: src/i18n/feedback-messages.ts
 msgid "Fill linear-trend series"
 msgstr "Fill linear-trend series"
@@ -2527,6 +2542,7 @@ msgstr "First page"
 msgid "First row contains headers"
 msgstr "First row contains headers"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "First row is a header"
 msgstr "First row is a header"
@@ -4294,6 +4310,10 @@ msgstr "Remove "
 msgid "Remove Arrows"
 msgstr "Remove Arrows"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
+msgid "Remove banding"
+msgstr "Remove banding"
+
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
 msgid "Remove condition {0}"
@@ -4825,6 +4845,7 @@ msgstr "Saving changes…"
 msgid "Saving comment…"
 msgstr "Saving comment…"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Saving conditional formatting…"
 msgstr "Saving conditional formatting…"
@@ -5637,6 +5658,10 @@ msgstr "The first row becomes the header. Blank or duplicate headers receive uni
 #: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 msgid "The formula bar opens next. Press Enter to save or Escape to cancel."
 msgstr "The formula bar opens next. Press Enter to save or Escape to cancel."
+
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
+msgid "The header keeps its original formatting; banding starts on the next row."
+msgstr "The header keeps its original formatting; banding starts on the next row."
 
 #: src/i18n/feedback-messages.ts
 msgid "The hyperlink cell is outside the worksheet."

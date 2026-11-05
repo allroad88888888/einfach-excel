@@ -45,6 +45,7 @@ impl Sheet {
             comments: HashMap::new(),
             row_styles: BTreeMap::new(),
             explicit_dimension_generations: [0; 2],
+            defaults: SheetDefaults::default(),
             column_styles: BTreeMap::new(),
             merged_ranges: Vec::new(),
             frozen_panes: FrozenPanes::default(),

@@ -120,6 +120,7 @@ include!("custom_formulas/mod.rs");
 include!("wasm_workbook_topology.rs");
 include!("wasm_workbook_sheet_tab.rs");
 include!("wasm_workbook_sheet_view.rs");
+include!("wasm_workbook_defaults.rs");
 include!("wasm_workbook_tables.rs");
 include!("wasm_workbook_table_commands.rs");
 include!("wasm_workbook_visibility.rs");
@@ -228,6 +229,7 @@ mod tests {
     include!("wasm_tests/persistence_roundtrip.rs");
     include!("wasm_tests/merge_persistence.rs");
     include!("wasm_tests/persistence_validation.rs");
+    include!("wasm_tests/sheet_defaults.rs");
     include!("wasm_tests/print_config.rs");
     include!("wasm_tests/conditional_format.rs");
     include!("wasm_tests/conditional_visuals.rs");

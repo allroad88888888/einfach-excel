@@ -410,7 +410,7 @@ these ports are executors.
 - `test/mutation-gateway.test.ts` — identity addressing, protection gate intact.
 - `test/remove-duplicates.test.ts`, `test/text-to-columns.test.ts` — hidden rows
   never reach `removeRows` / are skipped by the dense scan.
-- `test/copy-as.test.ts`, `test/copy-as-image.test.ts`, `test/operations.test.ts`
+- `test/copy-as.test.ts`, `test/host-display-range.test.ts`, `test/operations.test.ts`
   — visible-only export and delete planning.
 - Host side: `excel/solid-excel/test/vnext-reapply-filter.test.ts` (Reapply against the
   real static backend, both counter-example directions),

@@ -12,6 +12,8 @@ use super::xml::escape;
 #[derive(Default)]
 pub struct SheetInput<'a> {
     pub cells: Vec<&'a SparseCell>,
+    pub defaults: crate::sheet_defaults::SheetDefaults,
+    pub default_style: u32,
     /// (row, col) → cellXfs 下标
     pub styles: HashMap<(u32, u32), u32>,
     pub row_heights: BTreeMap<u32, u32>,
@@ -44,9 +46,10 @@ impl SharedStrings {
     }
 }
 
-fn cell_xml(cell: Option<&SparseCell>, row: u32, col: u32, style: u32, strings: &mut SharedStrings) -> String {
+fn cell_xml(cell: Option<&SparseCell>, row: u32, col: u32, style: u32, default_style: u32, strings: &mut SharedStrings) -> String {
     let r = cell_name(row, col);
-    let s = if style == 0 { String::new() } else { format!(r#" s="{style}""#) };
+    // Explicit style 0 must override a nonzero column default as well.
+    let s = if style == 0 && default_style == 0 { String::new() } else { format!(r#" s="{style}""#) };
     let Some(cell) = cell else { return format!(r#"<c r="{r}"{s}/>"#) };
     match (cell.kind.as_str(), &cell.value) {
         ("formula", Some(CellValue::Text(text))) => {
@@ -94,7 +97,7 @@ fn sheet_view(sheet: &SheetInput) -> String {
 pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
     let mut rows: BTreeMap<u32, BTreeMap<u32, (Option<&SparseCell>, u32)>> = BTreeMap::new();
     for cell in &sheet.cells {
-        rows.entry(cell.row).or_default().insert(cell.col, (Some(*cell), 0));
+        rows.entry(cell.row).or_default().insert(cell.col, (Some(*cell), sheet.default_style));
     }
     for (&(row, col), &style) in &sheet.styles {
         rows.entry(row).or_default().entry(col).or_insert((None, 0)).1 = style;
@@ -106,18 +109,31 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
     let mut xml = String::from(r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">"#);
     xml.push_str(&sheet_view(sheet));
-    xml.push_str(r#"<sheetFormatPr defaultRowHeight="15"/>"#);
+    let default_width = sheet.defaults.col_width.map(|px|
+        format!(r#" defaultColWidth="{}""#, px_to_column_width(px))).unwrap_or_default();
+    xml.push_str(&format!(r#"<sheetFormatPr defaultRowHeight="{}"{default_width}/>"#,
+        px_to_row_height(sheet.defaults.row_height.unwrap_or(28))));
     let columns: BTreeSet<u32> = sheet.col_widths.keys().chain(&sheet.hidden_cols).copied().collect();
-    if !columns.is_empty() {
+    if !columns.is_empty() || sheet.defaults.font_size.is_some() {
         xml.push_str("<cols>");
+        let mut next = 1;
+        let style = if sheet.defaults.font_size.is_none() { String::new() }
+            else { format!(r#" style="{}""#, sheet.default_style) };
         for col in columns {
             let n = col + 1;
+            if next < n && sheet.defaults.font_size.is_some() {
+                xml.push_str(&format!(r#"<col min="{next}" max="{}"{style}/>"#, n - 1));
+            }
+            next = n + 1;
             let width = match sheet.col_widths.get(&col) {
                 Some(&px) => format!(r#" width="{}" customWidth="1""#, px_to_column_width(px)),
-                None => r#" width="9.140625""#.to_string(),
+                None => String::new(),
             };
             let hidden = if sheet.hidden_cols.contains(&col) { r#" hidden="1""# } else { "" };
-            xml.push_str(&format!(r#"<col min="{n}" max="{n}"{width}{hidden}/>"#));
+            xml.push_str(&format!(r#"<col min="{n}" max="{n}"{width}{hidden}{style}/>"#));
+        }
+        if next <= 16_384 && sheet.defaults.font_size.is_some() {
+            xml.push_str(&format!(r#"<col min="{next}" max="16384"{style}/>"#));
         }
         xml.push_str("</cols>");
     }
@@ -129,7 +145,7 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
         let hidden = if sheet.hidden_rows.contains(&row) { r#" hidden="1""# } else { "" };
         xml.push_str(&format!(r#"<row r="{}"{height}{hidden}>"#, row + 1));
         for (col, (cell, style)) in cells {
-            xml.push_str(&cell_xml(cell, row, col, style, strings));
+            xml.push_str(&cell_xml(cell, row, col, style, sheet.default_style, strings));
         }
         xml.push_str("</row>");
     }

@@ -2,6 +2,7 @@ import type { RustWorkbookDefinition, RustImportCell } from '@einfach-excel/spre
 import { applySalesOrderMerge, SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
   SALES_ORDER_EXTRA_MERGE_CELLS } from './data/merge-seed'
 import { createSalesOrderImportChunks } from './data/import-seed'
+import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from './data/alternating-colors-seed'
 import { SUMMARY_FILL_CELLS } from './data/fill-seed'
 import { SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
 import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from './data/validation-seed'
@@ -66,6 +67,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
               showValue: true,
             },
           },
+          SUMMARY_BANDING_RULE,
         ],
         dataValidations: SUMMARY_VALIDATIONS,
         outline: SUMMARY_OUTLINE,
@@ -83,6 +85,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       SUMMARY_TABLE_CELLS,
       SUMMARY_CONDITIONAL_TEXT_CELLS,
       SUMMARY_FILL_CELLS,
+      SUMMARY_BANDING_CELLS,
       [
         { sheet: 1, row: 81, col: 7, kind: 'text', value: 'ORDER_NET', format: { bold: true } },
         { sheet: 1, row: 82, col: 7, kind: 'formula', value: '=ORDER_NET(3,25)' },

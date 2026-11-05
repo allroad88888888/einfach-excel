@@ -20,7 +20,7 @@ vi.mock('../../src/page/demo/demo-presentation', () => {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('public package entry', () => {
-  it('exports only the supported React components without creating a Worker', async () => {
+  it('exports the supported components and image renderer without creating a Worker', async () => {
     const worker = vi.fn(() => { throw new Error('Unexpected Worker on import') })
     vi.stubGlobal('Worker', worker)
     const read = vi.spyOn(Storage.prototype, 'getItem')
@@ -28,6 +28,7 @@ describe('public package entry', () => {
     const entry = await import('../../src')
     expect(Object.keys(entry).sort()).toEqual([
       'Spreadsheet', 'WorkbookRuntimeProvider', 'WorkbookStoreProvider', 'WorkbookView',
+      'renderSpreadsheetRangeAsPng',
     ])
     for (const component of Object.values(entry)) expect(component).toBeTypeOf('function')
     expect(worker).not.toHaveBeenCalled()

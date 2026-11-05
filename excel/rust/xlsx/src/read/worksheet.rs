@@ -26,6 +26,8 @@ pub struct RawCell {
 #[derive(Default)]
 pub struct SheetData {
     pub cells: Vec<RawCell>,
+    pub defaults: crate::sheet_defaults::SheetDefaults,
+    pub column_styles: Vec<(u32, u32, u32)>,
     pub col_widths: Vec<(u32, u32)>,
     pub row_heights: Vec<(u32, u32)>,
     pub merges: Vec<[u32; 4]>,
@@ -100,6 +102,7 @@ fn column_entries(e: &BytesStart, data: &mut SheetData) {
     if min == 0 || max < min {
         return;
     }
+    if let Some(style) = attr_u32(e, "style") { data.column_styles.push((min, max, style)); }
     if attr_u32(e, "outlineLevel").is_some_and(|l| l > 0) || attr_bool(e, "collapsed", false) {
         data.outline += 1;
     }
@@ -160,6 +163,10 @@ pub fn parse(xml: &str, strings: &[String]) -> Result<SheetData, XlsxError> {
                     }
                 }
                 b"col" => column_entries(&e, &mut data),
+                b"sheetFormatPr" => {
+                    data.defaults.row_height = attr_f64(&e, "defaultRowHeight").map(row_height_to_px);
+                    data.defaults.col_width = attr_f64(&e, "defaultColWidth").map(column_width_to_px);
+                }
                 b"mergeCell" => {
                     if let Some(range) = attr(&e, "ref").as_deref().and_then(parse_range) {
                         if range[0] != range[2] || range[1] != range[3] { data.merges.push(range) }

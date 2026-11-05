@@ -35,10 +35,6 @@ import {
   workbookCellAtPoint,
   workbookCellAtViewportPoint,
 } from './workbook-grid-hit-test'
-import {
-  WORKBOOK_GRID_COLUMN_WIDTH,
-  WORKBOOK_GRID_ROW_HEIGHT,
-} from './workbook-grid-config'
 import { useWorkbookGridViewportMeasurement } from './use-workbook-grid-viewport-measurement'
 import { useGridGutter } from './grid-gutter'
 import { useGridHyperlink } from '../../hyperlink/use-grid-hyperlink'
@@ -90,8 +86,8 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
               zoom: gridZoomOf(scroll),
               scrollTop: scroll.scrollTop,
               scrollLeft: scroll.scrollLeft,
-              rowHeight: WORKBOOK_GRID_ROW_HEIGHT,
-              colWidth: WORKBOOK_GRID_COLUMN_WIDTH,
+              rowHeight: viewportMetrics.rowHeight,
+              colWidth: viewportMetrics.colWidth,
               colWidths: sizeOverrides.colWidthsBySheet[activeSheet.id],
               rowHeaderWidth: gutter,
               columnHeaderHeight: heading,
@@ -103,7 +99,8 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
             }))
       if (coord !== null) updatePointerSelection({ sheetId: activeSheet.id, coord })
     },
-    [activeSheet, sizeOverrides, updatePointerSelection, freeze, gutter, heading],
+    [activeSheet, sizeOverrides, updatePointerSelection, freeze, gutter, heading,
+      viewportMetrics.rowHeight, viewportMetrics.colWidth],
   )
   const dragAutoscroll = useGridDragAutoscroll({
     enabled: activeSheet !== null,

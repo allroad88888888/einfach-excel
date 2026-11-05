@@ -82,8 +82,8 @@ impl Sheet {
         };
         // React 单元格使用 1.2 line-height、上下 3px padding 和 1px 网格线。
         let text_height = font_size.saturating_mul(6).div_ceil(5);
-        let required_height =
-            DEFAULT_ROW_HEIGHT_PX.max(text_height.saturating_add(CELL_VERTICAL_CHROME_PX));
+        let required_height = self.defaults.row_height.unwrap_or(DEFAULT_ROW_HEIGHT_PX)
+            .max(text_height.saturating_add(CELL_VERTICAL_CHROME_PX));
         self.grow_row_height(row, required_height);
     }
 
@@ -111,7 +111,7 @@ impl Sheet {
         row_style.height = Some(
             row_style
                 .height
-                .unwrap_or(DEFAULT_ROW_HEIGHT_PX)
+                .unwrap_or(self.defaults.row_height.unwrap_or(DEFAULT_ROW_HEIGHT_PX))
                 .max(required_height),
         );
     }

@@ -1,3 +1,4 @@
+import { PluginEditorAdornments } from '../../../plugin/PluginMounts'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
@@ -92,9 +93,10 @@ export function FormulaBar() {
   useLayoutEffect(() => {
     if (inputSource === 'formula-bar') inputRef.current?.focus({ preventScroll: true })
   }, [inputSource])
-  const commitFormula = (event: FocusEvent<HTMLTextAreaElement>) => {
+  const commitFormula = (event: FocusEvent<HTMLDivElement>) => {
     if (!hasEditingSource || busy) return
-    if (event.relatedTarget?.closest('[data-cell-editor]')) return
+    if (event.currentTarget.contains(event.relatedTarget) ||
+      event.relatedTarget?.closest('[data-cell-editor]')) return
     void commitEditing()
   }
   const focusGrid = () => {
@@ -156,7 +158,7 @@ export function FormulaBar() {
         <span className="insert-function" aria-hidden="true">
           fx
         </span>
-        <div className="formula-input-shell">
+        <div className="formula-input-shell" onBlur={commitFormula}>
           <FormulaReferenceHighlight
             draft={value}
             active={hasEditingSource}
@@ -178,7 +180,6 @@ export function FormulaBar() {
             readOnly={readOnly}
             id={inputId}
             name="formula-input"
-            onBlur={commitFormula}
             onFocus={beginFormulaEditing}
             onInput={updateFormula}
             onKeyDown={handleFormulaKey}
@@ -194,6 +195,7 @@ export function FormulaBar() {
             rows={Math.min(4, value.split('\n').length)}
             value={value}
           />
+          {inputSource === 'formula-bar' && <PluginEditorAdornments />}
         </div>
       </div>
       <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="formula-bar" />

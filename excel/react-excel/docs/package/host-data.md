@@ -60,6 +60,21 @@ readOnly 拒绝所有持久修改；busy 拒绝用户/历史、允许明确 api/
 原生保护始终生效；宿主锁解除不会解除原生保护，允许区也不能越过宿主 readOnly。
 导出、typed 读取和查询在 readOnly 下仍可使用。
 
+## 初始默认尺寸与字号
+
+```tsx
+<Spreadsheet definition={seed} defaults={{ rowHeight: 36, colWidth: 160, fontSize: 18 }} />
+```
+
+`SheetDefaults` 类型从 UI Core 根导出。三个字段均为可选整数，单位为 px；行高 16–512、
+列宽 40–1024、字号 1–512。优先级为 `definition.sheets[i].defaults`、组件 `defaults`、
+`definition.defaults`；每项分别合并，显式行高、列宽与单元格字号再覆盖对应默认值。
+配置保存在原生工作表元数据中，不创建整表格式记录；复制工作表与原生文件、XLSX 往返会保留。
+
+默认值随每份 `definition` 初始化。宿主重复渲染或修改 `defaults` 不会重启当前工作簿；
+需要按新配置建簿时传入新的 `definition` 或重新挂载。恢复快照、打开文件使用文件自身的默认值。
+界面中新增的空白工作表使用产品缺省值，初始化配置仅作用于定义里的工作表。
+
 ## 整簿快照与刷新后恢复
 
 组件本身不写任何存储；持久化由宿主负责。`exportWorkbookSnapshotAtom` 返回整簿原生快照

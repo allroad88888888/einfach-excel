@@ -1,3 +1,4 @@
+import { PluginEditorAdornments } from '../../../plugin/PluginMounts'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
@@ -28,10 +29,6 @@ import './cell-editor.css'
 import { useFormulaInput } from './use-formula-input'
 import { FormulaAssist } from '../../formula/FormulaAssist'
 import { FormulaReferenceHighlight } from '../../formula-reference/FormulaReferenceHighlight'
-import {
-  WORKBOOK_GRID_ROW_HEIGHT,
-  WORKBOOK_GRID_COLUMN_WIDTH,
-} from '../viewport/workbook-grid-config'
 import { useGridGutter } from '../viewport/grid-gutter'
 
 export interface CellEditorProps {
@@ -94,8 +91,6 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
     sheetId,
     rowCount: activeSheet?.rowCount ?? 0,
     colCount: activeSheet?.colCount ?? 0,
-    rowHeight: WORKBOOK_GRID_ROW_HEIGHT,
-    colWidth: WORKBOOK_GRID_COLUMN_WIDTH,
   }
   const rect = getViewportRangeRectangle(
     metrics,
@@ -246,6 +241,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
         value={draft}
         rows={1}
       />
+      <PluginEditorAdornments />
       <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="cell" />
       {feedback && (
         <div className="cell-editor-feedback" role="alert">

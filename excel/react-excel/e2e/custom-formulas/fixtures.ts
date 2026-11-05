@@ -30,7 +30,7 @@ export async function choose(page: Page, name = 'DOUBLE') {
   await openEditor(page)
   await page.getByLabel('Saved formula', { exact: true }).selectOption(name)
 }
-export async function inputFormula(page: Page, value = DOUBLE_ORDER_QUANTITY, address = 'K3', coord = '2:10') {
+export async function inputFormula(page: Page, value = DOUBLE_ORDER_QUANTITY, address = 'L3', coord = '2:11') {
   if (value === DOUBLE_ORDER_QUANTITY) await expectOrderQuantitySource(page)
   await select(page, address, coord)
   const input = page.getByRole('textbox', { name: 'Active cell value', exact: true })

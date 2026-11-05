@@ -43,6 +43,7 @@ export async function loadWorkbookDefinition(
         id: sheet.id,
         name: sheet.name,
         index: sheet.index,
+        ...(sheet.defaults ? { defaults: sheet.defaults } : {}),
         ...(sheet.key ? { key: sheet.key } : {}),
         rowCount: source.rowCount,
         colCount: source.colCount,

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
+import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from '../../../../src/page/demo/sales-orders/data/alternating-colors-seed'
 import { SUMMARY_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/fill-seed'
 import { SUMMARY_CONDITIONAL_TEXT_CELLS, SUMMARY_CONDITIONAL_TEXT_RULES } from '../../../../src/page/demo/sales-orders/data/conditional-text-seed'
 import {
@@ -60,7 +61,7 @@ describe('Sales Orders workbook definition', () => {
           rule: { kind: 'icon-set', iconSet: 'three-arrows',
             lowerThreshold: { type: 'percentile', value: '33' },
             upperThreshold: { type: 'percentile', value: '67' }, showValue: true },
-        }],
+        }, SUMMARY_BANDING_RULE],
         editableRanges: [{ rowStart: 70, rowEnd: 72, colStart: 0, colEnd: 0 }],
         comments: [{ row: 83, col: 7, author: 'Workbook example', body: 'Review this workbook cell.' }],
         dataValidations: SUMMARY_VALIDATIONS,
@@ -75,7 +76,7 @@ describe('Sales Orders workbook definition', () => {
     const chunks = SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
       readonly unknown[]
     >
-    expect([...chunks].slice(-8)).toEqual([
+    expect([...chunks].slice(-9)).toEqual([
       SALES_ORDER_SUMMARY_CELLS,
       SUMMARY_VALIDATION_CELLS,
       SUMMARY_OUTLINE_CELLS,
@@ -83,6 +84,7 @@ describe('Sales Orders workbook definition', () => {
       SUMMARY_TABLE_CELLS,
       SUMMARY_CONDITIONAL_TEXT_CELLS,
       SUMMARY_FILL_CELLS,
+      SUMMARY_BANDING_CELLS,
       [{ sheet: 1, row: 81, col: 7, kind: 'text', value: 'ORDER_NET', format: { bold: true } },
         { sheet: 1, row: 82, col: 7, kind: 'formula', value: '=ORDER_NET(3,25)' }],
     ])

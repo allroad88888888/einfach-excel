@@ -36,7 +36,9 @@ export function FormulaReferenceOverlay() {
   if (tokens.length === 0 || activeSheet === null) return null
 
   const sheetId = activeSheet.id
-  const fallback = workbookViewportMetrics(activeSheet.rowCount, activeSheet.colCount, sheetId)
+  const fallback = workbookViewportMetrics(
+    activeSheet.rowCount, activeSheet.colCount, sheetId, activeSheet.defaults,
+  )
   const metrics = {
     ...viewportMetrics,
     sheetId,

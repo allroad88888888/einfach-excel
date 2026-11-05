@@ -219,3 +219,37 @@ describe('WorkbookRuntimeProvider lifecycle', () => {
     expect(runtimeWorker.terminate).toHaveBeenCalledTimes(1)
   })
 })
+
+it('passes initial defaults through the native definition command without modifying the host definition', async () => {
+  const ready = createReadyWorker()
+  const store = createStore()
+  render(<WorkbookRuntimeProvider definition={DEFINITION}
+    defaults={{ rowHeight: 36, colWidth: 160, fontSize: 18 }}
+    store={store} workerFactory={() => ready.worker}>Configured workbook</WorkbookRuntimeProvider>)
+  await screen.findByText('Configured workbook')
+  const sent = ready.postMessage.mock.calls.map(([message]) => message)
+  expect(sent).toContainEqual(expect.objectContaining({
+    command: 'workbook.initialize', payload: expect.objectContaining({ sheets: [expect.objectContaining({
+      defaults: { rowHeight: 36, colWidth: 160, fontSize: 18 },
+    })] }),
+  }))
+  expect(DEFINITION.defaults).toBeUndefined()
+})
+
+it('does not replace edited workbook data when the host recreates its initial defaults', async () => {
+  const ready = createReadyWorker()
+  const factory = vi.fn(() => ready.worker)
+  const store = createStore()
+  const view = render(<WorkbookRuntimeProvider definition={DEFINITION}
+    defaults={{ rowHeight: 36 }} store={store} workerFactory={factory}>
+    Ready</WorkbookRuntimeProvider>)
+  await screen.findByText('Ready')
+  const before = store.getter(workbookDocumentAtom)
+  view.rerender(<WorkbookRuntimeProvider definition={DEFINITION}
+    defaults={{ rowHeight: 40 }} store={store} workerFactory={factory}>
+    Ready</WorkbookRuntimeProvider>)
+  await screen.findByText('Ready')
+  expect(factory).toHaveBeenCalledTimes(1)
+  expect(ready.terminate).not.toHaveBeenCalled()
+  expect(store.getter(workbookDocumentAtom)).toBe(before)
+})

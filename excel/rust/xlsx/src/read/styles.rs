@@ -226,3 +226,17 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, Xls
     }
     Ok(parsed.xfs)
 }
+
+/// Actual font size for each XF, including a font equal to the workbook's default font.
+/// Per-sheet default column styles must distinguish an explicit 11pt override from inheritance.
+pub fn font_sizes(xml: Option<&str>) -> Vec<Option<u32>> {
+    let Some(root) = xml.and_then(|xml| super::dom::parse(xml, &[])) else { return Vec::new() };
+    let Some(fonts) = root.child("fonts") else { return Vec::new() };
+    let Some(xfs) = root.child("cellXfs") else { return Vec::new() };
+    xfs.each("xf").map(|xf| {
+        fonts.each("font").nth(xf.attr_u32("fontId").unwrap_or(0) as usize)?
+            .child("sz")?.attr_f64("val")
+            .filter(|n| n.is_finite() && *n >= 8.0 && *n <= 72.0)
+            .map(|n| n.round() as u32)
+    }).collect()
+}

@@ -10,7 +10,11 @@ export function readDisplayFormats(
 ): RustFormatRangeSnapshot {
   const read = workbook.snapshot_display_format_range ?? workbook.snapshot_format_range
   if (!read) throw new Error('Rust format snapshot is unavailable.')
-  return read.call(workbook, sheet, range.rowStart, range.colStart, range.rowEnd, range.colEnd)
+  const snapshot = read.call(
+    workbook, sheet, range.rowStart, range.colStart, range.rowEnd, range.colEnd,
+  )
+  const fontSize = workbook.sheet_defaults?.(sheet).fontSize
+  return fontSize === undefined ? snapshot : { ...snapshot, defaultFontSize: fontSize }
 }
 
 function applyStyle(
@@ -91,7 +95,9 @@ export function applyVisibleFormats(
       const conditionalIcon = icons.get(toA1(row, col))
       // 每帧都显式替换视觉字段，撤销规则后不能遗留旧图标或数据条。
       const cell = source && { ...source, dataBar, conditionalIcon }
-      const format = formatAt(cellStyles, rowStyles, columnStyles, row, col)
+      let format = formatAt(cellStyles, rowStyles, columnStyles, row, col)
+      if (format.fontSize === undefined && snapshot.defaultFontSize !== undefined)
+        format = { ...format, fontSize: snapshot.defaultFontSize }
       if (cell) {
         result.push(
           !isDefaultFormat(format)

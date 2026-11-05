@@ -25,8 +25,8 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('table changes preserve live cross-sheet consumers through undo and redo', async ({ page }) => {
-  await input(page, 'J2', '1:9', '=SUM(DemoTable[Amount])')
-  await expect(cell(page, '1:9')).toHaveText('60')
+  await input(page, 'L2', '1:11', '=SUM(DemoTable[Amount])')
+  await expect(cell(page, '1:11')).toHaveText('60')
   // 当前表的目录不混入其他工作表的 Table。
   await button(page, 'Tables').click()
   await expect(button(page, 'Edit table DemoTable')).toHaveCount(0)
@@ -35,9 +35,9 @@ test('table changes preserve live cross-sheet consumers through undo and redo', 
   await page.getByLabel('Table name', { exact: true }).fill('RenamedAmounts')
   await save(page, 'Rename table')
   await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
-  await select(page, 'J2', '1:9')
+  await select(page, 'L2', '1:11')
   await expect(formula(page)).toHaveValue('=SUM(RenamedAmounts[Amount])')
-  await expect(cell(page, '1:9')).toHaveText('60')
+  await expect(cell(page, '1:11')).toHaveText('60')
   await button(page, 'Undo').click()
   await expect(formula(page)).toHaveValue('=SUM(DemoTable[Amount])')
   await button(page, 'Redo').click()
@@ -47,11 +47,11 @@ test('table changes preserve live cross-sheet consumers through undo and redo', 
   await button(page, 'Edit table RenamedAmounts').click()
   await save(page, 'Convert to range')
   await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
-  await select(page, 'J2', '1:9')
+  await select(page, 'L2', '1:11')
   const converted = await formula(page).inputValue()
   expect(converted).toMatch(/Summary.*\$?B\$?81:.*\$?B\$?83/)
   expect(converted).not.toContain('RenamedAmounts')
-  await expect(cell(page, '1:9')).toHaveText('60')
+  await expect(cell(page, '1:11')).toHaveText('60')
   await button(page, 'Undo').click()
   await expect(formula(page)).toHaveValue('=SUM(RenamedAmounts[Amount])')
   await button(page, 'Redo').click()
@@ -59,8 +59,8 @@ test('table changes preserve live cross-sheet consumers through undo and redo', 
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await input(page, 'B81', '80:1', '40')
   await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
-  await select(page, 'J2', '1:9')
-  await expect(cell(page, '1:9')).toHaveText('90')
+  await select(page, 'L2', '1:11')
+  await expect(cell(page, '1:11')).toHaveText('90')
 })
 
 test('header normalization is visible and undo restores the original formula and blank cells', async ({ page }) => {

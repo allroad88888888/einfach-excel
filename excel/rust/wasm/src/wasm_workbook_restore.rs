@@ -103,6 +103,8 @@ impl WasmWorkbook {
             workbook.add_sheet(&sheet.name);
         }
         for (index, sheet) in payload.sheets.iter().enumerate() {
+            workbook.sheet_mut(index).unwrap().set_defaults(sheet.defaults)
+                .map_err(str::to_string)?;
             workbook
                 .restore_sheet_tab(index, sheet.hidden, sheet.tab_color.as_deref())
                 .map_err(str::to_string)?;

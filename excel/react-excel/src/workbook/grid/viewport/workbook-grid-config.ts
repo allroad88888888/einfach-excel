@@ -13,6 +13,7 @@ export function workbookViewportMetrics(
   rowCount: number,
   colCount: number,
   sheetId?: string,
+  defaults?: { readonly rowHeight?: number; readonly colWidth?: number },
 ): ViewportMetrics {
   return {
     ...(sheetId === undefined ? {} : { sheetId }),
@@ -21,8 +22,8 @@ export function workbookViewportMetrics(
     viewportHeight: WORKBOOK_GRID_WINDOW_ROW_COUNT * WORKBOOK_GRID_ROW_HEIGHT,
     viewportWidth:
       Math.min(colCount, WORKBOOK_GRID_WINDOW_COLUMN_COUNT) * WORKBOOK_GRID_COLUMN_WIDTH,
-    rowHeight: WORKBOOK_GRID_ROW_HEIGHT,
-    colWidth: WORKBOOK_GRID_COLUMN_WIDTH,
+    rowHeight: defaults?.rowHeight ?? WORKBOOK_GRID_ROW_HEIGHT,
+    colWidth: defaults?.colWidth ?? WORKBOOK_GRID_COLUMN_WIDTH,
     rowCount,
     colCount,
     overscanRows: 0,

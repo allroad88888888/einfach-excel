@@ -28,6 +28,7 @@ impl Sheet {
         if let Some(style) = self.cell_styles.get(&addr) {
             style.apply_to(&mut format);
         }
+        format.font_size = format.font_size.or(self.defaults.font_size);
         format
     }
 

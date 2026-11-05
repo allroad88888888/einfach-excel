@@ -71,7 +71,7 @@ export const startRustWorkbookRuntimeAtom = atom(
     let definition
     let connection: RustWorkbookConnection
     try {
-      definition = snapshotRustWorkbookDefinition(input.definition)
+      definition = snapshotRustWorkbookDefinition(input.definition, input.defaults)
       connection = createRustWorkbookConnection(input.workerFactory)
     } catch (error) {
       if (get(runtimeOwnerAtom).sessionId === sessionId) set(rejectSpreadsheetRuntimeAtom, error)

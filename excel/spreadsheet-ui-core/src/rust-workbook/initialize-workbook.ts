@@ -1,5 +1,6 @@
 import type { RustWorkbookSheet, RustWorkbookSheetInput } from './commands'
 import { importSheetSizes } from './size-io'
+import { snapshotSheetDefaults } from '../runtime/sheet-defaults'
 import { importSheetVisibility } from './visibility-io'
 import { importSheetOutline } from './outline-io'
 import type { RustWasmModule, WasmWorkbook } from './wasm-types'
@@ -20,6 +21,11 @@ export function initializeWorkbook(
     if (!workbook.change_custom_formula) throw new Error('Rust custom formula editing is unavailable.')
     workbook.change_custom_formula(0, JSON.stringify({ kind: 'upsert', definition }))
   }
+  inputs.forEach((input, index) => {
+    if (!input.defaults) return
+    if (!workbook.initialize_sheet_defaults) throw new Error('Rust worksheet defaults are unavailable.')
+    workbook.initialize_sheet_defaults(index, JSON.stringify(input.defaults))
+  })
   inputs.forEach((input, index) => importSheetSizes(workbook, index, input))
   inputs.forEach((input, index) => importSheetVisibility(workbook, index, input))
   inputs.forEach((input, index) => importSheetOutline(workbook, index, input))
@@ -90,6 +96,9 @@ export function initializeWorkbook(
       Object.freeze({
         id: input.id ?? `sheet-${index + 1}`,
         index,
+        ...(input.defaults ? {
+          defaults: snapshotSheetDefaults(workbook.sheet_defaults?.(index)),
+        } : {}),
         name: workbook.sheet_name(index),
         ...(workbook.sheet_key ? { key: workbook.sheet_key(index) } : {}),
         ...(input.rowCount ? { rowCount: input.rowCount, colCount: input.colCount } : {}),

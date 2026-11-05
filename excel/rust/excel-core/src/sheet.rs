@@ -77,6 +77,9 @@ mod debug_deps;
 mod dependency_graph;
 #[path = "sheet_dimensions.rs"]
 mod dimensions;
+#[path = "sheet_defaults.rs"]
+mod defaults;
+pub use defaults::SheetDefaults;
 #[path = "sheet_data_validation.rs"]
 mod data_validation;
 #[path = "sheet_error.rs"]

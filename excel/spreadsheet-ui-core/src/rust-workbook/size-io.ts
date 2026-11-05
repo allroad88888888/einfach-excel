@@ -2,6 +2,7 @@ import type { CellRange } from '../shared'
 import type { WasmWorkbook } from './wasm-types'
 import type { RustWorkbookSheetInput, RustWorkbookCommands } from './commands'
 import { createAutoFitMeasurer } from './auto-fit-measurement'
+import { snapshotSheetDefaults } from '../runtime/sheet-defaults'
 
 /** 自动适应仍是一条尺寸命令；测量失败时原生保证不写入任何尺寸。 */
 export function autoFitRange(
@@ -69,7 +70,9 @@ export function readSizes(workbook: WasmWorkbook, sheet: number, range: CellRang
     range.rowEnd,
     range.colEnd,
   )
-  return { rowHeights: sizes.rowHeights ?? [], colWidths: sizes.colWidths ?? [] }
+  const defaults = snapshotSheetDefaults(workbook.sheet_defaults?.(sheet))
+  return { rowHeights: sizes.rowHeights ?? [], colWidths: sizes.colWidths ?? [],
+    ...(defaults ? { defaults } : {}) }
 }
 
 /** 初始化尺寸仍走原生尺寸命令，不把行列属性塞进单元格导入数据。 */

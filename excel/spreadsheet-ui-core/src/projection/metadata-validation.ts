@@ -1,4 +1,5 @@
 import type { DisplayCell } from '../contracts'
+import { snapshotSheetDefaults } from '../runtime/sheet-defaults'
 import type { ProjectionResult } from './types'
 import { validateCustomFormulaDefinitions } from '../custom-formulas/expression-types'
 
@@ -19,6 +20,7 @@ export function validCellMetadata(cell: DisplayCell): boolean {
 export function validProjectionMetadata(result: ProjectionResult): boolean {
   if (!result.cells.every(validCellMetadata)) return false
   if (result.kind !== 'visible-window') return true
+  try { snapshotSheetDefaults(result.defaults) } catch { return false }
   if (result.customFormulaDefinitions !== undefined) {
     try { validateCustomFormulaDefinitions(result.customFormulaDefinitions) } catch { return false }
   }

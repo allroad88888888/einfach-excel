@@ -54,15 +54,16 @@ test('cut only clears on paste and formulas follow the moved quantity', async ({
 test('external TSV pastes a rectangle with quotes, empty cells, booleans and formulas', async ({
   page,
 }) => {
-  await page.evaluate(() => navigator.clipboard.writeText('7\ttrue\t"two\nlines"\n8\t\t=I10*2'))
-  await select(page, 'I10', '9:8')
+  // 外部文本保留目标格式；落在无数字格式的文本列，结果按常规显示。
+  await page.evaluate(() => navigator.clipboard.writeText('7\ttrue\t"two\nlines"\n8\t\t=L10*2'))
+  await select(page, 'L10', '9:11')
   await page.locator('[data-workbook-grid]').press('ControlOrMeta+v')
   await expect(page.getByLabel('Clipboard status')).toHaveText('Pasted cells.')
-  await expect(page.locator('td[data-cell="9:8"]')).toHaveText('7')
-  await expect(await select(page, 'J10', '9:9')).toHaveText('TRUE')
-  await expect(await select(page, 'K10', '9:10')).toHaveText('two\nlines')
-  await expect(await select(page, 'J11', '10:9')).toHaveText('')
-  await expect(await select(page, 'K11', '10:10')).toHaveText('14')
+  await expect(page.locator('td[data-cell="9:11"]')).toHaveText('7')
+  await expect(await select(page, 'M10', '9:12')).toHaveText('TRUE')
+  await expect(await select(page, 'N10', '9:13')).toHaveText('two\nlines')
+  await expect(await select(page, 'M11', '10:12')).toHaveText('')
+  await expect(await select(page, 'N11', '10:13')).toHaveText('14')
 })
 
 test('paste beyond sheet bounds reports an error without erasing the cut source', async ({

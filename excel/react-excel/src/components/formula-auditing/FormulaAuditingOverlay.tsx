@@ -34,7 +34,9 @@ export function FormulaAuditingOverlay(): JSX.Element | null {
   if (!activeSheet || arrows.length === 0) return null
 
   const sheetId = activeSheet.id
-  const fallback = workbookViewportMetrics(activeSheet.rowCount, activeSheet.colCount, sheetId)
+  const fallback = workbookViewportMetrics(
+    activeSheet.rowCount, activeSheet.colCount, sheetId, activeSheet.defaults,
+  )
   const metrics = {
     ...viewportMetrics,
     sheetId,

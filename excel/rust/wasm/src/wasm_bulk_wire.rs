@@ -194,6 +194,8 @@ struct WorkbookPersistenceSheetMetaJSON {
     hide_gridlines: bool,
     #[serde(default, rename = "hideHeadings", skip_serializing_if = "std::ops::Not::not")]
     hide_headings: bool,
+    #[serde(default, skip_serializing_if = "einfach_excel_core::sheet::SheetDefaults::is_empty")]
+    defaults: einfach_excel_core::sheet::SheetDefaults,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -19,22 +19,22 @@ for (const width of [1280, 390]) {
 
   test(`register custom expression leaves user cells unchanged at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
-    await select(page, 'K3', '2:10')
-    await expect(cell(page, '2:10')).toHaveText('2026-09-04')
+    await select(page, 'L3', '2:11')
+    await expect(cell(page, '2:11')).toHaveText('Express')
     await register(page)
     await expect(button(page, 'Custom formulas')).toBeFocused()
     await choose(page)
     await expect(page.getByLabel('Formula expression', { exact: true })).toHaveValue('=amount*2')
     await expect(page.getByLabel('Parameters, separated by commas', { exact: true })).toHaveValue('AMOUNT')
     await button(page, 'Cancel').click(); await neighbors(page)
-    await select(page, 'K3', '2:10')
-    await expect(cell(page, '2:10')).toHaveText('2026-09-04')
+    await select(page, 'L3', '2:11')
+    await expect(cell(page, '2:11')).toHaveText('Express')
   })
 
   test(`call registered expression from formula bar at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await register(page); await inputFormula(page)
-    await expect(cell(page, '2:10')).toHaveText('4'); await neighbors(page)
+    await expect(cell(page, '2:11')).toHaveText('4'); await neighbors(page)
   })
 
   test(`select saved custom definition reads native expression at ${width}px`, async ({ page }) => {
@@ -51,14 +51,14 @@ for (const width of [1280, 390]) {
     await register(page); await inputFormula(page); await choose(page)
     await page.getByLabel('Formula expression', { exact: true }).fill('=amount*3')
     await button(page, 'Replace formula').click()
-    await expect(cell(page, '2:10')).toHaveText('6'); await neighbors(page)
+    await expect(cell(page, '2:11')).toHaveText('6'); await neighbors(page)
   })
 
   test(`remove custom expression returns native name error at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await register(page); await inputFormula(page); await choose(page)
     await button(page, 'Remove formula').click()
-    await expect(cell(page, '2:10')).toHaveText('#NAME?')
+    await expect(cell(page, '2:11')).toHaveText('#NAME?')
     await openEditor(page)
     await expect(page.getByLabel('Saved formula', { exact: true }).locator('option[value="DOUBLE"]')).toHaveCount(0)
     await button(page, 'Cancel').click(); await neighbors(page)

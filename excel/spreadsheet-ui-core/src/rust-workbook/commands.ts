@@ -1,3 +1,4 @@
+import type { SheetDefaults } from '../runtime/sheet-defaults'
 import type {
   SetCellInputRequest,
   ProjectionRevision,
@@ -59,6 +60,7 @@ import type {
 } from './clipboard-commands'
 
 export interface RustWorkbookSheetInput {
+  readonly defaults?: SheetDefaults
   readonly id?: string
   readonly name: string
   readonly rowCount?: number
@@ -104,6 +106,7 @@ export interface RustWorkbookSheetInput {
 }
 
 export interface RustWorkbookSheet {
+  readonly defaults?: SheetDefaults
   readonly id: string
   readonly index: number
   readonly name: string

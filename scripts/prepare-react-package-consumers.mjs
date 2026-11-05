@@ -38,8 +38,12 @@ const copy = async (relative, destination = path.join(stage, relative)) => {
 await run('git', ['clone', '--shared', '--no-checkout', root, stage], root, 'release-checkout')
 for (const relative of ['package.json', 'pnpm-workspace.yaml', 'pnpm-lock.yaml', 'LICENSE', '.changeset']) await copy(relative)
 // 只在 mktemp 副本消费现有 Changesets；工作区 pending 计划与版本保持原样。
-for (const parent of ['excel', 'packages']) for (const entry of await readdir(path.join(root, parent))) {
-  try { await copy(`${parent}/${entry}/package.json`) } catch (error) { if (error.code !== 'ENOENT') throw error }
+for (const parent of ['excel', 'packages', 'plugins']) {
+  const entries = await readdir(path.join(root, parent), { withFileTypes: true })
+  for (const entry of entries.filter(entry => entry.isDirectory())) {
+    try { await copy(`${parent}/${entry.name}/package.json`) }
+    catch (error) { if (error.code !== 'ENOENT') throw error }
+  }
 }
 // 发版后没有在途 changeset：no-checkout 副本里其余文件都算"已删除"，`changeset status`
 // 会因"有改动却无 changeset"失败；此时直接按当前版本打包。

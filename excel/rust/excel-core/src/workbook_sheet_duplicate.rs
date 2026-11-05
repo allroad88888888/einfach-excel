@@ -219,6 +219,7 @@ impl Workbook {
     fn copy_sheet_data(&mut self, source: usize, target: usize) -> Result<(), &'static str> {
         let full = FULL_SHEET();
         let formats = self.sheets[source].snapshot_format_range(full);
+        let defaults = self.sheets[source].defaults();
         let rows = self.sheets[source].all_row_heights();
         let cols = self.sheets[source].all_col_widths();
         let merges = self.sheets[source].merged_ranges().to_vec();
@@ -234,6 +235,7 @@ impl Workbook {
             .collect();
         let visibility = self.sheet_visibility(source)?;
         let copy = &mut self.sheets[target];
+        copy.set_defaults(defaults)?;
         copy.restore_format_range_snapshot(formats);
         rows.into_iter().for_each(|(row, height)| {
             let _ = copy.set_row_height(row, height);

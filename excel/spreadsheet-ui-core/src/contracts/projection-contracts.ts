@@ -1,3 +1,4 @@
+import type { SheetDefaults } from '../runtime/sheet-defaults'
 import type { ViewportRowHeight, ViewportColumnWidth } from './viewport-contracts'
 import type { RustHistoryState } from '../history/rust-history-types'
 import type { NativeNamedRange } from '../named-ranges/native-types'
@@ -45,6 +46,7 @@ export interface IterativeCalculationConfig {
 }
 
 export interface VisibleProjectionResult extends SheetRef {
+  readonly defaults?: SheetDefaults
   /** Table 目录与可见单元格来自同一次 Rust 读取。 */
   tables?: readonly NativeTable[]
   kind: 'visible-window'

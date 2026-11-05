@@ -65,11 +65,17 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
     report.add("sheetVisibilityOrColor", hidden_or_colored);
 
     let mut sheets: Vec<worksheet::SheetInput> = workbook.sheets.iter().map(|meta| worksheet::SheetInput {
+        defaults: meta.defaults,
         hide_gridlines: meta.hide_gridlines,
         hide_headings: meta.hide_headings,
         ..Default::default()
     }).collect();
     let mut styles = styles::StyleTable::new();
+    for target in &mut sheets {
+        if let Some(size) = target.defaults.font_size {
+            target.default_style = styles.xf(&CellFormat { font_size: Some(size), ..Default::default() });
+        }
+    }
 
     for cell in &workbook.cells {
         if let Some(target) = sheets.get_mut(cell.sheet) {
@@ -86,8 +92,10 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
                 report.add("cellRotation", 1);
             }
             if let Some(coord) = parse_cell(&style.addr) {
-                let xf = styles.xf(&style.format);
-                if xf != 0 {
+                let mut format = style.format.clone();
+                format.font_size = format.font_size.or(target.defaults.font_size);
+                let xf = styles.xf(&format);
+                if xf != target.default_style {
                     target.styles.insert(coord, xf);
                 }
             }

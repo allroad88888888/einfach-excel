@@ -79,13 +79,24 @@ function numberCell(row: number, col: number, value: number): SalesOrderImportCe
   return { sheet: 0, row, col, kind: 'number', value, ...demoFormat(row, col) }
 }
 
+// 订单与发货日期是真正的日期序号（1900 日期系统），日期格式让它们仍显示为 yyyy-mm-dd。
+const ORDER_DATE_2026_08_01 = 46235
+const SHIP_DATE_2026_09_01 = 46266
+const DATE_FORMAT = { kind: 'date', pattern: 'yyyy-mm-dd' } as const
+
+function dateCell(row: number, col: number, serial: number): SalesOrderImportCell {
+  const { format } = demoFormat(row, col)
+  return { sheet: 0, row, col, kind: 'number', value: serial,
+    format: { ...format, numberFormat: DATE_FORMAT } }
+}
+
 function createDataRow(dataRow: number): SalesOrderImportCell[] {
   const row = dataRow + 1
   const productIndex = dataRow % PRODUCTS.length
   const quantity = (dataRow % 24) + 1
   const unitPrice = PRICES[productIndex] ?? 0
-  const day = String((dataRow % 28) + 1).padStart(2, '0')
-  const shipDay = String(((dataRow + 2) % 28) + 1).padStart(2, '0')
+  const day = dataRow % 28
+  const shipDay = (dataRow + 2) % 28
   const locationIndex = dataRow % COUNTRIES.length
   const discount = (dataRow % 5) * 0.05
 
@@ -113,8 +124,8 @@ function createDataRow(dataRow: number): SalesOrderImportCell[] {
       8,
       dataRow === 1 ? 'Noah\nEast team' : (SALES_REPS[dataRow % SALES_REPS.length] ?? ''),
     ),
-    textCell(row, 9, `2026-08-${day}`),
-    textCell(row, 10, `2026-09-${shipDay}`),
+    dateCell(row, 9, ORDER_DATE_2026_08_01 + day),
+    dateCell(row, 10, SHIP_DATE_2026_09_01 + shipDay),
     textCell(row, 11, SHIP_MODES[dataRow % SHIP_MODES.length] ?? ''),
     textCell(row, 12, COUNTRIES[locationIndex] ?? ''),
     textCell(row, 13, CITIES[locationIndex] ?? ''),

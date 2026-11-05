@@ -76,6 +76,7 @@ pub struct Sheet {
     pub(crate) row_styles: BTreeMap<u32, crate::cell_style::RowStyle>,
     /// 仅供正在记录的原生历史区分显式轴尺寸与内容/字号派生行高；不是尺寸源或文件数据。
     pub(super) explicit_dimension_generations: [u64; 2],
+    pub(super) defaults: SheetDefaults,
     /// 稀疏 columnStyle；列宽仍由 `SheetInterior::col_widths` 单独负责。
     pub(crate) column_styles: BTreeMap<u32, CellStyle>,
     /// 合并区域只记录不重叠的矩形；不为被覆盖的空格创建 atom 或样式副本。

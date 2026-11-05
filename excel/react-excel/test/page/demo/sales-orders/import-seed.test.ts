@@ -78,8 +78,12 @@ describe('Sales Orders import seed', () => {
           value: 'Noah\nEast team',
           format: { wrap: true },
         }),
-        expect.objectContaining({ row: 1, col: 9, format: { verticalAlign: 'top' } }),
-        expect.objectContaining({ row: 1, col: 10, format: { rotation: 45 } }),
+        // 日期列是数值序号 + 日期格式，单元格自带的示例格式与之合并。
+        expect.objectContaining({ row: 1, col: 9, kind: 'number', value: 46235, format: {
+          verticalAlign: 'top', numberFormat: { kind: 'date', pattern: 'yyyy-mm-dd' } } }),
+        expect.objectContaining({ row: 1, col: 10, kind: 'number', value: 46268, format: {
+          rotation: 45, numberFormat: { kind: 'date', pattern: 'yyyy-mm-dd' } } }),
+        expect.objectContaining({ row: 1000, col: 10, kind: 'number', value: 46266 + (1001 % 28) }),
         expect.objectContaining({
           row: 1,
           col: 11,

@@ -83,6 +83,8 @@ pub struct IterativeCalculation {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SheetMeta {
+    #[serde(default, skip_serializing_if = "crate::sheet_defaults::SheetDefaults::is_empty")]
+    pub defaults: crate::sheet_defaults::SheetDefaults,
     pub idx: u32,
     pub name: String,
     #[serde(default, skip_serializing)]

@@ -26,7 +26,7 @@ export interface SpreadsheetPlugin {
   readonly id: string
   readonly ribbon?: readonly RibbonContribution[]
   readonly contextMenu?: readonly ContextMenuContribution[]
-  /** 与单元格编辑器同层渲染，跟随网格滚动与缩放。 */
+  /** 当前格内编辑器或公式栏内部挂件；共享失焦提交范围。 */
   readonly editorAdornments?: readonly ComponentType[]
   /** 对话框与面板，挂在工作簿视图根部。 */
   readonly panels?: readonly ComponentType[]

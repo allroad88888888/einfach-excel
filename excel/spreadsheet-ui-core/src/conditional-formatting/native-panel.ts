@@ -17,6 +17,7 @@ import { validateProjectionResult } from '../projection/contracts'
 import type { ConditionalFormatChange } from '../rust-workbook/conditional-format-commands'
 
 interface Panel {
+  editor: 'rule' | 'alternating'
   sheetId: string | null
   connection: RustWorkbookConnection | null
   ruleId?: string
@@ -28,7 +29,7 @@ interface Panel {
   error: string
 }
 const CLOSED: Panel = {
-  sheetId: null, connection: null, revision: 0, priority: 0, range: '', busy: false, error: '',
+  editor: 'rule', sheetId: null, connection: null, revision: 0, priority: 0, range: '', busy: false, error: '',
   rule: { kind: 'cell-value', operator: 'gt', value: '', format: { bgColor: '#ffc7ce', fgColor: '#9c0006' } },
 }
 /** 唯一持久目录来自原生投影；这个 atom 仅保存对话框草稿。 */
@@ -41,6 +42,7 @@ export const nativeConditionalFormatsAtom = atom((get) => {
   return config && { ...config, rules: [...config.rules].sort((a, b) => a.priority - b.priority) }
 })
 type Action = 'open' | 'close' | 'new' | 'save'
+  | { type: 'preset'; ruleId: string; range: string; rule: NativeConditionalFormatRule }
   | { type: 'kind'; kind: NativeConditionalFormatRule['kind'] }
   | { type: 'edit'; id: string }
   | { type: 'remove' | 'duplicate' | 'enable' | 'disable' | 'move-up' | 'move-down'; id: string }
@@ -60,6 +62,18 @@ export const runNativeConditionalFormatAtom = atom(null, async (
   const fail = (error: string) => {
     set(nativeConditionalFormatPanelAtom, { ...state, busy: false, error })
     return false
+  }
+  if (typeof action === 'object' && action.type === 'preset') {
+    if (get(editingSessionAtom).source || state.sheetId !== null) return false
+    set(nativeConditionalFormatPanelAtom, {
+      ...CLOSED, editor: 'alternating', sheetId: sheet.id, connection,
+      revision: config.revision,
+      priority: config.rules.find((entry) => entry.id === action.ruleId)?.priority
+        ?? Math.min(0, ...config.rules.map((entry) => entry.priority)) - 1,
+      ruleId: action.ruleId, range: action.range, rule: action.rule,
+      error: action.range ? '' : 'Choose one continuous range.',
+    })
+    return true
   }
   if (action === 'open' || action === 'new') {
     if (get(editingSessionAtom).source) return false
@@ -179,3 +193,7 @@ export const runNativeConditionalFormatAtom = atom(null, async (
     return fail(error instanceof Error ? error.message : String(error))
   }
 })
+
+nativeConditionalFormatPanelAtom.debugLabel = 'spreadsheet.conditionalFormat.nativePanel'
+nativeConditionalFormatsAtom.debugLabel = 'spreadsheet.conditionalFormat.nativeRules'
+runNativeConditionalFormatAtom.debugLabel = 'spreadsheet.conditionalFormat.runNative'

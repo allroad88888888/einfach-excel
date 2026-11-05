@@ -52,7 +52,7 @@ export function ConditionalFormatTools() {
   const trigger = useRef<HTMLButtonElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const id = useId()
-  const open = state.sheetId !== null
+  const open = state.sheetId !== null && state.editor === 'rule'
   const between = state.rule.kind === 'cell-value' && (state.rule.operator === 'between' || state.rule.operator === 'not-between')
   const highlight = 'format' in state.rule ? state.rule.format : null
   useLayoutEffect(() => {
@@ -66,7 +66,7 @@ export function ConditionalFormatTools() {
   }, [open])
   return <>
     <button ref={trigger} type="button" className="tool-button" aria-label={t`Conditional formatting`}
-      title={t`Conditional formatting`} disabled={editing || state.busy || !config}
+      title={t`Conditional formatting`} disabled={editing || state.busy || !config || (state.sheetId !== null && !open)}
       onClick={() => void run('open')}>◩</button>
     {open && <dialog ref={dialogRef} className="conditional-format-panel" aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-hint`} onKeyDown={cycleDialogFocus}

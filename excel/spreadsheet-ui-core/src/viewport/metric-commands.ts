@@ -19,11 +19,14 @@ export const initializeViewportMetricsAtom = atom(
         viewportHeight: current.viewportHeight > 0 ? current.viewportHeight : input.viewportHeight,
         viewportWidth: current.viewportWidth > 0 ? current.viewportWidth : input.viewportWidth,
       })
-    else if (current.rowCount !== input.rowCount || current.colCount !== input.colCount)
+    else if (current.rowCount !== input.rowCount || current.colCount !== input.colCount
+      || current.rowHeight !== input.rowHeight || current.colWidth !== input.colWidth)
       set(setViewportMetricsAtom, {
         ...current,
         rowCount: input.rowCount,
         colCount: input.colCount,
+        rowHeight: input.rowHeight,
+        colWidth: input.colWidth,
       })
   },
 )

@@ -1,5 +1,6 @@
 import type { RustImportCell, RustWorkbookSheetInput } from '../rust-workbook'
 import type { WorkerLike } from '../rust-worker'
+import { snapshotSheetDefaults, type SheetDefaults } from './sheet-defaults'
 import { validNativeOutline } from '../outline/native-state'
 import { validNativeTableStyle } from '../tables/native-types'
 import { validFilterRules } from '../rust-workbook/filter-commands'
@@ -17,6 +18,7 @@ export interface RustWorkbookSheetDefinition extends RustWorkbookSheetInput {
 }
 
 export interface RustWorkbookDefinition {
+  readonly defaults?: SheetDefaults
   readonly title: string
   readonly sheets: readonly RustWorkbookSheetDefinition[]
   readonly customFormulas?: readonly NativeCustomFormulaDefinition[]
@@ -27,6 +29,7 @@ export interface RustWorkbookDefinition {
 
 export interface StartRustWorkbookRuntimeInput {
   readonly definition: RustWorkbookDefinition
+  readonly defaults?: SheetDefaults
   /** 宿主保存的原生快照；给出时优先从它启动，打不开则报错并退回 definition。 */
   readonly snapshot?: string
   readonly workerFactory: () => WorkerLike
@@ -34,8 +37,10 @@ export interface StartRustWorkbookRuntimeInput {
 
 /** Copies a valid Rust workbook definition before asynchronous startup uses it. */
 export function snapshotRustWorkbookDefinition(
-  input: RustWorkbookDefinition,
+  input: RustWorkbookDefinition, defaults?: SheetDefaults,
 ): RustWorkbookDefinition {
+  snapshotSheetDefaults(input.defaults)
+  snapshotSheetDefaults(defaults)
   const title = input.title.trim()
   const customFormulas = input.customFormulas === undefined ? undefined : Object.freeze(
     validateCustomFormulaDefinitions(input.customFormulas).map(definition => Object.freeze({
@@ -58,6 +63,10 @@ export function snapshotRustWorkbookDefinition(
       throw new Error('Rust workbook definition contains an invalid sheet.')
     }
     ids.add(id)
+    snapshotSheetDefaults(sheet.defaults)
+    const sheetDefaults = snapshotSheetDefaults({
+      ...input.defaults, ...defaults, ...sheet.defaults,
+    })
     if (sheet.protected !== undefined && typeof sheet.protected !== 'boolean')
       throw new Error('Invalid initial worksheet protection.')
     const hidden = (indices: readonly number[] | undefined, count: number) => {
@@ -225,6 +234,7 @@ export function snapshotRustWorkbookDefinition(
     return Object.freeze({
       id,
       name,
+      ...(sheetDefaults ? { defaults: sheetDefaults } : {}),
       rowCount: sheet.rowCount,
       colCount: sheet.colCount,
       ...(sheet.protected === undefined ? {} : { protected: sheet.protected }),
@@ -252,6 +262,6 @@ export function snapshotRustWorkbookDefinition(
     title,
     sheets: Object.freeze(sheets),
     ...(customFormulas ? { customFormulas } : {}),
-    createImportChunks: input.createImportChunks,
+    createImportChunks: () => input.createImportChunks(),
   })
 }

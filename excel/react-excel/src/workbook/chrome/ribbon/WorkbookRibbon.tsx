@@ -29,6 +29,7 @@ import { CalculationTools } from './CalculationTools'
 import { SpillTools } from './SpillTools'
 import { NamedRangeTools } from './NamedRangeTools'
 import { TableTools } from './TableTools'
+import { AlternatingColorsTools } from './AlternatingColorsTools'
 import { ConditionalFormatTools } from './ConditionalFormatTools'
 import { DataValidationTools } from './DataValidationTools'
 import { ColorTools } from './ColorTools'
@@ -182,6 +183,7 @@ export function WorkbookRibbon() {
             <ColorTools kind="fill-color" />
             <ColorTools kind="text-color" />
             <ConditionalFormatTools />
+            <AlternatingColorsTools />
             <span className="tool-separator" aria-hidden="true" />
             <TextLayoutTools />
             <ToolButton

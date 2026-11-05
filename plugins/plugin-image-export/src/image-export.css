@@ -1,0 +1,33 @@
+:where(.einfach-spreadsheet) .image-export-panel {
+  width: 400px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: 13px/1.5 system-ui, sans-serif;
+}
+:where(.einfach-spreadsheet) .image-export-panel::backdrop { background: rgb(20 25 45 / 25%); }
+:where(.einfach-spreadsheet) .image-export-panel h2 { margin: 0; font-size: 17px; }
+:where(.einfach-spreadsheet) .image-export-panel button,
+:where(.einfach-spreadsheet) .image-export-panel select {
+  min-height: 34px;
+  padding: 5px 8px;
+  font: inherit;
+  background: var(--surface);
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+:where(.einfach-spreadsheet) .image-export-actions {
+  display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px;
+}
+:where(.einfach-spreadsheet) .image-export-panel :focus-visible {
+  outline: 2px solid var(--primary); outline-offset: 2px;
+}
+:where(.einfach-spreadsheet) .image-export-panel :disabled { opacity: .5; }
+:where(.einfach-spreadsheet) .image-export-panel [role='alert'] { color: #a12622; }

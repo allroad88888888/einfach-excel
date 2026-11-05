@@ -9,15 +9,6 @@ export * from './types'
 export { copyAsVisibleRows, normalizeCopyAsHiddenRows } from './visible-rows'
 export { encodeSelectionAsHtml } from './html-encoder'
 export { encodeSelectionAsMarkdown } from './markdown-encoder'
-export { encodeSelectionAsImage, MAX_EXPORT_PIXELS } from './encodeSelectionAsImage'
-export type {
-  EncodeSelectionAsImageInput,
-  EncodeSelectionAsImageResult,
-  EncodeSelectionAsImageSuccess,
-  EncodeSelectionAsImageFailure,
-  EncodeSelectionAsImageFailureKind,
-  RangeImageExportPort,
-} from './encodeSelectionAsImage'
 
 const lastCopyAsBackingAtom = atom<CopyAsResult | null>(null)
 lastCopyAsBackingAtom.debugLabel = 'spreadsheet.copyAs.lastBacking'

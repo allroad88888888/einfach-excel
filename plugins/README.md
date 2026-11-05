@@ -17,7 +17,7 @@
 
 - `ribbon`：功能区分组，排在内置分组之后，沿用内置的分类显隐。
 - `contextMenu`：单元格右键菜单项，排在内置项（`cells.insert`、`cells.delete`）之后；一个菜单项派发一个零参数命令 atom。
-- `editorAdornments`：与单元格编辑器同层渲染，跟随网格滚动与缩放。
+- `editorAdornments`：渲染在当前格内编辑器或公式栏内部，属于同一失焦提交范围；控件间移焦点不会提前提交。
 - `panels`：对话框与面板，挂在工作簿视图根部。
 - `messages`：已编译的 Lingui 目录，并入工作簿自己的 i18n 实例。
 
@@ -32,3 +32,10 @@
    `excel/react-excel/src/page/demo/demo-presentation.ts` 的 `?plugins=<id>` 挂载。
 
 `plugin-sample` 是仓内样例，覆盖全部贡献点，不发布。
+
+## 可选功能包（工作区实现，尚未发布）
+
+- [日期选择器](plugin-date-picker/README.md)：`datePickerPlugin`。
+- [图片导出](plugin-image-export/README.md)：`imageExportPlugin`。
+
+演示：`?plugins=date-picker,image-export`；不传 `plugins` 时不挂载任何插件控件。

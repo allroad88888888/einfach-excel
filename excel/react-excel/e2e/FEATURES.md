@@ -1184,3 +1184,33 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | PASTEATT-001 | 选择性粘贴仅备注 | `paste-special/attachments.spec.ts` | paste notes only copies the note and keeps the destination value |
 | PASTEATT-002 | 选择性粘贴仅数据验证（公式引用随位置平移） | `paste-special/attachments.spec.ts` | paste validation only applies the rule with references moved to the destination |
 | TEXTCOLM-001 | 分列日期字段识别月份名称 | `editing/text-column-month-names.spec.ts` | date fields accept month names in their selected order |
+
+## 交替行颜色
+
+| ID | 用户操作 | 主用例文件 | 主用例标题 |
+| --- | --- | --- | --- |
+| BAND-001 | 选区应用交替填色 | `format/alternating-colors.spec.ts` | apply alternating colors relative to the selected range with one undo step |
+| BAND-002 | 首行设为标题并更新交替色 | `format/alternating-colors.spec.ts` | mark the first row as a header and update the existing band in one undo step |
+| BAND-003 | 移除交替色 | `format/alternating-colors.spec.ts` | remove banding preserves underlying fills and unrelated conditions with undo |
+| BAND-004 | 浏览原生交替色示例并插行 | `format/alternating-colors.spec.ts` | native seed bands keep header formatting and move with inserted rows |
+
+## 可选日期与图片插件
+
+| ID | 用户操作 | 主用例文件 | 主用例标题 |
+| --- | --- | --- | --- |
+| DATEPICK-001 | 格内选择日期 | `plugins/date-picker.spec.ts` | choose a date beside the cell editor commits through Rust in one undo |
+| DATEPICK-002 | 公式栏选择日期 | `plugins/date-picker.spec.ts` | date picker in the formula bar keeps focus inside editing until Use date |
+| DATEPICK-003 | 取消日期选择 | `plugins/date-picker.spec.ts` | cancel date selection keeps the original value and history |
+| DATEPICK-004 | 编辑器内 Alt+↓ 进入日历 | `plugins/date-picker-keyboard.spec.ts` | keyboard users reach the calendar with Alt+Down from the cell editor |
+| DATEPICK-005 | 日历内 Enter 使用日期 | `plugins/date-picker-keyboard.spec.ts` | Enter in the calendar uses the date and returns focus to the grid |
+| IMGEXP-001 | 下载选区 PNG | `plugins/image-export.spec.ts` | download selection as PNG preserves displayed conditional fills without changing history |
+| IMGEXP-002 | 复制选区 PNG | `plugins/image-export.spec.ts` | copy PNG writes an image clipboard item |
+| IMGEXP-003 | 右键打开图片导出 | `plugins/image-export.spec.ts` | context menu opens image export for the selected cell |
+
+## 宿主默认尺寸与字号
+
+| ID | 用户操作 | 主用例文件 | 主用例标题 |
+| --- | --- | --- | --- |
+| DEFAULTS-001 | 宿主默认行高：空白／有值行使用配置，显式行高优先 | `ui-options/defaults.spec.ts` | host default row height applies to blank and populated rows while explicit heights win |
+| DEFAULTS-002 | 宿主默认列宽：显式列宽优先，滚动后的编辑器位置一致 | `ui-options/defaults.spec.ts` | host default column width keeps explicit widths and aligns the editor after scrolling |
+| DEFAULTS-003 | 宿主默认字号：继承、显式覆盖与撤销 | `ui-options/defaults.spec.ts` | host default font size is inherited until explicit formatting and restored by undo |

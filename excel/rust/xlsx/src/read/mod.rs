@@ -77,6 +77,7 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
     report.add("themeFonts", theme.custom_fonts);
     let styles_xml = match &parts.styles { Some(path) => archive.read(path)?, None => None };
     let xfs = styles::parse(styles_xml.as_deref(), &theme.colors)?;
+    let font_sizes = styles::font_sizes(styles_xml.as_deref());
     let dxfs = dxf::parse(styles_xml.as_deref(), &theme.colors);
     let shared = features::Shared { dxfs: &dxfs, theme: &theme.colors, date1904: parts.date1904 };
 
@@ -86,7 +87,18 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
     for (index, part) in parts.sheets.iter().enumerate() {
         let xml = archive.read(&part.path)?
             .ok_or_else(|| XlsxError::new(format!("Worksheet {} is missing from the file.", part.name)))?;
-        let data = worksheet::parse(&xml, &strings)?;
+        let mut data = worksheet::parse(&xml, &strings)?;
+        // A common style covering all columns is a sheet default, not 16,384 style records.
+        let mut end = 0;
+        let mut uniform = data.column_styles.first().map(|entry| entry.2);
+        for &(min, max, style) in &data.column_styles {
+            if min != end + 1 || Some(style) != uniform { uniform = None; break; }
+            end = max;
+        }
+        if end == MAX_COLS {
+            data.defaults.font_size = uniform.and_then(|style| font_sizes.get(style as usize))
+                .copied().flatten();
+        }
         report.add("richText", data.rich_text);
         report.add("outline", data.outline);
         let name = sheet_name(&part.name, index, &mut used);
@@ -94,6 +106,7 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         let (hide_gridlines, hide_headings) = data.view.unwrap_or_default();
         workbook.sheets.push(SheetMeta {
             idx: index as u32, name, hidden: false, tab_color: None, hide_gridlines, hide_headings,
+            defaults: data.defaults,
         });
         canvases.push(Canvas { row_count: MAX_ROWS, col_count: MAX_COLS });
 
@@ -104,8 +117,12 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
             let is_date = style
                 .and_then(|f| f.number_format.as_ref())
                 .is_some_and(|nf| nf.kind == "date");
-            if let Some(format) = style.filter(|f| **f != CellFormat::default()) {
-                cell_styles.push(CellStyle { addr: addr.clone(), format: format.clone() });
+            let mut format = style.cloned().unwrap_or_default();
+            if data.defaults.font_size.is_some() {
+                format.font_size = font_sizes.get(cell.style as usize).copied().flatten();
+            }
+            if format != CellFormat::default() {
+                cell_styles.push(CellStyle { addr: addr.clone(), format });
             }
             if let Some((kind, mut value)) = cell.content {
                 if parts.date1904 && is_date && kind == "number" {

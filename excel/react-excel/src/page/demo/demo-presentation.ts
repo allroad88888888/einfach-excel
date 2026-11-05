@@ -1,6 +1,9 @@
+import { imageExportPlugin } from '@einfach-excel/plugin-image-export'
+import { datePickerPlugin } from '@einfach-excel/plugin-date-picker'
 import { samplePlugin } from '@einfach-excel/plugin-sample'
 import { createWorkbookI18n, supportedUiLocale, type UiLocale } from '../../i18n/runtime'
 import type { SpreadsheetPlugin } from '../../plugin/types'
+import type { SheetDefaults } from '@einfach-excel/spreadsheet-ui-core'
 import type { WorkbookUiOptions } from '../workbook-ui-options'
 
 export const UI_LOCALE_STORAGE_KEY = 'react-excel.ui-locale'
@@ -50,7 +53,9 @@ async function loadXlsx() {
 }
 
 /** `?plugins=sample` 挂上仓内样例插件；数组在模块内固定，挂载期间身份不变。 */
-const DEMO_PLUGINS: Readonly<Record<string, SpreadsheetPlugin>> = { sample: samplePlugin }
+const DEMO_PLUGINS: Readonly<Record<string, SpreadsheetPlugin>> = {
+  sample: samplePlugin, 'date-picker': datePickerPlugin, 'image-export': imageExportPlugin,
+}
 
 function demoPlugins(query: string): readonly SpreadsheetPlugin[] {
   const ids = new URLSearchParams(query).get('plugins')?.split(',') ?? []
@@ -73,8 +78,16 @@ export function demoUiOptions(query: string): WorkbookUiOptions {
 
 const ui = typeof window === 'undefined' ? {} : demoUiOptions(window.location.search)
 
+/** Optional host configuration: ?rowHeight=36&colWidth=160&fontSize=18. */
+const defaults: SheetDefaults = Object.fromEntries(
+  ['rowHeight', 'colWidth', 'fontSize'].flatMap(key => {
+    const value = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get(key)
+    return value === null ? [] : [[key, Number(value)]]
+  }),
+)
+
 export function demoPresentation() {
-  return { i18n, xlsx: loadXlsx, plugins, ui,
+  return { i18n, xlsx: loadXlsx, plugins, ui, defaults,
     renderer: new URLSearchParams(window.location.search).get('renderer') === 'canvas'
       ? 'canvas' as const : 'dom' as const }
 }

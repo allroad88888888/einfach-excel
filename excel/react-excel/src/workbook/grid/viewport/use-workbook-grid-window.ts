@@ -16,14 +16,15 @@ export function useWorkbookGridWindow(): CellRange {
   const metrics = useAtomValue(viewportMetricsAtom)
   const sizes = useAtomValue(viewportGeometrySizesAtom)
   const setViewportMetrics = useSetAtom(initializeViewportMetricsAtom)
+  const defaults = activeSheet?.defaults
   const sheetId = activeSheet?.id
   const rowCount = activeSheet?.rowCount
   const colCount = activeSheet?.colCount
 
   useEffect(() => {
     if (sheetId === undefined || rowCount === undefined || colCount === undefined) return
-    setViewportMetrics(workbookViewportMetrics(rowCount, colCount, sheetId))
-  }, [colCount, rowCount, setViewportMetrics, sheetId])
+    setViewportMetrics(workbookViewportMetrics(rowCount, colCount, sheetId, defaults))
+  }, [defaults, colCount, rowCount, setViewportMetrics, sheetId])
 
   return getBufferedProjectionWindow(metrics,
     sheetId ? sizes.rowHeightsBySheet[sheetId] : undefined,

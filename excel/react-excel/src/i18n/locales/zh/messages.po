@@ -348,6 +348,10 @@ msgstr "允许末尾负号（123- 转为 -123）"
 msgid "Already in order."
 msgstr "数据已按此顺序排列。"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
+msgid "Alternating colors"
+msgstr "交替行颜色"
+
 #: src/i18n/feedback-messages.ts
 msgid "An array result cannot be cut independently."
 msgstr "不能单独剪切数组结果。"
@@ -364,6 +368,7 @@ msgstr "另一项更改正在进行，请稍后重试。"
 msgid "Apostrophe (')"
 msgstr "单引号（'）"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Applies to"
@@ -381,6 +386,7 @@ msgstr "应用于第 {0}–{1} 行、第 {2}–{3} 列。尺寸单位为像素�
 msgid "Applies to this workbook session. Reloading restores all six summaries."
 msgstr "仅在当前工作簿会话中生效。刷新后恢复全部六项统计。"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Apply"
@@ -533,6 +539,10 @@ msgstr "平均值"
 msgid "AVERAGE — Mean"
 msgstr "AVERAGE — 平均值"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
+msgid "Band color"
+msgstr "交替填充色"
+
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Banded columns"
 msgstr "隔列底色"
@@ -639,6 +649,7 @@ msgstr "自定义公式表达式只能调用内置函数或已注册的自定义
 
 #: src/workbook/advanced-validation/ValidationErrorAlert.tsx
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
@@ -2276,6 +2287,10 @@ msgstr "向下填充"
 msgid "Fill down (Ctrl/⌘+D)"
 msgstr "向下填充（Ctrl/⌘+D）"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
+msgid "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
+msgstr "每隔一行填色，其他行保留原有格式。选中已有交替色区域内的单元格可修改整个区域。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Fill linear-trend series"
 msgstr "填充线性趋势"
@@ -2527,6 +2542,7 @@ msgstr "首页"
 msgid "First row contains headers"
 msgstr "首行包含表头"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "First row is a header"
 msgstr "首行为表头"
@@ -4294,6 +4310,10 @@ msgstr "删除"
 msgid "Remove Arrows"
 msgstr "移去箭头"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
+msgid "Remove banding"
+msgstr "移除交替色"
+
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
 msgid "Remove condition {0}"
@@ -4825,6 +4845,7 @@ msgstr "正在保存更改…"
 msgid "Saving comment…"
 msgstr "正在保存批注…"
 
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Saving conditional formatting…"
 msgstr "正在保存条件格式…"
@@ -5637,6 +5658,10 @@ msgstr "首行作为表头。空白或重复的表头会自动分配唯一名称
 #: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 msgid "The formula bar opens next. Press Enter to save or Escape to cancel."
 msgstr "接下来会打开公式栏。按 Enter 保存，或按 Escape 取消。"
+
+#: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
+msgid "The header keeps its original formatting; banding starts on the next row."
+msgstr "标题行保留原有格式，从下一行开始交替填色。"
 
 #: src/i18n/feedback-messages.ts
 msgid "The hyperlink cell is outside the worksheet."

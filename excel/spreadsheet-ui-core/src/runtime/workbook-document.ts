@@ -1,3 +1,4 @@
+import type { SheetDefaults } from './sheet-defaults'
 import { atom, type Atom } from '@einfach/core'
 import { DEFAULT_SELECTION_BOUNDS, selectCellAtom, setSelectionBoundsAtom } from '../selection'
 import {
@@ -20,6 +21,7 @@ import {
 import { zoomBySheetAtom } from '../zoom/state'
 
 export interface WorkbookDocumentSheet {
+  readonly defaults?: SheetDefaults
   readonly id: string
   readonly name: string
   readonly index: number

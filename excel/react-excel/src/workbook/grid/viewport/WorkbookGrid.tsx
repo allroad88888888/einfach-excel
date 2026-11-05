@@ -10,6 +10,7 @@ import {
   getViewportRowHeight,
   getViewportColumnWidth,
   viewportGeometrySizesAtom,
+  viewportMetricsAtom,
   projectedFreezeAtom,
   viewportShowGridlinesAtom,
   type WorkbookDocumentSheet,
@@ -22,10 +23,6 @@ import { CellValidationList } from '../editor/CellValidationList'
 import { ValidationInputMessage } from '../../advanced-validation/ValidationInputMessage'
 import { ValidationErrorAlert } from '../../advanced-validation/ValidationErrorAlert'
 import { ResizeGuide } from './ResizeGuide'
-import {
-  WORKBOOK_GRID_COLUMN_WIDTH,
-  WORKBOOK_GRID_ROW_HEIGHT,
-} from './workbook-grid-config'
 import { useWorkbookGridEvents } from './use-workbook-grid-events'
 import { useGridClipboard } from '../../clipboard/use-grid-clipboard'
 import { useWorkbookGridWindow } from './use-workbook-grid-window'
@@ -37,7 +34,6 @@ import { OutlineGutters } from './OutlineGutters'
 import { FillHandle } from '../fill/FillHandle'
 import { SelectionMoveBorder } from '../../drag-move/SelectionMoveBorder'
 import { useGridZoomWheel } from '../../zoom/use-grid-zoom-wheel'
-import { PluginEditorAdornments } from '../../../plugin/PluginMounts'
 import { useGridGutter } from './grid-gutter'
 import './grid.css'
 
@@ -68,6 +64,7 @@ function projectionState(viewport: WorkbookViewport, i18n: I18n) {
 
 function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: WorkbookDocumentSheet }) {
   const { t, i18n } = useLingui()
+  const { rowHeight, colWidth } = useAtomValue(viewportMetricsAtom)
   const painter = useAtomValue(formatPainterAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
@@ -97,13 +94,13 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   const columnCount = Math.max(0, bodyWindow.colEnd - bodyWindow.colStart + 1)
   const columnWidths = useMemo(() => Array.from({ length: columnCount }, (_, index) =>
     getViewportColumnWidth(
-      sizeOverrides, activeSheet.id, bodyWindow.colStart + index, WORKBOOK_GRID_COLUMN_WIDTH)),
-  [columnCount, sizeOverrides, activeSheet.id, bodyWindow.colStart])
+      sizeOverrides, activeSheet.id, bodyWindow.colStart + index, colWidth)),
+  [columnCount, sizeOverrides, activeSheet.id, bodyWindow.colStart, colWidth])
   const columnOffset = (index: number) =>
     getAxisOffsetForIndex(
       index,
       activeSheet.colCount,
-      WORKBOOK_GRID_COLUMN_WIDTH,
+      colWidth,
       sizeOverrides.colWidthsBySheet[activeSheet.id],
     )
   const sheetContentWidth = columnOffset(activeSheet.colCount)
@@ -112,24 +109,24 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
       sizeOverrides,
       activeSheet.id,
       bodyWindow.rowStart + index,
-      WORKBOOK_GRID_ROW_HEIGHT,
+      rowHeight,
     ),
-  ), [rows, sizeOverrides, activeSheet.id, bodyWindow.rowStart])
+  ), [rows, sizeOverrides, activeSheet.id, bodyWindow.rowStart, rowHeight])
   const sheetContentHeight = getAxisOffsetForIndex(
     activeSheet.rowCount,
     activeSheet.rowCount,
-    WORKBOOK_GRID_ROW_HEIGHT,
+    rowHeight,
     rowHeights,
   )
   // 等待新投影时，旧格仍留在真实坐标；搬到新窗口会让内容先跳一下再换回来。
   const windowOffset = getAxisOffsetForIndex(
     Math.max(viewport.window.rowStart, frozenRows),
     activeSheet.rowCount,
-    WORKBOOK_GRID_ROW_HEIGHT,
+    rowHeight,
     rowHeights,
   )
   const frameStyle = {
-    '--grid-column-width': `${WORKBOOK_GRID_COLUMN_WIDTH}px`,
+    '--grid-column-width': `${colWidth}px`,
     '--grid-row-height': `${heading}px`,
     '--grid-row-header-width': `${gutter}px`,
     '--grid-sheet-content-width': `${sheetContentWidth}px`,
@@ -235,7 +232,6 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           <FillHandle scrollRef={events.scrollRef} focusGrid={events.focusGrid} />
           <CellEditor focusGrid={events.focusGrid} />
           <CellValidationList focusGrid={events.focusGrid} />
-          <PluginEditorAdornments />
           <ResizeGuide />
         </div>
       </div>

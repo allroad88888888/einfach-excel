@@ -1,3 +1,4 @@
+import type { SheetDefaults } from '../runtime/sheet-defaults'
 import type {
   DisplayCell,
   IterativeCalculationConfig,
@@ -71,6 +72,7 @@ export interface RustIndexedRowStyleSnapshot extends RustIndexedStyleSnapshot {
 }
 
 export interface RustFormatRangeSnapshot {
+  readonly defaultFontSize?: number
   readonly cellStyles: readonly RustCellStyleSnapshot[]
   readonly rowStyles: readonly RustIndexedRowStyleSnapshot[]
   readonly columnStyles: readonly RustIndexedStyleSnapshot[]
@@ -298,6 +300,8 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   set_sheet_tab_color?(index: number, color: string | undefined): boolean
   /** bit 0 = 隐藏网格线，bit 1 = 隐藏行列标题。 */
   sheet_view_flags?(index: number): number
+  sheet_defaults?(index: number): SheetDefaults
+  initialize_sheet_defaults?(index: number, json: string): void
   set_sheet_view?(index: number, hideGridlines: boolean, hideHeadings: boolean): boolean
   add_sheet(name: string): number
   edit_sheet(index: number | undefined, name: string): number

@@ -6,6 +6,7 @@ import {
   spreadsheetRuntimeAtom,
   startRustWorkbookRuntimeAtom,
   type RustWorkbookDefinition,
+  type SheetDefaults,
 } from '@einfach-excel/spreadsheet-ui-core'
 import type { WorkerLike } from '@einfach-excel/spreadsheet-ui-core/rust-worker'
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
@@ -17,6 +18,8 @@ import { createDefaultWorkbookWorker } from '../worker/create-workbook-worker'
 export interface WorkbookRuntimeProviderProps extends WorkbookPresentationProps {
   readonly children: ReactNode
   readonly definition: RustWorkbookDefinition
+  /** Captured per definition at startup; changing this prop alone does not replace workbook data. */
+  readonly defaults?: SheetDefaults
   /**
    * 宿主上次保存的原生快照（`exportWorkbookSnapshotAtom` 的结果）。只在首次挂载时读取：
    * 给出时从快照恢复，打不开则退回 definition，错误见 `workbookReplacementErrorAtom`。
@@ -30,6 +33,7 @@ function WorkbookRuntimeMount({
   children,
   definition,
   initialSnapshot,
+  defaults,
   workerFactory = createDefaultWorkbookWorker,
 }: Omit<WorkbookRuntimeProviderProps, 'store'>): ReactNode {
   const { i18n } = useLingui()
@@ -38,16 +42,20 @@ function WorkbookRuntimeMount({
   const disposeRuntime = useSetAtom(disposeRustWorkbookRuntimeAtom)
   // 非渲染身份：快照只配挂载时的那份 definition，宿主之后换 definition 就按新定义启动。
   const mounted = useRef({ definition, initialSnapshot })
+  const initial = useRef({ definition, defaults })
+  if (initial.current.definition !== definition) initial.current = { definition, defaults }
+  const initialDefaults = initial.current.defaults
 
   useEffect(() => {
     const snapshot = definition === mounted.current.definition
       ? mounted.current.initialSnapshot : undefined
     void startRuntime({
-      definition, workerFactory, ...(snapshot === undefined ? {} : { snapshot }),
+      definition, defaults: initialDefaults, workerFactory,
+      ...(snapshot === undefined ? {} : { snapshot }),
     })
     // Core 统一清理成功、失败及初始化中的 runtime，React 不重复终止 Worker。
     return () => disposeRuntime()
-  }, [definition, disposeRuntime, startRuntime, workerFactory])
+  }, [definition, initialDefaults, disposeRuntime, startRuntime, workerFactory])
 
   if (state.status === 'loading') {
     return <div role="status"><Trans>Loading Rust/WASM workbook…</Trans></div>
@@ -69,6 +77,7 @@ export function WorkbookRuntimeProvider({
   children,
   definition,
   initialSnapshot,
+  defaults,
   store,
   workerFactory,
   ...presentation
@@ -78,7 +87,7 @@ export function WorkbookRuntimeProvider({
   return (
     <WorkbookPresentationProvider {...presentation}><AtomProvider store={runtimeStore}>
       <WorkbookRuntimeMount definition={definition} initialSnapshot={initialSnapshot}
-        workerFactory={workerFactory}>
+        workerFactory={workerFactory} defaults={defaults}>
         {children}
       </WorkbookRuntimeMount>
     </AtomProvider></WorkbookPresentationProvider>

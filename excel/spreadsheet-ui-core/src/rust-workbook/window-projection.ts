@@ -15,7 +15,7 @@ export function readWindowProjection(
   visibility?: SheetVisibilityProjection,
 ): Pick<
   VisibleProjectionResult,
-  'cells' | 'mergedRanges' | 'mergeAnchors' | 'mergeBorderCells' | 'rowHeights' | 'colWidths'
+  'cells' | 'mergedRanges' | 'mergeAnchors' | 'mergeBorderCells' | 'rowHeights' | 'colWidths' | 'defaults'
 > {
   if (!workbook.read_sparse_range || !workbook.snapshot_format_range)
     throw Object.assign(new Error('Rust window projection is unavailable'), {

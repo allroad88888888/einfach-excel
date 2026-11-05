@@ -264,6 +264,11 @@
       "rules": { "max-lines": ["error", 300], "react-hooks/rules-of-hooks": "off" }
     },
     {
+      "files": ["plugins/**"],
+      "parserOptions": { "project": ["./plugins/*/tsconfig.json"] },
+      "rules": { "max-lines": ["error", 300] }
+    },
+    {
       "files": ["packages/react-cells/**"],
       "parserOptions": { "project": ["./packages/react-cells/tsconfig.json"] },
       "rules": { "max-lines": ["error", 300] }

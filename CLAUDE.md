@@ -63,7 +63,7 @@ check:docs、check:presentation、lint:check、typecheck:mainline、`vitest run 
 全量 build + Vitest、四分片浏览器回归和 Rust 测试在 CI（`.github/workflows/ci.yml`）；完整 e2e
 约 1.5 小时，大改动提交前自己跑一次全量 `npm test` 可以省一轮 CI 返工。
 
-## Monorepo Structure (pnpm workspaces: `excel/*`, `packages/*`)
+## Monorepo Structure (pnpm workspaces: `excel/*`, `packages/*`, `plugins/*`)
 
 | 目录 | 状态 | 职责 |
 |---|---|---|
@@ -74,6 +74,7 @@ check:docs、check:presentation、lint:check、typecheck:mainline、`vitest run 
 | `packages/react-cells` | 主线 | 从 react-excel 提取的 DOM 单元格渲染 |
 | `packages/canvas` / `canvas-cells` | 主线 | Canvas cell 生命周期 / 工作簿的 Canvas 单元格渲染器 |
 | `packages/canvas-demo` | 演示 | Canvas 基础包的独立 demo |
+| `plugins/*` | 主线 | 可选功能插件（`plugins/README.md`）；核心不得依赖插件，插件之间互不依赖 |
 | `excel/rust/xlsx` + `excel/xlsx-wasm` | 主线 | XLSX ⇄ 原生 `.einfach.json` 转换，独立 WASM 包 `@einfach-excel/xlsx`（未发布，宿主经 `xlsx` 属性按需注入） |
 | `excel/spreadsheet-ui-styles` | 维护中 | 跨框架表格视觉样式 |
 | `excel/excel-core-ts` | 参照实现 | TS parity 参照，**不接入** React 运行时 |
@@ -81,7 +82,7 @@ check:docs、check:presentation、lint:check、typecheck:mainline、`vitest run 
 | `excel/vue-excel` | 独立实验 | 不参与主线门禁 |
 | `excel/solid-excel`、`excel/excel-site` | **已暂停** | 仅留源码考古；不进默认构建/测试/CI/发布，也不是 React 改动的兼容目标 |
 
-依赖方向：`react-excel → react-cells / canvas-cells → spreadsheet-ui-core`；`canvas-cells → canvas`。
+依赖方向：`react-excel → react-cells / canvas-cells → spreadsheet-ui-core`；`canvas-cells → canvas`；`plugins/* → react-excel / spreadsheet-ui-core 根入口`（单向）。
 
 ## Architecture
 

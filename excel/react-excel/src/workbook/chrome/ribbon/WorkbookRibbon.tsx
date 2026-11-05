@@ -41,6 +41,7 @@ import { CommentTools } from '../../comments/CommentTools'
 import { ProtectionTools } from '../../protection/ProtectionTools'
 import { CustomFormulaTools } from '../../custom-formulas/CustomFormulaTools'
 import { FormulaAuditingToolbar } from '../../../components/formula-auditing'
+import { PluginRibbonGroups } from '../../../plugin/PluginMounts'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { RibbonTabs, ribbonTabLabels } from './RibbonTabs'
@@ -258,6 +259,7 @@ export function WorkbookRibbon() {
             <FormulaAuditingToolbar />
             <NamedRangeTools />
           </div>
+          <PluginRibbonGroups tab={tab} />
           <div className="toolbar-spacer" />
           <div className="ribbon-tool-group" data-inactive={!all && tab !== 'View'}>
             <FindReplaceTools />

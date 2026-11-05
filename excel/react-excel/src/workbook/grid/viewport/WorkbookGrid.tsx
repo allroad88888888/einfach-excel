@@ -37,6 +37,7 @@ import { OutlineGutters } from './OutlineGutters'
 import { FillHandle } from '../fill/FillHandle'
 import { SelectionMoveBorder } from '../../drag-move/SelectionMoveBorder'
 import { useGridZoomWheel } from '../../zoom/use-grid-zoom-wheel'
+import { PluginEditorAdornments } from '../../../plugin/PluginMounts'
 import './grid.css'
 
 function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
@@ -228,6 +229,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           <FillHandle scrollRef={events.scrollRef} focusGrid={events.focusGrid} />
           <CellEditor focusGrid={events.focusGrid} />
           <CellValidationList focusGrid={events.focusGrid} />
+          <PluginEditorAdornments />
           <ResizeGuide />
         </div>
       </div>

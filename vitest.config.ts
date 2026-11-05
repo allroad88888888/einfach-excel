@@ -10,6 +10,7 @@ export default defineConfig({
       'excel/excel-core-ts/vitest.config.ts',
       'excel/spreadsheet-ui-core/vitest.config.ts',
       'excel/react-excel/vitest.config.ts',
+      'plugins/*/vitest.config.ts',
     ],
   },
 })

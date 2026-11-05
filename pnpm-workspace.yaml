@@ -1,3 +1,4 @@
 packages:
   - 'excel/*'
   - 'packages/*'
+  - 'plugins/*'

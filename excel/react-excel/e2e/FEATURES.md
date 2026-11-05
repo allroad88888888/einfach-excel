@@ -1168,3 +1168,8 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | SHIFTCELLS-005 | 删除被引用单元格产生 #REF! | `shift-cells/shift-cells.spec.ts` | deleting a referenced cell shows #REF! in the dependent sheet and undo restores the value |
 | SHIFTCELLS-006 | 拒绝切开合并单元格 | `shift-cells/shift-cells.spec.ts` | shifting through part of a merged cell is rejected without changing the sheet |
 | SHIFTCELLS-007 | 插入对话框整行选项 | `shift-cells/shift-cells.spec.ts` | Insert dialog Entire row inserts whole rows through the row command |
+| PLUGIN-001 | 插件功能区分组派发自有命令 | `plugins/sample-plugin.spec.ts` | a plugin ribbon group dispatches its own command |
+| PLUGIN-002 | 插件右键菜单项排在内置项之后 | `plugins/sample-plugin.spec.ts` | a plugin context menu item runs after the built-in items |
+| PLUGIN-003 | 插件编辑器挂件跟随编辑会话 | `plugins/sample-plugin.spec.ts` | a plugin editor adornment follows the cell editing session |
+| PLUGIN-004 | 插件词条跟随工作簿语言 | `plugins/sample-plugin.spec.ts` | plugin messages follow the workbook locale |
+| PLUGIN-005 | 未挂插件时不渲染任何插件入口 | `plugins/sample-plugin.spec.ts` | the workbook mounts no plugin contribution without plugins |

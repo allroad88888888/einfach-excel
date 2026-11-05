@@ -6,9 +6,10 @@ import {
   closeCellContextMenuAtom,
   openShiftCellsDialogAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
+import { PluginMenuItems } from '../../plugin/PluginMounts'
 import './shift-cells.css'
 
-/** 单元格右键菜单：只承载插入/删除单元格入口，位置由 UI Core 保存。 */
+/** 单元格右键菜单：内置插入/删除单元格，其后是插件菜单项；位置由 UI Core 保存。 */
 export function CellContextMenu() {
   const { t } = useLingui()
   const menu = useAtomValue(cellContextMenuAtom)
@@ -46,12 +47,15 @@ export function CellContextMenu() {
         items[(index + step + items.length) % items.length]?.focus()
       }}
     >
-      <button type="button" role="menuitem" onClick={() => void open({ mode: 'insert', source: 'menu' })}>
+      <button type="button" role="menuitem" data-menu-item="cells.insert"
+        onClick={() => void open({ mode: 'insert', source: 'menu' })}>
         {t`Insert…`}
       </button>
-      <button type="button" role="menuitem" onClick={() => void open({ mode: 'delete', source: 'menu' })}>
+      <button type="button" role="menuitem" data-menu-item="cells.delete"
+        onClick={() => void open({ mode: 'delete', source: 'menu' })}>
         {t`Delete…`}
       </button>
+      <PluginMenuItems close={close} />
     </div>
   )
 }

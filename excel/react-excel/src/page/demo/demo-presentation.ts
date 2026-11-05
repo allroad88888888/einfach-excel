@@ -1,4 +1,6 @@
+import { samplePlugin } from '@einfach-excel/plugin-sample'
 import { createWorkbookI18n, supportedUiLocale, type UiLocale } from '../../i18n/runtime'
+import type { SpreadsheetPlugin } from '../../plugin/types'
 
 export const UI_LOCALE_STORAGE_KEY = 'react-excel.ui-locale'
 
@@ -46,7 +48,18 @@ async function loadXlsx() {
   return module
 }
 
+/** `?plugins=sample` 挂上仓内样例插件；数组在模块内固定，挂载期间身份不变。 */
+const DEMO_PLUGINS: Readonly<Record<string, SpreadsheetPlugin>> = { sample: samplePlugin }
+
+function demoPlugins(query: string): readonly SpreadsheetPlugin[] {
+  const ids = new URLSearchParams(query).get('plugins')?.split(',') ?? []
+  return ids.flatMap(id => DEMO_PLUGINS[id] ? [DEMO_PLUGINS[id]] : [])
+}
+
+const plugins = typeof window === 'undefined' ? [] : demoPlugins(window.location.search)
+
 export function demoPresentation() {
-  return { i18n, xlsx: loadXlsx, renderer: new URLSearchParams(window.location.search).get('renderer') === 'canvas'
-    ? 'canvas' as const : 'dom' as const }
+  return { i18n, xlsx: loadXlsx, plugins,
+    renderer: new URLSearchParams(window.location.search).get('renderer') === 'canvas'
+      ? 'canvas' as const : 'dom' as const }
 }

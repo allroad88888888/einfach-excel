@@ -67,6 +67,7 @@
   },
   "devDependencies": {
     "@einfach-excel/canvas-cells": "workspace:*",
+    "@einfach-excel/plugin-sample": "workspace:*",
     "@einfach-excel/react-cells": "workspace:*",
     "@einfach-excel/spreadsheet-ui-core": "workspace:*",
     "@einfach-excel/xlsx": "workspace:*",

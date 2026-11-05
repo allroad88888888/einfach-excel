@@ -9,6 +9,7 @@ const reactSourceRoot = path.join(repositoryRoot, 'excel/react-excel/src')
 const reactCellsSourceRoot = path.join(repositoryRoot, 'packages/react-cells/src')
 const canvasCellsSourceRoot = path.join(repositoryRoot, 'packages/canvas-cells/src')
 const uiCoreSourceRoot = path.join(repositoryRoot, 'excel/spreadsheet-ui-core/src')
+const pluginsRoot = path.join(repositoryRoot, 'plugins')
 const sourceExtensions = new Set(['.ts', '.tsx'])
 const violations = []
 
@@ -91,6 +92,35 @@ function isViewFrameworkModule(moduleName) {
   )
 }
 
+/** 演示站可挂插件展示效果；发行入口与其余产品源码不得依赖任何插件。 */
+function mayImportPlugins(filePath) {
+  if (!filePath.startsWith(`${reactSourceRoot}${path.sep}`)) return false
+  const relative = reactRelativePath(filePath)
+  return relative.startsWith('page/demo/') || relative.startsWith('app/')
+}
+
+function pluginSourceRoots() {
+  if (!fs.existsSync(pluginsRoot)) return []
+  return fs.readdirSync(pluginsRoot, { withFileTypes: true })
+    .filter(entry => entry.isDirectory() && fs.existsSync(path.join(pluginsRoot, entry.name, 'src')))
+    .map(entry => ({ name: entry.name, root: path.join(pluginsRoot, entry.name, 'src') }))
+}
+
+/** 插件只经公开入口接入：不得互相依赖，不得深引核心包内部路径。 */
+function visitPluginImports(filePath, sourceFile, pluginName) {
+  const core = filePath.includes(`${path.sep}src${path.sep}core${path.sep}`)
+  for (const node of sourceFile.statements) {
+    if (!ts.isImportDeclaration(node) || !ts.isStringLiteral(node.moduleSpecifier)) continue
+    const moduleName = node.moduleSpecifier.text
+    const plugin = /^@einfach-excel\/(plugin-[^/]+)/.exec(moduleName)?.[1]
+    if (plugin && plugin !== pluginName) report(filePath, node, `插件之间不能互相依赖：${moduleName}`)
+    if (/^@einfach-excel\/(?:react-excel|spreadsheet-ui-core)\/(?!style\.css$)/.test(moduleName))
+      report(filePath, node, `插件只能使用核心包根入口：${moduleName}`)
+    if (core && moduleName.startsWith('@einfach-excel/react-excel'))
+      report(filePath, node, '插件 Core 不能依赖 React 产品宿主')
+  }
+}
+
 function visitReactSource(filePath, sourceFile) {
   if (isConcreteDemoInfrastructureFile(filePath)) {
     report(filePath, sourceFile, '具体 demo 不能拥有专属 view 或 runtime 目录')
@@ -103,6 +133,10 @@ function visitReactSource(filePath, sourceFile) {
         (moduleName.startsWith('@einfach-excel/react-excel') ||
           moduleName.includes('react-excel/'))) {
         report(filePath, node, 'React cell 包不能反向依赖产品宿主 react-excel')
+      }
+      if (moduleName.startsWith('@einfach-excel/plugin-') &&
+        filePath.startsWith(`${reactSourceRoot}${path.sep}`) && !mayImportPlugins(filePath)) {
+        report(filePath, node, `工作簿核心不能依赖插件：${moduleName}`)
       }
       if (isDemoHostFile(filePath) && isConcreteDemoImport(moduleName)) {
         report(filePath, node, `演示站外壳不能直接依赖具体 demo：${moduleName}`)
@@ -197,6 +231,9 @@ function visitUiCoreSource(filePath, sourceFile) {
       if (isViewFrameworkModule(node.moduleSpecifier.text)) {
         report(filePath, node, `UI Core 不能依赖视图框架：${node.moduleSpecifier.text}`)
       }
+      if (node.moduleSpecifier.text.startsWith('@einfach-excel/plugin-')) {
+        report(filePath, node, `UI Core 不能依赖插件：${node.moduleSpecifier.text}`)
+      }
     }
     if (
       ts.isIdentifier(node) &&
@@ -249,6 +286,15 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   }
   for (const filePath of collectSourceFiles(uiCoreSourceRoot)) {
     visitUiCoreSource(filePath, parseSource(filePath))
+  }
+  for (const { name, root } of pluginSourceRoots()) {
+    for (const filePath of collectSourceFiles(root)) {
+      const sourceFile = parseSource(filePath)
+      visitPluginImports(filePath, sourceFile, name)
+      // 插件 Core 套 UI Core 规则（可声明 atom、不碰视图）；其余文件套 React 规则。
+      if (filePath.startsWith(path.join(root, 'core') + path.sep)) visitUiCoreSource(filePath, sourceFile)
+      else visitReactSource(filePath, sourceFile)
+    }
   }
 
   if (violations.length > 0) {

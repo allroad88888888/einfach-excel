@@ -15,6 +15,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { SelectSpecialStatus } from '../select-special/SelectSpecialStatus'
 import { useSelectSpecialKeys } from '../select-special/use-select-special-keys'
 import { LockedCellDialog } from '../protection/LockedCellDialog'
+import { PluginPanels } from '../../plugin/PluginMounts'
 
 /** Composes the shared spreadsheet chrome around the active Rust workbook. */
 export function WorkbookView() {
@@ -70,6 +71,7 @@ export function WorkbookView() {
       <EvaluateFormulaDialog />
       <WatchWindowPanel />
       <LockedCellDialog />
+      <PluginPanels />
     </div>
   )
 }

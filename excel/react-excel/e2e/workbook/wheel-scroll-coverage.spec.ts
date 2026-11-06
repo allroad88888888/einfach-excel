@@ -13,17 +13,21 @@ test('rapid wheel scrolling keeps the populated viewport covered in both directi
   await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
   const coverage = page.evaluate(async () => {
     const scroll = document.querySelector<HTMLElement>('.sheet-scroll')!
-    const gaps: { top: number; gap: number; retained: string | undefined }[] = []
+    const gaps: { top: number; gap: number; leading: number; trailing: number;
+      previousTop: number; retained: string | undefined }[] = []
     let farthest = 0
+    let previousTop = scroll.scrollTop
     for (let frame = 0; frame < 600; frame++) {
       await new Promise(requestAnimationFrame)
       const table = document.querySelector('[data-workbook-grid] .spreadsheet-grid')!
       const box = table.getBoundingClientRect(), viewport = scroll.getBoundingClientRect()
-      const gap = Math.max(0, box.top - (viewport.top + 29)) +
-        Math.max(0, viewport.top + scroll.clientHeight - 2 - box.bottom)
+      const leading = Math.max(0, box.top - (viewport.top + 29))
+      const trailing = Math.max(0, viewport.top + scroll.clientHeight - 2 - box.bottom)
+      const gap = leading + trailing
       farthest = Math.max(farthest, scroll.scrollTop)
-      if (gap > 1) gaps.push({ top: scroll.scrollTop, gap,
+      if (gap > 1) gaps.push({ top: scroll.scrollTop, gap, leading, trailing, previousTop,
         retained: document.querySelector<HTMLElement>('[data-workbook-grid]')!.dataset.projectionRetained })
+      previousTop = scroll.scrollTop
       if (scroll.dataset.coverageDone) break
     }
     return { gaps, farthest, finalTop: scroll.scrollTop }

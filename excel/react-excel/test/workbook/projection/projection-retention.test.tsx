@@ -39,7 +39,7 @@ describe('Rust workbook projection retention', () => {
         value: SALES_ORDER_SHEET_ROW_COUNT * WORKBOOK_GRID_ROW_HEIGHT,
       },
     })
-    fireEvent.scroll(scroll, { target: { scrollTop: 64 * WORKBOOK_GRID_ROW_HEIGHT } })
+    fireEvent.scroll(scroll, { target: { scrollTop: 96 * WORKBOOK_GRID_ROW_HEIGHT } })
     await waitFor(() => expect(requests).toHaveLength(2))
 
     expect(screen.queryByText('Loading visible cells…')).not.toBeInTheDocument()
@@ -71,7 +71,7 @@ describe('Rust workbook projection retention', () => {
     await waitFor(() => expect(document.querySelector('[data-cell="0:0"]')).not.toBeNull())
     const scroll = screen.getByTestId('sheet-scroll')
 
-    fireEvent.scroll(scroll, { target: { scrollTop: 64 * WORKBOOK_GRID_ROW_HEIGHT } })
+    fireEvent.scroll(scroll, { target: { scrollTop: 96 * WORKBOOK_GRID_ROW_HEIGHT } })
     await waitFor(() => expect(requests).toHaveLength(2))
     const grid = screen.getByLabelText('Sales Orders cells')
     grid.focus()

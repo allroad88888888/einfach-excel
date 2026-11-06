@@ -2,6 +2,10 @@
 
 Owns scroll/size metrics and derives the visible row/column window.
 
+React's buffered projection uses six viewport heights and four viewport widths,
+advancing in one-screen buckets. The extra vertical margin covers coalesced wheel
+input while a projection is pending; the existing projection cell budget still applies.
+
 ## 当前 React/Rust 主线
 
 冻结窗格正在迁移到原生工作表元数据：`sheet.freeze` 返回 `VisibleProjectionResult.freeze`，

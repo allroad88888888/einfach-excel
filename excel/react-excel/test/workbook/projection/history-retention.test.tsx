@@ -36,7 +36,7 @@ test.each(['Control', 'Meta'])('%s+Z is dispatched while a new viewport is pendi
     await gate.promise
     return { ...projectionResultFor(request), history: history(1) }
   })
-  fireEvent.scroll(screen.getByTestId('sheet-scroll'), { target: { scrollTop: 1_800 } })
+  fireEvent.scroll(screen.getByTestId('sheet-scroll'), { target: { scrollTop: 3_600 } })
   await waitFor(() => expect(grid).toHaveAttribute('data-projection-retained', 'true'))
   fireEvent.keyDown(grid, { key: 'z', ctrlKey: modifier === 'Control', metaKey: modifier === 'Meta' })
   expect(apply).toHaveBeenCalledTimes(1)

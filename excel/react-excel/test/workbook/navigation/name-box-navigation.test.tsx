@@ -104,20 +104,20 @@ describe('workbook name box navigation', () => {
     const nameBox = screen.getByRole('textbox', { name: 'Name box' })
 
     fireEvent.focus(nameBox)
-    fireEvent.input(nameBox, { target: { value: 'B100' } })
+    fireEvent.input(nameBox, { target: { value: 'B200' } })
     fireEvent.keyDown(nameBox, { key: 'Enter' })
 
-    expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 99, col: 1 })
+    expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 199, col: 1 })
     expect(store.getter(viewportMetricsAtom).scrollTop).toBe(
-      100 * WORKBOOK_GRID_ROW_HEIGHT - store.getter(viewportMetricsAtom).viewportHeight,
+      200 * WORKBOOK_GRID_ROW_HEIGHT - store.getter(viewportMetricsAtom).viewportHeight,
     )
     await waitFor(() => expect(requests).toHaveLength(2))
-    expect(requests[1]?.window.rowStart).toBeLessThan(99)
-    expect(requests[1]?.window.rowEnd).toBeGreaterThanOrEqual(99)
+    expect(requests[1]?.window.rowStart).toBeLessThan(199)
+    expect(requests[1]?.window.rowEnd).toBeGreaterThanOrEqual(199)
     await waitFor(() =>
-      expect(document.querySelector('[data-cell="99:1"]')).toHaveTextContent('B100'),
+      expect(document.querySelector('[data-cell="199:1"]')).toHaveTextContent('B200'),
     )
-    expect(nameBox).toHaveValue('B100')
+    expect(nameBox).toHaveValue('B200')
     expect(screen.getByLabelText('Sales Orders cells')).toHaveFocus()
   })
 

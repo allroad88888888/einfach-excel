@@ -6,7 +6,7 @@ async function dragSummaryPair(page: Page, from: number, to: number, append = fa
   const scroll = page.getByTestId('sheet-scroll')
   // A93 starts near the lower edge; A:C is wider than the narrow viewport.
   // Center this pair's shared border, then use visible points on either side.
-  await scroll.evaluate((node, pair) => {
+  const centerPair = () => scroll.evaluate((node, pair) => {
     const source = node.querySelector(`td[data-cell="92:${pair.from}"]`)!.getBoundingClientRect()
     const target = node.querySelector(`td[data-cell="92:${pair.to}"]`)!.getBoundingClientRect()
     const bounds = node.getBoundingClientRect()
@@ -25,8 +25,11 @@ async function dragSummaryPair(page: Page, from: number, to: number, append = fa
         point.x >= bounds.left + 56 && point.x <= bounds.left + node.clientWidth - 56 &&
         point.y >= bounds.top + 56 && point.y <= bounds.top + node.clientHeight - 56) }
   }, { from, to })
-  const stablePoints = async () => {
+  const stablePoints = async (center = false) => {
     await expect.poll(async () => {
+      // Name-box navigation may publish another scroll position after the first
+      // projection. Recenter before pressing the pointer until that settles.
+      if (center) await centerPair()
       const before = await points()
       await page.evaluate(async () => {
         await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
@@ -37,7 +40,7 @@ async function dragSummaryPair(page: Page, from: number, to: number, append = fa
     }).toBe(true)
     return points()
   }
-  const initial = await stablePoints()
+  const initial = await stablePoints(true)
   if (append) await page.keyboard.down('Meta')
   try {
     await page.mouse.move(initial.start.x, initial.start.y)

@@ -46,14 +46,14 @@ describe('Rust workbook projection window', () => {
     const controlled = createProjectionConnection()
     const store = renderSalesOrdersProjectionWorksheet(controlled.connection)
     const projectedCellCount =
-      WORKBOOK_GRID_WINDOW_ROW_COUNT * 4 * SALES_ORDER_COLUMNS.length
+      WORKBOOK_GRID_WINDOW_ROW_COUNT * 6 * SALES_ORDER_COLUMNS.length
 
     await waitFor(() => expect(controlled.requests).toHaveLength(1))
     expect(controlled.requests[0]).toMatchObject({
       sheetId: 'orders',
       window: {
         rowStart: 0,
-        rowEnd: WORKBOOK_GRID_WINDOW_ROW_COUNT * 4 - 1,
+        rowEnd: WORKBOOK_GRID_WINDOW_ROW_COUNT * 6 - 1,
         colStart: 0,
         colEnd: SALES_ORDER_COLUMNS.length - 1,
       },
@@ -100,7 +100,7 @@ describe('Rust workbook projection window', () => {
     await waitFor(() => expect(controlled.requests).toHaveLength(3))
     expect(controlled.requests[2]?.window).toEqual({
       rowStart: SALES_ORDER_SHEET_ROW_COUNT - Math.ceil(
-        4 * (clientHeight - WORKBOOK_GRID_ROW_HEIGHT) / WORKBOOK_GRID_ROW_HEIGHT,
+        6 * (clientHeight - WORKBOOK_GRID_ROW_HEIGHT) / WORKBOOK_GRID_ROW_HEIGHT,
       ),
       rowEnd: SALES_ORDER_SHEET_ROW_COUNT - 1,
       colStart: 0,

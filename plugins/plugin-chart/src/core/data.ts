@@ -4,12 +4,12 @@ import {
   rustWorkbookConnectionAtom, type DisplayCell, type DrawingRange, type ProjectionRevision,
   type RustWorkbookConnection, type SheetDrawing, type VisibleProjectionResult,
 } from '@einfach-excel/spreadsheet-ui-core'
-import { formatRangeText, rangeCellCount, toCellRange } from './range-text'
+import { areaLayout, combineAreaGrids, combineAreaHidden, MAX_CHART_CELLS } from './areas'
+import { formatRangesText, rangeCellCount, toCellRange } from './range-text'
 import type { ChartCell, ChartGrid } from './series-layout'
 import { chartHiddenFromSnapshot, type ChartHidden } from './visible-grid'
 
-/** 一张图最多读 10,000 格，远低于显示读取上限，避免一次编辑触发大读。 */
-export const MAX_CHART_CELLS = 10_000
+export { MAX_CHART_CELLS }
 
 export interface ChartGridEntry {
   readonly status: 'loading' | 'ready' | 'error'
@@ -75,28 +75,34 @@ export const loadChartGridAtom = atom(null,
   const result = get(projectionSnapshotAtom).result
   const revision = result?.kind === 'visible-window' ? result.revision : undefined
   if (!connection || !sheet || revision === undefined) return
-  const range = drawing.refs[0] ?? null
-  const key = formatRangeText(range)
+  const key = formatRangesText(drawing.refs)
   const current = get(cacheAtom)[drawing.id]
   if (current?.connection === connection && current.sheetId === sheet.id &&
     current.revision === revision && current.range === key) return
   const base = { connection, sheetId: sheet.id, revision, range: key }
   const publish = (entry: ChartGridEntry) =>
     set(cacheAtom, { ...get(cacheAtom), [drawing.id]: { ...base, ...entry } })
-  if (!range) return publish({ status: 'error', error: 'The chart data range was deleted.' })
-  if (rangeCellCount(range) > MAX_CHART_CELLS)
+  const areas = drawing.refs.filter((range): range is DrawingRange => range !== null)
+  if (!areas.length || areas.length !== drawing.refs.length)
+    return publish({ status: 'error', error: 'The chart data range was deleted.' })
+  if (areas.reduce((sum, area) => sum + rangeCellCount(area), 0) > MAX_CHART_CELLS)
     return publish({ status: 'error', error: 'Choose at most 10,000 cells for a chart.' })
+  const layout = areaLayout(areas)
+  if (!layout) return publish({ status: 'error', error: 'The chart areas must line up.' })
   // 读取期间保留上一份数据格，图表不闪空。
   publish({ status: 'loading', grid: current?.grid, hidden: current?.hidden })
-  const read = await set(readWorkbookDisplayRangeAtom,
-    { sheetId: sheet.id, range: toCellRange(range) })
+  const reads = await Promise.all(areas.map((area) =>
+    set(readWorkbookDisplayRangeAtom, { sheetId: sheet.id, range: toCellRange(area) })))
   const latest = get(cacheAtom)[drawing.id]
   // 更晚发起的读取已经接手时丢弃这次结果。
   if (get(rustWorkbookConnectionAtom) !== connection || latest?.revision !== revision ||
     latest.range !== key || latest.sheetId !== sheet.id) return
-  publish(read.status === 'ok'
-    ? { status: 'ready', grid: chartGridFromSnapshot(read.snapshot, range),
-      hidden: chartHiddenFromSnapshot(read.snapshot, range) }
-    : { status: 'error', error: read.error.message })
+  const failed = reads.find((read) => read.status === 'error')
+  if (failed?.status === 'error') return publish({ status: 'error', error: failed.error.message })
+  const snapshots = reads.flatMap((read) => read.status === 'ok' ? [read.snapshot] : [])
+  const grids = snapshots.map((snapshot, index) => chartGridFromSnapshot(snapshot, areas[index]!))
+  publish({ status: 'ready', grid: combineAreaGrids(grids, layout),
+    hidden: combineAreaHidden(snapshots.map((snapshot, index) =>
+      chartHiddenFromSnapshot(snapshot, areas[index]!)), grids, layout) })
 })
 loadChartGridAtom.debugLabel = 'plugin.chart.data.load'

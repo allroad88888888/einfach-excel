@@ -44,3 +44,15 @@ export function toCellRange(range: DrawingRange): CellRange {
 export function rangeCellCount(range: DrawingRange): number {
   return (range.endRow - range.startRow + 1) * (range.endCol - range.startCol + 1)
 }
+
+/** 多区域文本，逗号分隔（如 A3:A15,C3:C15）；任一段非法则整体无效。 */
+export function parseRangesText(text: string): DrawingRange[] | null {
+  const parts = text.split(',').map((part) => part.trim())
+  if (!parts.length || parts.some((part) => !part)) return null
+  const ranges = parts.map(parseRangeText)
+  return ranges.every((range): range is DrawingRange => range !== null) ? ranges : null
+}
+
+export function formatRangesText(ranges: readonly (DrawingRange | null)[]): string {
+  return ranges.length ? ranges.map(formatRangeText).join(',') : '#REF!'
+}

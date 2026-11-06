@@ -2,8 +2,8 @@ import { atom } from '@einfach/core'
 import {
   activeWorkbookSheetAtom, changeSheetDrawingAtom, selectedDrawingAtom, sheetDrawingsAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
-import { MAX_CHART_CELLS } from './data'
-import { formatRangeText, parseRangeText, rangeCellCount } from './range-text'
+import { validateChartAreas } from './areas'
+import { formatRangesText, parseRangesText } from './range-text'
 import { CHART_KIND, parseChartSpec, type ChartSpec } from './spec'
 
 interface SettingsState {
@@ -41,7 +41,7 @@ export const openChartSettingsAtom = atom(null, (get, set, id?: string): boolean
   const target = id ?? get(selectedChartAtom)?.id
   const drawing = get(sheetDrawingsAtom).find((entry) => entry.id === target)
   if (!sheet || drawing?.kind !== CHART_KIND) return false
-  set(stateAtom, { sheetId: sheet.id, id: drawing.id, rangeDraft: formatRangeText(drawing.refs[0]),
+  set(stateAtom, { sheetId: sheet.id, id: drawing.id, rangeDraft: formatRangesText(drawing.refs),
     error: null, busy: false })
   return true
 })
@@ -68,18 +68,17 @@ export const updateChartSettingsAtom = atom(null,
     if (action.type === 'spec') {
       next = { ...next, payload: { ...parseChartSpec(next.payload), ...action.patch } }
     } else {
-      const range = parseRangeText(state.rangeDraft)
-      if (!range) return fail('Enter a range such as B2:D10.')
-      if (rangeCellCount(range) < 2) return fail('Select the chart data first, including headers.')
-      if (rangeCellCount(range) > MAX_CHART_CELLS)
-        return fail('Choose at most 10,000 cells for a chart.')
-      next = { ...next, refs: [range] }
+      const ranges = parseRangesText(state.rangeDraft)
+      if (!ranges) return fail('Enter a range such as B2:D10.')
+      const invalid = validateChartAreas(ranges)
+      if (invalid) return fail(invalid)
+      next = { ...next, refs: ranges }
     }
     set(stateAtom, { ...state, busy: true, error: null })
     const changed = await set(changeSheetDrawingAtom, { type: 'set', drawing: next })
     const latest = get(stateAtom)
     if (latest?.id === state.id) set(stateAtom, { ...latest, busy: false,
-      rangeDraft: action.type === 'applyRange' ? formatRangeText(next.refs[0]) : latest.rangeDraft })
+      rangeDraft: action.type === 'applyRange' ? formatRangesText(next.refs) : latest.rangeDraft })
     return changed
   })
 updateChartSettingsAtom.debugLabel = 'plugin.chart.settings.update'

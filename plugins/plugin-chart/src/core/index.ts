@@ -4,7 +4,8 @@ export { CHART_KIND, CHART_TYPES, DEFAULT_CHART_SPEC, EMPTY_CELL_MODES, LEGEND_P
   type ChartSpec, type ChartType, type ComboSeriesOption, type EmptyCellMode, type LegendPosition, type StackMode } from './spec'
 export { detectChartLayout, layoutChartData,
   type ChartCell, type ChartData, type ChartGrid, type ChartSeries } from './series-layout'
-export { formatRangeText, parseRangeText } from './range-text'
+export { formatRangeText, formatRangesText, parseRangeText, parseRangesText } from './range-text'
+export { areaLayout, combineAreaGrids, combineAreaHidden, validateChartAreas } from './areas'
 export { chartGridFromSnapshot, chartGridsAtom, chartRevisionAtom, loadChartGridAtom,
   MAX_CHART_CELLS, type ChartGridEntry } from './data'
 export { DEFAULT_CHART_HEIGHT, DEFAULT_CHART_WIDTH, dismissChartErrorAtom, insertChartAtom,

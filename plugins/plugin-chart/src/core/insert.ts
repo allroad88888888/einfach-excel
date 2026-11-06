@@ -2,11 +2,12 @@ import { atom } from '@einfach/core'
 import {
   activeWorkbookSheetAtom, changeSheetDrawingAtom, drawingErrorAtom, editingSessionAtom,
   readWorkbookDisplayRangeAtom,
-  selectDrawingAtom, selectionRegionsAtom, selectionSnapshotAtom, sheetDrawingsAtom,
+  selectDrawingAtom, selectionRangesAtom, sheetDrawingsAtom,
   type DrawingRange, type SheetDrawing,
 } from '@einfach-excel/spreadsheet-ui-core'
-import { chartGridFromSnapshot, MAX_CHART_CELLS } from './data'
-import { rangeCellCount, toCellRange } from './range-text'
+import { areaLayout, combineAreaGrids, validateChartAreas } from './areas'
+import { chartGridFromSnapshot } from './data'
+import { toCellRange } from './range-text'
 import { recommendChart } from './recommend'
 import { detectChartLayout } from './series-layout'
 import { CHART_KIND, DEFAULT_CHART_SPEC, type ChartType } from './spec'
@@ -44,21 +45,22 @@ export const insertChartAtom = atom(null,
   const sheet = get(activeWorkbookSheetAtom)
   if (!sheet) return false
   const fail = (error: string) => { set(errorAtom, error); return false }
-  if (get(selectionRegionsAtom).length !== 1) return fail('Choose one continuous range.')
-  const selected = get(selectionSnapshotAtom).range
-  const range: DrawingRange = { startRow: selected.rowStart, startCol: selected.colStart,
-    endRow: selected.rowEnd, endCol: selected.colEnd }
-  if (rangeCellCount(range) < 2) return fail('Select the chart data first, including headers.')
-  if (rangeCellCount(range) > MAX_CHART_CELLS)
-    return fail('Choose at most 10,000 cells for a chart.')
+  // 按 Ctrl 多选的不连续区域按 Excel 规则拼成一张数据表（同高左右拼，同宽上下拼）。
+  const areas: DrawingRange[] = get(selectionRangesAtom).map((range) => ({
+    startRow: range.rowStart, startCol: range.colStart, endRow: range.rowEnd, endCol: range.colEnd,
+  }))
+  const invalid = validateChartAreas(areas)
+  if (invalid) return fail(invalid)
   set(busyAtom, true)
   set(errorAtom, null)
   try {
-    const read = await set(readWorkbookDisplayRangeAtom,
-      { sheetId: sheet.id, range: toCellRange(range) })
-    if (read.status === 'error') return fail(read.error.message)
+    const reads = await Promise.all(areas.map((area) =>
+      set(readWorkbookDisplayRangeAtom, { sheetId: sheet.id, range: toCellRange(area) })))
+    const failed = reads.find((read) => read.status === 'error')
+    if (failed?.status === 'error') return fail(failed.error.message)
     if (get(activeWorkbookSheetAtom)?.id !== sheet.id) return false
-    const grid = chartGridFromSnapshot(read.snapshot, range)
+    const grid = combineAreaGrids(reads.flatMap((read, index) => read.status === 'ok'
+      ? [chartGridFromSnapshot(read.snapshot, areas[index]!)] : []), areaLayout(areas)!)
     const detected = detectChartLayout(grid)
     const { type, layout } = requested === 'recommended'
       ? recommendChart(grid, detected) : { type: requested, layout: detected }
@@ -66,9 +68,10 @@ export const insertChartAtom = atom(null,
     const drawing: SheetDrawing = {
       id,
       kind: CHART_KIND,
-      anchor: { row: range.startRow, col: Math.min(EXCEL_MAX_COLS - 1, range.endCol + 2),
+      anchor: { row: Math.min(...areas.map((area) => area.startRow)),
+        col: Math.min(EXCEL_MAX_COLS - 1, Math.max(...areas.map((area) => area.endCol)) + 2),
         offsetX: 0, offsetY: 0, width: DEFAULT_CHART_WIDTH, height: DEFAULT_CHART_HEIGHT },
-      refs: [range],
+      refs: areas,
       payload: { ...DEFAULT_CHART_SPEC, ...layout, type },
     }
     const changed = await set(changeSheetDrawingAtom, { type: 'set', drawing })

@@ -72,6 +72,7 @@ export const emptyCellLabels: Record<EmptyCellMode, { id: string; message: strin
 
 const errors: Record<string, string> = {
   'Choose one continuous range.': '请选择一个连续区域。',
+  'The chart areas must line up.': '多个数据区域需同高（左右拼接）或同宽（上下拼接）。',
   'Select the chart data first, including headers.': '请先选中图表数据（含标题行/列）。',
   'Choose at most 10,000 cells for a chart.': '图表数据最多 10,000 个单元格。',
   'Enter a range such as B2:D10.': '请输入区域，例如 B2:D10。',

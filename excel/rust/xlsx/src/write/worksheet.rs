@@ -12,6 +12,7 @@ use super::xml::escape;
 #[derive(Default)]
 pub struct SheetInput<'a> {
     pub cells: Vec<&'a SparseCell>,
+    pub rich_text: HashMap<(u32, u32), &'a [crate::native_rich_text::RichTextRun]>,
     pub defaults: crate::sheet_defaults::SheetDefaults,
     pub default_style: u32,
     /// (row, col) → cellXfs 下标
@@ -46,7 +47,7 @@ impl SharedStrings {
     }
 }
 
-fn cell_xml(cell: Option<&SparseCell>, row: u32, col: u32, style: u32, default_style: u32, strings: &mut SharedStrings) -> String {
+fn cell_xml(cell: Option<&SparseCell>, row: u32, col: u32, style: u32, default_style: u32, strings: &mut SharedStrings, runs: Option<&[crate::native_rich_text::RichTextRun]>) -> String {
     let r = cell_name(row, col);
     // Explicit style 0 must override a nonzero column default as well.
     let s = if style == 0 && default_style == 0 { String::new() } else { format!(r#" s="{style}""#) };
@@ -61,6 +62,9 @@ fn cell_xml(cell: Option<&SparseCell>, row: u32, col: u32, style: u32, default_s
         }
         ("error", Some(CellValue::Text(text))) => format!(r#"<c r="{r}"{s} t="e"><v>{}</v></c>"#, escape(text)),
         (_, Some(CellValue::Text(text))) => {
+            if let Some(runs) = runs.filter(|runs| !runs.is_empty() && runs.iter().map(|r| r.text.as_str()).collect::<String>() == *text) {
+                return format!(r#"<c r="{r}"{s} t="inlineStr">{}</c>"#, super::rich_text::xml(runs));
+            }
             format!(r#"<c r="{r}"{s} t="s"><v>{}</v></c>"#, strings.add(text))
         }
         _ => format!(r#"<c r="{r}"{s}/>"#),
@@ -145,7 +149,7 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
         let hidden = if sheet.hidden_rows.contains(&row) { r#" hidden="1""# } else { "" };
         xml.push_str(&format!(r#"<row r="{}"{height}{hidden}>"#, row + 1));
         for (col, (cell, style)) in cells {
-            xml.push_str(&cell_xml(cell, row, col, style, sheet.default_style, strings));
+            xml.push_str(&cell_xml(cell, row, col, style, sheet.default_style, strings, sheet.rich_text.get(&(row, col)).copied()));
         }
         xml.push_str("</row>");
     }

@@ -62,6 +62,7 @@ impl Sheet {
         for addr in fmt_drop {
             self.cell_styles.remove(&addr);
         }
+        self.rich_text.retain(|addr, _| !pred(*addr));
         self.hyperlinks.retain(|addr, _| !pred(*addr));
         to_drop
     }
@@ -180,6 +181,11 @@ impl Sheet {
         *self.interior.needs_parse.borrow_mut() = new_needs_parse;
         *self.interior.manual_formula_cache.borrow_mut() = new_manual_formula_cache;
         self.cell_styles = new_cell_styles;
+        self.rich_text = std::mem::take(&mut self.rich_text).into_iter()
+            .filter_map(|(addr, runs)| {
+                let next = f(addr);
+                (next.row < EXCEL_MAX_ROWS && next.col < EXCEL_MAX_COLS).then_some((next, runs))
+            }).collect();
         self.hyperlinks = std::mem::take(&mut self.hyperlinks).into_iter()
             .filter_map(|(addr, url)| {
                 let next = f(addr);

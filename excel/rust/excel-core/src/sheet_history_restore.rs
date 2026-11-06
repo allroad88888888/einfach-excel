@@ -104,7 +104,8 @@ impl Sheet {
                 self.invalidate_formula_value(cell.addr);
             }
             self.restore_format_range_snapshot(snapshot.formats.clone());
-            self.restore_hyperlinks(snapshot.range, &snapshot.hyperlinks);
+            self.restore_rich_text(snapshot.range, &snapshot.rich_text);
+                self.restore_hyperlinks(snapshot.range, &snapshot.hyperlinks);
             self.restore_notes(snapshot.range, &snapshot.notes);
             self.restore_comments(snapshot.range, &snapshot.comments);
             for (col, _) in

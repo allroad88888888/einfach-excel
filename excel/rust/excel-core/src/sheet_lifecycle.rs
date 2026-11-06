@@ -40,6 +40,7 @@ impl Sheet {
             cell_subscriptions: HashMap::new(),
             next_cell_sub_id: 0,
             cell_styles: HashMap::new(),
+            rich_text: HashMap::new(),
             hyperlinks: HashMap::new(),
             notes: HashMap::new(),
             comments: HashMap::new(),

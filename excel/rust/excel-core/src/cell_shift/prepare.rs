@@ -57,6 +57,7 @@ impl CellShiftChange {
             .into_iter()
             .filter_map(|(addr, style)| shift.map(addr).map(|next| (next, style)))
             .collect();
+        move_entries(&shift, &mut after.rich_text)?;
         move_entries(&shift, &mut after.hyperlinks)?;
         move_entries(&shift, &mut after.notes)?;
         move_entries(&shift, &mut after.comments)?;

@@ -160,6 +160,7 @@ impl WasmWorkbook {
         Self::restore_hidden_columns_json(&mut workbook, payload.hidden_columns)?;
         Self::restore_data_validations_json(&mut workbook, payload.data_validations)?;
         Self::restore_hyperlinks_json(&mut workbook, payload.hyperlinks)?;
+        Self::restore_rich_text_json(&mut workbook, payload.rich_text)?;
         Self::restore_notes_json(&mut workbook, payload.notes)?;
         Self::restore_drawings_json(&mut workbook, payload.drawings)?;
         Self::restore_comments_json(&mut workbook, payload.comments)?;

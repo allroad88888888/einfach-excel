@@ -42,6 +42,7 @@ fn invalid_print_config_persistence_does_not_replace_the_live_workbook() {
     let mut workbook = WasmWorkbook::new();
     assert!(workbook.rename_sheet(0, "Keep"));
     let payload = WorkbookPersistenceV1JSON {
+        rich_text: vec![],
         version: 1,
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,

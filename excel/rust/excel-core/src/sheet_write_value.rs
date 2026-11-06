@@ -37,6 +37,7 @@ impl Sheet {
         addr: CellAddress,
         arr: Arc<ArrayData>,
     ) -> Result<(), SheetError> {
+        self.rich_text.remove(&addr);
         let collapsed_anchor = self.spilled_into_anchor(addr);
         let blocked_retries = self.blocked_anchors_claiming(addr);
         let pre_range_member = self.range_member_present(addr);
@@ -175,6 +176,7 @@ impl Sheet {
         if ghost_of.is_some() && matches!(value, Value::Null) {
             return Ok(());
         }
+        self.reconcile_rich_text(addr, &value);
         self.facade_ctx().clear_iterative_on_write(addr);
         let collapsed_anchor = ghost_of;
         // ADR 0006 stage 2 — anchors that are currently `#SPILL!` because

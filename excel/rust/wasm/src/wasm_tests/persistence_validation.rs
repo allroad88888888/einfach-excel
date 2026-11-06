@@ -5,6 +5,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_size_without_mutating_workbo
     wb.set_number(0, "A1", 7.0);
 
     let payload = WorkbookPersistenceV1JSON {
+        rich_text: vec![],
         version: 1,
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
@@ -62,6 +63,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_size_without_mutating_workbo
 fn wasm_workbook_restore_persistence_v1_rejects_unsupported_version() {
     let mut wb = WasmWorkbook::new();
     let payload = WorkbookPersistenceV1JSON {
+        rich_text: vec![],
         version: 2,
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
@@ -100,6 +102,7 @@ fn wasm_workbook_restore_persistence_v1_accepts_default_sheet_name() {
     assert!(wb.rename_sheet(0, "Old"));
 
     let payload = WorkbookPersistenceV1JSON {
+        rich_text: vec![],
         version: 1,
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
@@ -150,6 +153,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_format_without_mutating_work
     wb.set_number(0, "A1", 7.0);
 
     let payload = WorkbookPersistenceV1JSON {
+        rich_text: vec![],
         version: 1,
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
@@ -208,6 +212,7 @@ fn wasm_workbook_restore_persistence_v1_resets_subscription_tokens() {
     wb.next_token = 42;
 
     let payload = WorkbookPersistenceV1JSON {
+        rich_text: vec![],
         version: 1,
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
@@ -268,6 +273,7 @@ fn persistence_v1_workload(n: u32) -> WorkbookPersistenceV1JSON {
         });
     }
     WorkbookPersistenceV1JSON {
+        rich_text: vec![],
         version: 1,
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,

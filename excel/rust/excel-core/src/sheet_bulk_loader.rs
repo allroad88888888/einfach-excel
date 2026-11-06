@@ -102,6 +102,7 @@ impl<'a> BulkLoader<'a> {
         if !self.prepare_spill_for_write(addr, !is_null) {
             return;
         }
+        self.sheet.reconcile_rich_text(addr, &value);
         self.sheet.grow_row_for_multiline_text(addr, &value);
         let pre_range_member = self.sheet.range_member_present(addr);
         self.sheet.clear_spill_at_address(addr);

@@ -169,6 +169,7 @@ impl Workbook {
                 .sheet_mut(sheet)
                 .expect("preflighted auto-fill sheet disappeared");
             for cell in &cells {
+                target.restore_rich_text(CellRange::single(cell.addr), &[(cell.addr, cell.rich_text.clone())]);
                 target.patch_format_range(
                     CellRange::single(cell.addr),
                     StyleScope::Cell,

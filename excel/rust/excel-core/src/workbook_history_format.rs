@@ -136,6 +136,7 @@ impl WorkbookHistory {
         let mut count = 0;
         store.batch(|_| {
             let target = workbook.sheet_mut(sheet).unwrap();
+            target.clear_inline_font_overrides(actual_range(range, scope), &patch);
             count = target.patch_format_range(range, scope, patch);
             target.apply_axis_border_clear(scope, axis_borders);
             target.apply_border_plan(borders);

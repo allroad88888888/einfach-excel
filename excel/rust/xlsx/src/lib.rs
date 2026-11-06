@@ -5,6 +5,7 @@ mod color;
 mod date_serial;
 mod formula;
 mod native;
+mod native_rich_text;
 mod native_features;
 mod native_rules;
 mod number_format;

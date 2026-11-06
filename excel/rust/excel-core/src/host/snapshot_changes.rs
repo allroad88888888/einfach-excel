@@ -34,6 +34,10 @@ pub(crate) fn changed_ranges(before: &HistorySnapshot, after: &HistorySnapshot) 
         before.comments.iter().map(|(addr, value)| (coord(*addr), value)),
         after.comments.iter().map(|(addr, value)| (coord(*addr), value)),
     ));
+    points.extend(changed_keys(
+        before.rich_text.iter().map(|(addr, value)| (coord(*addr), value)),
+        after.rich_text.iter().map(|(addr, value)| (coord(*addr), value)),
+    ));
     let mut ranges = Vec::new();
     if let Some(&(row, col)) = points.first() {
         let mut range = CellRange::single(CellAddress::new(row, col));

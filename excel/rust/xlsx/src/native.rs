@@ -41,6 +41,8 @@ pub struct Persistence {
     pub sizes: Vec<SizeRange>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub hyperlinks: Vec<Hyperlink>,
+    #[serde(default, rename = "richText", skip_serializing_if = "Vec::is_empty")]
+    pub rich_text: Vec<crate::native_rich_text::RichTextCell>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub notes: Vec<Note>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

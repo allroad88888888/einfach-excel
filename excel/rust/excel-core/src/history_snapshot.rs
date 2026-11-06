@@ -8,6 +8,7 @@ pub struct HistorySnapshot {
     pub cells: Option<Vec<CellSnapshot>>,
     pub formats: FormatRangeSnapshot,
     pub column_widths: Vec<(u32, u32)>,
+    pub(crate) rich_text: Vec<(crate::CellAddress, Vec<crate::rich_text::RichTextRun>)>,
     pub(crate) hyperlinks: Vec<(crate::CellAddress, String)>,
     pub(crate) notes: Vec<(crate::CellAddress, String)>,
     pub(crate) comments: Vec<(crate::CellAddress, crate::comments::NativeCommentThread)>,
@@ -48,6 +49,7 @@ impl HistorySnapshot {
             cells,
             formats: sheet.snapshot_format_range(range),
             column_widths: sheet.col_widths_in_range(range.start.col, range.end.col),
+            rich_text: sheet.rich_text_in_range(range),
             hyperlinks: sheet.hyperlinks_in_range(range),
             notes: sheet.notes_in_range(range),
             comments: sheet.comments_in_range(range),
@@ -90,6 +92,8 @@ impl HistorySnapshot {
                 .sum()
         });
         cells
+            + self.rich_text.iter().flat_map(|(_, runs)| runs).map(|run|
+                128 + run.text.len() + run.format.font_family.as_ref().map_or(0, String::len)).sum::<usize>()
             + self.hyperlinks.iter().map(|(_, url)| 32 + url.len()).sum::<usize>()
             + self.notes.iter().map(|(_, text)| 32 + text.len()).sum::<usize>()
             + crate::comments::retained_bytes(&self.comments)

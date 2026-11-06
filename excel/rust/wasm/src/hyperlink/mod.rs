@@ -49,7 +49,7 @@ impl WasmWorkbook {
         for (addr, url) in target.hyperlinks_in_range(range) {
             let address = addr.to_string();
             if present.contains(&address) { continue; }
-            out.push(CellSnapshotJSON { sheet, addr: address, display: String::new(),
+            out.push(CellSnapshotJSON { rich_text: None, sheet, addr: address, display: String::new(),
                 formatted_display: None, input_text: String::new(), cell_type: "null".into(),
                 is_error: false, formula: String::new(), hyperlink: Some(url),
                 note_indicator: target.note(addr).map(|_| true),

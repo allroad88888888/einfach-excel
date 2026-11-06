@@ -156,6 +156,8 @@ struct CellSnapshotJSON {
     formula: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     hyperlink: Option<String>,
+    #[serde(rename = "richText", skip_serializing_if = "Option::is_none")]
+    rich_text: Option<Vec<einfach_excel_core::rich_text::RichTextRun>>,
     #[serde(rename = "noteIndicator", skip_serializing_if = "Option::is_none")]
     note_indicator: Option<bool>,
     #[serde(rename = "commentIndicator", skip_serializing_if = "Option::is_none")]
@@ -205,6 +207,8 @@ struct WorkbookPersistenceV1JSON {
     cells: Vec<SparseCellJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     hyperlinks: Vec<HyperlinkJSON>,
+    #[serde(default, rename = "richText", skip_serializing_if = "Vec::is_empty")]
+    rich_text: Vec<RichTextJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     notes: Vec<NoteJSON>,
     #[serde(default)]

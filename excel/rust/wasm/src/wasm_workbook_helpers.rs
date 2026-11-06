@@ -91,6 +91,7 @@ impl WasmWorkbook {
             sheets,
             cells: self.snapshot_sparse_cells(),
             hyperlinks: self.hyperlinks_json(),
+            rich_text: self.rich_text_json(),
             notes: self.notes_json(),
             comments: self.comments_json(),
             protection: self.protection_json(),

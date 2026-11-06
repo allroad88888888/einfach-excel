@@ -29,6 +29,7 @@ pub mod general_text;
 pub mod history_snapshot;
 pub mod host;
 pub mod hyperlink;
+pub mod rich_text;
 pub mod notes;
 pub mod drawings;
 pub mod comments;

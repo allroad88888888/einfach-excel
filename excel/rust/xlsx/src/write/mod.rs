@@ -13,6 +13,7 @@ mod tables;
 mod validation;
 mod vml;
 mod worksheet;
+mod rich_text;
 mod xml;
 
 use std::io::{Cursor, Write};
@@ -99,6 +100,11 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
                     target.styles.insert(coord, xf);
                 }
             }
+        }
+    }
+    for cell in &workbook.rich_text {
+        if let Some(target) = sheets.get_mut(cell.sheet) {
+            target.rich_text.insert((cell.row, cell.col), &cell.runs);
         }
     }
     for range in &workbook.sizes {

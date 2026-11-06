@@ -153,6 +153,9 @@ impl Sheet {
     /// `Sheet::get_cell` lazy eval path can't mutate, so the spill
     /// install has to happen here.
     pub(super) fn recompute_array_formula(&mut self, addr: CellAddress) {
+        if self.facade_ctx().workbook_scope().is_some_and(|(context, _)| context.calculation_suspended.get()) {
+            return;
+        }
         // ADR 0006 stage 0/2 — this method is the single authority on whether
         // `addr` is a blocked anchor, so it clears the claim up front and
         // every exit below is then correct by construction: the two `Err`

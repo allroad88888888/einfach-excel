@@ -180,6 +180,7 @@ struct PlannedCell {
     addr: CellAddress,
     value: PlannedValue,
     format: CellFormat,
+    rich_text: Vec<crate::rich_text::RichTextRun>,
 }
 
 
@@ -329,6 +330,7 @@ fn plan_copy(
             addr,
             value,
             format: sheet.effective_format(&source.to_string_repr()),
+            rich_text: sheet.rich_text(source).unwrap_or_default().to_vec(),
         });
     }
     Ok(planned)
@@ -406,6 +408,7 @@ fn plan_numeric_series(
             addr,
             value: PlannedValue::Primitive(Value::Number(value)),
             format: sheet.effective_format(&source.to_string_repr()),
+            rich_text: Vec::new(),
         });
     }
     Ok(planned)
@@ -490,6 +493,7 @@ fn plan_generated(
         let source = source_coord(request.source_range, addr);
         planned.push(PlannedCell {
             addr,
+            rich_text: sheet.rich_text_for_value(source, &value),
             value: PlannedValue::Primitive(value),
             format: sheet.effective_format(&source.to_string_repr()),
         });

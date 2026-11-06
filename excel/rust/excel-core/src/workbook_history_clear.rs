@@ -120,6 +120,7 @@ impl WorkbookHistory {
             outcome = target_sheets.iter().try_for_each(|&target_sheet| {
                 targets.iter().try_for_each(|&(range, scope)| {
                     if formats {
+                        workbook.sheet_mut(target_sheet).unwrap().restore_rich_text(range, &[]);
                         self.patch_format_range(
                             workbook,
                             target_sheet,

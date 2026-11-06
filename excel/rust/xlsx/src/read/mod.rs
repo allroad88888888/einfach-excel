@@ -10,6 +10,7 @@ mod hyperlinks;
 mod notes;
 mod rels;
 mod shared_strings;
+mod rich_text;
 mod styles;
 mod tables;
 mod theme;
@@ -67,13 +68,14 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         report.add("macros", 1);
     }
     report.add("externalLinks", parts.external_links);
-    let (strings, shared_rich) = match &parts.shared_strings {
-        Some(path) => shared_strings::parse(&archive.read(path)?.unwrap_or_default())?,
-        None => (Vec::new(), 0),
+    let strings_xml = match &parts.shared_strings {
+        Some(path) => archive.read(path)?.unwrap_or_default(),
+        None => String::new(),
     };
-    report.add("richText", shared_rich);
+    let (strings, _) = shared_strings::parse(&strings_xml)?;
     let theme_xml = match &parts.theme { Some(path) => archive.read(path)?, None => None };
     let theme = theme::parse(theme_xml.as_deref());
+    let rich_strings = rich_text::shared(&strings_xml, &theme.colors);
     report.add("themeFonts", theme.custom_fonts);
     let styles_xml = match &parts.styles { Some(path) => archive.read(path)?, None => None };
     let xfs = styles::parse(styles_xml.as_deref(), &theme.colors)?;
@@ -99,7 +101,7 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
             data.defaults.font_size = uniform.and_then(|style| font_sizes.get(style as usize))
                 .copied().flatten();
         }
-        report.add("richText", data.rich_text);
+        let mut rich_cells = rich_text::cells(&xml, &rich_strings, &theme.colors);
         report.add("outline", data.outline);
         let name = sheet_name(&part.name, index, &mut used);
         let extras = features::read_sheet(&mut archive, &part.path, &xml, index, &name, &shared, &mut report);
@@ -125,6 +127,15 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
                 cell_styles.push(CellStyle { addr: addr.clone(), format });
             }
             if let Some((kind, mut value)) = cell.content {
+                if kind == "text" {
+                    if let Some(runs) = rich_cells.remove(&(cell.row, cell.col)) {
+                        // Only preserve runs whose concatenation matches the imported literal.
+                        let text: String = runs.iter().map(|r| r.text.as_str()).collect();
+                        if matches!(&value, CellValue::Text(value) if *value == text) {
+                            workbook.rich_text.push(crate::native_rich_text::RichTextCell { sheet: index, row: cell.row, col: cell.col, runs });
+                        }
+                    }
+                }
                 if parts.date1904 && is_date && kind == "number" {
                     if let CellValue::Number(ref mut n) = value {
                         *n += 1462.0;

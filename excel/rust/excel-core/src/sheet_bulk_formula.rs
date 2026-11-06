@@ -29,6 +29,7 @@ impl<'a> BulkLoader<'a> {
         // parse-failure path below can never `store.set` a read-only derived
         // projection atom.
         self.prepare_spill_for_write(addr, true);
+        self.sheet.rich_text.remove(&addr);
         self.sheet.clear_spill_at_address(addr);
         // Codex P2 #2 fix: validate parseability up front. If the source
         // does not parse, materialise `#VALUE!` immediately (matching
@@ -96,6 +97,7 @@ impl<'a> BulkLoader<'a> {
         // harmless.
         self.prepare_spill_for_write(addr, true);
         let pre_range_member = self.sheet.range_member_present(addr);
+        self.sheet.rich_text.remove(&addr);
         self.sheet.clear_spill_at_address(addr);
 
         // Detach fanout so any prior-formula / primitive-scaffold

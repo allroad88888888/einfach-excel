@@ -95,6 +95,7 @@ pub(super) fn apply_paste(
                 && merges.target.contains(addr)
             {
                 let (_, source) = snapshot.cell_at_target(addr, merges.target, options.transpose);
+                sheet.restore_rich_text(CellRange::single(addr), &[(addr, source.rich_text.clone())]);
                 if let Some(url) = &source.hyperlink {
                     sheet.hyperlinks.insert(addr, url.clone());
                 } else {

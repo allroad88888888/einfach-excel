@@ -146,6 +146,7 @@ impl WasmWorkbook {
                     .and_then(|sheet| sheet.get_formula(&addr_str))
                     .unwrap_or_default();
                 out.push(CellSnapshotJSON {
+                    rich_text: self.workbook.sheet(sheet_idx).and_then(|sheet| sheet.rich_text(addr)).map(<[_]>::to_vec),
                     comment_indicator: self.workbook.sheet(sheet_idx)
                         .and_then(|sheet| sheet.comment(addr)).map(|_| true),
                     note_indicator: self.workbook.sheet(sheet_idx)

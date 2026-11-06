@@ -60,7 +60,7 @@ impl WasmWorkbook {
                 continue;
             }
             present.insert(address.clone(), out.len());
-            out.push(CellSnapshotJSON {
+            out.push(CellSnapshotJSON { rich_text: None,
                 sheet,
                 addr: address,
                 display: String::new(),

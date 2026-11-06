@@ -49,6 +49,7 @@ pub(crate) enum ClipboardValue {
 #[derive(Clone, Debug, PartialEq)]
 struct ClipboardCell {
     value: ClipboardValue,
+    rich_text: Vec<crate::rich_text::RichTextRun>,
     hyperlink: Option<String>,
     // 外部纯文本粘贴不覆盖目标格式；内部复制有完整有效格式。
     format: Option<CellFormat>,
@@ -145,6 +146,7 @@ fn validate_range(range: CellRange) -> Result<(), ClipboardError> {
 
 fn read_cell(sheet: &crate::Sheet, addr: CellAddress) -> ClipboardCell {
     ClipboardCell {
+        rich_text: sheet.rich_text(addr).unwrap_or_default().to_vec(),
         hyperlink: sheet.hyperlink(addr).map(str::to_owned),
         value: match sheet.formula_text_at(addr) {
             Some(source) => ClipboardValue::Formula {

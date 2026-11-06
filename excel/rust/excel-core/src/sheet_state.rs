@@ -68,6 +68,7 @@ pub struct Sheet {
     /// 稀疏 cellStyle；只保存单元格自己明确接管的显示属性。
     pub(crate) cell_styles: HashMap<CellAddress, CellStyle>,
     /// 链接是单元格内容元数据，不属于 cellStyle，也不为每个链接新建 atom。
+    pub(crate) rich_text: HashMap<CellAddress, Vec<crate::rich_text::RichTextRun>>,
     pub(crate) hyperlinks: HashMap<CellAddress, String>,
     /// 备注独立于单元格值；普通内容覆盖不会删除它。
     pub(crate) notes: HashMap<CellAddress, String>,

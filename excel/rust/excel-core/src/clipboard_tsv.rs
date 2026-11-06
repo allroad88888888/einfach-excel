@@ -92,6 +92,7 @@ impl ClipboardSnapshot {
                         Value::Text(input.into())
                     }),
                     format: None,
+                    rich_text: Vec::new(),
                     hyperlink: None,
                 });
             }

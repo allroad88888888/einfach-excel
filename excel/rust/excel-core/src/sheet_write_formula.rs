@@ -99,6 +99,7 @@ impl Sheet {
             sheet.collapse_spill_for_write(addr);
             // Replacing the cell at this address: tear down any spill the
             // previous content (if it was an anchor) installed.
+            sheet.rich_text.remove(&addr);
             sheet.clear_spill_at_address(addr);
             debug_assert!(
                 !sheet.spill_target_anchor.contains_key(&addr),
@@ -189,6 +190,7 @@ impl Sheet {
         self.store_batch(|sheet| {
             // ORDER RULE (ADR 0006 stage 1) — see `set_cell_inner`.
             sheet.collapse_spill_for_write(addr);
+            sheet.rich_text.remove(&addr);
             sheet.clear_spill_at_address(addr);
             if had_formula {
                 sheet.with_remap(addr, |sheet| {

@@ -41,6 +41,8 @@ mod custom_formulas;
 mod data_validation;
 #[path = "hyperlink/history.rs"]
 mod hyperlink;
+#[path = "rich_text/history.rs"]
+mod rich_text;
 #[path = "workbook_history_input.rs"]
 mod input;
 #[path = "workbook_history_named_range.rs"]

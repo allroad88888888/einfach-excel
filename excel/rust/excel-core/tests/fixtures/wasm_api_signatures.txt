@@ -109,6 +109,7 @@ impl WasmWorkbook :: [] :: pub fn change_custom_formula( &mut self, sheet: u32, 
 impl WasmWorkbook :: [] :: pub fn change_hyperlink( &mut self, sheet: u32, row: u32, col: u32, url: Option<String>, text: Option<String>, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_named_range(&mut self, sheet: u32, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_note( &mut self, sheet: u32, row: u32, col: u32, text: Option<String>, ) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn change_rich_text(&mut self, sheet: u32, row: u32, col: u32, runs: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_outline(&mut self, sheet: u32, axis: &str, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_protection(&mut self, sheet: u32, change: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_table(&mut self, sheet: u32, action: JsValue) -> Result<bool, JsValue>

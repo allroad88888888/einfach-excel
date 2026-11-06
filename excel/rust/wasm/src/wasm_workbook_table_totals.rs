@@ -118,7 +118,7 @@ impl WasmWorkbook {
         let addr = CellAddress::parse(addr)
             .map(|addr| addr.to_string())
             .unwrap_or_else(|| addr.to_ascii_uppercase());
-        serde_wasm_bindgen::to_value(&CellSnapshotJSON {
+        serde_wasm_bindgen::to_value(&CellSnapshotJSON { rich_text: None,
             comment_indicator: CellAddress::parse(&addr).and_then(|addr|
                 self.workbook.sheet(sheet_idx_usize)?.comment(addr).map(|_| true)),
             note_indicator: CellAddress::parse(&addr).and_then(|addr|

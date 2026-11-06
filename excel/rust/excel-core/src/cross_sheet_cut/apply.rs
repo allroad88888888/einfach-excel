@@ -66,6 +66,7 @@ pub(super) fn move_cells(
         let target = &mut workbook.sheets[target_sheet];
         for (addr, _, format) in planned {
             let (_, source) = snapshot.cell_at_target(addr, range, false);
+            target.restore_rich_text(CellRange::single(addr), &[(addr, source.rich_text.clone())]);
             if let Some(url) = &source.hyperlink {
                 target.hyperlinks.insert(addr, url.clone());
             } else {

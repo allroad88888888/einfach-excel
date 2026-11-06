@@ -109,6 +109,7 @@ impl Workbook {
                     .sheet_mut(sheet)
                     .ok_or("History worksheet no longer exists.")?;
                 target.restore_format_range_snapshot(snapshot.formats.clone());
+                target.restore_rich_text(snapshot.range, &snapshot.rich_text);
                 target.restore_hyperlinks(snapshot.range, &snapshot.hyperlinks);
                 target.restore_notes(snapshot.range, &snapshot.notes);
                 target.restore_comments(snapshot.range, &snapshot.comments);

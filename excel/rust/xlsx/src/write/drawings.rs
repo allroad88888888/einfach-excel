@@ -1,6 +1,7 @@
 //! 一张工作表的浮动对象 → `xl/drawings/drawingN.xml` + 它的 rels + `xl/charts/chartN.xml`。
 //! 能写出的图表不计入报告；写不出的图表计 `charts`，其他对象计 `drawings`。
 
+use super::chartex;
 use super::charts::chart_xml;
 use super::features::Counters;
 use super::package::Part;
@@ -38,17 +39,28 @@ pub fn sheet(
     let Some(sheet_name) = book.sheets.get(index).map(|meta| meta.name.as_str()) else { return String::new() };
     let geometry = SheetGeometry::from_native(book, index);
     let drawing_no = counters.drawings;
+    let mut cells: Option<chartex::Cells> = None;
     let mut drawing_rels = Rels::default();
     let mut anchors = String::new();
     let (mut skipped_charts, mut other, mut shape_id) = (0, 0, 1);
     for object in book.drawings.iter().filter(|d| d.sheet == index).flat_map(|d| &d.drawings) {
         if object.kind != CHART_KIND { other += 1; continue; }
-        let Some(xml) = chart_xml(&object.payload, &object.refs, sheet_name) else { skipped_charts += 1; continue };
+        let (from, to) = geometry.to_corners(&object.anchor);
         let chart_no = counters.charts;
+        if object.payload.get("type").and_then(|t| t.as_str()).is_some_and(chartex::is_chartex_type) {
+            // Office 2016 新图表：chartEx 部件，drawing 里用 mc:AlternateContent 包住。
+            let Some(built) = chartex::build(cells.get_or_insert_with(|| chartex::Cells::new(&file.workbook)), &object.payload, &object.refs, sheet_name) else { skipped_charts += 1; continue };
+            counters.charts += 1;
+            parts.push(Part { path: format!("xl/charts/chartEx{chart_no}.xml"), body: built.xml, content_type: Some(chartex::CONTENT_TYPE) });
+            let rel_id = drawing_rels.add_typed(chartex::REL_TYPE, &format!("../charts/chartEx{chart_no}.xml"));
+            shape_id += 1;
+            anchors.push_str(&chartex::anchor(shape_id, &object.id, from, to, &rel_id, built.funnel));
+            continue;
+        }
+        let Some(xml) = chart_xml(&object.payload, &object.refs, sheet_name) else { skipped_charts += 1; continue };
         counters.charts += 1;
         parts.push(Part { path: format!("xl/charts/chart{chart_no}.xml"), body: xml, content_type: Some(CHART_CONTENT_TYPE) });
         let rel_id = drawing_rels.add("chart", &format!("../charts/chart{chart_no}.xml"), false);
-        let (from, to) = geometry.to_corners(&object.anchor);
         shape_id += 1;
         anchors.push_str(&anchor(shape_id, &object.id, from, to, &rel_id));
     }

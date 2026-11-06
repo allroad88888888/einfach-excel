@@ -6814,6 +6814,10 @@ msgstr "监视单元格引用"
 msgid "Watch Window"
 msgstr "监视窗口"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "waterfall subtotals"
+msgstr "瀑布图汇总柱"
+
 #: src/i18n/feedback-messages.ts
 msgid "Weekday names"
 msgstr "星期名称"

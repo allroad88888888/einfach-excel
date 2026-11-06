@@ -2,6 +2,8 @@
 
 mod comments;
 mod conditional;
+mod cell_values;
+mod chartex;
 mod charts;
 mod defined_names;
 mod drawings;

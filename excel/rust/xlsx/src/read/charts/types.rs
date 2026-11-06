@@ -1,5 +1,5 @@
 //! `c:plotArea` 里的各 `c:*Chart` 图表组 → 插件的 type / stack / 组合图设置。
-//! 不认识的组（雷达、股价、气泡、曲面、饼中饼……）返回 `None`，整张图表跳过。
+//! 不认识的组（气泡、曲面、饼中饼，以及不是恰好 4 个系列的股价图……）返回 `None`，整张图表跳过。
 
 use super::tree::val;
 use crate::chart_payload::ComboSeries;
@@ -7,7 +7,7 @@ use crate::read::dom::Node;
 
 pub struct Group<'a> {
     pub node: &'a Node,
-    /// column / bar / line / area / pie / doughnut / scatter
+    /// column / bar / line / area / pie / doughnut / scatter / radar / stock
     pub chart_type: &'static str,
     /// none / stacked / percent
     pub stack: &'static str,
@@ -29,6 +29,9 @@ fn group(node: &Node) -> Option<Group<'_>> {
         "pieChart" | "pie3DChart" => "pie",
         "doughnutChart" => "doughnut",
         "scatterChart" => "scatter",
+        "radarChart" => "radar",
+        // 只认 开盘-最高-最低-收盘 四个系列；高低收、带成交量等变体跳过。
+        "stockChart" if node.each("ser").count() == 4 => "stock",
         _ => return None,
     };
     let stack = match val(node, &["grouping"]) {

@@ -24,7 +24,9 @@ fn every_supported_chart_becomes_a_chart_object_on_its_own_sheet() {
     assert_eq!(main.iter().filter(|id| id.starts_with("chart-")).count(), 5);
     assert_eq!(ids(SHAPES).len(), 7);
     assert!(book.drawings(1).is_empty());
-    assert!(book.drawings(3).is_empty(), "unsupported charts are skipped");
+    // 雷达图现在可以导入；字面量数据和外部引用的图表仍然跳过。
+    assert_eq!(ids(3).len(), 1);
+    assert_eq!(book.drawings(3)[0]["payload"]["type"], "radar");
     let all: Vec<_> = (0..4).flat_map(ids).collect();
     let mut unique = all.clone();
     unique.sort();

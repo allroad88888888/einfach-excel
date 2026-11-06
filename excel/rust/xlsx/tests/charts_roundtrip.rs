@@ -79,6 +79,11 @@ fn supported_charts_survive_an_xlsx_round_trip() {
                 {"kind": "line", "secondary": true}]})),
         chart("colors", 144, json!([range(0, 0, 4, 2)]), json!({"type": "column",
             "colors": ["#123456", "#ABCDEF"], "fontSize": 14})),
+        chart("radar", 160, json!([range(0, 0, 4, 3)]), json!({"type": "radar", "title": "Skills",
+            "legend": "bottom", "gridlines": false, "dataLabels": true})),
+        // 开盘、最高、最低、收盘 四列，没有类别列。
+        chart("stock", 176, json!([range(0, 0, 4, 3)]), json!({"type": "stock", "headerCol": false,
+            "colors": ["#112233", "#445566"], "legend": "none"})),
     ];
     let other = vec![
         chart("cross", 0, json!([{"startRow": 0, "startCol": 0, "endRow": 4, "endCol": 2,

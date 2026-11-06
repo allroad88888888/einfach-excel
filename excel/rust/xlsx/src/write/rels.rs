@@ -19,6 +19,13 @@ impl Rels {
         id
     }
 
+    /// 登记一条类型为完整 URL 的关系（如 Office 2014 的 chartEx）。
+    pub fn add_typed(&mut self, type_url: &str, target: &str) -> String {
+        let id = format!("rId{}", self.items.len() + 1);
+        self.items.push(format!(r#"<Relationship Id="{id}" Type="{}" Target="{}"/>"#, escape(type_url), escape(target)));
+        id
+    }
+
     pub fn is_empty(&self) -> bool {
         self.items.is_empty()
     }

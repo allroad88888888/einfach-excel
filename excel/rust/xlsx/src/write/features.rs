@@ -4,7 +4,7 @@
 use super::package::Part;
 use super::rels::Rels;
 use super::styles::StyleTable;
-use super::{comments, conditional, drawings, hyperlinks, tables, validation, vml};
+use super::{charts, comments, conditional, drawings, hyperlinks, tables, validation, vml};
 use crate::native::NativeFile;
 use crate::report::ReportBuilder;
 
@@ -46,7 +46,9 @@ pub fn sheet(
     report.add("dataValidations", skipped_val);
 
     // <drawing> 在 hyperlinks 之后、legacyDrawing（批注 VML）之前。
+    let first_part = parts.len();
     tail.push_str(&drawings::sheet(file, index, &mut rels, counters, parts, report));
+    charts::add_caches(&mut parts[first_part..], book);
 
     let (texts, downgraded) = comments::collect(index, &book.notes, &book.comments);
     report.add("threadedCommentsAsNotes", downgraded);

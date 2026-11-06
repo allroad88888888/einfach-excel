@@ -13,6 +13,19 @@ fn series_color(ser: &Node) -> Option<String> {
     ser.child("spPr").and_then(srgb).or_else(|| ser.child("marker").and_then(|m| m.child("spPr")).and_then(srgb))
 }
 
+/// 股价图：涨跌柱的颜色（`colors[0]` 涨、`[1]` 跌）；与导出的缺省红绿相同的不留。
+pub fn stock(group: &Node) -> Vec<Option<String>> {
+    let bars = |name: &str, default: &str| {
+        group.child("upDownBars").and_then(|bars| bars.child(name)).and_then(|bar| bar.child("spPr"))
+            .and_then(srgb).filter(|color| !color.eq_ignore_ascii_case(default))
+    };
+    let mut colors = vec![bars("upBars", "#2E9E5B"), bars("downBars", "#D64545")];
+    while colors.last().is_some_and(Option::is_none) {
+        colors.pop();
+    }
+    colors
+}
+
 /// `sers` 按绘制顺序。末尾的缺省项去掉，全缺省就是空数组。
 pub fn read(sers: &[&Node], by_category: bool) -> Vec<Option<String>> {
     let mut colors: Vec<Option<String>> = if by_category {

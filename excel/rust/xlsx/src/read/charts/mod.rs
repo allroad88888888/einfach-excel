@@ -1,10 +1,10 @@
 //! `xl/charts/chartN.xml`（DrawingML chart）→ 图表载荷 + 数据区域。
-//! 本轮只转换 柱/条/线/面积/饼/圆环/散点 和「柱 + 线」组合；其余、字面量数据、外部引用返回 `None`。
+//! 转换 柱/条/线/面积/饼/圆环/散点/雷达/股价（OHLC）和「柱 + 线」组合；其余、字面量数据、外部引用返回 `None`。
 
 mod colors;
 mod elements;
-mod formula;
-mod series;
+pub(crate) mod formula;
+pub(super) mod series;
 mod source;
 pub(super) mod tree;
 mod types;
@@ -56,6 +56,9 @@ pub fn parse(xml: &str, own_sheet: &str) -> Option<Parsed> {
         colors: colors::read(&sers, matches!(chart_type, "pie" | "doughnut")),
         ..ChartPayload::default()
     };
+    if chart_type == "stock" {
+        payload.colors = colors::stock(groups[0].node);
+    }
     if chart_type == "combo" {
         payload.combo = types::combo(&groups, &secondary, &series_groups);
     }

@@ -1,7 +1,8 @@
 //! XLSX 字节 → 原生工作簿文件。
 
 mod archive;
-mod charts;
+pub(crate) mod charts;
+mod chartex;
 mod conditional;
 mod defined_names;
 mod dom;

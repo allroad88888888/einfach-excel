@@ -32,6 +32,9 @@ pub fn place_all(
             if chart.parsed.names_dropped {
                 report.add("chartSeriesNames", 1);
             }
+            if chart.subtotals_mismatch {
+                report.add("chartSubtotals", 1);
+            }
             drawings.push(NativeDrawing {
                 id: ids.allocate(chart.name.as_deref()),
                 kind: CHART_KIND.into(),

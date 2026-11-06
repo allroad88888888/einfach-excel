@@ -78,8 +78,8 @@ fn unsupported_types_and_other_objects_are_reported_not_written() {
     let image = serde_json::json!({"id": "logo", "kind": "image", "anchor": anchor()});
     let json = native(vec![
         chart("ok", sales(), serde_json::json!({"type": "column"})),
-        chart("radar", sales(), serde_json::json!({"type": "radar"})),
-        chart("tree", sales(), serde_json::json!({"type": "treemap"})),
+        chart("bubble", sales(), serde_json::json!({"type": "bubble"})),
+        chart("tree", sales(), serde_json::json!({"type": "wordcloud"})),
         chart("broken", serde_json::json!([null]), serde_json::json!({"type": "line"})),
         chart("lonely", serde_json::json!([range(0, 0, 0, 3, None)]), serde_json::json!({"type": "line"})),
         image,
@@ -93,7 +93,7 @@ fn unsupported_types_and_other_objects_are_reported_not_written() {
 
 #[test]
 fn sheet_with_only_unsupported_objects_gets_no_drawing_part() {
-    let json = native(vec![chart("radar", sales(), serde_json::json!({"type": "radar"}))], serde_json::json!({}));
+    let json = native(vec![chart("bubble", sales(), serde_json::json!({"type": "bubble"}))], serde_json::json!({}));
     let out = export(&json);
     assert!(!out.has_part("xl/drawings/drawing1.xml"));
     assert!(!out.part("xl/worksheets/sheet1.xml").contains("<drawing"));

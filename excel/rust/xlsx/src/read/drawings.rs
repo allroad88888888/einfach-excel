@@ -3,6 +3,7 @@
 
 use super::archive::Archive;
 use super::charts::{self, tree, Parsed};
+use super::chartex;
 use super::dom::{self, Node};
 use super::rels::{self, Relationship};
 use crate::drawing_geometry::CellCorner;
@@ -19,12 +20,14 @@ pub struct RawChart {
     pub name: Option<String>,
     pub anchor: RawAnchor,
     pub parsed: Parsed,
+    /// chartEx 瀑布图的汇总下标与类别名对不上（图照画，记入报告）。
+    pub subtotals_mismatch: bool,
 }
 
 #[derive(Default)]
 pub struct SheetObjects {
     pub charts: Vec<RawChart>,
-    /// 不支持的类型、字面量数据、外部引用、chartEx。
+    /// 不支持的类型、字面量数据、外部引用。
     pub skipped_charts: usize,
     /// 图片、形状等。
     pub others: usize,
@@ -32,6 +35,7 @@ pub struct SheetObjects {
 
 enum Kind<'a> {
     Chart(&'a Relationship),
+    ChartEx(&'a Relationship),
     SkippedChart,
     Other,
 }
@@ -76,7 +80,16 @@ fn read_anchors(archive: &mut Archive, root: &Node, drawing_rels: &[Relationship
                     .and_then(|xml| charts::parse(&xml, own_sheet))
                     .zip(raw_anchor(anchor));
                 match chart {
-                    Some((parsed, raw)) => objects.charts.push(RawChart { name: frame_name(anchor), anchor: raw, parsed }),
+                    Some((parsed, raw)) => objects.charts.push(RawChart { name: frame_name(anchor), anchor: raw, parsed, subtotals_mismatch: false }),
+                    None => objects.skipped_charts += 1,
+                }
+            }
+            Kind::ChartEx(rel) => {
+                let chart = archive.read(&rel.target).ok().flatten()
+                    .and_then(|xml| chartex::parse(&xml, own_sheet))
+                    .zip(raw_anchor(anchor));
+                match chart {
+                    Some((ex, raw)) => objects.charts.push(RawChart { name: frame_name(anchor), anchor: raw, parsed: ex.parsed, subtotals_mismatch: ex.subtotals_mismatch }),
                     None => objects.skipped_charts += 1,
                 }
             }
@@ -90,6 +103,7 @@ fn classify<'a>(anchor: &Node, drawing_rels: &'a [Relationship]) -> Kind<'a> {
     let rel = chart.attr("id").and_then(|id| drawing_rels.iter().find(|rel| rel.id == id && !rel.external));
     match rel {
         Some(rel) if rel.kind.ends_with("/chart") => Kind::Chart(rel),
+        Some(rel) if rel.kind.ends_with("/chartEx") => Kind::ChartEx(rel),
         _ => Kind::SkippedChart,
     }
 }

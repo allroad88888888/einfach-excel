@@ -29,6 +29,7 @@ const IMPORT_ORDER: &[(&str, &str)] = &[
     ("drawings", "images or drawings"),
     ("charts", "charts"),
     ("chartSeriesNames", "chart series names"),
+    ("chartSubtotals", "waterfall subtotals"),
     ("pivotTables", "pivot tables"),
     ("threadedComments", "threaded comments"),
     ("conditionalFormats", "unsupported conditional formats"),

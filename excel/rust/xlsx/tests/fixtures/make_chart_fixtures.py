@@ -247,3 +247,65 @@ with zipfile.ZipFile(io.BytesIO(buffer.getvalue())) as source, \
             data = patch_drawing(data.decode("utf-8")).encode("utf-8")
         target.writestr(item, data)
 print("wrote", HERE / "charts.xlsx")
+
+
+# ---- charts_more.xlsx：雷达图与股价图（及不支持的股价变体） ----
+from openpyxl.chart import StockChart
+from openpyxl.chart.axis import ChartLines
+from openpyxl.chart.updown_bars import UpDownBars
+
+more = Workbook()
+radar_ws = more.active
+radar_ws.title = "Radar"
+stock_ws = more.create_sheet("Stock")
+variants_ws = more.create_sheet("Variants")
+for sheet in (radar_ws, stock_ws, variants_ws):
+    size_grid(sheet)
+
+for row in [["Skill", "Alice", "Bob"], ["Speed", 4, 2], ["Power", 3, 5], ["Agility", 5, 3], ["Luck", 2, 4]]:
+    radar_ws.append(row)
+rc = RadarChart()
+rc.type = "marker"
+rc.add_data(Reference(radar_ws, min_col=2, min_row=1, max_col=3, max_row=5), titles_from_data=True)
+rc.set_categories(Reference(radar_ws, min_col=1, min_row=2, max_row=5))
+rc.title = "Skills"
+rc.series[0].graphicalProperties.line.solidFill = "FF0000"
+style_axes(rc)
+radar_ws.add_chart(rc, "F2")
+
+ohlc = [["Day", "Open", "High", "Low", "Close", "Volume"],
+        ["Mon", 10, 14, 9, 13, 100], ["Tue", 13, 15, 11, 12, 120],
+        ["Wed", 12, 13, 8, 9, 90], ["Thu", 9, 12, 8, 11, 150]]
+for row in ohlc:
+    stock_ws.append(row)
+    variants_ws.append(row)
+
+
+def stock_chart(ws, last_col, title):
+    chart = StockChart()
+    chart.add_data(Reference(ws, min_col=2, min_row=1, max_col=last_col, max_row=5), titles_from_data=True)
+    chart.set_categories(Reference(ws, min_col=1, min_row=2, max_row=5))
+    for series in chart.series:
+        series.graphicalProperties.line.noFill = True
+    chart.hiLowLines = ChartLines()
+    chart.upDownBars = UpDownBars()
+    if title:
+        chart.title = title
+    style_axes(chart)
+    return chart
+
+
+stock_ws.add_chart(stock_chart(stock_ws, 5, "OHLC"), "H2")
+variants_ws.add_chart(stock_chart(variants_ws, 4, "High-Low-Close"), "H2")
+# 带成交量：柱（成交量）+ 股价图（4 个系列）
+volume = BarChart()
+volume.add_data(Reference(variants_ws, min_col=6, min_row=1, max_row=5), titles_from_data=True)
+volume.set_categories(Reference(variants_ws, min_col=1, min_row=2, max_row=5))
+volume.title = "Volume-OHLC"
+volume.y_axis.axId = 200
+style_axes(volume)
+volume += stock_chart(variants_ws, 5, "")
+variants_ws.add_chart(volume, "H20")
+
+more.save(HERE / "charts_more.xlsx")
+print("wrote", HERE / "charts_more.xlsx")

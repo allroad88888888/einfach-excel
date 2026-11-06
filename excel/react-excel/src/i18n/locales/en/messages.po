@@ -6814,6 +6814,10 @@ msgstr "Watch cell reference"
 msgid "Watch Window"
 msgstr "Watch Window"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "waterfall subtotals"
+msgstr "waterfall subtotals"
+
 #: src/i18n/feedback-messages.ts
 msgid "Weekday names"
 msgstr "Weekday names"

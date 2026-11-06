@@ -6,7 +6,7 @@ use crate::chart_payload::ChartPayload;
 use crate::write::xml::escape;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum SerKind { Bar, Line, Area, Pie, Scatter }
+pub enum SerKind { Bar, Line, Area, Pie, Scatter, Radar, Stock }
 
 fn str_ref(tag: &str, formula: &str) -> String {
     format!("<c:{tag}><c:strRef><c:f>{}</c:f></c:strRef></c:{tag}>", escape(formula))
@@ -19,8 +19,9 @@ fn num_ref(tag: &str, formula: &str) -> String {
 /// 序列的 `c:spPr`（柱、面积是填充；折线是线条；散点不画线）。
 fn sp_pr(kind: SerKind, color: Option<&str>) -> String {
     match (kind, color) {
-        (SerKind::Scatter, _) => r#"<c:spPr><a:ln w="19050"><a:noFill/></a:ln></c:spPr>"#.into(),
-        (SerKind::Line, Some(color)) => format!(r#"<c:spPr><a:ln w="28575" cap="rnd">{}<a:round/></a:ln></c:spPr>"#, solid(color)),
+        // 股价图的四个系列只提供数据，线条由高低线和涨跌柱代替。
+        (SerKind::Scatter | SerKind::Stock, _) => r#"<c:spPr><a:ln w="19050"><a:noFill/></a:ln></c:spPr>"#.into(),
+        (SerKind::Line | SerKind::Radar, Some(color)) => format!(r#"<c:spPr><a:ln w="28575" cap="rnd">{}<a:round/></a:ln></c:spPr>"#, solid(color)),
         (SerKind::Pie, _) | (_, None) => String::new(),
         (_, Some(color)) => format!("<c:spPr>{}</c:spPr>", solid(color)),
     }
@@ -30,6 +31,9 @@ fn marker(kind: SerKind, color: Option<&str>) -> String {
     match (kind, color) {
         (SerKind::Scatter, Some(color)) => format!(r#"<c:marker><c:symbol val="circle"/><c:size val="7"/><c:spPr>{}</c:spPr></c:marker>"#, solid(color)),
         (SerKind::Scatter, None) => r#"<c:marker><c:symbol val="circle"/><c:size val="7"/></c:marker>"#.into(),
+        (SerKind::Radar, Some(color)) => format!(r#"<c:marker><c:symbol val="circle"/><c:size val="5"/><c:spPr>{}</c:spPr></c:marker>"#, solid(color)),
+        (SerKind::Radar, None) => r#"<c:marker><c:symbol val="circle"/><c:size val="5"/></c:marker>"#.into(),
+        (SerKind::Stock, _) => r#"<c:marker><c:symbol val="none"/></c:marker>"#.into(),
         _ => String::new(),
     }
 }
@@ -49,7 +53,7 @@ pub fn ser(kind: SerKind, index: usize, refs: &SeriesRefs, p: &ChartPayload) -> 
     xml.push_str(&sp_pr(kind, color.as_deref()));
     match kind {
         SerKind::Bar => xml.push_str(r#"<c:invertIfNegative val="0"/>"#),
-        SerKind::Line | SerKind::Scatter => xml.push_str(&marker(kind, color.as_deref())),
+        SerKind::Line | SerKind::Scatter | SerKind::Radar | SerKind::Stock => xml.push_str(&marker(kind, color.as_deref())),
         SerKind::Pie => xml.push_str(&data_points(p)),
         SerKind::Area => {}
     }
@@ -60,7 +64,7 @@ pub fn ser(kind: SerKind, index: usize, refs: &SeriesRefs, p: &ChartPayload) -> 
     } else {
         if let Some(cat) = &refs.cat { xml.push_str(&str_ref("cat", cat)); }
         xml.push_str(&num_ref("val", &refs.val));
-        if kind == SerKind::Line { xml.push_str(r#"<c:smooth val="0"/>"#); }
+        if matches!(kind, SerKind::Line | SerKind::Stock) { xml.push_str(r#"<c:smooth val="0"/>"#); }
     }
     xml.push_str("</c:ser>");
     xml

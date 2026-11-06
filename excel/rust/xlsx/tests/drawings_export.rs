@@ -5,7 +5,7 @@ fn native(drawings: serde_json::Value) -> String {
         "width": 480, "height": 288});
     let chart = |id: &str| serde_json::json!({"id": id, "kind": "chart", "anchor": anchor,
         "refs": [{"startRow": 0, "startCol": 0, "endRow": 4, "endCol": 1, "sheetName": "Data"}],
-        "payload": {"type": "radar", "title": "Sales"}});
+        "payload": {"type": "bubble", "title": "Sales"}});
     let drawings = if drawings.is_null() {
         serde_json::json!([
             {"sheet": 0, "drawings": [chart("chart-1"), chart("chart-2")]},

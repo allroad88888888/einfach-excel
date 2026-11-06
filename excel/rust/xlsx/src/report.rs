@@ -46,6 +46,8 @@ const IMPORT_ORDER: &[(&str, &str)] = &[
 ];
 
 const EXPORT_ORDER: &[(&str, &str)] = &[
+    ("charts", "charts"),
+    ("drawings", "images or drawings"),
     ("threadedCommentsAsNotes", "threaded comments exported as notes"),
     ("conditionalFormats", "unsupported conditional formats"),
     ("dataValidations", "unsupported data validations"),

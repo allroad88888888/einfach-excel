@@ -62,6 +62,9 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
         .count();
     report.add("printSetup", custom_print);
     report.add("customFormulas", workbook.custom_formulas.len());
+    let (charts, other_drawings) = crate::native_drawings::count_by_kind(&workbook.drawings);
+    report.add("charts", charts);
+    report.add("drawings", other_drawings);
     let hidden_or_colored = workbook.sheets.iter().filter(|s| s.hidden || s.tab_color.is_some()).count();
     report.add("sheetVisibilityOrColor", hidden_or_colored);
 

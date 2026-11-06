@@ -14,6 +14,8 @@ export type WorkbookViewProps = Record<string, never>
 export type { XlsxConverter, XlsxConverterLoader } from './workbook/xlsx/xlsx-converter'
 export type {
   ContextMenuContribution,
+  DrawingContribution,
+  DrawingRendererProps,
   RibbonContribution,
   SpreadsheetPlugin,
 } from './plugin/types'

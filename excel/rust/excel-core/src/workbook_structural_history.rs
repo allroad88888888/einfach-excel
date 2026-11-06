@@ -332,6 +332,7 @@ impl StructuralHistoryChange {
             workbook.sheets[sheet]
                 .data_validations
                 .clone_from(&snapshot.data_validations);
+            workbook.sheets[sheet].drawings.clone_from(&snapshot.drawings);
             // 权限不进入内容历史；只让当前配置随本次回放的几何移动。
             let edit = if undo {
                 match self.edit {

@@ -227,6 +227,10 @@ msgstr "粘贴值不符合目标单元格的数据验证规则，未粘贴任何
 msgid "A validation formula would refer outside the sheet at this destination."
 msgstr "粘贴到此处后，验证公式会引用工作表之外的单元格。"
 
+#: src/i18n/feedback-messages.ts
+msgid "A worksheet can hold at most 1000 objects."
+msgstr "一张工作表最多 1000 个对象。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "A worksheet supports at most 256 editable ranges."
 msgstr "每个工作表最多支持 256 个允许编辑范围。"
@@ -1664,6 +1668,10 @@ msgid "Delete note"
 msgstr "删除备注"
 
 #: src/i18n/feedback-messages.ts
+msgid "Delete object"
+msgstr "删除对象"
+
+#: src/i18n/feedback-messages.ts
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Delete rows"
 msgstr "删除行"
@@ -1938,6 +1946,10 @@ msgstr "编辑命名区域"
 #: src/workbook/notes/NoteTools.tsx
 msgid "Edit note"
 msgstr "编辑备注"
+
+#: src/i18n/feedback-messages.ts
+msgid "Edit object"
+msgstr "编辑对象"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Edit rule"
@@ -3025,6 +3037,10 @@ msgstr "插入链接"
 msgid "Insert note"
 msgstr "新增备注"
 
+#: src/i18n/feedback-messages.ts
+msgid "Insert object"
+msgstr "插入对象"
+
 #: src/workbook/chrome/ribbon/StructureTools.tsx
 msgid "Insert or delete rows and columns"
 msgstr "插入或删除行列"
@@ -3525,6 +3541,10 @@ msgstr "请先将单元格移出 Excel 表格，再跨表剪切。未移动任�
 msgid "Move down"
 msgstr "下移"
 
+#: src/i18n/feedback-messages.ts
+msgid "Move object"
+msgstr "移动对象"
+
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Move rule {0} down"
@@ -3844,6 +3864,18 @@ msgstr "等差数列"
 #: src/i18n/feedback-messages.ts
 msgid "Numerical count"
 msgstr "数值计数"
+
+#: src/workbook/drawings/DrawingFrame.tsx
+msgid "Object"
+msgstr "对象"
+
+#: src/i18n/feedback-messages.ts
+msgid "Object settings cannot exceed 64 KiB."
+msgstr "对象设置不能超过 64 KiB。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Objects changed outside history."
+msgstr "对象已在历史记录之外被修改。"
 
 #: src/workbook/protection/LockedCellDialog.tsx
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
@@ -4549,6 +4581,10 @@ msgstr "调整列宽"
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting."
 msgstr "调整范围时，表头行位置保持不变。如有汇总行，请将其包含在内。转换为普通区域会保留数据和格式。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Resize object"
+msgstr "调整对象大小"
 
 #: src/i18n/feedback-messages.ts
 msgid "Resize row"
@@ -5719,6 +5755,10 @@ msgstr "备注单元格超出工作表范围。"
 msgid "The note worksheet no longer exists."
 msgstr "备注所在的工作表已不存在。"
 
+#: src/i18n/feedback-messages.ts
+msgid "The object worksheet no longer exists."
+msgstr "对象所在的工作表已不存在。"
+
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "The original range was deleted. Enter a new range to repair this name."
 msgstr "原引用区域已删除，请输入新区域以修复此名称。"
@@ -6040,6 +6080,10 @@ msgstr "匹配项位于隐藏行或列中，请取消隐藏后查看。"
 #: src/i18n/feedback-messages.ts
 msgid "This named range no longer refers to an available worksheet range."
 msgstr "此命名区域已不再引用有效的工作表区域。"
+
+#: src/workbook/drawings/DrawingFrame.tsx
+msgid "This object type is not available."
+msgstr "此对象类型不可用（缺少对应插件）。"
 
 #: src/i18n/feedback-messages.ts
 msgid "This recent location is no longer available."

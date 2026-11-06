@@ -43,6 +43,7 @@ impl Sheet {
             hyperlinks: HashMap::new(),
             notes: HashMap::new(),
             comments: HashMap::new(),
+            drawings: Vec::new(),
             row_styles: BTreeMap::new(),
             explicit_dimension_generations: [0; 2],
             defaults: SheetDefaults::default(),

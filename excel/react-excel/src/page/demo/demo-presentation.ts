@@ -1,4 +1,5 @@
 import { imageExportPlugin } from '@einfach-excel/plugin-image-export'
+import { chartPlugin } from '@einfach-excel/plugin-chart'
 import { datePickerPlugin } from '@einfach-excel/plugin-date-picker'
 import { samplePlugin } from '@einfach-excel/plugin-sample'
 import { createWorkbookI18n, supportedUiLocale, type UiLocale } from '../../i18n/runtime'
@@ -55,6 +56,7 @@ async function loadXlsx() {
 /** `?plugins=sample` 挂上仓内样例插件；数组在模块内固定，挂载期间身份不变。 */
 const DEMO_PLUGINS: Readonly<Record<string, SpreadsheetPlugin>> = {
   sample: samplePlugin, 'date-picker': datePickerPlugin, 'image-export': imageExportPlugin,
+  chart: chartPlugin,
 }
 
 function demoPlugins(query: string): readonly SpreadsheetPlugin[] {
@@ -63,6 +65,8 @@ function demoPlugins(query: string): readonly SpreadsheetPlugin[] {
 }
 
 const plugins = typeof window === 'undefined' ? [] : demoPlugins(window.location.search)
+/** 图表演示页固定挂图表插件，与 `?plugins=` 合并且不重复；数组身份在模块内固定。 */
+const pluginsWithChart = plugins.includes(chartPlugin) ? plugins : [...plugins, chartPlugin]
 
 /** `?hide=ribbon,sheetBar,menu,menu:cells.insert` 演示宿主的界面显隐配置。 */
 export function demoUiOptions(query: string): WorkbookUiOptions {
@@ -86,8 +90,8 @@ const defaults: SheetDefaults = Object.fromEntries(
   }),
 )
 
-export function demoPresentation() {
-  return { i18n, xlsx: loadXlsx, plugins, ui, defaults,
+export function demoPresentation(options: { readonly chart?: boolean } = {}) {
+  return { i18n, xlsx: loadXlsx, plugins: options.chart ? pluginsWithChart : plugins, ui, defaults,
     renderer: new URLSearchParams(window.location.search).get('renderer') === 'canvas'
       ? 'canvas' as const : 'dom' as const }
 }

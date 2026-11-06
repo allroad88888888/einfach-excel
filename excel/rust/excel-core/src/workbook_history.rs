@@ -47,6 +47,8 @@ mod input;
 mod named_range;
 #[path = "notes/history.rs"]
 mod notes;
+#[path = "drawings/history.rs"]
+mod drawings;
 #[path = "protection/history.rs"]
 mod protection;
 #[path = "workbook_history_table.rs"]
@@ -114,6 +116,7 @@ enum HistoryChange {
     Filter(FilterChange),
     ConditionalFormat(ConditionalFormatChange),
     DataValidation(DataValidationChange),
+    Drawing(drawings::DrawingChange),
     Structure(Box<StructuralHistoryChange>),
     NamedRange(Box<crate::workbook::NamedRangeChange>),
     CustomFormula(Box<crate::custom_formulas::CustomFormulaChange>),

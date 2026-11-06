@@ -285,6 +285,9 @@ struct WorkbookPersistenceV1JSON {
     data_validations: Vec<SheetDataValidationJSON>,
     #[serde(default, rename = "namedRanges", skip_serializing_if = "Vec::is_empty")]
     named_ranges: Vec<NamedRangeJSON>,
+    /// 浮动对象目录（图表等）；旧快照缺省为空，没有对象时输出不变。
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    drawings: Vec<SheetDrawingsJSON>,
     #[serde(default, rename = "calculationMode", skip_serializing_if = "Option::is_none")]
     calculation_mode: Option<String>,
     #[serde(default, rename = "iterativeCalculation", skip_serializing_if = "Option::is_none")]

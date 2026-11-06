@@ -7,6 +7,7 @@ import { validFilterRules } from '../rust-workbook/filter-commands'
 import { validFilterGroups } from '../advanced-filter/contracts'
 import { cloneFilterSortRule } from '../contracts/projection-helpers'
 import { validateCustomFormulaDefinitions, type NativeCustomFormulaDefinition } from '../custom-formulas/expression-types'
+import type { SheetDrawing } from '../drawings/types'
 
 export interface RustWorkbookSheetDefinition extends RustWorkbookSheetInput {
   readonly id: string
@@ -22,6 +23,8 @@ export interface RustWorkbookDefinition {
   readonly title: string
   readonly sheets: readonly RustWorkbookSheetDefinition[]
   readonly customFormulas?: readonly NativeCustomFormulaDefinition[]
+  /** 启动时安装的浮动对象（如图表）；形状由 Rust 校验，不进入用户撤销历史。 */
+  readonly drawings?: readonly { readonly sheetId: string; readonly drawing: SheetDrawing }[]
   createImportChunks():
     | Iterable<readonly RustImportCell[]>
     | AsyncIterable<readonly RustImportCell[]>
@@ -262,6 +265,10 @@ export function snapshotRustWorkbookDefinition(
     title,
     sheets: Object.freeze(sheets),
     ...(customFormulas ? { customFormulas } : {}),
+    ...(input.drawings ? { drawings: Object.freeze(input.drawings.map((entry) => {
+      if (!ids.has(entry.sheetId)) throw new Error('Initial object targets an unknown sheet.')
+      return Object.freeze({ sheetId: entry.sheetId, drawing: structuredClone(entry.drawing) })
+    })) } : {}),
     createImportChunks: () => input.createImportChunks(),
   })
 }

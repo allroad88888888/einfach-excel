@@ -174,6 +174,7 @@ impl WasmWorkbook :: [] :: pub fn read_note(&self, sheet: u32, row: u32, col: u3
 impl WasmWorkbook :: [] :: pub fn read_protection(&self, sheet: u32) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn read_sparse_range( &self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn recalculate(&mut self, sheet: Option<u32>) -> Result<usize, JsValue>
+impl WasmWorkbook :: [] :: pub fn remove_drawing(&mut self, sheet: u32, id: &str) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn remove_duplicates(&mut self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn remove_sheet(&mut self, idx: u32) -> bool
 impl WasmWorkbook :: [] :: pub fn rename_sheet(&mut self, idx: u32, name: &str) -> bool
@@ -194,6 +195,7 @@ impl WasmWorkbook :: [] :: pub fn set_cell_input_with_table_expansion( &mut self
 impl WasmWorkbook :: [] :: pub fn set_cell_number(&mut self, sheet_idx: usize, addr: &str, value: f64)
 impl WasmWorkbook :: [] :: pub fn set_cell_text(&mut self, sheet_idx: usize, addr: &str, value: &str)
 impl WasmWorkbook :: [] :: pub fn set_col_width(&mut self, sheet_idx: u32, col_index: u32, width_px: u32) -> bool
+impl WasmWorkbook :: [] :: pub fn set_drawing(&mut self, sheet: u32, drawing_json: &str) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn set_error(&mut self, sheet_idx: u32, addr: &str, value: &str)
 impl WasmWorkbook :: [] :: pub fn set_format_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, fmt: JsValue, ) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn set_formula(&mut self, sheet_idx: u32, addr: &str, formula: &str) -> bool
@@ -208,6 +210,7 @@ impl WasmWorkbook :: [] :: pub fn set_text(&mut self, sheet_idx: u32, addr: &str
 impl WasmWorkbook :: [] :: pub fn set_visibility( &mut self, sheet: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, action: &str, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn sheet_count(&self) -> u32
 impl WasmWorkbook :: [] :: pub fn sheet_defaults(&self, idx: u32) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn sheet_drawings(&self, sheet: u32) -> Result<String, JsValue>
 impl WasmWorkbook :: [] :: pub fn sheet_hidden(&self, idx: u32) -> bool
 impl WasmWorkbook :: [] :: pub fn sheet_key(&self, idx: u32) -> String
 impl WasmWorkbook :: [] :: pub fn sheet_name(&self, idx: u32) -> String

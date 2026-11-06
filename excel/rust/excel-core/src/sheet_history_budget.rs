@@ -55,6 +55,7 @@ impl Sheet {
         bytes += metadata_bytes(&self.cell_styles)
             + metadata_bytes(&self.notes)
             + metadata_bytes(&self.comments)
+            + metadata_bytes(&self.drawings)
             + metadata_bytes(&self.row_styles)
             + metadata_bytes(&self.column_styles)
             + metadata_bytes(&self.conditional_rules)

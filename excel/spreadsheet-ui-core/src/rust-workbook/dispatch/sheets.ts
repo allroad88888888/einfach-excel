@@ -66,6 +66,10 @@ export const sheetHandlers: WorkbookHandlers = {
   'workbook.importCells': (context, current, input) => {
     const stats = current.bulk_import_cells(input.cells)
     importTables(current, context.sheetsById, input.tables ?? [])
+    for (const { sheetId, drawing } of input.drawings ?? []) {
+      if (!current.set_drawing) throw new Error('Rust objects are unavailable.')
+      current.set_drawing(context.sheetIndex(sheetId), JSON.stringify(drawing))
+    }
     current.history_clear?.('')
     return stats
   },

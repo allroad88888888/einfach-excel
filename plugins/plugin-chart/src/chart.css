@@ -1,0 +1,105 @@
+:where(.einfach-spreadsheet) .plugin-chart {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  pointer-events: none;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-message[role='alert'] { color: #a12622; }
+
+:where(.einfach-spreadsheet) .plugin-chart-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #a12622;
+  font-size: 12px;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-error button {
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* 非模态侧栏：固定在工作簿右侧，不遮住图表所在的表格主体。 */
+:where(.einfach-spreadsheet) .plugin-chart-settings {
+  position: fixed;
+  top: 96px;
+  right: 16px;
+  z-index: 30;
+  display: grid;
+  gap: 10px;
+  width: 280px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 120px);
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 8px 24px rgb(20 25 45 / 16%);
+  font: 13px/1.5 system-ui, sans-serif;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-settings header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-settings h2 { margin: 0; font-size: 15px; }
+
+:where(.einfach-spreadsheet) .plugin-chart-field { display: grid; gap: 4px; }
+
+:where(.einfach-spreadsheet) .plugin-chart-range { display: flex; gap: 6px; }
+
+:where(.einfach-spreadsheet) .plugin-chart-range input { flex: 1; min-width: 0; }
+
+:where(.einfach-spreadsheet) .plugin-chart-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-settings input[type='text'],
+:where(.einfach-spreadsheet) .plugin-chart-settings input[type='number'],
+:where(.einfach-spreadsheet) .plugin-chart-settings select,
+:where(.einfach-spreadsheet) .plugin-chart-settings button {
+  min-height: 30px;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-settings :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-settings :disabled { opacity: .5; }

@@ -18,6 +18,7 @@ import { structureHandlers } from './dispatch/structure'
 import { sheetHandlers } from './dispatch/sheets'
 import { clipboardHandlers } from './dispatch/clipboard'
 import { cellWriteHandlers } from './dispatch/cell-writes'
+import { drawingHandlers } from './dispatch/drawings'
 
 /** 按命名空间分文件登记；新命令加到对应表，不再改本文件。 */
 const workbookHandlers: WorkbookHandlers = {
@@ -28,6 +29,7 @@ const workbookHandlers: WorkbookHandlers = {
   ...sheetHandlers,
   ...clipboardHandlers,
   ...cellWriteHandlers,
+  ...drawingHandlers,
 }
 
 /** 在 Worker 内维护唯一 Rust 工作簿，并处理 UI Core 的直接命令。 */

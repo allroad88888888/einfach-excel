@@ -30,6 +30,7 @@ pub mod history_snapshot;
 pub mod host;
 pub mod hyperlink;
 pub mod notes;
+pub mod drawings;
 pub mod comments;
 pub mod protection;
 pub mod custom_formulas;

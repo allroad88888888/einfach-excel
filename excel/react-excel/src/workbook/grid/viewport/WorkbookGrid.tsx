@@ -32,6 +32,7 @@ import { FormulaReferenceOverlay } from '../../formula-reference/FormulaReferenc
 import { FormulaAuditingOverlay } from '../../../components/formula-auditing'
 import { OutlineGutters } from './OutlineGutters'
 import { FillHandle } from '../fill/FillHandle'
+import { DrawingLayer } from '../../drawings/DrawingLayer'
 import { SelectionMoveBorder } from '../../drag-move/SelectionMoveBorder'
 import { useGridZoomWheel } from '../../zoom/use-grid-zoom-wheel'
 import { useGridGutter } from './grid-gutter'
@@ -226,6 +227,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             )}
           </div>
           <FrozenGrid focusGrid={events.focusGrid} />
+          <DrawingLayer focusGrid={events.focusGrid} />
           <FormulaReferenceOverlay />
           <FormulaAuditingOverlay />
           <SelectionMoveBorder scrollRef={events.scrollRef} focusGrid={events.focusGrid} />

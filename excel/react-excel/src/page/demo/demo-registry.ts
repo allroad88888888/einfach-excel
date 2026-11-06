@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import { PageSalesOrders } from './sales-orders/PageSalesOrders'
 import { PageAsyncFormulas } from './async-formulas/PageAsyncFormulas'
 import { PageLocalRestore } from './local-restore/PageLocalRestore'
+import { PageCharts } from './charts/PageCharts'
 
 export interface DemoPageRegistration {
   readonly id: string
@@ -29,6 +30,12 @@ export const DEMO_PAGES: readonly DemoPageRegistration[] = Object.freeze([
     marker: 'R',
     title: 'Local restore',
     Page: PageLocalRestore,
+  },
+  {
+    id: 'charts',
+    marker: 'C',
+    title: 'Charts',
+    Page: PageCharts,
   },
 ])
 

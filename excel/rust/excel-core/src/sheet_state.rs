@@ -72,6 +72,8 @@ pub struct Sheet {
     /// 备注独立于单元格值；普通内容覆盖不会删除它。
     pub(crate) notes: HashMap<CellAddress, String>,
     pub(crate) comments: HashMap<CellAddress, crate::comments::NativeCommentThread>,
+    /// 浮动对象目录（图表等），按绘制顺序；随 Sheet 的移动/归档/复制保留。
+    pub(crate) drawings: Vec<crate::drawings::SheetDrawing>,
     /// 稀疏 rowStyle；行显示格式与行高共用这一份权威数据。
     pub(crate) row_styles: BTreeMap<u32, crate::cell_style::RowStyle>,
     /// 仅供正在记录的原生历史区分显式轴尺寸与内容/字号派生行高；不是尺寸源或文件数据。

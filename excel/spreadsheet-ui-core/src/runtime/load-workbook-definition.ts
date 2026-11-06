@@ -75,6 +75,11 @@ export async function loadWorkbookDefinition(
       await connection.request('workbook.importCells', { cells: [], tables })
       if (!owned()) return null
     }
+    // 对象引用的数据已在位；同一启动命令安装，随后清空历史。
+    if (definition.drawings?.length) {
+      await connection.request('workbook.importCells', { cells: [], drawings: definition.drawings })
+      if (!owned()) return null
+    }
     // 先导入全部内容再锁定，复用原生保护命令；页面发布前不会出现可写的中间状态。
     const protectionBySheet: Record<string, SheetProtectionState> = {}
     for (const sheet of definition.sheets.filter((entry) => entry.protected)) {

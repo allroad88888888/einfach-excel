@@ -226,6 +226,7 @@ impl Workbook {
         let freeze = self.sheets[source].frozen_panes();
         let outline = self.sheets[source].outline().clone();
         let validations = self.sheets[source].data_validations().to_vec();
+        let drawings = self.sheets[source].drawings().to_vec();
         let links = self.sheets[source].hyperlinks_in_range(full);
         let notes = self.sheets[source].notes_in_range(full);
         let comments: Vec<_> = self.sheets[source]
@@ -248,6 +249,7 @@ impl Workbook {
         for region in validations {
             copy.set_data_validation(region.range, Some(region.rule.as_ref().clone()))?;
         }
+        copy.replace_drawings(drawings)?;
         for (addr, url) in links {
             copy.set_hyperlink(addr, Some(&url))?;
         }

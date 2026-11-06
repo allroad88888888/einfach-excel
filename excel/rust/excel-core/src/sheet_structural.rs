@@ -195,6 +195,7 @@ impl Sheet {
             sheet.shift_data_validations(edit);
             sheet.shift_notes(edit);
             sheet.shift_comments(edit);
+            sheet.shift_drawings(edit);
             match edit {
                 crate::shift::ShiftEdit::RowInsert { at, count } => {
                     Self::shift_dimension_insert(&mut sheet.row_styles, at, count);

@@ -108,6 +108,7 @@ impl WasmWorkbook {
             conditional_formats: self.conditional_formats_json().unwrap_or_default(),
             data_validations: self.data_validations_json(),
             named_ranges: self.named_ranges_json(),
+            drawings: self.drawings_json(),
             calculation_mode: (self.workbook.calculation_mode()
                 == einfach_excel_core::CalculationMode::Manual)
                 .then(|| "manual".to_owned()),

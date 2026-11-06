@@ -161,6 +161,7 @@ impl WasmWorkbook {
         Self::restore_data_validations_json(&mut workbook, payload.data_validations)?;
         Self::restore_hyperlinks_json(&mut workbook, payload.hyperlinks)?;
         Self::restore_notes_json(&mut workbook, payload.notes)?;
+        Self::restore_drawings_json(&mut workbook, payload.drawings)?;
         Self::restore_comments_json(&mut workbook, payload.comments)?;
         let mut restored_formats = 0u32;
         for (sheet_idx, snapshot) in format_snapshots {

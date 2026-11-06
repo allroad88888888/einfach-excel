@@ -227,6 +227,10 @@ msgstr "A pasted value does not meet its cell’s data validation rule. Nothing 
 msgid "A validation formula would refer outside the sheet at this destination."
 msgstr "A validation formula would refer outside the sheet at this destination."
 
+#: src/i18n/feedback-messages.ts
+msgid "A worksheet can hold at most 1000 objects."
+msgstr "A worksheet can hold at most 1000 objects."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "A worksheet supports at most 256 editable ranges."
 msgstr "A worksheet supports at most 256 editable ranges."
@@ -1664,6 +1668,10 @@ msgid "Delete note"
 msgstr "Delete note"
 
 #: src/i18n/feedback-messages.ts
+msgid "Delete object"
+msgstr "Delete object"
+
+#: src/i18n/feedback-messages.ts
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Delete rows"
 msgstr "Delete rows"
@@ -1938,6 +1946,10 @@ msgstr "Edit named range"
 #: src/workbook/notes/NoteTools.tsx
 msgid "Edit note"
 msgstr "Edit note"
+
+#: src/i18n/feedback-messages.ts
+msgid "Edit object"
+msgstr "Edit object"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Edit rule"
@@ -3025,6 +3037,10 @@ msgstr "Insert link"
 msgid "Insert note"
 msgstr "Insert note"
 
+#: src/i18n/feedback-messages.ts
+msgid "Insert object"
+msgstr "Insert object"
+
 #: src/workbook/chrome/ribbon/StructureTools.tsx
 msgid "Insert or delete rows and columns"
 msgstr "Insert or delete rows and columns"
@@ -3525,6 +3541,10 @@ msgstr "Move cells outside Excel Tables before cutting between sheets. No cells 
 msgid "Move down"
 msgstr "Move down"
 
+#: src/i18n/feedback-messages.ts
+msgid "Move object"
+msgstr "Move object"
+
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Move rule {0} down"
@@ -3844,6 +3864,18 @@ msgstr "Number sequence"
 #: src/i18n/feedback-messages.ts
 msgid "Numerical count"
 msgstr "Numerical count"
+
+#: src/workbook/drawings/DrawingFrame.tsx
+msgid "Object"
+msgstr "Object"
+
+#: src/i18n/feedback-messages.ts
+msgid "Object settings cannot exceed 64 KiB."
+msgstr "Object settings cannot exceed 64 KiB."
+
+#: src/i18n/feedback-messages.ts
+msgid "Objects changed outside history."
+msgstr "Objects changed outside history."
 
 #: src/workbook/protection/LockedCellDialog.tsx
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
@@ -4549,6 +4581,10 @@ msgstr "Resize column"
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting."
 msgstr "Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting."
+
+#: src/i18n/feedback-messages.ts
+msgid "Resize object"
+msgstr "Resize object"
 
 #: src/i18n/feedback-messages.ts
 msgid "Resize row"
@@ -5719,6 +5755,10 @@ msgstr "The note cell is outside the worksheet."
 msgid "The note worksheet no longer exists."
 msgstr "The note worksheet no longer exists."
 
+#: src/i18n/feedback-messages.ts
+msgid "The object worksheet no longer exists."
+msgstr "The object worksheet no longer exists."
+
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "The original range was deleted. Enter a new range to repair this name."
 msgstr "The original range was deleted. Enter a new range to repair this name."
@@ -6040,6 +6080,10 @@ msgstr "This match is in a hidden row or column. Unhide it to view the cell."
 #: src/i18n/feedback-messages.ts
 msgid "This named range no longer refers to an available worksheet range."
 msgstr "This named range no longer refers to an available worksheet range."
+
+#: src/workbook/drawings/DrawingFrame.tsx
+msgid "This object type is not available."
+msgstr "This object type is not available."
 
 #: src/i18n/feedback-messages.ts
 msgid "This recent location is no longer available."

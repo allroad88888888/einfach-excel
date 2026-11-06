@@ -1,0 +1,49 @@
+{
+  "name": "@einfach-excel/plugin-chart",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Optional ECharts charts anchored on worksheet cells",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./core": "./src/core/index.ts"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "echarts": "6.1.0"
+  },
+  "peerDependencies": {
+    "@einfach/core": "^0.4.0",
+    "@einfach/react": "^0.4.0",
+    "@einfach-excel/react-excel": "workspace:*",
+    "@einfach-excel/spreadsheet-ui-core": "workspace:*",
+    "@lingui/core": "6.9.1",
+    "@lingui/react": "6.9.1",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@einfach/core": "^0.4.0",
+    "@einfach/react": "^0.4.0",
+    "@einfach-excel/react-excel": "workspace:*",
+    "@einfach-excel/spreadsheet-ui-core": "workspace:*",
+    "@lingui/core": "6.9.1",
+    "@lingui/react": "6.9.1",
+    "@testing-library/jest-dom": "^6.4.5",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^22.19.0",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
+    "@vitejs/plugin-react": "6.1.2",
+    "jsdom": "^25.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.7.2",
+    "vitest": "5.0.5"
+  }
+}

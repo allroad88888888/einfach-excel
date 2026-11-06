@@ -37,6 +37,7 @@ import type { RustWorkbookFileCommands } from './file-commands'
 import type { RustSpillCommands } from './spill-commands'
 import type { RustHyperlinkCommands } from './hyperlink/command'
 import type { RustNoteCommands } from './notes/command'
+import type { RustDrawingCommands } from './drawings/command'
 import type { RustDragMoveCommands } from './drag-move/command'
 import type { RustCommentCommands } from './comments/command'
 import type { RustProtectionCommands } from './protection/commands'
@@ -45,6 +46,7 @@ import type { RustAsyncFormulaCommands } from './async-formulas/commands'
 import type { RustFormulaAuditingCommands } from '../formula-auditing/types'
 import type { NativeCustomFormulaDefinition } from '../custom-formulas/expression-types'
 import type { NativeTableStyle } from '../tables/native-types'
+import type { SheetDrawing } from '../drawings/types'
 import type { NativeOutline } from '../outline/native-state'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
 import type { NativeConditionalFormatRule, ConditionalFormatScope } from '../conditional-formatting/types'
@@ -205,6 +207,7 @@ export interface RustWorkbookCommands
     RustWorkbookFileCommands,
     RustHyperlinkCommands,
     RustNoteCommands,
+    RustDrawingCommands,
     RustCommentCommands,
     RustProtectionCommands,
     RustCustomFormulaCommands,
@@ -357,6 +360,7 @@ export interface RustWorkbookCommands
       readonly tables?: readonly (NonNullable<RustWorkbookSheetInput['tables']>[number] & {
         readonly sheetId: string
       })[]
+      readonly drawings?: readonly { readonly sheetId: string; readonly drawing: SheetDrawing }[]
     },
     RustImportStats
   >

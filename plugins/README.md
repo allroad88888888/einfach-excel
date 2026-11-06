@@ -19,6 +19,8 @@
 - `contextMenu`：单元格右键菜单项，排在内置项（`cells.insert`、`cells.delete`）之后；一个菜单项派发一个零参数命令 atom。
 - `editorAdornments`：渲染在当前格内编辑器或公式栏内部，属于同一失焦提交范围；控件间移焦点不会提前提交。
 - `panels`：对话框与面板，挂在工作簿视图根部。
+- `drawings`：按 `kind` 渲染浮动对象内容；框、选中、拖动缩放、删除与撤销由核心负责，
+  对象载荷由插件解释（核心只校验 JSON 形状与 64 KiB 上限）。
 - `messages`：已编译的 Lingui 目录，并入工作簿自己的 i18n 实例。
 
 需要新的工作簿数据或 Rust 命令时，先在核心补一条通用、明确的命令，再由插件 Core 调用；
@@ -37,5 +39,6 @@
 
 - [日期选择器](plugin-date-picker/README.md)：`datePickerPlugin`。
 - [图片导出](plugin-image-export/README.md)：`imageExportPlugin`。
+- [图表](plugin-chart/README.md)：`chartPlugin`（ECharts；对象层与对象目录在核心，不认识图表）。
 
-演示：`?plugins=date-picker,image-export`；不传 `plugins` 时不挂载任何插件控件。
+演示：`?plugins=date-picker,image-export,chart`；不传 `plugins` 时不挂载任何插件控件。

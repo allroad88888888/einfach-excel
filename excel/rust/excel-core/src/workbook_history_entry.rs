@@ -91,6 +91,9 @@ impl HistoryEntry {
             HistoryChange::DataValidation(change) => {
                 change.apply(workbook, self.sheet, self.sheet_key, undo)
             }
+            HistoryChange::Drawing(change) => {
+                change.apply(workbook, self.sheet, self.sheet_key, undo)
+            }
             HistoryChange::Structure(change) => change.apply(workbook, self.sheet, undo),
             HistoryChange::NamedRange(change) => change.apply(workbook, undo),
             HistoryChange::CustomFormula(change) => change.apply(workbook, undo),
@@ -131,6 +134,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
         HistoryChange::Filter(change) => change.retained_bytes(),
         HistoryChange::ConditionalFormat(change) => change.retained_bytes(),
         HistoryChange::DataValidation(change) => change.retained_bytes(),
+        HistoryChange::Drawing(change) => change.retained_bytes(),
         HistoryChange::Structure(change) => change.retained_bytes(),
         HistoryChange::NamedRange(change) => change.retained_bytes(),
         HistoryChange::CustomFormula(change) => change.retained_bytes(),

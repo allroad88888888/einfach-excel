@@ -4,6 +4,9 @@
 React 产品组件使用 `@einfach/react` hooks；以下是宿主服务代码，不是 React 工作簿状态副本。
 UI Core 的所有公开 atom/类型从 `@einfach-excel/spreadsheet-ui-core` 根导入。
 
+区域格式、结构、工作表管理、选区与编辑控制、事件及拦截回调也可以通过
+[`createWorkbookApi(store)`](workbook-api.md) 调用；它与下列 atom 使用同一个 Store 和 Rust 工作簿。
+
 ```ts
 import { createStore } from '@einfach/core'
 import { readWorkbookRangesAtom, writeWorkbookCellsAtom, workbookChangeAtom,

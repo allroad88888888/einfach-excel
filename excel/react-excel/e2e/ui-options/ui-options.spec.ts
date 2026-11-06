@@ -35,3 +35,18 @@ test('a host can turn the cell context menu off', async ({ page }) => {
   await cell(page, '2:1').click({ button: 'right' })
   await expect(page.getByRole('menu', { name: 'Cell actions' })).toHaveCount(0)
 })
+
+for (const hidden of ['row', 'column']) test(`zero ${hidden} header dimension hides only that axis`, async ({ page }) => {
+  await page.goto(`/?rowHeaderWidth=${hidden === 'row' ? 0 : 80}&columnHeaderHeight=${hidden === 'column' ? 0 : 40}`)
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await expect(page.locator(hidden === 'row' ? '.row-headers' : '.column-headers')).toHaveCount(0)
+  await expect(page.locator(hidden === 'row' ? '.column-headers' : '.row-headers')).toBeVisible()
+  const target = cell(page, '2:1'), before = (await target.boundingBox())!
+  await target.dblclick()
+  const editor = page.getByRole('textbox', { name: 'Cell editor', exact: true })
+  await expect(editor).toBeVisible()
+  const after = (await editor.boundingBox())!
+  expect(Math.abs(after.x - before.x)).toBeLessThanOrEqual(2)
+  expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(2)
+  await editor.press('Escape')
+})

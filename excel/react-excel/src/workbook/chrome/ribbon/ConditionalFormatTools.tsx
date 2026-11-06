@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
@@ -65,9 +66,11 @@ export function ConditionalFormatTools() {
     return () => { dialog.close?.(); opener?.focus({ preventScroll: true }) }
   }, [open])
   return <>
-    <button ref={trigger} type="button" className="tool-button" aria-label={t`Conditional formatting`}
-      title={t`Conditional formatting`} disabled={editing || state.busy || !config || (state.sheetId !== null && !open)}
-      onClick={() => void run('open')}>◩</button>
+    <RibbonItem id="format.conditional-formatting">
+      <button data-ribbon-item="format.conditional-formatting" ref={trigger} type="button" className="tool-button" aria-label={t`Conditional formatting`}
+        title={t`Conditional formatting`} disabled={editing || state.busy || !config || (state.sheetId !== null && !open)}
+        onClick={() => void run('open')}>◩</button>
+    </RibbonItem>
     {open && <dialog ref={dialogRef} className="conditional-format-panel" aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-hint`} onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run('close') }}>

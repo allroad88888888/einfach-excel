@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
@@ -33,26 +34,33 @@ export function FreezeTools() {
   const frozen = Boolean(freeze && freeze.sheetId === sheet?.id && (freeze.rows || freeze.cols))
   return (
     <>
-      <select
-        className="tool-select paste-options-select"
-        aria-label={t`Freeze panes`}
-        value=""
-        disabled={!ready || editing || feedback.busy}
-        onChange={(event) => {
-          const option = OPTIONS.find(([value]) => value === event.currentTarget.value)
-          if (option) void run(option[0])
-        }}
-      >
-        <option value="" disabled>
-          {frozen ? t`Panes frozen` : t`Freeze panes`}
-        </option>
-        {OPTIONS.map(([value, label]) => (
-          <option key={value} value={value} disabled={value === 'unfreeze' && !frozen}>
-            {i18n._(label)}
+      <RibbonItem id="view.freeze-panes">
+        <select
+          data-ribbon-item="view.freeze-panes"
+          className="tool-select paste-options-select"
+          aria-label={t`Freeze panes`}
+          value=""
+          disabled={!ready || editing || feedback.busy}
+          onChange={(event) => {
+            const option = OPTIONS.find(([value]) => value === event.currentTarget.value)
+            if (option) void run(option[0])
+          }}
+        >
+          <option value="" disabled>
+            {frozen ? t`Panes frozen` : t`Freeze panes`}
           </option>
-        ))}
-      </select>
-      {feedback.busy && <span role="status"><Trans>Updating freeze…</Trans></span>}
+          {OPTIONS.map(([value, label]) => (
+            <option key={value} value={value} disabled={value === 'unfreeze' && !frozen}>
+              {i18n._(label)}
+            </option>
+          ))}
+        </select>
+      </RibbonItem>
+      {feedback.busy && (
+        <span role="status">
+          <Trans>Updating freeze…</Trans>
+        </span>
+      )}
       {feedback.error && <span role="alert">{translateFeedback(i18n, feedback.error)}</span>}
     </>
   )

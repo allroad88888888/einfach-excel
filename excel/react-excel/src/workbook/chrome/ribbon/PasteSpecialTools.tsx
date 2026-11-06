@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useEffect, useId, useRef } from 'react'
@@ -57,17 +58,20 @@ export function PasteSpecialTools() {
   const attachmentOnly = widths || state.mode === 'notes' || state.mode === 'validation'
   return (
     <>
-      <button
-        ref={buttonRef}
-        className="tool-button"
-        type="button"
-        aria-label={t`Paste special`}
-        title={t`Paste special`}
-        disabled={editing || state.busy}
-        onClick={() => void run('open')}
-      >
-        ⋯
-      </button>
+      <RibbonItem id="data.paste-special">
+        <button
+          data-ribbon-item="data.paste-special"
+          ref={buttonRef}
+          className="tool-button"
+          type="button"
+          aria-label={t`Paste special`}
+          title={t`Paste special`}
+          disabled={editing || state.busy}
+          onClick={() => void run('open')}
+        >
+          ⋯
+        </button>
+      </RibbonItem>
       {target && (
         <dialog
           ref={dialogRef}
@@ -80,15 +84,21 @@ export function PasteSpecialTools() {
             void run('close')
           }}
         >
-          <h2 id={`${id}-title`}><Trans>Paste special</Trans></h2>
-          <p id={`${id}-hint`}><Trans>Combine options for this paste. Ordinary Paste stays unchanged.</Trans></p>
+          <h2 id={`${id}-title`}>
+            <Trans>Paste special</Trans>
+          </h2>
+          <p id={`${id}-hint`}>
+            <Trans>Combine options for this paste. Ordinary Paste stays unchanged.</Trans>
+          </p>
           <form
             onSubmit={(event) => {
               event.preventDefault()
               void run({ action: 'apply', read: readBrowserClipboard })
             }}
           >
-            <label htmlFor={`${id}-mode`}><Trans>Paste content</Trans></label>
+            <label htmlFor={`${id}-mode`}>
+              <Trans>Paste content</Trans>
+            </label>
             <select
               id={`${id}-mode`}
               value={state.mode}
@@ -104,7 +114,9 @@ export function PasteSpecialTools() {
                 </option>
               ))}
             </select>
-            <label htmlFor={`${id}-arithmetic`}><Trans>Operation</Trans></label>
+            <label htmlFor={`${id}-arithmetic`}>
+              <Trans>Operation</Trans>
+            </label>
             <select
               id={`${id}-arithmetic`}
               value={state.arithmetic}
@@ -134,23 +146,29 @@ export function PasteSpecialTools() {
               ))}
             </div>
             {widths && (
-              <p><Trans>
-                Changes whole columns only. Cell contents, styles and row heights stay unchanged.
-              </Trans></p>
+              <p>
+                <Trans>
+                  Changes whole columns only. Cell contents, styles and row heights stay unchanged.
+                </Trans>
+              </p>
             )}
             {state.error && (
               <p role="alert" className="paste-special-error">
                 {translateFeedback(i18n, state.error)}
               </p>
             )}
-            {state.busy && <p role="status"><Trans>Pasting…</Trans></p>}
+            {state.busy && (
+              <p role="status">
+                <Trans>Pasting…</Trans>
+              </p>
+            )}
             <div className="paste-special-actions">
-              <button type="button" disabled={state.busy} onClick={() => void run('close')}><Trans>
-                Cancel
-              </Trans></button>
-              <button type="submit" disabled={state.busy}><Trans>
-                Apply paste
-              </Trans></button>
+              <button type="button" disabled={state.busy} onClick={() => void run('close')}>
+                <Trans>Cancel</Trans>
+              </button>
+              <button type="submit" disabled={state.busy}>
+                <Trans>Apply paste</Trans>
+              </button>
             </div>
           </form>
         </dialog>

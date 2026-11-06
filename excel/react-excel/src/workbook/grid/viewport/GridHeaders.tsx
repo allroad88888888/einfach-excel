@@ -7,6 +7,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { GridHeading } from './GridHeading'
+import { useGridGutter } from './grid-gutter'
 
 /** 只渲染投影窗口内的可滚动表头；冻结的标题由固定区域渲染，避免同一个标题出现两次。 */
 export function GridHeaders({
@@ -30,10 +31,11 @@ export function GridHeaders({
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
   const select = useSetAtom(selectGridHeaderAtom)
+  const { gutter, heading } = useGridGutter()
   let columnTrack = 0
   return (
     <>
-      <button
+      {gutter > 0 && heading > 0 && <button
         className="sheet-corner"
         type="button"
         aria-label={t`Select all cells`}
@@ -47,8 +49,8 @@ export function GridHeaders({
         }}
       >
         <span aria-hidden="true">◢</span>
-      </button>
-      <div className="column-headers" role="row" style={columnStyle}>
+      </button>}
+      {heading > 0 && <div className="column-headers" role="row" style={columnStyle}>
         {/* 列窗口起点已越过冻结列，与行头一样按真实列号作身份。 */}
         {columnWidths.map((width, index) => {
           if (width === 0) return null
@@ -63,8 +65,8 @@ export function GridHeaders({
             />
           )
         })}
-      </div>
-      <div className="row-headers grid-window" style={rowStyle}>
+      </div>}
+      {gutter > 0 && <div className="row-headers grid-window" style={rowStyle}>
         {/* 用真实行作身份，避免切窗时把正在点击的行头复用成另一行。 */}
         {rowHeights.map((height, index) =>
           height === 0 ? null : (
@@ -76,7 +78,7 @@ export function GridHeaders({
             />
           ),
         )}
-      </div>
+      </div>}
     </>
   )
 }

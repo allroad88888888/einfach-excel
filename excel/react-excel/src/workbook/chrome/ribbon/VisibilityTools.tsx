@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
@@ -23,26 +24,33 @@ export function VisibilityTools() {
   const editing = useAtomValue(editingSessionAtom).source !== null
   return (
     <>
-      <select
-        className="tool-select paste-options-select"
-        aria-label={t`Row and column visibility`}
-        value=""
-        disabled={editing || feedback.busy}
-        onChange={(event) => {
-          const option = OPTIONS.find(([value]) => value === event.currentTarget.value)
-          if (option) void run(option[0])
-        }}
-      >
-        <option value="" disabled><Trans>
-          Hide / Unhide
-        </Trans></option>
-        {OPTIONS.map(([value, label]) => (
-          <option key={value} value={value}>
-            {i18n._(label)}
+      <RibbonItem id="view.row-and-column-visibility">
+        <select
+          data-ribbon-item="view.row-and-column-visibility"
+          className="tool-select paste-options-select"
+          aria-label={t`Row and column visibility`}
+          value=""
+          disabled={editing || feedback.busy}
+          onChange={(event) => {
+            const option = OPTIONS.find(([value]) => value === event.currentTarget.value)
+            if (option) void run(option[0])
+          }}
+        >
+          <option value="" disabled>
+            <Trans>Hide / Unhide</Trans>
           </option>
-        ))}
-      </select>
-      {feedback.busy && <span role="status"><Trans>Updating visibility…</Trans></span>}
+          {OPTIONS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {i18n._(label)}
+            </option>
+          ))}
+        </select>
+      </RibbonItem>
+      {feedback.busy && (
+        <span role="status">
+          <Trans>Updating visibility…</Trans>
+        </span>
+      )}
       {feedback.error && <span role="alert">{translateFeedback(i18n, feedback.error)}</span>}
     </>
   )

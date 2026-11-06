@@ -16,6 +16,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { definition } from './definition'
 import type { PackageHost } from './bridge'
+import { mountFacadeControls } from './facade'
 
 const style = () =>
   [document.body, document.getElementById('host-button')!].map((node) => {
@@ -53,6 +54,7 @@ window.Worker = class extends OriginalWorker {
 const { Spreadsheet } = await import('@einfach-excel/react-excel')
 await import('@einfach-excel/react-excel/style.css')
 const stores = { first: createStore(), second: createStore() }
+mountFacadeControls(stores.first)
 const events: Record<keyof typeof stores, WorkbookChangeEvent[]> = { first: [], second: [] }
 for (const key of ['first', 'second'] as const)
   stores[key].sub(workbookChangeAtom, () => {

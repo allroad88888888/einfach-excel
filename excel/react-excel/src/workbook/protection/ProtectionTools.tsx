@@ -1,7 +1,12 @@
+import { RibbonItem } from '../chrome/ribbon/RibbonItem'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { nativeProtectionPanelAtom, runNativeProtectionAtom, rangeToA1 } from '@einfach-excel/spreadsheet-ui-core'
+import {
+  nativeProtectionPanelAtom,
+  runNativeProtectionAtom,
+  rangeToA1,
+} from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../chrome/ribbon/dialog-focus'
 import { translateFeedback } from '../../i18n/translate-feedback'
 import './protection.css'
@@ -22,33 +27,39 @@ export function ProtectionTools(): React.JSX.Element {
     if (element.showModal) element.showModal()
     else element.setAttribute('open', '')
     element.querySelector<HTMLButtonElement>('[data-protection-close]')?.focus()
-    return () => { element.close?.(); opener?.focus({ preventScroll: true }) }
+    return () => {
+      element.close?.()
+      opener?.focus({ preventScroll: true })
+    }
   }, [state.open])
   return (
     <>
-      <button
-        ref={trigger}
-        type="button"
-        className="tool-button"
-        aria-label={t`Worksheet protection`}
-        title={t`Worksheet protection`}
-        disabled={!state.available || state.busy}
-        onClick={() => void run('open')}
-      >
-        <svg
-          aria-hidden="true"
-          width="18"
-          height="18"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
+      <RibbonItem id="data.worksheet-protection">
+        <button
+          data-ribbon-item="data.worksheet-protection"
+          ref={trigger}
+          type="button"
+          className="tool-button"
+          aria-label={t`Worksheet protection`}
+          title={t`Worksheet protection`}
+          disabled={!state.available || state.busy}
+          onClick={() => void run('open')}
         >
-          <path d="M10 2 3.5 4.5v5c0 4 3 6.7 6.5 8.5 3.5-1.8 6.5-4.5 6.5-8.5v-5Z" />
-          <path d="m6.5 10 2.3 2.3 4.7-4.6" />
-        </svg>
-      </button>
+          <svg
+            aria-hidden="true"
+            width="18"
+            height="18"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          >
+            <path d="M10 2 3.5 4.5v5c0 4 3 6.7 6.5 8.5 3.5-1.8 6.5-4.5 6.5-8.5v-5Z" />
+            <path d="m6.5 10 2.3 2.3 4.7-4.6" />
+          </svg>
+        </button>
+      </RibbonItem>
       {state.open && (
         <dialog
           ref={dialog}

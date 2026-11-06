@@ -27,10 +27,12 @@ describe('public package entry', () => {
     const write = vi.spyOn(Storage.prototype, 'setItem')
     const entry = await import('../../src')
     expect(Object.keys(entry).sort()).toEqual([
-      'Spreadsheet', 'WorkbookRuntimeProvider', 'WorkbookStoreProvider', 'WorkbookView',
-      'renderSpreadsheetRangeAsPng',
+      'Spreadsheet', 'WorkbookRibbonItem', 'WorkbookRuntimeProvider', 'WorkbookStoreProvider', 'WorkbookView',
+      'renderSpreadsheetRangeAsPng', 'workbookRibbonItemIds',
     ])
-    for (const component of Object.values(entry)) expect(component).toBeTypeOf('function')
+    for (const [name, component] of Object.entries(entry))
+      if (name !== 'workbookRibbonItemIds') expect(component).toBeTypeOf('function')
+    expect(new Set(entry.workbookRibbonItemIds).size).toBe(entry.workbookRibbonItemIds.length)
     expect(worker).not.toHaveBeenCalled()
     expect(read).not.toHaveBeenCalled()
     expect(write).not.toHaveBeenCalled()

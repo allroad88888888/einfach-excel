@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
@@ -28,34 +29,41 @@ export function OutlineTools() {
   const projection = useAtomValue(projectionSnapshotAtom)
   return (
     <>
-      <select
-        aria-label={t`Outline groups`}
-        className="tool-select paste-options-select"
-        value=""
-        disabled={editing || feedback.busy || projection.status !== 'ready'}
-        onChange={(event) => {
-          const option = OPTIONS.find(([value]) => value === event.currentTarget.value)
-          if (!option) return
-          const [, , axis, kind] = option
-          void run({
-            axis,
-            action:
-              kind === 'collapse' || kind === 'expand'
-                ? { kind: 'show-level', level: kind === 'collapse' ? 1 : 9 }
-                : { kind },
-          })
-        }}
-      >
-        <option value="" disabled><Trans>
-          Group / Outline
-        </Trans></option>
-        {OPTIONS.map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
+      <RibbonItem id="view.outline-groups">
+        <select
+          data-ribbon-item="view.outline-groups"
+          aria-label={t`Outline groups`}
+          className="tool-select paste-options-select"
+          value=""
+          disabled={editing || feedback.busy || projection.status !== 'ready'}
+          onChange={(event) => {
+            const option = OPTIONS.find(([value]) => value === event.currentTarget.value)
+            if (!option) return
+            const [, , axis, kind] = option
+            void run({
+              axis,
+              action:
+                kind === 'collapse' || kind === 'expand'
+                  ? { kind: 'show-level', level: kind === 'collapse' ? 1 : 9 }
+                  : { kind },
+            })
+          }}
+        >
+          <option value="" disabled>
+            <Trans>Group / Outline</Trans>
           </option>
-        ))}
-      </select>
-      {feedback.busy && <span role="status"><Trans>Updating outline…</Trans></span>}
+          {OPTIONS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </RibbonItem>
+      {feedback.busy && (
+        <span role="status">
+          <Trans>Updating outline…</Trans>
+        </span>
+      )}
       {feedback.error && <span role="alert">{translateFeedback(i18n, feedback.error)}</span>}
     </>
   )

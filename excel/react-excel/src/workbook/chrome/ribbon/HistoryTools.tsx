@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
@@ -38,37 +39,46 @@ export function HistoryTools() {
   }, [panel.open])
   return (
     <>
-      <button
-        className="tool-button"
-        type="button"
-        aria-label={t`Undo`}
-        title={t`Undo (Ctrl/⌘+Z)`}
-        disabled={editing || panel.busy || state.undoCount === 0}
-        onClick={() => void run('undo')}
-      >
-        ↶
-      </button>
-      <button
-        className="tool-button"
-        type="button"
-        aria-label={t`Redo`}
-        title={t`Redo (Ctrl/⌘+Shift+Z or Ctrl+Y)`}
-        disabled={editing || panel.busy || state.redoCount === 0}
-        onClick={() => void run('redo')}
-      >
-        ↷
-      </button>
+      <RibbonItem id="history.undo">
+        <button
+          data-ribbon-item="history.undo"
+          className="tool-button"
+          type="button"
+          aria-label={t`Undo`}
+          title={t`Undo (Ctrl/⌘+Z)`}
+          disabled={editing || panel.busy || state.undoCount === 0}
+          onClick={() => void run('undo')}
+        >
+          ↶
+        </button>
+      </RibbonItem>
+      <RibbonItem id="history.redo">
+        <button
+          data-ribbon-item="history.redo"
+          className="tool-button"
+          type="button"
+          aria-label={t`Redo`}
+          title={t`Redo (Ctrl/⌘+Shift+Z or Ctrl+Y)`}
+          disabled={editing || panel.busy || state.redoCount === 0}
+          onClick={() => void run('redo')}
+        >
+          ↷
+        </button>
+      </RibbonItem>
       <RepeatButton />
-      <button
-        ref={triggerRef}
-        className="tool-button"
-        type="button"
-        aria-label={t`Recent operations`}
-        title={t`Recent operations`}
-        onClick={() => void run('open')}
-      >
-        ◷
-      </button>
+      <RibbonItem id="history.recent-operations">
+        <button
+          data-ribbon-item="history.recent-operations"
+          ref={triggerRef}
+          className="tool-button"
+          type="button"
+          aria-label={t`Recent operations`}
+          title={t`Recent operations`}
+          onClick={() => void run('open')}
+        >
+          ◷
+        </button>
+      </RibbonItem>
       {panel.error && !panel.open && (
         <span className="history-error" role="alert">
           {translateFeedback(i18n, panel.error)}
@@ -85,21 +95,29 @@ export function HistoryTools() {
             void run('close')
           }}
         >
-          <h2 id={`${id}-title`}><Trans>Recent operations</Trans></h2>
-          <p><Trans>
-            {state.undoCount} undo · {state.redoCount} redo
-          </Trans></p>
-          <p className="history-hint"><Trans>
-            Cell edits, formatting, clearing, paste, cut moves, row/column sizes and worksheets.
-            Up to 50 steps in this session.
-          </Trans></p>
+          <h2 id={`${id}-title`}>
+            <Trans>Recent operations</Trans>
+          </h2>
+          <p>
+            <Trans>
+              {state.undoCount} undo · {state.redoCount} redo
+            </Trans>
+          </p>
+          <p className="history-hint">
+            <Trans>
+              Cell edits, formatting, clearing, paste, cut moves, row/column sizes and worksheets.
+              Up to 50 steps in this session.
+            </Trans>
+          </p>
           {state.notice && (
             <p role="status" className="history-hint">
               {translateFeedback(i18n, state.notice)}
             </p>
           )}
           {state.entries.length === 0 ? (
-            <p><Trans>No recorded operations yet.</Trans></p>
+            <p>
+              <Trans>No recorded operations yet.</Trans>
+            </p>
           ) : (
             <ol>
               {state.entries.map((entry, index) => (
@@ -130,9 +148,9 @@ export function HistoryTools() {
             type="button"
             disabled={panel.busy}
             onClick={() => void run('close')}
-          ><Trans>
-            Close history
-          </Trans></button>
+          >
+            <Trans>Close history</Trans>
+          </button>
         </dialog>
       )}
     </>

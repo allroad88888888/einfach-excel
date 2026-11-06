@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
@@ -33,19 +34,30 @@ export function SelectionSizeTools() {
   }, [target])
   return (
     <>
-      <button
-        ref={buttonRef}
-        className="tool-button"
-        aria-label={t`Row and column size`}
-        title={t`Row and column size`}
-        disabled={editing || state.busy}
-        type="button"
-        onClick={() => void run('open')}
-      >
-        ↔
-      </button>
-      {!target && state.error && <span role="alert" className="size-error">{translateFeedback(i18n, state.error)}</span>}
-      {!target && state.busy && <span role="status"><Trans>Saving sizes…</Trans></span>}
+      <RibbonItem id="view.row-and-column-size">
+        <button
+          data-ribbon-item="view.row-and-column-size"
+          ref={buttonRef}
+          className="tool-button"
+          aria-label={t`Row and column size`}
+          title={t`Row and column size`}
+          disabled={editing || state.busy}
+          type="button"
+          onClick={() => void run('open')}
+        >
+          ↔
+        </button>
+      </RibbonItem>
+      {!target && state.error && (
+        <span role="alert" className="size-error">
+          {translateFeedback(i18n, state.error)}
+        </span>
+      )}
+      {!target && state.busy && (
+        <span role="status">
+          <Trans>Saving sizes…</Trans>
+        </span>
+      )}
       {target && (
         <dialog
           ref={ref}
@@ -58,11 +70,15 @@ export function SelectionSizeTools() {
             void run('close')
           }}
         >
-          <h2 id={`${id}-title`}><Trans>Row and column size</Trans></h2>
-          <p id={`${id}-description`}><Trans>
-            Applies to rows {target.range.rowStart + 1}–{target.range.rowEnd + 1} and columns{' '}
-            {target.range.colStart + 1}–{target.range.colEnd + 1}. Sizes are in pixels.
-          </Trans></p>
+          <h2 id={`${id}-title`}>
+            <Trans>Row and column size</Trans>
+          </h2>
+          <p id={`${id}-description`}>
+            <Trans>
+              Applies to rows {target.range.rowStart + 1}–{target.range.rowEnd + 1} and columns{' '}
+              {target.range.colStart + 1}–{target.range.colEnd + 1}. Sizes are in pixels.
+            </Trans>
+          </p>
           {(['height', 'width'] as const).map((field) => (
             <form
               key={field}
@@ -96,17 +112,21 @@ export function SelectionSizeTools() {
             </p>
           )}
           <div className="size-actions">
-            <button type="button" disabled={state.busy} onClick={() => void run('reset')}><Trans>
-              Reset selected sizes
-            </Trans></button>
-            <button type="button" disabled={state.busy} onClick={() => void run('close')}><Trans>
-              Cancel
-            </Trans></button>
+            <button type="button" disabled={state.busy} onClick={() => void run('reset')}>
+              <Trans>Reset selected sizes</Trans>
+            </button>
+            <button type="button" disabled={state.busy} onClick={() => void run('close')}>
+              <Trans>Cancel</Trans>
+            </button>
           </div>
-          <p className="size-hint"><Trans>
-            Reset sizes keeps cell values and formatting. It does not auto-fit text.
-          </Trans></p>
-          {state.busy && <p role="status"><Trans>Saving sizes…</Trans></p>}
+          <p className="size-hint">
+            <Trans>Reset sizes keeps cell values and formatting. It does not auto-fit text.</Trans>
+          </p>
+          {state.busy && (
+            <p role="status">
+              <Trans>Saving sizes…</Trans>
+            </p>
+          )}
         </dialog>
       )}
     </>

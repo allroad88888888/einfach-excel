@@ -20,5 +20,7 @@ export type {
   SpreadsheetPlugin,
 } from './plugin/types'
 export type { WorkbookUiOptions } from './page/workbook-ui-options'
+export { workbookRibbonItemIds, type WorkbookRibbonItemId } from './page/workbook-ribbon-items'
+export { RibbonItem as WorkbookRibbonItem } from './workbook/chrome/ribbon/RibbonItem'
 
 export { renderSpreadsheetRangeAsPng } from './workbook/image-export/render-range'

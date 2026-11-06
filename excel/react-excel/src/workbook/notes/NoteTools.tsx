@@ -1,7 +1,13 @@
+import { RibbonItem } from '../chrome/ribbon/RibbonItem'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui, Trans } from '@lingui/react/macro'
-import { notePanelAtom, runNoteAtom, NOTE_MAX_CHARACTERS, toA1 } from '@einfach-excel/spreadsheet-ui-core'
+import {
+  notePanelAtom,
+  runNoteAtom,
+  NOTE_MAX_CHARACTERS,
+  toA1,
+} from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../chrome/ribbon/dialog-focus'
 import { translateFeedback } from '../../i18n/translate-feedback'
 import './notes.css'
@@ -21,24 +27,31 @@ export function NoteTools(): React.JSX.Element {
     if (!state.open || !node) return
     if (node.showModal) node.showModal()
     else node.setAttribute('open', '')
-    return () => { node.close?.(); if (opener?.isConnected) opener.focus({ preventScroll: true }) }
+    return () => {
+      node.close?.()
+      if (opener?.isConnected) opener.focus({ preventScroll: true })
+    }
   }, [state.open])
   useLayoutEffect(() => {
-    if (state.open && state.loaded && !state.phase) dialog.current?.querySelector('textarea')?.focus()
+    if (state.open && state.loaded && !state.phase)
+      dialog.current?.querySelector('textarea')?.focus()
   }, [state.open, state.loaded, state.phase])
   return (
     <>
-      <button
-        ref={trigger}
-        className="tool-button"
-        type="button"
-        aria-label={t`Note`}
-        title={t`Note`}
-        disabled={!state.available || state.busy}
-        onClick={() => void run('open')}
-      >
-        <span aria-hidden="true">▧</span>
-      </button>
+      <RibbonItem id="insert.note">
+        <button
+          data-ribbon-item="insert.note"
+          ref={trigger}
+          className="tool-button"
+          type="button"
+          aria-label={t`Note`}
+          title={t`Note`}
+          disabled={!state.available || state.busy}
+          onClick={() => void run('open')}
+        >
+          <span aria-hidden="true">▧</span>
+        </button>
+      </RibbonItem>
       {state.open && (
         <dialog
           ref={dialog}

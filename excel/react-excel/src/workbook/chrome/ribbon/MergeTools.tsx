@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
@@ -24,27 +25,34 @@ export function MergeTools() {
   const menuRef = useRef<HTMLSelectElement>(null)
   return (
     <>
-      <select
-        ref={menuRef}
-        className="tool-select paste-options-select"
-        aria-label={t`Merge cells`}
-        value=""
-        disabled={editing || state.busy || state.pending !== null}
-        onChange={(event) => {
-          const option = OPTIONS.find(([value]) => value === event.currentTarget.value)
-          if (option) void run(option[0])
-        }}
-      >
-        <option value="" disabled><Trans>
-          Merge / Unmerge
-        </Trans></option>
-        {OPTIONS.map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
+      <RibbonItem id="data.merge-cells">
+        <select
+          data-ribbon-item="data.merge-cells"
+          ref={menuRef}
+          className="tool-select paste-options-select"
+          aria-label={t`Merge cells`}
+          value=""
+          disabled={editing || state.busy || state.pending !== null}
+          onChange={(event) => {
+            const option = OPTIONS.find(([value]) => value === event.currentTarget.value)
+            if (option) void run(option[0])
+          }}
+        >
+          <option value="" disabled>
+            <Trans>Merge / Unmerge</Trans>
           </option>
-        ))}
-      </select>
-      {state.busy && <span role="status"><Trans>Merging cells…</Trans></span>}
+          {OPTIONS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </RibbonItem>
+      {state.busy && (
+        <span role="status">
+          <Trans>Merging cells…</Trans>
+        </span>
+      )}
       {state.error && <span role="alert">{translateFeedback(i18n, state.error)}</span>}
       <MergeConfirmation openerRef={menuRef} />
     </>

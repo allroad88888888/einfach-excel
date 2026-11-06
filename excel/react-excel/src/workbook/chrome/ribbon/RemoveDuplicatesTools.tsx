@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
@@ -38,8 +39,10 @@ export function RemoveDuplicatesTools() {
       ?.querySelector<HTMLElement>('[data-workbook-grid="true"]')?.focus({ preventScroll: true }))
   }
   return <>
-    <button ref={trigger} type="button" className="tool-button" aria-label={t`Remove duplicates`}
-      title={t`Remove duplicates`} disabled={editing || busy} onClick={() => void run('open')}>≠</button>
+    <RibbonItem id="data.remove-duplicates">
+      <button data-ribbon-item="data.remove-duplicates" ref={trigger} type="button" className="tool-button" aria-label={t`Remove duplicates`}
+        title={t`Remove duplicates`} disabled={editing || busy} onClick={() => void run('open')}>≠</button>
+    </RibbonItem>
     {open && <dialog ref={dialogRef} className="duplicates-dialog" aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-hint`} onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run('close') }}>

@@ -1,3 +1,5 @@
+import { workbookDrawingSuspendedAtom } from '@einfach-excel/spreadsheet-ui-core'
+import { HostHighlights } from './HostHighlights'
 import { useLingui, Trans } from '@lingui/react/macro'
 import type { I18n } from '@lingui/core'
 import { translateFeedback } from '../../../i18n/translate-feedback'
@@ -79,6 +81,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   const events = useWorkbookGridEvents(viewport)
   const zoom = useAtomValue(activeSheetZoomAtom)
   const { gutter, heading } = useGridGutter()
+  const drawingSuspended = useAtomValue(workbookDrawingSuspendedAtom)
   const showGridlines = useAtomValue(viewportShowGridlinesAtom)
   useGridZoomWheel(events.scrollRef)
   const clipboard = useGridClipboard(viewport.retained)
@@ -159,7 +162,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   } as CSSProperties
 
   return (
-    <section className="worksheet-panel" aria-label={t`${activeSheet.name} worksheet`}>
+    <section data-drawing-suspended={drawingSuspended || undefined} className="worksheet-panel" aria-label={t`${activeSheet.name} worksheet`}>
       <OutlineGutters focusGrid={events.focusGrid} />
       {(sheetContentHeight === 0 || sheetContentWidth === 0) && (
         <div className="grid-visibility-state" role="status">{sheetContentHeight === 0
@@ -195,7 +198,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           onPointerCancel={events.onPointerCancel}
           onLostPointerCapture={events.onPointerCancel}
         >
-          {heading > 0 && <GridHeaders
+          {(heading > 0 || gutter > 0) && <GridHeaders
             rowStart={bodyWindow.rowStart}
             rowHeights={visibleRowHeights}
             colStart={bodyWindow.colStart}
@@ -227,6 +230,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             )}
           </div>
           <FrozenGrid focusGrid={events.focusGrid} />
+          <HostHighlights />
           <DrawingLayer focusGrid={events.focusGrid} />
           <FormulaReferenceOverlay />
           <FormulaAuditingOverlay />

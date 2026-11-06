@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   toggleFormulaBarAtom,
@@ -17,15 +18,45 @@ export function ViewOptionsTools() {
   const toggleFormulaBar = useSetAtom(toggleFormulaBarAtom)
   return (
     <>
-      <button type="button" className="tool-button" aria-pressed={gridlines}
-        aria-label={t`Gridlines`} title={t`Gridlines`}
-        onClick={() => void toggleGridlines()}><span aria-hidden="true">#</span></button>
-      <button type="button" className="tool-button" aria-pressed={headings}
-        aria-label={t`Headings`} title={t`Headings`}
-        onClick={() => void toggleHeadings()}><span aria-hidden="true">A1</span></button>
-      <button type="button" className="tool-button" aria-pressed={formulaBar}
-        aria-label={t`Formula bar`} title={t`Formula bar`}
-        onClick={() => toggleFormulaBar()}><span aria-hidden="true">fx</span></button>
+      <RibbonItem id="view.gridlines">
+        <button
+          data-ribbon-item="view.gridlines"
+          type="button"
+          className="tool-button"
+          aria-pressed={gridlines}
+          aria-label={t`Gridlines`}
+          title={t`Gridlines`}
+          onClick={() => void toggleGridlines()}
+        >
+          <span aria-hidden="true">#</span>
+        </button>
+      </RibbonItem>
+      <RibbonItem id="view.headings">
+        <button
+          data-ribbon-item="view.headings"
+          type="button"
+          className="tool-button"
+          aria-pressed={headings}
+          aria-label={t`Headings`}
+          title={t`Headings`}
+          onClick={() => void toggleHeadings()}
+        >
+          <span aria-hidden="true">A1</span>
+        </button>
+      </RibbonItem>
+      <RibbonItem id="view.formula-bar">
+        <button
+          data-ribbon-item="view.formula-bar"
+          type="button"
+          className="tool-button"
+          aria-pressed={formulaBar}
+          aria-label={t`Formula bar`}
+          title={t`Formula bar`}
+          onClick={() => toggleFormulaBar()}
+        >
+          <span aria-hidden="true">fx</span>
+        </button>
+      </RibbonItem>
     </>
   )
 }

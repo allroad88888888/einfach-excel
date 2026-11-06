@@ -73,10 +73,15 @@ export function demoUiOptions(query: string): WorkbookUiOptions {
   const ids = new URLSearchParams(query).get('hide')?.split(',').filter(Boolean) ?? []
   const areas = ['header', 'ribbon', 'formulaBar', 'sheetBar', 'statusBar'] as const
   const hiddenItems = ids.filter(id => id.startsWith('menu:')).map(id => id.slice(5))
+  const ribbonItems = ids.filter(id => id.startsWith('ribbon:')).map(id => id.slice(7))
+  const queryParams = new URLSearchParams(query)
   return {
     ...Object.fromEntries(areas.filter(area => ids.includes(area)).map(area => [area, false])),
     ...(ids.includes('menu') ? { contextMenu: false as const }
       : hiddenItems.length ? { contextMenu: { hidden: hiddenItems } } : {}),
+    ...(!ids.includes('ribbon') && ribbonItems.length ? { ribbon: { hidden: ribbonItems } } : {}),
+    ...Object.fromEntries(['rowHeaderWidth', 'columnHeaderHeight'].flatMap(key =>
+      queryParams.has(key) ? [[key, Number(queryParams.get(key))]] : [])),
   }
 }
 

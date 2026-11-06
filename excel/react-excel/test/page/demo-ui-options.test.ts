@@ -7,5 +7,7 @@ describe('demo ui options', () => {
     })
     expect(demoUiOptions('?hide=menu')).toEqual({ contextMenu: false })
     expect(demoUiOptions('')).toEqual({})
+    expect(demoUiOptions('?hide=ribbon:format.bold&rowHeaderWidth=80&columnHeaderHeight=40'))
+      .toEqual({ ribbon: { hidden: ['format.bold'] }, rowHeaderWidth: 80, columnHeaderHeight: 40 })
   })
 })

@@ -1,9 +1,14 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
-import { editingSessionAtom, nativeTablePanelAtom, nativeTableFeedbackAtom,
-  runNativeTablePanelAtom } from '@einfach-excel/spreadsheet-ui-core'
+import {
+  editingSessionAtom,
+  nativeTablePanelAtom,
+  nativeTableFeedbackAtom,
+  runNativeTablePanelAtom,
+} from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import { TableTotals } from './TableTotals'
 import { TableColumns } from './TableColumns'
@@ -28,7 +33,10 @@ export function TableTools() {
     if (dialog.showModal) dialog.showModal()
     else dialog.setAttribute('open', '')
     dialog.querySelector<HTMLInputElement>('input')?.focus()
-    return () => { dialog.close?.(); opener?.focus({ preventScroll: true }) }
+    return () => {
+      dialog.close?.()
+      opener?.focus({ preventScroll: true })
+    }
   }, [state.open])
   useLayoutEffect(() => {
     // 原生 disabled 会丢失键盘焦点。回包后仅恢复弹窗原控件，不抢走用户已移动的焦点。
@@ -39,63 +47,143 @@ export function TableTools() {
     if ((active === document.body || active === dialog) && !control.matches(':disabled'))
       control.focus({ preventScroll: true })
   }, [state.busy, state.open])
-  return <>
-    <button ref={trigger} className="tool-button" type="button" aria-label={t`Tables`} title={t`Tables`}
-      disabled={!state.ready || editing || state.busy} onClick={() => void run('open')}>
-      <span aria-hidden="true">▤</span>
-    </button>
-    {!state.open && feedback.error && <span role="alert">{translateFeedback(i18n, feedback.error)}</span>}
-    {state.open && <dialog ref={dialogRef} className="table-panel" aria-labelledby={`${id}-title`}
-      onFocusCapture={(event) => {
-        if (event.target !== event.currentTarget) focusedControl.current = event.target
-      }}
-      onKeyDown={cycleDialogFocus} onCancel={(event) => { event.preventDefault(); void run('close') }}>
-      <h2 id={`${id}-title`}><Trans>Tables</Trans></h2>
-      <p><Trans>Create a named table from a range, or manage tables on this worksheet.</Trans></p>
-      <div className="table-panel-list" role="group" aria-label={t`Worksheet tables`}>
-        {state.tables.length === 0 && <p><Trans>No tables yet. Choose a range below.</Trans></p>}
-        {state.tables.map((table) => <button type="button" key={table.name} disabled={state.busy}
-          aria-label={t`Edit table ${table.name}`} aria-pressed={state.editingName === table.name}
-          onClick={() => void run({ edit: table.name })}>
-          <strong>{table.name}</strong><span>{table.range}</span>
-        </button>)}
-      </div>
-      <form onSubmit={(event) => { event.preventDefault(); void run('save') }}>
-        <div className="table-panel-heading">
-          <h3>{state.editingName ? t`Edit table` : t`Create table`}</h3>
-          <button type="button" disabled={state.busy} onClick={() => void run('new')}><Trans>New table</Trans></button>
-        </div>
-        <fieldset disabled={state.busy}>
-          <label htmlFor={`${id}-name`}><Trans>Table name</Trans></label>
-          <input id={`${id}-name`} value={state.name} autoComplete="off" placeholder={t`Automatic name`}
-            required={Boolean(state.editingName)}
-            onChange={(event) => void run({ name: event.currentTarget.value })} />
-          <label htmlFor={`${id}-range`}><Trans>Table range</Trans></label>
-          <input id={`${id}-range`} value={state.range} required
-            aria-describedby={`${id}-hint`} placeholder="A1:C10"
-            onChange={(event) => void run({ range: event.currentTarget.value })} />
-        </fieldset>
-        <p id={`${id}-hint`}>{state.editingName
-          ? t`Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting.`
-          : t`The first row becomes the header. Blank or duplicate headers receive unique names.`}</p>
-        {state.error && <p role="alert">{translateFeedback(i18n, state.error)}</p>}
-        {state.busy && <p role="status"><Trans>Saving table changes…</Trans></p>}
-        <div className="table-panel-actions">
-          <button type="button" disabled={state.busy || !state.editingName}
-            onClick={() => void run('convert')}><Trans>Convert to range</Trans></button>
-          {state.editingName && <button type="button" disabled={state.busy}
-            onClick={() => void run('append-row')}><Trans>Add data row</Trans></button>}
-          {state.editingName && <button type="button" disabled={state.busy}
-            onClick={() => void run('resize')}><Trans>Resize table</Trans></button>}
-          <button type="button" disabled={state.busy} onClick={() => void run('close')}><Trans>Cancel</Trans></button>
-          <button type="submit" disabled={state.busy}>
-            {state.editingName ? t`Rename table` : t`Create table`}
-          </button>
-        </div>
-      </form>
-      <TableAppearance />
-      <TableColumns />
-      <TableTotals />
-    </dialog>}
-  </>
+  return (
+    <>
+      <RibbonItem id="insert.tables">
+        <button
+          data-ribbon-item="insert.tables"
+          ref={trigger}
+          className="tool-button"
+          type="button"
+          aria-label={t`Tables`}
+          title={t`Tables`}
+          disabled={!state.ready || editing || state.busy}
+          onClick={() => void run('open')}
+        >
+          <span aria-hidden="true">▤</span>
+        </button>
+      </RibbonItem>
+      {!state.open && feedback.error && (
+        <span role="alert">{translateFeedback(i18n, feedback.error)}</span>
+      )}
+      {state.open && (
+        <dialog
+          ref={dialogRef}
+          className="table-panel"
+          aria-labelledby={`${id}-title`}
+          onFocusCapture={(event) => {
+            if (event.target !== event.currentTarget) focusedControl.current = event.target
+          }}
+          onKeyDown={cycleDialogFocus}
+          onCancel={(event) => {
+            event.preventDefault()
+            void run('close')
+          }}
+        >
+          <h2 id={`${id}-title`}>
+            <Trans>Tables</Trans>
+          </h2>
+          <p>
+            <Trans>Create a named table from a range, or manage tables on this worksheet.</Trans>
+          </p>
+          <div className="table-panel-list" role="group" aria-label={t`Worksheet tables`}>
+            {state.tables.length === 0 && (
+              <p>
+                <Trans>No tables yet. Choose a range below.</Trans>
+              </p>
+            )}
+            {state.tables.map((table) => (
+              <button
+                type="button"
+                key={table.name}
+                disabled={state.busy}
+                aria-label={t`Edit table ${table.name}`}
+                aria-pressed={state.editingName === table.name}
+                onClick={() => void run({ edit: table.name })}
+              >
+                <strong>{table.name}</strong>
+                <span>{table.range}</span>
+              </button>
+            ))}
+          </div>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              void run('save')
+            }}
+          >
+            <div className="table-panel-heading">
+              <h3>{state.editingName ? t`Edit table` : t`Create table`}</h3>
+              <button type="button" disabled={state.busy} onClick={() => void run('new')}>
+                <Trans>New table</Trans>
+              </button>
+            </div>
+            <fieldset disabled={state.busy}>
+              <label htmlFor={`${id}-name`}>
+                <Trans>Table name</Trans>
+              </label>
+              <input
+                id={`${id}-name`}
+                value={state.name}
+                autoComplete="off"
+                placeholder={t`Automatic name`}
+                required={Boolean(state.editingName)}
+                onChange={(event) => void run({ name: event.currentTarget.value })}
+              />
+              <label htmlFor={`${id}-range`}>
+                <Trans>Table range</Trans>
+              </label>
+              <input
+                id={`${id}-range`}
+                value={state.range}
+                required
+                aria-describedby={`${id}-hint`}
+                placeholder="A1:C10"
+                onChange={(event) => void run({ range: event.currentTarget.value })}
+              />
+            </fieldset>
+            <p id={`${id}-hint`}>
+              {state.editingName
+                ? t`Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting.`
+                : t`The first row becomes the header. Blank or duplicate headers receive unique names.`}
+            </p>
+            {state.error && <p role="alert">{translateFeedback(i18n, state.error)}</p>}
+            {state.busy && (
+              <p role="status">
+                <Trans>Saving table changes…</Trans>
+              </p>
+            )}
+            <div className="table-panel-actions">
+              <button
+                type="button"
+                disabled={state.busy || !state.editingName}
+                onClick={() => void run('convert')}
+              >
+                <Trans>Convert to range</Trans>
+              </button>
+              {state.editingName && (
+                <button type="button" disabled={state.busy} onClick={() => void run('append-row')}>
+                  <Trans>Add data row</Trans>
+                </button>
+              )}
+              {state.editingName && (
+                <button type="button" disabled={state.busy} onClick={() => void run('resize')}>
+                  <Trans>Resize table</Trans>
+                </button>
+              )}
+              <button type="button" disabled={state.busy} onClick={() => void run('close')}>
+                <Trans>Cancel</Trans>
+              </button>
+              <button type="submit" disabled={state.busy}>
+                {state.editingName ? t`Rename table` : t`Create table`}
+              </button>
+            </div>
+          </form>
+          <TableAppearance />
+          <TableColumns />
+          <TableTotals />
+        </dialog>
+      )}
+    </>
+  )
 }

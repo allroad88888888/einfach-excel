@@ -1,7 +1,13 @@
+import { RibbonItem } from '../chrome/ribbon/RibbonItem'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui, Trans } from '@lingui/react/macro'
-import { externalHyperlink, hyperlinkPanelAtom, runHyperlinkAtom, toA1 } from '@einfach-excel/spreadsheet-ui-core'
+import {
+  externalHyperlink,
+  hyperlinkPanelAtom,
+  runHyperlinkAtom,
+  toA1,
+} from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../chrome/ribbon/dialog-focus'
 import { translateFeedback } from '../../i18n/translate-feedback'
 import './hyperlink.css'
@@ -28,40 +34,107 @@ export function HyperlinkTools() {
       if (opener?.isConnected) opener.focus({ preventScroll: true })
     }
   }, [state.open])
-  return <>
-    <button ref={trigger} className="tool-button" type="button" aria-label={t`Hyperlink`}
-      title={t`Hyperlink (Ctrl/⌘+K)`} disabled={!state.available || state.busy}
-      onClick={() => void run('open')}><span aria-hidden="true">↗</span></button>
-    {state.open && <dialog ref={dialogRef} className="hyperlink-panel" aria-labelledby={`${id}-title`}
-      onKeyDown={cycleDialogFocus} onCancel={(event) => { event.preventDefault(); void run('close') }}>
-      <h2 id={`${id}-title`}>{state.existing ? t`Edit hyperlink` : t`Insert hyperlink`}</h2>
-      <p><Trans>Cell {address}. Click to select; Ctrl/⌘+click to open the link.</Trans></p>
-      <form onSubmit={(event) => { event.preventDefault(); void run('save') }}>
-        <fieldset disabled={state.busy}>
-          <label htmlFor={`${id}-url`}><Trans>Link address</Trans></label>
-          <input id={`${id}-url`} type="url" value={state.url} required maxLength={8192}
-            placeholder={'https://example.com'} autoComplete="off"
-            onChange={(event) => void run({ url: event.currentTarget.value })} />
-          <label htmlFor={`${id}-text`}><Trans>Display text</Trans></label>
-          <input id={`${id}-text`} value={state.text} maxLength={32767} autoComplete="off"
-            onChange={(event) => void run({ text: event.currentTarget.value })} />
-        </fieldset>
-        <p className="hyperlink-hint"><Trans>Changing display text replaces the cell content with text.
-          Leave it unchanged to keep its value or formula.</Trans></p>
-        {state.error && <p className="hyperlink-error" role="alert">{translateFeedback(i18n, state.error)}</p>}
-        {state.busy && <p role="status"><Trans>Saving hyperlink…</Trans></p>}
-        <div className="hyperlink-actions">
-          <button type="button" disabled={state.busy || !state.existing}
-            onClick={() => void run('remove')}><Trans>Remove link</Trans></button>
-          <button type="button" disabled={state.busy} onClick={() => void run('close')}><Trans>Cancel</Trans></button>
-          <button type="submit" disabled={state.busy}>
-            {state.existing ? t`Save changes` : t`Insert link`}
-          </button>
-        </div>
-        {href && !state.busy && <a className="hyperlink-open" href={href} target="_blank" rel="noopener noreferrer">
-          <Trans>Open link in a new tab</Trans>
-        </a>}
-      </form>
-    </dialog>}
-  </>
+  return (
+    <>
+      <RibbonItem id="insert.hyperlink">
+        <button
+          data-ribbon-item="insert.hyperlink"
+          ref={trigger}
+          className="tool-button"
+          type="button"
+          aria-label={t`Hyperlink`}
+          title={t`Hyperlink (Ctrl/⌘+K)`}
+          disabled={!state.available || state.busy}
+          onClick={() => void run('open')}
+        >
+          <span aria-hidden="true">↗</span>
+        </button>
+      </RibbonItem>
+      {state.open && (
+        <dialog
+          ref={dialogRef}
+          className="hyperlink-panel"
+          aria-labelledby={`${id}-title`}
+          onKeyDown={cycleDialogFocus}
+          onCancel={(event) => {
+            event.preventDefault()
+            void run('close')
+          }}
+        >
+          <h2 id={`${id}-title`}>{state.existing ? t`Edit hyperlink` : t`Insert hyperlink`}</h2>
+          <p>
+            <Trans>Cell {address}. Click to select; Ctrl/⌘+click to open the link.</Trans>
+          </p>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              void run('save')
+            }}
+          >
+            <fieldset disabled={state.busy}>
+              <label htmlFor={`${id}-url`}>
+                <Trans>Link address</Trans>
+              </label>
+              <input
+                id={`${id}-url`}
+                type="url"
+                value={state.url}
+                required
+                maxLength={8192}
+                placeholder={'https://example.com'}
+                autoComplete="off"
+                onChange={(event) => void run({ url: event.currentTarget.value })}
+              />
+              <label htmlFor={`${id}-text`}>
+                <Trans>Display text</Trans>
+              </label>
+              <input
+                id={`${id}-text`}
+                value={state.text}
+                maxLength={32767}
+                autoComplete="off"
+                onChange={(event) => void run({ text: event.currentTarget.value })}
+              />
+            </fieldset>
+            <p className="hyperlink-hint">
+              <Trans>
+                Changing display text replaces the cell content with text. Leave it unchanged to
+                keep its value or formula.
+              </Trans>
+            </p>
+            {state.error && (
+              <p className="hyperlink-error" role="alert">
+                {translateFeedback(i18n, state.error)}
+              </p>
+            )}
+            {state.busy && (
+              <p role="status">
+                <Trans>Saving hyperlink…</Trans>
+              </p>
+            )}
+            <div className="hyperlink-actions">
+              <button
+                type="button"
+                disabled={state.busy || !state.existing}
+                onClick={() => void run('remove')}
+              >
+                <Trans>Remove link</Trans>
+              </button>
+              <button type="button" disabled={state.busy} onClick={() => void run('close')}>
+                <Trans>Cancel</Trans>
+              </button>
+              <button type="submit" disabled={state.busy}>
+                {state.existing ? t`Save changes` : t`Insert link`}
+              </button>
+            </div>
+            {href && !state.busy && (
+              <a className="hyperlink-open" href={href} target="_blank" rel="noopener noreferrer">
+                <Trans>Open link in a new tab</Trans>
+              </a>
+            )}
+          </form>
+        </dialog>
+      )}
+    </>
+  )
 }

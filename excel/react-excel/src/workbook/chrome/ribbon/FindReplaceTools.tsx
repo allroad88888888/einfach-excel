@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
@@ -46,7 +47,8 @@ export function FindReplaceTools() {
   const matchSheet = workbook.sheets.find((sheet) => sheet.id === match?.sheetId)
   return (
     <>
-      <button
+      <RibbonItem id="view.find-and-replace">
+      <button data-ribbon-item="view.find-and-replace"
         ref={buttonRef}
         type="button"
         className="tool-button"
@@ -57,6 +59,7 @@ export function FindReplaceTools() {
       >
         ⌕
       </button>
+    </RibbonItem>
       {state.open && (
         <dialog
           ref={ref}

@@ -1,3 +1,4 @@
+import { RibbonItem } from '../chrome/ribbon/RibbonItem'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   editingSessionAtom,
@@ -17,15 +18,18 @@ export function RepeatButton() {
   const repeat = useSetAtom(repeatLastActionAtom)
   const action = label === null ? null : i18n._(REPEAT_LABELS[label])
   return (
-    <button
-      className="tool-button"
-      type="button"
-      aria-label={t`Repeat`}
-      title={action === null ? t`Repeat (F4)` : t`Repeat ${action} (F4)`}
-      disabled={editing || busy || label === null}
-      onClick={() => void repeat()}
-    >
-      ↻
-    </button>
+    <RibbonItem id="history.repeat">
+      <button
+        data-ribbon-item="history.repeat"
+        className="tool-button"
+        type="button"
+        aria-label={t`Repeat`}
+        title={action === null ? t`Repeat (F4)` : t`Repeat ${action} (F4)`}
+        disabled={editing || busy || label === null}
+        onClick={() => void repeat()}
+      >
+        ↻
+      </button>
+    </RibbonItem>
   )
 }

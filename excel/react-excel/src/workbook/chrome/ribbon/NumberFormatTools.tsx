@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
@@ -29,9 +30,11 @@ export function NumberFormatTools() {
     return () => { dialog.close?.(); opener?.focus({ preventScroll: true }) }
   }, [open])
   return <>
-    <button ref={trigger} type="button" className="tool-button" aria-label={t`Number format settings`}
+    <RibbonItem id="format.number-format-settings">
+      <button data-ribbon-item="format.number-format-settings" ref={trigger} type="button" className="tool-button" aria-label={t`Number format settings`}
       title={t`Number format settings`} disabled={editing || state.busy}
       onClick={() => void run('open')}>0.0</button>
+    </RibbonItem>
     {open && <dialog ref={dialogRef} className="number-format-dialog" aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-hint`} onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run('close') }}>

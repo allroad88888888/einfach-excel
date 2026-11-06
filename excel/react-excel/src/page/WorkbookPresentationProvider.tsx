@@ -1,4 +1,5 @@
 import type { I18n } from '@lingui/core'
+import type { CanvasCellPaintHooks } from '@einfach-excel/spreadsheet-ui-core'
 import { I18nProvider } from '@lingui/react'
 import { createContext, useLayoutEffect, useMemo, type ReactNode } from 'react'
 import { createWorkbookI18n, type UiLocale } from '../i18n/runtime'
@@ -11,6 +12,8 @@ export interface WorkbookPresentationProps {
   readonly locale?: UiLocale
   readonly i18n?: I18n
   readonly renderer?: 'dom' | 'canvas'
+  /** Canvas-only, clipped cell painting hooks; presentation is not saved to workbook files. */
+  readonly cellPaintHooks?: CanvasCellPaintHooks
   /** 提供后「文件」面板可打开与导出 .xlsx；转换器只在第一次用到时加载。 */
   readonly xlsx?: XlsxConverterLoader
   /** 可选功能包；按数组顺序挂载，核心不依赖其中任何一个。 */
@@ -25,12 +28,13 @@ const DEFAULT_UI: WorkbookUiOptions = {}
 export const WorkbookPresentationContext = createContext<{
   readonly controlledLocale: boolean
   readonly renderer: 'dom' | 'canvas'
+  readonly cellPaintHooks?: CanvasCellPaintHooks
   readonly xlsx?: XlsxConverterLoader
 }>({ controlledLocale: false, renderer: 'dom' })
 
 /** 展现状态由 Lingui 实例持有，不新增业务 atom；显式 locale 的选择权归宿主。 */
 export function WorkbookPresentationProvider({
-  children, locale, i18n, renderer = 'dom', xlsx, plugins = NO_PLUGINS, ui = DEFAULT_UI,
+  children, locale, i18n, renderer = 'dom', cellPaintHooks, xlsx, plugins = NO_PLUGINS, ui = DEFAULT_UI,
 }:
   WorkbookPresentationProps & { readonly children: ReactNode }): ReactNode {
   const ownedI18n = useMemo(() => createWorkbookI18n(), [])
@@ -45,8 +49,8 @@ export function WorkbookPresentationProvider({
   useLayoutEffect(() => {
     if (locale !== undefined && instance.locale !== locale) instance.activate(locale)
   }, [instance, locale])
-  const presentation = useMemo(() => ({ controlledLocale: locale !== undefined, renderer, xlsx }),
-    [locale, renderer, xlsx])
+  const presentation = useMemo(() => ({ controlledLocale: locale !== undefined,
+    renderer, cellPaintHooks, xlsx }), [locale, renderer, cellPaintHooks, xlsx])
   return <WorkbookPresentationContext.Provider value={presentation}>
     <SpreadsheetPluginsContext.Provider value={plugins}>
       <WorkbookUiOptionsContext.Provider value={ui}>

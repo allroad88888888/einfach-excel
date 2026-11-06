@@ -160,3 +160,8 @@
 :where(.einfach-spreadsheet) .sheet-grid-frame[data-gridlines='hidden'] :is(.grid-surface, .frozen-pane) {
   --gridline: transparent;
 }
+
+:where(.einfach-spreadsheet) .worksheet-panel[data-drawing-suspended] .sheet-scroll {
+  overflow: hidden;
+  pointer-events: none;
+}

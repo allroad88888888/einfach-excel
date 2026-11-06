@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
@@ -32,8 +33,10 @@ export function TextColumnsTools() {
     return () => { dialog.close?.(); opener?.focus({ preventScroll: true }) }
   }, [open])
   return <>
-    <button ref={trigger} type="button" className="tool-button" aria-label={t`Text to columns`}
+    <RibbonItem id="data.text-to-columns">
+      <button data-ribbon-item="data.text-to-columns" ref={trigger} type="button" className="tool-button" aria-label={t`Text to columns`}
       title={t`Text to columns`} disabled={editing || busy} onClick={() => void run('open')}>⇥</button>
+    </RibbonItem>
     {open && <dialog ref={dialogRef} className="text-columns-dialog" aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-hint`} onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run('close') }}>

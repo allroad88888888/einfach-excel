@@ -1,0 +1,19 @@
+:where(.einfach-spreadsheet) .host-highlights {
+  position: sticky;
+  grid-area: 1 / 1 / 3 / 3;
+  align-self: start;
+  justify-self: start;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10;
+}
+:where(.einfach-spreadsheet) .host-highlight {
+  position: absolute;
+  box-sizing: border-box;
+  border-style: solid;
+  pointer-events: none;
+}

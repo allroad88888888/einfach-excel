@@ -1,3 +1,4 @@
+import { RibbonItem } from '../chrome/ribbon/RibbonItem'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -21,24 +22,30 @@ export function CustomFormulaTools(): React.JSX.Element {
     if (!state.open || !node) return
     if (node.showModal) node.showModal()
     else node.setAttribute('open', '')
-    return () => { node.close?.(); if (opener?.isConnected) opener.focus({ preventScroll: true }) }
+    return () => {
+      node.close?.()
+      if (opener?.isConnected) opener.focus({ preventScroll: true })
+    }
   }, [state.open])
   useLayoutEffect(() => {
     if (state.open && state.loaded && !state.phase) name.current?.focus()
   }, [state.open, state.loaded, state.phase])
   return (
     <>
-      <button
-        ref={trigger}
-        type="button"
-        className="tool-button"
-        aria-label={t`Custom formulas`}
-        title={t`Custom formulas`}
-        disabled={!state.available || state.busy}
-        onClick={() => void run('open')}
-      >
-        <span aria-hidden="true">ƒ+</span>
-      </button>
+      <RibbonItem id="formula.custom-formulas">
+        <button
+          data-ribbon-item="formula.custom-formulas"
+          ref={trigger}
+          type="button"
+          className="tool-button"
+          aria-label={t`Custom formulas`}
+          title={t`Custom formulas`}
+          disabled={!state.available || state.busy}
+          onClick={() => void run('open')}
+        >
+          <span aria-hidden="true">ƒ+</span>
+        </button>
+      </RibbonItem>
       {state.open && (
         <dialog
           ref={dialog}

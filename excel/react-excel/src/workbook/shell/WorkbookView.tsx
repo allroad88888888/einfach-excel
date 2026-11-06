@@ -5,6 +5,8 @@ import { EvaluateFormulaDialog, WatchWindowPanel } from '../../components/formul
 import { FormulaBar } from '../chrome/formula-bar/FormulaBar'
 import { WorkbookFooter } from '../chrome/footer/WorkbookFooter'
 import { WorkbookHeader } from '../chrome/header/WorkbookHeader'
+import { RichTextDialog } from '../rich-text/RichTextDialog'
+import { FormulaArgumentsDialog } from '../formula-arguments/FormulaArgumentsDialog'
 import { WorkbookRibbon } from '../chrome/ribbon/WorkbookRibbon'
 import { WorkbookGrid } from '../grid/viewport/WorkbookGrid'
 import './workbook.css'
@@ -66,6 +68,8 @@ export function WorkbookView() {
         Rust/WASM ready
       </Trans></div>
       {ui.ribbon !== false && <WorkbookRibbon />}
+      <FormulaArgumentsDialog />
+      <RichTextDialog />
       {showFormulaBar && <FormulaBar />}
       <WorkbookGrid />
       <SelectSpecialStatus />

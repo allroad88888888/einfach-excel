@@ -3,13 +3,16 @@ import { useLingui } from '@lingui/react/macro'
 import type { WorkbookRibbonTab } from '@einfach-excel/spreadsheet-ui-core'
 import { Fragment } from 'react'
 import { useSpreadsheetPlugins } from './plugin-context'
-import { contextMenuItemShown, useWorkbookUiOptions } from '../page/workbook-ui-options'
+import { contextMenuItemShown, ribbonItemShown, useWorkbookUiOptions } from '../page/workbook-ui-options'
 import type { ContextMenuContribution } from './types'
 
 /** 插件功能区分组排在内置分组之后，沿用内置的分类显隐规则。 */
 export function PluginRibbonGroups({ tab }: { readonly tab: WorkbookRibbonTab }) {
   const plugins = useSpreadsheetPlugins()
-  return plugins.flatMap(plugin => (plugin.ribbon ?? []).map(({ id, tab: home, Group }) => (
+  const ui = useWorkbookUiOptions()
+  return plugins.flatMap(plugin => (plugin.ribbon ?? [])
+    .filter(({ id }) => ribbonItemShown(ui, `plugin:${plugin.id}:${id}`))
+    .map(({ id, tab: home, Group }) => (
     <div key={`${plugin.id}:${id}`} className="ribbon-tool-group"
       data-plugin={plugin.id} data-inactive={tab !== 'Start' && tab !== home}>
       <Group />

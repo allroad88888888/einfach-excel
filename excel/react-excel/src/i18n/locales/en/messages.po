@@ -583,8 +583,9 @@ msgstr "Blocked by {0}."
 msgid "Blue"
 msgstr "Blue"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Bold"
 msgstr "Bold"
 
@@ -601,7 +602,7 @@ msgid "Border settings"
 msgstr "Border settings"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Borders"
 msgstr "Borders"
@@ -684,6 +685,7 @@ msgstr "Call only built-in functions or registered custom formulas in custom for
 #: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 #: src/workbook/notes/NoteTools.tsx
+#: src/workbook/rich-text/RichTextDialog.tsx
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
 #: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Cancel"
@@ -761,6 +763,10 @@ msgstr "Cell has comments"
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 msgid "Cell or Sheet!A1 (blank = selection)"
 msgstr "Cell or Sheet!A1 (blank = selection)"
+
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Cell text"
+msgstr "Cell text"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Cell value"
@@ -1328,6 +1334,10 @@ msgstr "Could not preview duplicate records."
 msgid "Could not preview this split."
 msgstr "Could not preview this split."
 
+#: src/i18n/rich-text-feedback.ts
+msgid "Could not update rich text."
+msgstr "Could not update rich text."
+
 #: src/i18n/feedback-messages.ts
 msgid "Could not update the hyperlink display text."
 msgstr "Could not update the hyperlink display text."
@@ -1414,7 +1424,7 @@ msgstr "Create table needs a selection with a header row and at least one data r
 msgid "Currency"
 msgstr "Currency"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Currency format"
 msgstr "Currency format"
 
@@ -1594,7 +1604,7 @@ msgstr "Date — YMD"
 msgid "Date & time"
 msgstr "Date & time"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Date format"
 msgstr "Date format"
 
@@ -1618,7 +1628,7 @@ msgstr "Decimal places"
 msgid "Decimal separator"
 msgstr "Decimal separator"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Decrease decimal places"
 msgstr "Decrease decimal places"
 
@@ -1626,11 +1636,12 @@ msgstr "Decrease decimal places"
 msgid "Decrease font size"
 msgstr "Decrease font size"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Decrease indent"
 msgstr "Decrease indent"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Default"
 msgstr "Default"
 
@@ -2536,6 +2547,10 @@ msgstr "Finish the current operation before changing a note."
 msgid "Finish the current operation before changing comments."
 msgstr "Finish the current operation before changing comments."
 
+#: src/i18n/rich-text-feedback.ts
+msgid "Finish the current operation before editing rich text."
+msgstr "Finish the current operation before editing rich text."
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/GoToTools.tsx
 msgid "Finish the current operation before navigating."
@@ -2587,12 +2602,14 @@ msgstr "Fixed: {value}"
 msgid "Font"
 msgstr "Font"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Font family"
 msgstr "Font family"
 
 #: src/workbook/chrome/ribbon/FontSizeTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Font size"
 msgstr "Font size"
 
@@ -2749,7 +2766,7 @@ msgstr "General"
 msgid "General fields"
 msgstr "General fields"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "General format"
 msgstr "General format"
 
@@ -2976,7 +2993,7 @@ msgstr "Include a source row or column and at least one destination."
 msgid "Includes hidden cells. Merged cells are selected as a whole."
 msgstr "Includes hidden cells. Merged cells are selected as a whole."
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Increase decimal places"
 msgstr "Increase decimal places"
 
@@ -2984,7 +3001,7 @@ msgstr "Increase decimal places"
 msgid "Increase font size"
 msgstr "Increase font size"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Increase indent"
 msgstr "Increase indent"
 
@@ -3161,8 +3178,17 @@ msgstr "Invalid protection change."
 msgid "Invalid protection projection request."
 msgstr "Invalid protection projection request."
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/i18n/rich-text-feedback.ts
+msgid "Invalid rich text format."
+msgstr "Invalid rich text format."
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Invalid rich text projection request."
+msgstr "Invalid rich text projection request."
+
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Italic"
 msgstr "Italic"
 
@@ -4151,7 +4177,7 @@ msgstr "Pasting…"
 msgid "Percent"
 msgstr "Percent"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Percent format"
 msgstr "Percent format"
 
@@ -4200,6 +4226,10 @@ msgstr "Preparing download…"
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Press Search to load matching values."
 msgstr "Press Search to load matching values."
+
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Preview"
+msgstr "Preview"
 
 #. placeholder {0}: state.target?.addr
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
@@ -4578,6 +4608,10 @@ msgstr "Reply to comment"
 msgid "Required"
 msgstr "Required"
 
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Reset selected formatting"
+msgstr "Reset selected formatting"
+
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
 msgid "Reset selected sizes"
 msgstr "Reset selected sizes"
@@ -4650,6 +4684,10 @@ msgstr "Result"
 msgid "Results {0}–{1} of {2}"
 msgstr "Results {0}–{1} of {2}"
 
+#: src/i18n/rich-text-feedback.ts
+msgid "Resume calculation before recalculating."
+msgstr "Resume calculation before recalculating."
+
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Retry values"
 msgstr "Retry values"
@@ -4710,9 +4748,30 @@ msgstr "Reverse icon order"
 msgid "Reverses the logical value of its argument."
 msgstr "Reverses the logical value of its argument."
 
+#: src/workbook/rich-text/RichTextDialog.tsx
+#: src/workbook/rich-text/RichTextTools.tsx
+msgid "Rich text"
+msgstr "Rich text"
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Rich text colors must use #RRGGBB."
+msgstr "Rich text colors must use #RRGGBB."
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Rich text editing is unavailable inside a table."
+msgstr "Rich text editing is unavailable inside a table."
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Rich text exceeds the cell size limit."
+msgstr "Rich text exceeds the cell size limit."
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "rich text formatting"
 msgstr "rich text formatting"
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Rich text must match the cell's literal text."
+msgstr "Rich text must match the cell's literal text."
 
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
@@ -4819,6 +4878,10 @@ msgstr "Rust returned a mismatched note result."
 msgid "Rust returned a mismatched protection result."
 msgstr "Rust returned a mismatched protection result."
 
+#: src/i18n/rich-text-feedback.ts
+msgid "Rust returned a mismatched rich text result."
+msgstr "Rust returned a mismatched rich text result."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust returned a mismatched validation confirmation result."
 msgstr "Rust returned a mismatched validation confirmation result."
@@ -4847,6 +4910,10 @@ msgstr "Rust returned incomplete search matches. The selection was not changed."
 msgid "Rust returned invalid worksheet protection."
 msgstr "Rust returned invalid worksheet protection."
 
+#: src/i18n/rich-text-feedback.ts
+msgid "Rust rich text editing is unavailable."
+msgstr "Rust rich text editing is unavailable."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust worksheet protection is unavailable."
 msgstr "Rust worksheet protection is unavailable."
@@ -4865,6 +4932,7 @@ msgstr "Sample values"
 
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 #: src/workbook/hyperlink/HyperlinkTools.tsx
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Save changes"
 msgstr "Save changes"
 
@@ -4917,6 +4985,10 @@ msgstr "Saving hyperlink…"
 #: src/workbook/notes/NoteTools.tsx
 msgid "Saving note…"
 msgstr "Saving note…"
+
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Saving rich text…"
+msgstr "Saving rich text…"
 
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
 msgid "Saving sizes…"
@@ -5087,6 +5159,10 @@ msgstr "Select one row or column with enough samples and at least one destinatio
 msgid "Select page"
 msgstr "Select page"
 
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Select part of the text, then apply formatting."
+msgstr "Select part of the text, then apply formatting."
+
 #: src/workbook/grid/viewport/GridHeading.tsx
 msgid "Select row {label}"
 msgstr "Select row {label}"
@@ -5118,6 +5194,10 @@ msgstr "Select the anchor cell before changing its hyperlink."
 #: src/i18n/seven-feature-feedback.ts
 msgid "Select the anchor cell before changing its note."
 msgstr "Select the anchor cell before changing its note."
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Select the anchor cell before editing rich text."
+msgstr "Select the anchor cell before editing rich text."
 
 #: src/i18n/feedback-messages.ts
 msgid "Select the entire merged cell before formatting."
@@ -5154,6 +5234,10 @@ msgstr "Selected filter values"
 #: src/i18n/feedback-messages.ts
 msgid "Selected range"
 msgstr "Selected range"
+
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Selected text format"
+msgstr "Selected text format"
 
 #: src/workbook/chrome/footer/WorkbookFooter.tsx
 msgid "Selected: {selectedCellCount}"
@@ -5493,8 +5577,9 @@ msgstr "Stop"
 msgid "Stop if true"
 msgstr "Stop if true"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Strikethrough"
 msgstr "Strikethrough"
 
@@ -5607,6 +5692,7 @@ msgstr "Text"
 
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Text color"
 msgstr "Text color"
 
@@ -5795,6 +5881,10 @@ msgstr "The original range was deleted. Enter a new range to repair this name."
 msgid "The paste would hide cell content. Unmerge the destination or change the selection first."
 msgstr "The paste would hide cell content. Unmerge the destination or change the selection first."
 
+#: src/i18n/rich-text-feedback.ts
+msgid "The rich text cell is outside the worksheet."
+msgstr "The rich text cell is outside the worksheet."
+
 #: src/i18n/feedback-messages.ts
 msgid "The rule no longer exists."
 msgstr "The rule no longer exists."
@@ -5963,6 +6053,10 @@ msgstr "The workbook changed. Reopen the name editor."
 #: src/i18n/seven-feature-feedback.ts
 msgid "The workbook changed. Reopen the note editor."
 msgstr "The workbook changed. Reopen the note editor."
+
+#: src/i18n/rich-text-feedback.ts
+msgid "The workbook changed. Reopen the rich text editor."
+msgstr "The workbook changed. Reopen the rich text editor."
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "The workbook changed. Reopen worksheet protection."
@@ -6166,7 +6260,7 @@ msgstr "This worksheet is protected."
 msgid "This worksheet is protected. Unprotect it before changing locked cells."
 msgstr "This worksheet is protected. Unprotect it before changing locked cells."
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Thousands format"
 msgstr "Thousands format"
 
@@ -6292,8 +6386,9 @@ msgstr "Trim and ignore case"
 msgid "Trim whitespace"
 msgstr "Trim whitespace"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Underline"
 msgstr "Underline"
 
@@ -6818,7 +6913,7 @@ msgstr "Worksheet tab"
 msgid "Worksheet tables"
 msgstr "Worksheet tables"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Wrap text"
 msgstr "Wrap text"

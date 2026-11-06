@@ -1215,6 +1215,31 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | DEFAULTS-002 | 宿主默认列宽：显式列宽优先，滚动后的编辑器位置一致 | `ui-options/defaults.spec.ts` | host default column width keeps explicit widths and aligns the editor after scrolling |
 | DEFAULTS-003 | 宿主默认字号：继承、显式覆盖与撤销 | `ui-options/defaults.spec.ts` | host default font size is inherited until explicit formatting and restored by undo |
 
+| HOST-001 | host formats an inactive sheet and reads its native display without changing selection | `host-api/operations.spec.ts` | host formats an inactive sheet and reads its native display without changing selection |
+| HOST-002 | host clears an explicit range while keeping its neighbor | `host-api/operations.spec.ts` | host clears an explicit range while keeping its neighbor |
+| HOST-003 | host shifts cells through native range insertion | `host-api/operations.spec.ts` | host shifts cells through native range insertion |
+| HOST-004 | host resizes columns and hides rows outside the active sheet | `host-api/operations.spec.ts` | host resizes columns and hides rows outside the active sheet |
+| HOST-005 | host inserts rows and publishes structural events with updated bounds | `host-api/operations.spec.ts` | host inserts rows and publishes structural events with updated bounds |
+| HOST-006 | host freezes and merges a named worksheet | `host-api/operations.spec.ts` | host freezes and merges a named worksheet |
+| HOST-007 | host sorts a range without sorting its header | `host-api/operations.spec.ts` | host sorts a range without sorting its header |
+| HOST-008 | host filters an explicit range using native predicates | `host-api/operations.spec.ts` | host filters an explicit range using native predicates |
+| HOST-009 | host creates conditional formatting evaluated by Rust | `host-api/operations.spec.ts` | host creates conditional formatting evaluated by Rust |
+| HOST-010 | host installs validation enforced during real cell editing | `host-api/operations.spec.ts` | host installs validation enforced during real cell editing |
+| HOST-011 | host changes sheet names order visibility colors and copies native data | `host-api/operations.spec.ts` | host changes sheet names order visibility colors and copies native data |
+| HOST-012 | host undo and redo share the workbook native history | `host-api/operations.spec.ts` | host undo and redo share the workbook native history |
+| HOST-013 | host finds and replaces with an explicit native revision | `host-api/operations.spec.ts` | host finds and replaces with an explicit native revision |
+| HOST-014 | host operation policy rejects invalid targets and structural bypasses | `host-api/operations.spec.ts` | host operation policy rejects invalid targets and structural bypasses |
+| HOST-015 | host selects scrolls and zooms with session callbacks | `host-api/interaction.spec.ts` | host selects scrolls and zooms with session callbacks |
+| HOST-016 | host begins commits and cancels editing with paired lifecycle callbacks | `host-api/interaction.spec.ts` | host begins commits and cancels editing with paired lifecycle callbacks |
+| HOST-017 | host before change cancels toolbar and API writes before history or events | `host-api/interaction.spec.ts` | host before change cancels toolbar and API writes before history or events |
+| HOST-018 | host removes subscriptions without affecting workbook edits | `host-api/interaction.spec.ts` | host removes subscriptions without affecting workbook edits |
+| HOST-019 | host A1 helpers convert coordinates and bounded rectangular references | `host-api/interaction.spec.ts` | host A1 helpers convert coordinates and bounded rectangular references |
+| HOST-020 | host hides individual ribbon controls and restores them without resetting data | `host-api/interaction.spec.ts` | host hides individual ribbon controls and restores them without resetting data |
+| HOST-021 | host header dimensions align cell hit testing and the editor after live changes | `host-api/interaction.spec.ts` | host header dimensions align cell hit testing and the editor after live changes |
+| HOST-022 | host canvas paint hooks draw inside the real native projection | `host-api/interaction.spec.ts` | host canvas paint hooks draw inside the real native projection |
+
+| PKG-018 | 真包宿主 facade 设置格式并保持实例隔离 | `package-host/facade.spec.ts` | installed vite host facade formats a cell without touching its sibling |
+
 ## 图表（浮动对象 + 可选图表插件，`?plugins=chart` 或 `?demo=charts`）
 
 | ID | 用户操作 | 主用例文件 | 主用例标题 |

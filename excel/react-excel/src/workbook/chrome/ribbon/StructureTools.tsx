@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
@@ -32,34 +33,41 @@ export function StructureTools() {
   const tabs = useAtomValue(sheetTabsAtom)
   return (
     <>
-      <select
-        className="tool-select paste-options-select"
-        aria-label={t`Insert or delete rows and columns`}
-        value=""
-        disabled={editing || feedback.busy || history.busy || !!tabs.mutation}
-        onChange={(event) => {
-          const value = event.currentTarget.value
-          const option = OPTIONS.find(([key]) => key === value)
-          const cells = CELL_OPTIONS.find(([key]) => `${key}-cells` === value)
-          if (option) void run(option[0])
-          else if (cells) void openCells({ mode: cells[0], source: 'menu' })
-        }}
-      >
-        <option value="" disabled><Trans>
-          Insert / Delete
-        </Trans></option>
-        {CELL_OPTIONS.map(([mode, label]) => (
-          <option key={mode} value={`${mode}-cells`}>
-            {label}
+      <RibbonItem id="structure.insert-or-delete-rows-and-columns">
+        <select
+          data-ribbon-item="structure.insert-or-delete-rows-and-columns"
+          className="tool-select paste-options-select"
+          aria-label={t`Insert or delete rows and columns`}
+          value=""
+          disabled={editing || feedback.busy || history.busy || !!tabs.mutation}
+          onChange={(event) => {
+            const value = event.currentTarget.value
+            const option = OPTIONS.find(([key]) => key === value)
+            const cells = CELL_OPTIONS.find(([key]) => `${key}-cells` === value)
+            if (option) void run(option[0])
+            else if (cells) void openCells({ mode: cells[0], source: 'menu' })
+          }}
+        >
+          <option value="" disabled>
+            <Trans>Insert / Delete</Trans>
           </option>
-        ))}
-        {OPTIONS.map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        ))}
-      </select>
-      {feedback.busy && <span role="status"><Trans>Updating rows and columns…</Trans></span>}
+          {CELL_OPTIONS.map(([mode, label]) => (
+            <option key={mode} value={`${mode}-cells`}>
+              {label}
+            </option>
+          ))}
+          {OPTIONS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </RibbonItem>
+      {feedback.busy && (
+        <span role="status">
+          <Trans>Updating rows and columns…</Trans>
+        </span>
+      )}
       {feedback.error && <span role="alert">{translateFeedback(i18n, feedback.error)}</span>}
     </>
   )

@@ -583,8 +583,9 @@ msgstr "被 {0} 阻挡。"
 msgid "Blue"
 msgstr "蓝色"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Bold"
 msgstr "粗体"
 
@@ -601,7 +602,7 @@ msgid "Border settings"
 msgstr "边框设置"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Borders"
 msgstr "边框"
@@ -684,6 +685,7 @@ msgstr "自定义公式表达式只能调用内置函数或已注册的自定义
 #: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 #: src/workbook/notes/NoteTools.tsx
+#: src/workbook/rich-text/RichTextDialog.tsx
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
 #: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Cancel"
@@ -761,6 +763,10 @@ msgstr "单元格有批注"
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 msgid "Cell or Sheet!A1 (blank = selection)"
 msgstr "单元格或 Sheet!A1（留空使用当前选区）"
+
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Cell text"
+msgstr "单元格文字"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Cell value"
@@ -1328,6 +1334,10 @@ msgstr "无法预览重复记录。"
 msgid "Could not preview this split."
 msgstr "无法预览此次分列。"
 
+#: src/i18n/rich-text-feedback.ts
+msgid "Could not update rich text."
+msgstr "无法更新富文本。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Could not update the hyperlink display text."
 msgstr "无法更新超链接显示文字。"
@@ -1414,7 +1424,7 @@ msgstr "创建表格的选区需包含表头和至少一行数据。"
 msgid "Currency"
 msgstr "货币"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Currency format"
 msgstr "货币格式"
 
@@ -1594,7 +1604,7 @@ msgstr "日期 — 年月日"
 msgid "Date & time"
 msgstr "日期与时间"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Date format"
 msgstr "日期格式"
 
@@ -1618,7 +1628,7 @@ msgstr "小数位数"
 msgid "Decimal separator"
 msgstr "小数分隔符"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Decrease decimal places"
 msgstr "减少小数位数"
 
@@ -1626,11 +1636,12 @@ msgstr "减少小数位数"
 msgid "Decrease font size"
 msgstr "减小字号"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Decrease indent"
 msgstr "减少缩进"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Default"
 msgstr "默认"
 
@@ -2536,6 +2547,10 @@ msgstr "请先完成当前操作，再更改备注。"
 msgid "Finish the current operation before changing comments."
 msgstr "请先完成当前操作再修改批注。"
 
+#: src/i18n/rich-text-feedback.ts
+msgid "Finish the current operation before editing rich text."
+msgstr "请先完成当前操作，再编辑富文本。"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/GoToTools.tsx
 msgid "Finish the current operation before navigating."
@@ -2587,12 +2602,14 @@ msgstr "固定：{value}"
 msgid "Font"
 msgstr "字体"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Font family"
 msgstr "字体"
 
 #: src/workbook/chrome/ribbon/FontSizeTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Font size"
 msgstr "字号"
 
@@ -2749,7 +2766,7 @@ msgstr "常规"
 msgid "General fields"
 msgstr "常规字段"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "General format"
 msgstr "常规格式"
 
@@ -2976,7 +2993,7 @@ msgstr "请选择来源行或列，并至少包含一个目标单元格。"
 msgid "Includes hidden cells. Merged cells are selected as a whole."
 msgstr "包含隐藏单元格，合并单元格按整体选中。"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Increase decimal places"
 msgstr "增加小数位数"
 
@@ -2984,7 +3001,7 @@ msgstr "增加小数位数"
 msgid "Increase font size"
 msgstr "增大字号"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Increase indent"
 msgstr "增加缩进"
 
@@ -3161,8 +3178,17 @@ msgstr "保护更改无效。"
 msgid "Invalid protection projection request."
 msgstr "保护投影请求无效。"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/i18n/rich-text-feedback.ts
+msgid "Invalid rich text format."
+msgstr "富文本样式无效。"
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Invalid rich text projection request."
+msgstr "富文本显示请求无效。"
+
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Italic"
 msgstr "斜体"
 
@@ -4151,7 +4177,7 @@ msgstr "正在粘贴…"
 msgid "Percent"
 msgstr "百分比"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Percent format"
 msgstr "百分比格式"
 
@@ -4200,6 +4226,10 @@ msgstr "正在准备下载…"
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Press Search to load matching values."
 msgstr "点击“搜索”加载匹配的值。"
+
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Preview"
+msgstr "预览"
 
 #. placeholder {0}: state.target?.addr
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
@@ -4578,6 +4608,10 @@ msgstr "回复批注"
 msgid "Required"
 msgstr "必填"
 
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Reset selected formatting"
+msgstr "重置所选文字样式"
+
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
 msgid "Reset selected sizes"
 msgstr "重置选中行列尺寸"
@@ -4650,6 +4684,10 @@ msgstr "结果"
 msgid "Results {0}–{1} of {2}"
 msgstr "第 {0}–{1} 项结果，共 {2} 项"
 
+#: src/i18n/rich-text-feedback.ts
+msgid "Resume calculation before recalculating."
+msgstr "请先恢复计算，再执行重算。"
+
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Retry values"
 msgstr "重新加载值"
@@ -4710,9 +4748,30 @@ msgstr "反转图标顺序"
 msgid "Reverses the logical value of its argument."
 msgstr "返回参数逻辑值的相反值。"
 
+#: src/workbook/rich-text/RichTextDialog.tsx
+#: src/workbook/rich-text/RichTextTools.tsx
+msgid "Rich text"
+msgstr "富文本"
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Rich text colors must use #RRGGBB."
+msgstr "富文本颜色须使用 #RRGGBB 格式。"
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Rich text editing is unavailable inside a table."
+msgstr "暂不支持编辑表格内的富文本。"
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Rich text exceeds the cell size limit."
+msgstr "富文本超出单元格长度或分段数量限制。"
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "rich text formatting"
 msgstr "富文本局部样式"
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Rich text must match the cell's literal text."
+msgstr "富文本分段必须与单元格文字一致。"
 
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
@@ -4819,6 +4878,10 @@ msgstr "原生备注结果与请求不匹配。"
 msgid "Rust returned a mismatched protection result."
 msgstr "原生引擎返回的保护结果不匹配。"
 
+#: src/i18n/rich-text-feedback.ts
+msgid "Rust returned a mismatched rich text result."
+msgstr "富文本保存结果与请求不一致。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust returned a mismatched validation confirmation result."
 msgstr "原生引擎返回的验证确认结果不匹配。"
@@ -4847,6 +4910,10 @@ msgstr "原生引擎返回的搜索匹配项不完整，选择未改变。"
 msgid "Rust returned invalid worksheet protection."
 msgstr "原生引擎返回的工作表保护配置无效。"
 
+#: src/i18n/rich-text-feedback.ts
+msgid "Rust rich text editing is unavailable."
+msgstr "富文本编辑暂不可用。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust worksheet protection is unavailable."
 msgstr "原生工作表保护不可用。"
@@ -4865,6 +4932,7 @@ msgstr "样本值"
 
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 #: src/workbook/hyperlink/HyperlinkTools.tsx
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Save changes"
 msgstr "保存更改"
 
@@ -4917,6 +4985,10 @@ msgstr "正在保存超链接…"
 #: src/workbook/notes/NoteTools.tsx
 msgid "Saving note…"
 msgstr "正在保存备注…"
+
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Saving rich text…"
+msgstr "正在保存富文本…"
 
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
 msgid "Saving sizes…"
@@ -5087,6 +5159,10 @@ msgstr "请选择同一行或列，包含足够的样本和至少一个目标单
 msgid "Select page"
 msgstr "选择当前页"
 
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Select part of the text, then apply formatting."
+msgstr "先选择部分文字，再设置样式。"
+
 #: src/workbook/grid/viewport/GridHeading.tsx
 msgid "Select row {label}"
 msgstr "选择行 {label}"
@@ -5118,6 +5194,10 @@ msgstr "请先选中主单元格，再修改其超链接。"
 #: src/i18n/seven-feature-feedback.ts
 msgid "Select the anchor cell before changing its note."
 msgstr "请先选择合并区域的锚点单元格，再更改备注。"
+
+#: src/i18n/rich-text-feedback.ts
+msgid "Select the anchor cell before editing rich text."
+msgstr "请先选择锚点单元格，再编辑富文本。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Select the entire merged cell before formatting."
@@ -5154,6 +5234,10 @@ msgstr "已选筛选值"
 #: src/i18n/feedback-messages.ts
 msgid "Selected range"
 msgstr "所选区域"
+
+#: src/workbook/rich-text/RichTextDialog.tsx
+msgid "Selected text format"
+msgstr "所选文字样式"
 
 #: src/workbook/chrome/footer/WorkbookFooter.tsx
 msgid "Selected: {selectedCellCount}"
@@ -5493,8 +5577,9 @@ msgstr "停止"
 msgid "Stop if true"
 msgstr "为真则停止"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Strikethrough"
 msgstr "删除线"
 
@@ -5607,6 +5692,7 @@ msgstr "文本"
 
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Text color"
 msgstr "字体颜色"
 
@@ -5795,6 +5881,10 @@ msgstr "原引用区域已删除，请输入新区域以修复此名称。"
 msgid "The paste would hide cell content. Unmerge the destination or change the selection first."
 msgstr "此次粘贴会隐藏单元格内容，请先取消目标区域的合并，或修改选区。"
 
+#: src/i18n/rich-text-feedback.ts
+msgid "The rich text cell is outside the worksheet."
+msgstr "富文本单元格超出工作表范围。"
+
 #: src/i18n/feedback-messages.ts
 msgid "The rule no longer exists."
 msgstr "此规则已不存在。"
@@ -5963,6 +6053,10 @@ msgstr "工作簿已更改，请重新打开名称编辑器。"
 #: src/i18n/seven-feature-feedback.ts
 msgid "The workbook changed. Reopen the note editor."
 msgstr "工作簿已更改，请重新打开备注编辑器。"
+
+#: src/i18n/rich-text-feedback.ts
+msgid "The workbook changed. Reopen the rich text editor."
+msgstr "工作簿已更改，请重新打开富文本编辑器。"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "The workbook changed. Reopen worksheet protection."
@@ -6166,7 +6260,7 @@ msgstr "此工作表已受保护。"
 msgid "This worksheet is protected. Unprotect it before changing locked cells."
 msgstr "此工作表已受保护，请先取消保护再更改锁定单元格。"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "Thousands format"
 msgstr "千位分隔格式"
 
@@ -6292,8 +6386,9 @@ msgstr "去除首尾空白并忽略大小写"
 msgid "Trim whitespace"
 msgstr "去除首尾空白"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
+#: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Underline"
 msgstr "下划线"
 
@@ -6818,7 +6913,7 @@ msgstr "工作表标签"
 msgid "Worksheet tables"
 msgstr "工作表表格"
 
-#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Wrap text"
 msgstr "自动换行"

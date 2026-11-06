@@ -1,10 +1,15 @@
+import { RibbonItem } from './RibbonItem'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useEffect, useId, useRef } from 'react'
 import {
-  goToErrorMessageAtom, goToHistoryAtom, goToInputAtom, goToOpenAtom,
-  goToReferenceAvailableAtom, runGoToReferenceAtom,
+  goToErrorMessageAtom,
+  goToHistoryAtom,
+  goToInputAtom,
+  goToOpenAtom,
+  goToReferenceAvailableAtom,
+  runGoToReferenceAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import './go-to.css'
@@ -32,50 +37,125 @@ export function GoToTools() {
     inputRef.current?.select()
     return () => {
       dialog.close?.()
-      const grid = button?.closest('.workbook')
+      const grid = button
+        ?.closest('.workbook')
         ?.querySelector<HTMLElement>('[data-workbook-grid="true"]')
       ;(grid ?? button)?.focus({ preventScroll: true })
     }
   }, [open])
-  return <>
-    <button ref={buttonRef} type="button" className="tool-button" aria-label={t`Go to`}
-      title={t`Go to (Ctrl/⌘+G or F5)`} disabled={!available} onClick={() => run('open')}>
-      <span aria-hidden="true">↗</span>
-    </button>
-    {open && <dialog ref={dialogRef} className="go-to-dialog" aria-labelledby={`${id}-title`}
-      onKeyDown={cycleDialogFocus} onCancel={(event) => { event.preventDefault(); run('close') }}>
-      <h2 id={`${id}-title`}><Trans>Go to</Trans></h2>
-      <form onSubmit={(event) => { event.preventDefault(); run('submit') }}>
-        <label htmlFor={`${id}-reference`}><Trans>Reference</Trans></label>
-        <input ref={inputRef} id={`${id}-reference`} value={input} maxLength={1024}
-          autoComplete="off" spellCheck={false} disabled={!available}
-          aria-invalid={Boolean(error)} aria-describedby={`${id}-hint${error ? ` ${id}-error` : ''}`}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229))
-              event.preventDefault()
+  return (
+    <>
+      <RibbonItem id="view.go-to">
+        <button
+          data-ribbon-item="view.go-to"
+          ref={buttonRef}
+          type="button"
+          className="tool-button"
+          aria-label={t`Go to`}
+          title={t`Go to (Ctrl/⌘+G or F5)`}
+          disabled={!available}
+          onClick={() => run('open')}
+        >
+          <span aria-hidden="true">↗</span>
+        </button>
+      </RibbonItem>
+      {open && (
+        <dialog
+          ref={dialogRef}
+          className="go-to-dialog"
+          aria-labelledby={`${id}-title`}
+          onKeyDown={cycleDialogFocus}
+          onCancel={(event) => {
+            event.preventDefault()
+            run('close')
           }}
-          onChange={(event) => run({ input: event.currentTarget.value })} />
-        <p id={`${id}-hint`} className="go-to-hint"><Trans>
-          A defined name, A1, B2:D10, R12C3, R[2]C[-1], or 'Sales Orders'!B2.
-          Hidden rows and columns stay hidden.
-        </Trans></p>
-        <section aria-labelledby={`${id}-recent`}>
-          <h3 id={`${id}-recent`}><Trans>Recent locations</Trans></h3>
-          {history.length ? <ul className="go-to-recent">
-            {history.map((entry) => <li key={entry}>
-              <button type="button" disabled={!available}
-                onClick={() => run({ recent: entry })}>{entry}</button>
-            </li>)}
-          </ul> : <p className="go-to-hint"><Trans>No recent locations yet.</Trans></p>}
-        </section>
-        {error && <p id={`${id}-error`} className="go-to-error" role="alert">
-          {translateFeedback(i18n, error)}</p>}
-        {!available && <p role="status"><Trans>Finish the current operation before navigating.</Trans></p>}
-        <div className="go-to-actions">
-          <button type="button" onClick={() => run('close')}><Trans>Cancel</Trans></button>
-          <button type="submit" className="go-to-primary" disabled={!available || !input.trim()}><Trans>Go</Trans></button>
-        </div>
-      </form>
-    </dialog>}
-  </>
+        >
+          <h2 id={`${id}-title`}>
+            <Trans>Go to</Trans>
+          </h2>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              run('submit')
+            }}
+          >
+            <label htmlFor={`${id}-reference`}>
+              <Trans>Reference</Trans>
+            </label>
+            <input
+              ref={inputRef}
+              id={`${id}-reference`}
+              value={input}
+              maxLength={1024}
+              autoComplete="off"
+              spellCheck={false}
+              disabled={!available}
+              aria-invalid={Boolean(error)}
+              aria-describedby={`${id}-hint${error ? ` ${id}-error` : ''}`}
+              onKeyDown={(event) => {
+                if (
+                  event.key === 'Enter' &&
+                  (event.nativeEvent.isComposing || event.keyCode === 229)
+                )
+                  event.preventDefault()
+              }}
+              onChange={(event) => run({ input: event.currentTarget.value })}
+            />
+            <p id={`${id}-hint`} className="go-to-hint">
+              <Trans>
+                A defined name, A1, B2:D10, R12C3, R[2]C[-1], or 'Sales Orders'!B2. Hidden rows and
+                columns stay hidden.
+              </Trans>
+            </p>
+            <section aria-labelledby={`${id}-recent`}>
+              <h3 id={`${id}-recent`}>
+                <Trans>Recent locations</Trans>
+              </h3>
+              {history.length ? (
+                <ul className="go-to-recent">
+                  {history.map((entry) => (
+                    <li key={entry}>
+                      <button
+                        type="button"
+                        disabled={!available}
+                        onClick={() => run({ recent: entry })}
+                      >
+                        {entry}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="go-to-hint">
+                  <Trans>No recent locations yet.</Trans>
+                </p>
+              )}
+            </section>
+            {error && (
+              <p id={`${id}-error`} className="go-to-error" role="alert">
+                {translateFeedback(i18n, error)}
+              </p>
+            )}
+            {!available && (
+              <p role="status">
+                <Trans>Finish the current operation before navigating.</Trans>
+              </p>
+            )}
+            <div className="go-to-actions">
+              <button type="button" onClick={() => run('close')}>
+                <Trans>Cancel</Trans>
+              </button>
+              <button
+                type="submit"
+                className="go-to-primary"
+                disabled={!available || !input.trim()}
+              >
+                <Trans>Go</Trans>
+              </button>
+            </div>
+          </form>
+        </dialog>
+      )}
+    </>
+  )
 }

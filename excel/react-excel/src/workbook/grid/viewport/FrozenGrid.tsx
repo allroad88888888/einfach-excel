@@ -93,7 +93,7 @@ export function FrozenGrid({ focusGrid }: { focusGrid: () => void }) {
           </div>
         )
       })}
-      <div className="frozen-column-headers" style={{ left: gutter, width, height: heading }}>
+      {heading > 0 && <div className="frozen-column-headers" style={{ left: gutter, width, height: heading }}>
         {[...colIndices].map((col) => {
           const box = rect({ rowStart: 0, rowEnd: 0, colStart: col, colEnd: col })
           return (
@@ -111,8 +111,8 @@ export function FrozenGrid({ focusGrid }: { focusGrid: () => void }) {
             />
           )
         })}
-      </div>
-      <div className="frozen-row-headers" style={{ top: heading, width: gutter, height }}>
+      </div>}
+      {gutter > 0 && <div className="frozen-row-headers" style={{ top: heading, width: gutter, height }}>
         {[...rowIndices].map((row) => {
           const box = rect({ rowStart: row, rowEnd: row, colStart: 0, colEnd: 0 })
           return (
@@ -125,7 +125,7 @@ export function FrozenGrid({ focusGrid }: { focusGrid: () => void }) {
             />
           )
         })}
-      </div>
+      </div>}
     </div>
   )
 }

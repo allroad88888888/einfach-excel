@@ -1,3 +1,4 @@
+import { RibbonItem } from './RibbonItem'
 import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
@@ -24,7 +25,11 @@ const PASTE_OPTIONS = [
   { value: 'subtract', label: msg`Paste and subtract`, paste: { arithmetic: 'subtract' } },
   { value: 'multiply', label: msg`Paste and multiply`, paste: { arithmetic: 'multiply' } },
   { value: 'divide', label: msg`Paste and divide`, paste: { arithmetic: 'divide' } },
-  { value: 'column-widths', label: msg`Paste column widths only`, paste: { mode: 'column-widths' } },
+  {
+    value: 'column-widths',
+    label: msg`Paste column widths only`,
+    paste: { mode: 'column-widths' },
+  },
   { value: 'notes', label: msg`Paste notes only`, paste: { mode: 'notes' } },
   { value: 'validation', label: msg`Paste validation only`, paste: { mode: 'validation' } },
   { value: 'transpose', label: msg`Paste transposed`, paste: { transpose: true } },
@@ -56,91 +61,106 @@ export function ClipboardTools() {
   return (
     <>
       {(['paste', 'cut', 'copy'] as const).map((operation) => (
-        <button
-          className="tool-button"
-          type="button"
-          key={operation}
-          aria-label={{ paste: t`Paste`, cut: t`Cut`, copy: t`Copy` }[operation]}
-          title={
-            { paste: t`Paste (Ctrl/⌘+V)`, cut: t`Cut (Ctrl/⌘+X)`, copy: t`Copy (Ctrl/⌘+C)` }[operation]
-          }
-          disabled={feedback.busy || editing}
-          onPointerDown={(event) => event.preventDefault()}
-          onClick={() =>
-            void run(
-              operation === 'paste'
-                ? { operation, read: readBrowserClipboard }
-                : { operation, write: writeBrowserClipboard },
-            )
-          }
-        >
-          <span aria-hidden="true">{{ paste: '▣', cut: '✂', copy: '▤' }[operation]}</span>
-        </button>
+        <RibbonItem id={`clipboard.${operation}`} key={operation}>
+          <button
+            data-ribbon-item={`clipboard.${operation}`}
+            className="tool-button"
+            type="button"
+            key={operation}
+            aria-label={{ paste: t`Paste`, cut: t`Cut`, copy: t`Copy` }[operation]}
+            title={
+              { paste: t`Paste (Ctrl/⌘+V)`, cut: t`Cut (Ctrl/⌘+X)`, copy: t`Copy (Ctrl/⌘+C)` }[
+                operation
+              ]
+            }
+            disabled={feedback.busy || editing}
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={() =>
+              void run(
+                operation === 'paste'
+                  ? { operation, read: readBrowserClipboard }
+                  : { operation, write: writeBrowserClipboard },
+              )
+            }
+          >
+            <span aria-hidden="true">{{ paste: '▣', cut: '✂', copy: '▤' }[operation]}</span>
+          </button>
+        </RibbonItem>
       ))}
       {(['values', 'formats'] as const).map((mode) => (
-        <button
-          className="tool-button"
-          type="button"
-          key={mode}
-          aria-label={mode === 'values' ? t`Paste values only` : t`Paste formatting only`}
-          title={mode === 'values' ? t`Paste values only` : t`Paste formatting only`}
-          disabled={feedback.busy || editing}
-          onPointerDown={(event) => event.preventDefault()}
-          onClick={() => void run({ operation: 'paste', mode, read: readBrowserClipboard })}
-        >
-          <span aria-hidden="true">{mode === 'values' ? '123' : 'A▧'}</span>
-        </button>
+        <RibbonItem id={`clipboard.paste-${mode}`} key={mode}>
+          <button
+            data-ribbon-item={`clipboard.paste-${mode}`}
+            className="tool-button"
+            type="button"
+            key={mode}
+            aria-label={mode === 'values' ? t`Paste values only` : t`Paste formatting only`}
+            title={mode === 'values' ? t`Paste values only` : t`Paste formatting only`}
+            disabled={feedback.busy || editing}
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={() => void run({ operation: 'paste', mode, read: readBrowserClipboard })}
+          >
+            <span aria-hidden="true">{mode === 'values' ? '123' : 'A▧'}</span>
+          </button>
+        </RibbonItem>
       ))}
-      <select
-        className="tool-select paste-options-select"
-        aria-label={t`More paste options`}
-        title={t`More paste options`}
-        defaultValue=""
-        disabled={feedback.busy || editing}
-        onChange={(event) => {
-          const option = PASTE_OPTIONS.find(({ value }) => value === event.currentTarget.value)
-          event.currentTarget.value = ''
-          if (option) void run({ ...option.paste, operation: 'paste', read: readBrowserClipboard })
-        }}
-      >
-        <option value="" disabled><Trans>
-          Paste options
-        </Trans></option>
-        {PASTE_OPTIONS.map(({ value, label }) => (
-          <option key={value} value={value}>
-            {i18n._(label)}
+      <RibbonItem id="clipboard.more-paste-options">
+        <select
+          data-ribbon-item="clipboard.more-paste-options"
+          className="tool-select paste-options-select"
+          aria-label={t`More paste options`}
+          title={t`More paste options`}
+          defaultValue=""
+          disabled={feedback.busy || editing}
+          onChange={(event) => {
+            const option = PASTE_OPTIONS.find(({ value }) => value === event.currentTarget.value)
+            event.currentTarget.value = ''
+            if (option)
+              void run({ ...option.paste, operation: 'paste', read: readBrowserClipboard })
+          }}
+        >
+          <option value="" disabled>
+            <Trans>Paste options</Trans>
           </option>
-        ))}
-      </select>
+          {PASTE_OPTIONS.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {i18n._(label)}
+            </option>
+          ))}
+        </select>
+      </RibbonItem>
       <PasteSpecialTools />
-      <select
-        className="tool-select copy-as-select"
-        aria-label={t`Copy as`}
-        title={t`Copy as`}
-        defaultValue=""
-        disabled={feedback.busy || editing}
-        onChange={(event) => {
-          const format = COPY_FORMATS.find(
-            ({ value }) => value === event.currentTarget.value,
-          )?.value
-          event.currentTarget.value = ''
-          if (format)
-            void run({
-              operation: 'copy-as',
-              format,
-              write: (data) => writeBrowserClipboardExport(format, data),
-            })
-        }}
-      >
-        <option value="" disabled><Trans>
-          Copy as
-        </Trans></option>
-        {COPY_FORMATS.map(({ value, label }) => (
-          <option key={value} value={value}>
-            {i18n._(label)}
+      <RibbonItem id="clipboard.copy-as">
+        <select
+          data-ribbon-item="clipboard.copy-as"
+          className="tool-select copy-as-select"
+          aria-label={t`Copy as`}
+          title={t`Copy as`}
+          defaultValue=""
+          disabled={feedback.busy || editing}
+          onChange={(event) => {
+            const format = COPY_FORMATS.find(
+              ({ value }) => value === event.currentTarget.value,
+            )?.value
+            event.currentTarget.value = ''
+            if (format)
+              void run({
+                operation: 'copy-as',
+                format,
+                write: (data) => writeBrowserClipboardExport(format, data),
+              })
+          }}
+        >
+          <option value="" disabled>
+            <Trans>Copy as</Trans>
           </option>
-        ))}
-      </select>
+          {COPY_FORMATS.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {i18n._(label)}
+            </option>
+          ))}
+        </select>
+      </RibbonItem>
     </>
   )
 }

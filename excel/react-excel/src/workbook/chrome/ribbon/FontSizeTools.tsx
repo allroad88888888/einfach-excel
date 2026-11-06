@@ -1,9 +1,14 @@
+import { RibbonItem } from './RibbonItem'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
-  activeCellFormatAtom, DEFAULT_FONT_SIZE, editingSessionAtom, FONT_SIZE_PRESETS,
-  fontSizePanelAtom, runFontSizeAtom,
+  activeCellFormatAtom,
+  DEFAULT_FONT_SIZE,
+  editingSessionAtom,
+  FONT_SIZE_PRESETS,
+  fontSizePanelAtom,
+  runFontSizeAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
@@ -37,42 +42,132 @@ export function FontSizeTools() {
       trigger?.focus({ preventScroll: true })
     }
   }, [open])
-  return <>
-    <select ref={select} aria-label={t`Font size`} title={t`Font size (pixels)`}
-      className="tool-select font-size-select" value={size} disabled={disabled}
-      onChange={(event) => void preserveToolFocus(event.currentTarget, () => run(
-        event.currentTarget.value === 'custom' ? 'open'
-          : { type: 'set', value: Number(event.currentTarget.value) }))}>
-      {FONT_SIZE_PRESETS.map((value) => <option key={value} value={value}>{value}</option>)}
-      {!FONT_SIZE_PRESETS.some((value) => value === size) && <option value={size}>{size}</option>}
-      <option value="custom"><Trans>Custom…</Trans></option>
-    </select>
-    <button type="button" className="tool-button" aria-label={t`Increase font size`}
-      title={t`Increase font size`} disabled={disabled || size >= 512}
-      onClick={(event) => void preserveToolFocus(event.currentTarget, () => run('increase'))}>A+</button>
-    <button type="button" className="tool-button" aria-label={t`Decrease font size`}
-      title={t`Decrease font size`} disabled={disabled || size <= 1}
-      onClick={(event) => void preserveToolFocus(event.currentTarget, () => run('decrease'))}>A−</button>
-    {!open && state.busy && <span role="status"><Trans>Applying font size…</Trans></span>}
-    {open && <dialog ref={dialogRef} className="font-size-dialog" aria-labelledby={`${id}-title`}
-      onKeyDown={cycleDialogFocus}
-      onCancel={(event) => { event.preventDefault(); void run('close') }}>
-      <h2 id={`${id}-title`}><Trans>Custom font size</Trans></h2>
-      <p id={`${id}-hint`}><Trans>Apply an integer size from 1 to 512 pixels to the selected cells.</Trans></p>
-      <form noValidate onSubmit={(event) => { event.preventDefault(); void run('apply') }}>
-        <label htmlFor={`${id}-size`}><Trans>Size (px)</Trans></label>
-        <input id={`${id}-size`} type="number" min="1" max="512" step="1"
-          aria-label={t`Custom font size`} aria-invalid={!!state.error && !validDraft}
-          aria-describedby={state.error ? `${id}-error` : `${id}-hint`}
-          value={state.draft} disabled={state.busy}
-          onChange={(event) => void run({ type: 'draft', value: event.currentTarget.value })} />
-        <div className="font-size-actions">
-          <button type="button" disabled={state.busy} onClick={() => void run('close')}><Trans>Cancel</Trans></button>
-          <button type="submit" disabled={state.busy}><Trans>Apply font size</Trans></button>
-        </div>
-      </form>
-      {state.error && <p id={`${id}-error`} role="alert">{translateFeedback(i18n, state.error)}</p>}
-      {state.busy && <p role="status"><Trans>Applying font size…</Trans></p>}
-    </dialog>}
-  </>
+  return (
+    <>
+      <RibbonItem id="format.font-size">
+        <select
+          data-ribbon-item="format.font-size"
+          ref={select}
+          aria-label={t`Font size`}
+          title={t`Font size (pixels)`}
+          className="tool-select font-size-select"
+          value={size}
+          disabled={disabled}
+          onChange={(event) =>
+            void preserveToolFocus(event.currentTarget, () =>
+              run(
+                event.currentTarget.value === 'custom'
+                  ? 'open'
+                  : { type: 'set', value: Number(event.currentTarget.value) },
+              ),
+            )
+          }
+        >
+          {FONT_SIZE_PRESETS.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+          {!FONT_SIZE_PRESETS.some((value) => value === size) && (
+            <option value={size}>{size}</option>
+          )}
+          <option value="custom">
+            <Trans>Custom…</Trans>
+          </option>
+        </select>
+      </RibbonItem>
+      <RibbonItem id="format.increase-font-size">
+        <button
+          data-ribbon-item="format.increase-font-size"
+          type="button"
+          className="tool-button"
+          aria-label={t`Increase font size`}
+          title={t`Increase font size`}
+          disabled={disabled || size >= 512}
+          onClick={(event) => void preserveToolFocus(event.currentTarget, () => run('increase'))}
+        >
+          A+
+        </button>
+      </RibbonItem>
+      <RibbonItem id="format.decrease-font-size">
+        <button
+          data-ribbon-item="format.decrease-font-size"
+          type="button"
+          className="tool-button"
+          aria-label={t`Decrease font size`}
+          title={t`Decrease font size`}
+          disabled={disabled || size <= 1}
+          onClick={(event) => void preserveToolFocus(event.currentTarget, () => run('decrease'))}
+        >
+          A−
+        </button>
+      </RibbonItem>
+      {!open && state.busy && (
+        <span role="status">
+          <Trans>Applying font size…</Trans>
+        </span>
+      )}
+      {open && (
+        <dialog
+          ref={dialogRef}
+          className="font-size-dialog"
+          aria-labelledby={`${id}-title`}
+          onKeyDown={cycleDialogFocus}
+          onCancel={(event) => {
+            event.preventDefault()
+            void run('close')
+          }}
+        >
+          <h2 id={`${id}-title`}>
+            <Trans>Custom font size</Trans>
+          </h2>
+          <p id={`${id}-hint`}>
+            <Trans>Apply an integer size from 1 to 512 pixels to the selected cells.</Trans>
+          </p>
+          <form
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault()
+              void run('apply')
+            }}
+          >
+            <label htmlFor={`${id}-size`}>
+              <Trans>Size (px)</Trans>
+            </label>
+            <input
+              id={`${id}-size`}
+              type="number"
+              min="1"
+              max="512"
+              step="1"
+              aria-label={t`Custom font size`}
+              aria-invalid={!!state.error && !validDraft}
+              aria-describedby={state.error ? `${id}-error` : `${id}-hint`}
+              value={state.draft}
+              disabled={state.busy}
+              onChange={(event) => void run({ type: 'draft', value: event.currentTarget.value })}
+            />
+            <div className="font-size-actions">
+              <button type="button" disabled={state.busy} onClick={() => void run('close')}>
+                <Trans>Cancel</Trans>
+              </button>
+              <button type="submit" disabled={state.busy}>
+                <Trans>Apply font size</Trans>
+              </button>
+            </div>
+          </form>
+          {state.error && (
+            <p id={`${id}-error`} role="alert">
+              {translateFeedback(i18n, state.error)}
+            </p>
+          )}
+          {state.busy && (
+            <p role="status">
+              <Trans>Applying font size…</Trans>
+            </p>
+          )}
+        </dialog>
+      )}
+    </>
+  )
 }

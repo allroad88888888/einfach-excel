@@ -1,6 +1,6 @@
 {
   "name": "@einfach-excel/solid-excel",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "SolidJS Excel table component powered by Rust WASM engine",
   "type": "module",

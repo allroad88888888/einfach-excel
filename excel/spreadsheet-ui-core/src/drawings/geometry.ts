@@ -68,13 +68,16 @@ export function draggedDrawingRect(start: DrawingRect, handle: DrawingHandle,
   let { left, top, width, height } = start
   if (handle.includes('e')) width = Math.max(MIN_DRAWING_SIZE_PX, start.width + dx)
   if (handle.includes('s')) height = Math.max(MIN_DRAWING_SIZE_PX, start.height + dy)
+  // 西 / 北边越过表格原点时停在 0，对边仍不动。
   if (handle.includes('w')) {
-    width = Math.max(MIN_DRAWING_SIZE_PX, start.width - dx)
-    left = Math.max(0, start.left + start.width - width)
+    const right = start.left + start.width
+    width = Math.min(right, Math.max(MIN_DRAWING_SIZE_PX, start.width - dx))
+    left = right - width
   }
   if (handle.includes('n')) {
-    height = Math.max(MIN_DRAWING_SIZE_PX, start.height - dy)
-    top = Math.max(0, start.top + start.height - height)
+    const bottom = start.top + start.height
+    height = Math.min(bottom, Math.max(MIN_DRAWING_SIZE_PX, start.height - dy))
+    top = bottom - height
   }
   return { left, top, width, height }
 }

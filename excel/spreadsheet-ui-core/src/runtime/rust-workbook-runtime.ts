@@ -1,3 +1,4 @@
+import { workbookHooksAtom } from '../host/hooks'
 import { atom, type Getter } from '@einfach/core'
 import { createRustWorkbookConnection, type RustWorkbookConnection } from '../rust-workbook'
 import type { WorkerLike } from '../rust-worker'
@@ -72,7 +73,8 @@ export const startRustWorkbookRuntimeAtom = atom(
     let connection: RustWorkbookConnection
     try {
       definition = snapshotRustWorkbookDefinition(input.definition, input.defaults)
-      connection = createRustWorkbookConnection(input.workerFactory)
+      connection = createRustWorkbookConnection(input.workerFactory,
+        event => get(workbookHooksAtom).beforeChange?.(event))
     } catch (error) {
       if (get(runtimeOwnerAtom).sessionId === sessionId) set(rejectSpreadsheetRuntimeAtom, error)
       return
@@ -95,7 +97,8 @@ export const startRustWorkbookRuntimeAtom = atom(
         // 宿主存的快照坏了不该让页面打不开：报给宿主，换一个干净 Worker 按定义启动。
         set(workbookReplacementErrorBackingAtom, hostCommandError(error))
         disposeConnection(connection)
-        connection = createRustWorkbookConnection(input.workerFactory)
+        connection = createRustWorkbookConnection(input.workerFactory,
+          event => get(workbookHooksAtom).beforeChange?.(event))
         set(runtimeOwnerAtom, Object.freeze({
           sessionId, connection, workerFactory: input.workerFactory,
         }))
@@ -139,7 +142,8 @@ export const replaceRustWorkbookRuntimeAtom = atom(
         throw new Error('The workbook is not ready.')
       if (get(editingSessionAtom).source) throw new Error('Finish editing the cell first.')
       const sessionId = nextSessionId(previous.sessionId)
-      candidate = createRustWorkbookConnection(previous.workerFactory)
+      candidate = createRustWorkbookConnection(previous.workerFactory,
+        event => get(workbookHooksAtom).beforeChange?.(event))
       const metadata = text === null ? {
         title: 'Untitled workbook',
         sheets: await candidate.request('workbook.initialize', { sheets: [{

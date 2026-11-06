@@ -1,6 +1,8 @@
 /// <reference lib="WebWorker" />
 
 import { installHostWorkerGateway } from '../host/worker'
+import { executeHostOperation } from '../host/operation-worker'
+import { refreshHostWorkbook, controlHostCalculation } from '../host/execution-worker'
 import { initializeWorkbook } from './initialize-workbook'
 import { openWorkbookFile } from './file-io'
 import type { RustWasmModule } from './wasm-types'
@@ -37,6 +39,11 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   const context = createRuntimeContext(wasm)
 
   async function dispatch(command: CommandName, payload: unknown): Promise<unknown> {
+    if (command === 'host.refresh') return refreshHostWorkbook(context)
+    if (command === 'host.calculation')
+      return controlHostCalculation(context, payload as CommandPayload<'host.calculation'>)
+    if (command === 'host.execute')
+      return executeHostOperation(context, payload as CommandPayload<'host.execute'>, dispatch)
     if (command === 'formula.catalog') {
       await context.ensureWasm()
       if (!wasm.function_catalog) throw new Error('Rust function catalog is unavailable.')

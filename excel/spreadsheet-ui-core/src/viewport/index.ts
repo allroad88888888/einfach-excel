@@ -45,3 +45,5 @@ export * from './metric-commands'
 export * from './geometry-sizes'
 export * from './projected-freeze'
 export { getBufferedProjectionWindow } from './buffered-projection-window'
+
+export { getRangeScreenRectangle } from './range-screen-rectangle'

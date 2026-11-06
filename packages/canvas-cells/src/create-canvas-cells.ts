@@ -3,7 +3,7 @@ import { createCanvas, useAtomValue, type CanvasCell, type Rect } from '@einfach
 import type { CellCoord } from '@einfach-excel/spreadsheet-ui-core'
 import { appearanceAtoms, appearanceReader, sameAppearance } from './appearance'
 import { createProjectionLayout } from './projection-layout'
-import { paintCell } from './paint-cell'
+import { paintCellWithHooks } from './paint-hooks'
 import { bindEvents } from './events'
 import { registerHitTest } from './hit-test'
 import { defaultTheme, type CanvasCellsInput, type CanvasCellsOptions, type CellPaintModel } from './types'
@@ -19,7 +19,7 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
     model: CellPaintModel
   }>()
   const surface = createCanvas(canvas, { store, width: 1, height: 1,
-    reusePixels: options.reusePixels ?? true,
+    reusePixels: options.paintHooks ? false : options.reusePixels ?? true,
     background: theme.background, pixelRatio: options.pixelRatio,
     pointerEvents: false, onFrame: options.onFrame })
   let viewport = options.viewport
@@ -129,7 +129,7 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
         const entity = atom<CellPaintModel>(model)
         const view = surface.createCell(item.bounds, () => {
           const value = useAtomValue(entity)
-          return ctx => paintCell(ctx, value(), theme)
+          return ctx => paintCellWithHooks(ctx, value(), theme, options.paintHooks)
         })
         records.set(item.key, { entity, view, model })
       }

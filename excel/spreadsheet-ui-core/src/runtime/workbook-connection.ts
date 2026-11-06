@@ -1,6 +1,7 @@
 import { atom, type Atom } from '@einfach/core'
 import type { RustWorkbookConnection } from '../rust-workbook'
 import { bindHostConnection } from '../host/binding'
+import { drawingSuspensionAtom } from '../host/drawing-state'
 
 const rustWorkbookConnectionBackingAtom = atom<RustWorkbookConnection | null>(null)
 rustWorkbookConnectionBackingAtom.debugLabel = 'spreadsheet.runtime.rustConnectionBacking'
@@ -16,6 +17,7 @@ export const setRustWorkbookConnectionAtom = atom(
   null,
   (get, set, connection: RustWorkbookConnection | null): void => {
     if (get(rustWorkbookConnectionBackingAtom) === connection) return
+    set(drawingSuspensionAtom, null)
     set(rustWorkbookConnectionBackingAtom, connection)
     bindHostConnection(get, set, connection,
       () => get(rustWorkbookConnectionBackingAtom) === connection)

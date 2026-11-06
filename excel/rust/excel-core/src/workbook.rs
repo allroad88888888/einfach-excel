@@ -253,6 +253,8 @@ pub struct Workbook {
     pub(crate) validation_failure: std::cell::RefCell<Option<advanced_validation::ValidationFailure>>,
     pub(crate) custom_call_depth: Rc<Cell<usize>>,
     pub(super) calculation_mode: CalculationMode,
+    pub(super) suspended_calculation_mode: Option<CalculationMode>,
+    pub(super) calculation_suspension_depth: u32,
     pub(super) iterative_calculation: IterativeConfig,
     pub(super) cyclic_formulas: HashMap<(usize, CellAddress), String>,
     pub(super) content_revision: u64,

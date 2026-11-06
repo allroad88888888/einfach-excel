@@ -1,6 +1,8 @@
 import type { Store } from '@einfach/core'
 import type { FrameStats, Rect } from '@einfach-excel/canvas'
 import type { CellRange, DisplayCell, SpreadsheetBorderSpec } from '@einfach-excel/spreadsheet-ui-core'
+import type { CanvasCellPaintHooks } from '@einfach-excel/spreadsheet-ui-core'
+export type { CanvasCellPaintContext, CanvasCellPaintHooks } from '@einfach-excel/spreadsheet-ui-core'
 
 export interface CanvasCellsInput {
   readonly window: CellRange
@@ -31,6 +33,7 @@ export interface CanvasCellsOptions {
   pixelRatio?: number
   theme?: Partial<CanvasCellsTheme>
   onFrame?: (stats: FrameStats) => void
+  paintHooks?: CanvasCellPaintHooks
 }
 export interface BorderSegment {
   side: 'top' | 'right' | 'bottom' | 'left'

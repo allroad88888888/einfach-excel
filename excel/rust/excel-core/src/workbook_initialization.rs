@@ -24,6 +24,8 @@ impl Workbook {
             validation_failure: std::cell::RefCell::new(None),
             custom_call_depth,
             calculation_mode: CalculationMode::Automatic,
+            suspended_calculation_mode: None,
+            calculation_suspension_depth: 0,
             iterative_calculation: IterativeConfig::default(),
             cyclic_formulas: HashMap::new(),
             content_revision: 0,

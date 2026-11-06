@@ -9,6 +9,8 @@ import {
   runFormulaAuditingWatch,
 } from '../formula-auditing/worker-io'
 import type { RustFormulaAuditingTraceRequest } from '../formula-auditing/types'
+import { assertHostOperationAllowed } from './policy'
+import type { WorkbookOperation } from './operation-types'
 import { assertHostCommandAllowed, DEFAULT_HOST_CONTROLS, isPersistentHostCommand, validateHostControls } from './policy'
 import type { HostControls, NativeMutationState, NativeWriteWorkbookCellsResult,
   ReadWorkbookRangesInput,
@@ -92,9 +94,11 @@ export function installHostWorkerGateway(context: WorkerHostContext,
       .map((sheet) => [sheet.key, sheet.id]))
     const event: Omit<WorkbookChangeEvent, 'connectionId'> = {
       operationId: `native-${fact.sequence}`, revision: context.revision(),
-      source: message.command === 'history.apply' ? 'history' : message.command === 'host.writeCells'
+      source: message.command === 'host.execute' ? 'api'
+        : message.command === 'history.apply' ? 'history' : message.command === 'host.writeCells'
         ? (message.payload as WriteWorkbookCellsInput).source ?? 'api' : 'user',
-      kind: message.command,
+      kind: message.command === 'host.execute'
+        ? `host.${(message.payload as WorkbookOperation).type}` : message.command,
       changes: fact.changes.map(({ sheetKey, ranges }) => {
         const sheetId = sheets.get(sheetKey)
         if (!sheetId) throw new Error(`Unknown native mutation sheet: ${sheetKey}`)
@@ -133,6 +137,13 @@ export function installHostWorkerGateway(context: WorkerHostContext,
         initialized = true
       }
       assertHostCommandAllowed(controls, message.command)
+      if (message.command === 'host.execute') {
+        const operation = message.payload as WorkbookOperation
+        assertHostOperationAllowed(controls, operation)
+        if (!controls.allowSheetStructure && operation.type === 'history' &&
+          historyStructureBlocked(context.workbook(), operation))
+          throw Object.assign(new Error('HOST_STRUCTURE_DISABLED'), { code: 'HOST_STRUCTURE_DISABLED' })
+      }
       if (!controls.allowSheetStructure && message.command === 'history.apply' &&
           historyStructureBlocked(context.workbook(), message.payload))
         throw Object.assign(new Error('HOST_STRUCTURE_DISABLED'), { code: 'HOST_STRUCTURE_DISABLED' })
@@ -156,7 +167,8 @@ export function installHostWorkerGateway(context: WorkerHostContext,
               message.payload as { targets: { sheetId: string; row: number; col: number }[] },
             ) :
         await dispatch(message.command as keyof RustWorkbookCommands, message.payload)
-      if (message.command === 'host.writeCells') nativeWrite = result as NativeWriteWorkbookCellsResult
+      if (message.command === 'host.writeCells' || message.command === 'host.execute')
+        nativeWrite = result as NativeWriteWorkbookCellsResult
       // 提交先于投影展示；事件即使展示失败也必须可供宿主保存已经落地的修改。
       if (isPersistentHostCommand(message.command)) publish()
       drained = true
@@ -171,7 +183,8 @@ export function installHostWorkerGateway(context: WorkerHostContext,
         notificationError ??= error
         published = post({ type: 'event', event: {
           operationId: `native-${fact.sequence}`, revision: context.revision(),
-          source: message.command === 'history.apply' ? 'history' : message.command === 'host.writeCells'
+          source: message.command === 'host.execute' ? 'api'
+            : message.command === 'history.apply' ? 'history' : message.command === 'host.writeCells'
             ? (message.payload as WriteWorkbookCellsInput).source ?? 'api' : 'user',
           kind: `${message.command}.committed-unmapped`, changes: [],
         } })

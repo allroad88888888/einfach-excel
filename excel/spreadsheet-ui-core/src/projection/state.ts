@@ -1,4 +1,5 @@
 import { atom, type Atom } from '@einfach/core'
+import { drawingSuspensionAtom } from '../host/drawing-state'
 import type {
   ProjectionRequestId,
   RangeProjectionRequest,
@@ -146,7 +147,7 @@ projectionRequestSequenceBackingAtom.debugLabel = 'spreadsheet.projection.reques
 projectionLaneBackingAtom.debugLabel = 'spreadsheet.projection.lanes.state'
 
 export const projectionSnapshotAtom: Atom<ProjectionSnapshot> = atom((get) =>
-  get(projectionSnapshotBackingAtom),
+  get(drawingSuspensionAtom)?.snapshot ?? get(projectionSnapshotBackingAtom),
 )
 projectionSnapshotAtom.debugLabel = 'spreadsheet.projection.snapshot'
 

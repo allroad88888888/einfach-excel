@@ -46,7 +46,7 @@ impl IterativeConfig {
 
 impl Workbook {
     pub fn calculation_mode(&self) -> CalculationMode {
-        self.calculation_mode
+        self.suspended_calculation_mode.unwrap_or(self.calculation_mode)
     }
 
     pub fn iterative_calculation(&self) -> IterativeConfig {
@@ -91,6 +91,12 @@ impl Workbook {
 
     /// 切换工作簿计算模式：`Automatic -> Manual` 冻结当前公式结果；`Manual -> Automatic` 立即全表重算。
     pub fn set_calculation_mode(&mut self, mode: CalculationMode) -> bool {
+        if self.is_inside_custom_call() { return false; }
+        if let Some(saved) = self.suspended_calculation_mode.as_mut() {
+            let changed = *saved != mode;
+            *saved = mode;
+            return changed;
+        }
         if self.is_inside_custom_call() || self.calculation_mode == mode {
             return false;
         }
@@ -141,6 +147,9 @@ impl Workbook {
     /// 只枚举已有公式（包括尚未读取的导入公式），不扫描空白网格。
     /// 不更改内容、格式或历史；仅重试当前范围消费的异步失败缓存。
     pub fn recalculate(&mut self, sheet: Option<usize>) -> Result<usize, &'static str> {
+        if self.calculation_suspension_depth > 0 {
+            return Err("CALCULATION_SUSPENDED");
+        }
         if self.is_inside_custom_call() {
             return Err("Cannot recalculate inside a custom-formula callback.");
         }
@@ -222,6 +231,36 @@ impl Workbook {
         store.settle_pending_reads();
         Ok(count)
     }
+}
+
+impl Workbook {
+    /// A temporary, nestable evaluation pause. The requested calculation mode remains persistent.
+    pub fn suspend_calculation(&mut self) -> Result<u32, &'static str> {
+        if self.is_inside_custom_call() { return Err("Cannot suspend inside a custom formula."); }
+        let next = self.calculation_suspension_depth.checked_add(1).ok_or("CALCULATION_PAUSE_LIMIT")?;
+        if self.calculation_suspension_depth == 0 {
+            let mode = self.calculation_mode;
+            self.set_calculation_mode(CalculationMode::Manual);
+            self.suspended_calculation_mode = Some(mode);
+            self.atom_context.calculation_suspended.set(true);
+        }
+        self.calculation_suspension_depth = next;
+        Ok(next)
+    }
+
+    pub fn resume_calculation(&mut self) -> Result<u32, &'static str> {
+        if self.is_inside_custom_call() { return Err("Cannot resume inside a custom formula."); }
+        if self.calculation_suspension_depth == 0 { return Ok(0); }
+        self.calculation_suspension_depth -= 1;
+        if self.calculation_suspension_depth == 0 {
+            self.atom_context.calculation_suspended.set(false);
+            let mode = self.suspended_calculation_mode.take().unwrap_or(CalculationMode::Automatic);
+            self.set_calculation_mode(mode);
+        }
+        Ok(self.calculation_suspension_depth)
+    }
+
+    pub fn calculation_suspension_depth(&self) -> u32 { self.calculation_suspension_depth }
 }
 
 #[cfg(test)]

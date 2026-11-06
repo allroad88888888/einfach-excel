@@ -15,6 +15,7 @@ import type { FillSeriesKind } from '../auto-fill/series-options'
 import type { CellRange } from '../shared'
 import { createHostWorkbookConnection } from '../host/connection'
 import type { HostCommands } from '../host/types'
+import type { WorkbookHooks } from '../host/hooks'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { StructuralEdit } from './structure-geometry'
 import type { AutoFitLayout } from './auto-fit-measurement'
@@ -409,6 +410,7 @@ export interface RustFillRangeRequest {
 /** 创建 UI Core 唯一持有的 Rust 工作簿连接。 */
 export function createRustWorkbookConnection(
   workerFactory: () => WorkerLike,
+  beforeChange?: WorkbookHooks['beforeChange'],
 ): RustWorkbookConnection {
-  return createHostWorkbookConnection(workerFactory)
+  return createHostWorkbookConnection(workerFactory, beforeChange)
 }

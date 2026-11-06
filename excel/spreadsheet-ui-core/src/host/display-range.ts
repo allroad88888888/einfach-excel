@@ -32,7 +32,7 @@ export const readWorkbookDisplayRangeAtom = atom(null, async (
       || rowEnd >= sheet.rowCount || colEnd >= sheet.colCount)
       throw new Error('Choose a range inside the worksheet.')
     if ((rowEnd - rowStart + 1) * (colEnd - colStart + 1) > MAX_DISPLAY_RANGE_CELLS)
-      throw new Error('Choose at most 65,536 cells for image export.')
+      throw new Error('Choose at most 65,536 cells for a display range read.')
     const requestId = set(issueProjectionRequestIdAtom)
     if (requestId === null) throw new Error('The workbook is not ready.')
     const request = createVisibleProjectionRequest({
@@ -40,7 +40,7 @@ export const readWorkbookDisplayRangeAtom = atom(null, async (
     })
     const result = await connection.request('projection.readVisible', { request })
     if (get(rustWorkbookConnectionAtom) !== connection)
-      throw new Error('The workbook changed. Open image export again.')
+      throw new Error('WORKBOOK_CONNECTION_REPLACED')
     const validation = validateProjectionResult(result, {
       request, maxCells: MAX_DISPLAY_RANGE_CELLS,
     })

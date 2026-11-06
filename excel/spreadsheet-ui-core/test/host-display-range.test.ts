@@ -49,6 +49,6 @@ test('a detached connection cannot hand an old workbook snapshot to the exporter
   store.setter(setRustWorkbookConnectionAtom, null)
   resolve({ ...request.mock.calls[0][1].request, cells: [], revision: 3 })
   expect(await pending).toMatchObject({ status: 'error', error: {
-    message: expect.stringContaining('workbook changed'),
+    code: 'WORKBOOK_CONNECTION_REPLACED',
   } })
 })

@@ -129,3 +129,14 @@ test('multi range reads retain one revision and typed patches use one native cal
   expect((await r.call('host.writeCells', { cells: [], source: 'user' })).ok).toBe(false)
   expect(r.write).not.toHaveBeenCalled()
 })
+
+test('host operations retain API source and apply inner structural policy while busy', async () => {
+  const r = setup()
+  await r.call('host.configure', { ...DEFAULT_HOST_CONTROLS, busy: true, allowSheetStructure: false })
+  expect((await r.call('host.execute', { type: 'format', sheetId: 'b', range, format: { bold: true } })).ok)
+    .toBe(true)
+  expect(r.events()[0].event).toMatchObject({ source: 'api', kind: 'host.format' })
+  for (const operation of [{ type: 'sheet-add', name: 'New' }, { type: 'history', direction: 'undo' }])
+    expect((await r.call('host.execute', operation)).error.code).toBe('HOST_STRUCTURE_DISABLED')
+  expect(r.dispatch).toHaveBeenCalledOnce()
+})

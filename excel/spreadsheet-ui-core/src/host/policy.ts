@@ -1,4 +1,5 @@
 import type { HostControls } from './types'
+import { operationCommands, type WorkbookOperation } from './operation-types'
 
 export const DEFAULT_HOST_CONTROLS: HostControls = Object.freeze({
   readOnly: false, busy: false, allowSheetStructure: true,
@@ -6,6 +7,7 @@ export const DEFAULT_HOST_CONTROLS: HostControls = Object.freeze({
 
 // 白名单只读命令；新命令默认视作持久写入，防止新增功能旁路宿主策略。
 const NON_PERSISTENT = new Set([
+  'host.refresh', 'host.calculation',
   'host.configure', 'host.readRanges', 'workbook.initialize', 'workbook.openFile',
   'workbook.importCells', 'formula.catalog', 'formula.awaitAsync', 'formula.recalculate', 'formula.setCalculationMode', 'formula.setIterativeCalculation',
   'customFormula.read', 'notes.read', 'drawings.read', 'comments.read', 'protection.read', 'formula.inspectSpill',
@@ -31,7 +33,13 @@ export function validateHostControls(input: HostControls): HostControls {
 export function assertHostCommandAllowed(controls: HostControls, command: string): void {
   if (NON_PERSISTENT.has(command)) return
   const code = controls.readOnly ? 'HOST_READ_ONLY' :
-    controls.busy && command !== 'host.writeCells' ? 'HOST_BUSY' :
+    controls.busy && command !== 'host.writeCells' && command !== 'host.execute' ? 'HOST_BUSY' :
     !controls.allowSheetStructure && STRUCTURAL.has(command) ? 'HOST_STRUCTURE_DISABLED' : null
   if (code) throw Object.assign(new Error(code), { code })
+}
+
+export function assertHostOperationAllowed(controls: HostControls, input: WorkbookOperation): void {
+  if (!input || !Object.hasOwn(operationCommands, input.type)) throw new Error('INVALID_HOST_OPERATION')
+  // An explicit API command may run while the host locks user interaction with busy.
+  assertHostCommandAllowed({ ...controls, busy: false }, operationCommands[input.type])
 }

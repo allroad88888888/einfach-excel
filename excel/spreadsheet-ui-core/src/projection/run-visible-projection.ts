@@ -1,4 +1,5 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
+import { workbookDrawingSuspendedAtom } from '../host/drawing-state'
 import type { VisibleProjectionRequest } from '../contracts'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import {
@@ -21,6 +22,7 @@ import { isCellInVisibleWindow, visibleWindowAtom } from '../viewport/visible-wi
 export type RunVisibleProjectionInput = Omit<BeginVisibleProjectionInput, 'kind'>
 export type RunVisibleProjectionOutcome =
   | { readonly status: 'ready' }
+  | { readonly status: 'deferred' }
   | { readonly status: 'superseded' }
   | { readonly status: 'failed'; readonly error: string }
 
@@ -132,6 +134,7 @@ function projectionOutcome(
 export const runVisibleProjectionAtom = atom(
   null,
   async (get, set, input: RunVisibleProjectionInput): Promise<RunVisibleProjectionOutcome> => {
+    if (get(workbookDrawingSuspendedAtom)) return { status: 'deferred' }
     const lanes = get(projectionLaneBackingAtom).visibleWindow
     if (input.browsing && lanes.active === null && lanes.queued === null &&
       get(publishedGeometryCurrentAtom) &&

@@ -1,6 +1,17 @@
 // 计算不属于内容编辑，不打开历史事务；所有失效与依赖传播在 Rust 完成。
 #[wasm_bindgen]
 impl WasmWorkbook {
+    pub fn suspend_calculation(&mut self) -> Result<u32, JsValue> {
+        self.workbook.suspend_calculation().map_err(JsValue::from_str)
+    }
+
+    pub fn resume_calculation(&mut self) -> Result<u32, JsValue> {
+        self.workbook.resume_calculation().map_err(JsValue::from_str)
+    }
+
+    pub fn calculation_suspension_depth(&self) -> u32 {
+        self.workbook.calculation_suspension_depth()
+    }
     pub fn recalculate(&mut self, sheet: Option<u32>) -> Result<usize, JsValue> {
         self.workbook
             .recalculate(sheet.map(|index| index as usize))

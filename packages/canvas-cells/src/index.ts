@@ -2,6 +2,7 @@ export { createCanvasCells } from './create-canvas-cells'
 export { canvasCellAt } from './hit-test'
 export { defaultTheme } from './types'
 export type { CanvasCellsInput, CanvasCellsOptions, CanvasCellsTheme } from './types'
+export type { CanvasCellPaintContext, CanvasCellPaintHooks } from './types'
 export { getCanvasProjectionWindow } from './projection-window'
 
 export { renderCellsImage } from './render-image'

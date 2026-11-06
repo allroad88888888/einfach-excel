@@ -1,5 +1,6 @@
 import type { WorkerCommand } from '../rust-worker/types'
 import type { CellRange } from '../shared'
+import type { WorkbookOperation, NativeWorkbookOperationResult } from './operation-types'
 
 export type RawCellValue =
   | { readonly kind: 'number'; readonly value: number }
@@ -68,6 +69,10 @@ export interface HostControls {
 }
 
 export interface HostCommands {
+  readonly 'host.refresh': WorkerCommand<Record<string, never>, NativeWorkbookOperationResult>
+  readonly 'host.calculation': WorkerCommand<{ action: 'suspend' | 'resume' | 'recalculate'; sheetId?: string },
+    { depth: number; mode: 'automatic' | 'manual'; revision: number }>
+  readonly 'host.execute': WorkerCommand<WorkbookOperation, NativeWorkbookOperationResult>
   readonly 'host.configure': WorkerCommand<HostControls, void>
   readonly 'host.readRanges': WorkerCommand<ReadWorkbookRangesInput, readonly RawWorkbookRange[]>
   readonly 'host.writeCells': WorkerCommand<WriteWorkbookCellsInput, NativeWriteWorkbookCellsResult>
@@ -78,6 +83,9 @@ export interface NativeMutationState {
   readonly changes: readonly { readonly sheetKey: string; readonly ranges: readonly CellRange[] }[]
 }
 export interface HostWasmCommands {
+  readonly suspend_calculation?: () => number
+  readonly resume_calculation?: () => number
+  readonly calculation_suspension_depth?: () => number
   readonly host_read_ranges?: (targets: readonly {
     readonly sheet: number; readonly range: CellRange }[]) =>
     readonly { readonly sheet: number; readonly range: CellRange;

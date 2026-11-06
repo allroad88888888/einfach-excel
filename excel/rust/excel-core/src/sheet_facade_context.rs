@@ -220,6 +220,15 @@ impl FacadeCtx {
     }
 
     pub(super) fn eval_formula_inner(&self, addr: CellAddress, args: &ReadArgs) -> Value {
+        if self.workbook_scope().is_some_and(|(context, _)| context.calculation_suspended.get()) {
+            // Preserve existing dependencies, but never evaluate a newly authored formula while paused.
+            if let Some(inner) = self.formula_inner_family.borrow().get(&addr) {
+                for dep in self.store.direct_dependencies(inner) {
+                    if self.store.has_atom(dep) { args.depend(dep); }
+                }
+            }
+            return self.interior.manual_formula_cache.borrow().get(&addr).cloned().unwrap_or(Value::Null);
+        }
         let expr = match self.formula_expr_for(addr) {
             Some(expr) => expr,
             // No AST resolvable (address is no longer a formula) — behave like

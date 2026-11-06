@@ -23,7 +23,7 @@ import { readWorkbookDisplayRangeAtom } from './display-range'
 import { executeWorkbookOperationAtom } from './operations'
 import { controlWorkbookViewAtom } from './view'
 import { configureWorkbookHooksAtom } from './hooks'
-import { findWorkbookAtom } from './queries'
+import { findWorkbookAtom, readWorkbookDrawingsAtom } from './queries'
 import { workbookChangeAtom } from './state'
 import {
   workbookDocumentAtom,
@@ -130,6 +130,10 @@ export function createWorkbookApi(store: Store) {
     undo: () => history('undo'),
     redo: () => history('redo'),
     replace: operation('replace'),
+    readDrawings: (sheetId: string) => store.setter(readWorkbookDrawingsAtom, sheetId),
+    setDrawing: operation('drawing-set'),
+    removeDrawing: operation('drawing-remove'),
+    orderDrawing: operation('drawing-order'),
     find: (input: RustFindRequest) => store.setter(findWorkbookAtom, input),
     select: (target: WorkbookTarget, scroll = true) =>
       store.setter(controlWorkbookViewAtom, { type: 'select', ...target, scroll }),

@@ -36,6 +36,11 @@ test('dragging a chart moves it and dragging the corner handle resizes it, both 
   const cx = corner.x + corner.width / 2
   const cy = corner.y + corner.height / 2
   await page.mouse.move(cx, cy)
+  // 按下前确认指针下确实是右下手柄，失败时直接报出盖住它的元素。
+  await expect.poll(() => page.evaluate(([x, y]) => {
+    const node = document.elementFromPoint(x!, y!) as HTMLElement | null
+    return `${node?.className}:${node?.dataset.handle ?? ''}`
+  }, [cx, cy])).toBe('drawing-handle:se')
   await page.mouse.down()
   // 手柄只有 8px：先在手柄内小幅移动越过阈值以捕获指针，之后指针可以离开手柄。
   await page.mouse.move(cx + 3, cy)

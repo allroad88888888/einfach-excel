@@ -40,4 +40,29 @@ ECharts 只在本包依赖，按需注册柱、线、饼、散点及标题、图
 插入：选中区域（可 Ctrl 多选）后在「插入」分组选类型或 ★ 推荐；按 Excel 规则猜表头与系列方向，放在选区右侧。
 对象：双击打开设置；拖动、缩放、Delete、右键菜单与 Ctrl/⌘+C/X/V、置于顶层/底层；设置栏可复制图片或下载 PNG。
 
+## 宿主 API
+
+```ts
+import { createWorkbookApi } from '@einfach-excel/spreadsheet-ui-core'
+import { createChartApi } from '@einfach-excel/plugin-chart/core'
+
+const charts = createChartApi(createWorkbookApi(store))
+const added = await charts.insert({ sheetId: 'sales', data: 'A1:C13', type: 'line',
+  spec: { title: '月度销售' } })
+await charts.update('sales', 'chart-1', { spec: { legend: 'bottom' }, anchor: { width: 640 } })
+const stop = charts.onChange((event) => console.log(event.type, event.sheetId, event.id))
+```
+
+| 方法 | 说明 |
+| --- | --- |
+| `list(sheetId?)` / `get(sheetId, id)` | 图表 id、所在表、数据区域文本、锚点与设置；不给表时列整本 |
+| `insert({ sheetId, data, type?, id?, spec?, anchor? })` | 读一次数据猜表头与系列方向；`type` 缺省按推荐；位置缺省在数据右侧 |
+| `update(sheetId, id, { spec?, data?, anchor? })` | 只改给出的部分 |
+| `remove(sheetId, id)` / `order(sheetId, id, toFront)` | 只作用于图表，不动其他插件的对象 |
+| `onChange(listener)` | 逐张图表的 insert / update / remove，含撤销重做、插删行列带来的移动；返回取消函数 |
+
+写入走工作簿宿主操作（明确目标表、`beforeChange` 拦截、共享撤销、`onChange` 事件），可写非当前表；
+返回 `{ status: 'ok', … }` 或 `{ status: 'error', error: { code, message } }`。门面本身不保存图表状态；
+`onChange` 在有订阅时按工作簿变化重读受影响的表并比较。
+
 暂不支持：跨表数据区域、XLSX 图表导入导出、趋势线与误差线、SVG 导出。

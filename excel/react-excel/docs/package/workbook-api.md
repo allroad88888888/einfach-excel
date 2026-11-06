@@ -38,6 +38,7 @@ const stop = api.onChange(change => { if (change) scheduleSave(change) })
 | `addSheet` / `renameSheet` | `name`，改名需 sheetId；新增可指定逻辑 rowCount、colCount |
 | `copySheet` / `deleteSheet` / `moveSheet` | sheetId；移动另传 targetIndex |
 | `hideSheet` / `colorSheet` | sheetId 及 hidden / color（null 清色） |
+| `readDrawings` / `setDrawing` / `removeDrawing` / `orderDrawing` | 浮动对象目录：`sheetId`，及 `drawing` / `id` / `toFront`；见下文「浮动对象」 |
 | `undo` / `redo` | 整簿统一原生历史；并非只撤销当前表 |
 | `find` / `replace` | 显式 targets 和 query；查找分页，替换必须传查找返回的 expectedRevision |
 | `execute` | 上述持久操作的 `WorkbookOperation` 判别联合入口 |
@@ -115,6 +116,15 @@ DOM、Canvas、原生文件及 XLSX 的共享字符串／内联字符串读写�
 整格字体修改会覆盖对应分段属性，清除格式会清除分段样式。暂不支持表格内富文本编辑、上下标或任意 HTML。
 
 新增入口已完成编译与冒烟检查；单测按本轮安排留到后续集中补充。
+
+## 浮动对象
+
+图表等浮动对象挂在单元格上（anchor：行、列、偏移、尺寸），`refs` 是对象读取的同表区域，
+插删行列时随之移动，整段被删写成 `null`。核心只保存位置、引用与 `payload`，不解释 `kind`；
+`setDrawing` 按 id 新增或替换，`orderDrawing` 置于顶层／底层，每次写入一条撤销记录，
+并像其他持久操作一样经过 `beforeChange` 与 `onChange`（事件的 changes 带该表、空 ranges）。
+具体对象请用插件门面，例如图表插件的 `createChartApi(api)`，见
+[图表插件](../../../../plugins/plugin-chart/README.md)。
 
 ## 界面与 Canvas 绘制
 

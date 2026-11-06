@@ -9,8 +9,10 @@ export { formatRangeText, formatRangesText, parseRangeText, parseRangesText } fr
 export { areaLayout, combineAreaGrids, combineAreaHidden, validateChartAreas } from './areas'
 export { chartGridFromSnapshot, chartGridsAtom, chartRevisionAtom, loadChartGridAtom,
   MAX_CHART_CELLS, type ChartGridEntry } from './data'
-export { DEFAULT_CHART_HEIGHT, DEFAULT_CHART_WIDTH, dismissChartErrorAtom, insertChartAtom,
-  insertChartFeedbackAtom } from './insert'
+export { dismissChartErrorAtom, insertChartAtom, insertChartFeedbackAtom } from './insert'
+export { buildChartDrawing, DEFAULT_CHART_HEIGHT, DEFAULT_CHART_WIDTH, nextChartId } from './chart-drawing'
+export { createChartApi, type ChartApi, type ChartChangeEvent, type ChartInfo,
+  type ChartInsertInput, type ChartUpdateInput } from './host-api'
 export { chartSettingsAtom, openChartSettingsAtom, selectedChartAtom, updateChartSettingsAtom,
   type ChartSettingsAction } from './settings'
 export { chartIssue, chartTheme, DEFAULT_CHART_WORDS, isPlottable, LIGHT_CHART_THEME,

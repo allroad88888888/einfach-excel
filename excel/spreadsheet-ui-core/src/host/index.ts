@@ -14,7 +14,10 @@ export { configureWorkbookHooksAtom } from './hooks'
 export type { WorkbookHooks, WorkbookBeforeChange } from './hooks'
 export { createWorkbookApi, type WorkbookApi } from './api'
 export { controlWorkbookViewAtom, type WorkbookViewAction } from './view'
-export { findWorkbookAtom, type FindWorkbookResult } from './queries'
+export {
+  findWorkbookAtom, readWorkbookDrawingsAtom, type FindWorkbookResult,
+  type ReadWorkbookDrawingsResult,
+} from './queries'
 
 export { workbookHighlightsAtom, setWorkbookHighlightsAtom, isWorkbookCellVisibleAtom, type WorkbookHighlight } from './highlights'
 

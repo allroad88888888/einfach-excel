@@ -11,6 +11,7 @@ import type { RustShiftCellsDirection } from '../rust-workbook/shift-cells-comma
 import type { RustFindQuery, RustFindMatch } from '../rust-workbook/find-commands'
 import type { RustWorkbookSheet } from '../rust-workbook/commands'
 import type { HostCommandFailure, HostCommandError } from './types'
+import type { SheetDrawing } from '../drawings/types'
 
 export interface WorkbookTarget {
   readonly sheetId: string
@@ -76,6 +77,14 @@ export type WorkbookOperation =
   | { readonly type: 'sheet-hidden'; readonly sheetId: string; readonly hidden: boolean }
   | { readonly type: 'sheet-color'; readonly sheetId: string; readonly color: string | null }
   | { readonly type: 'history'; readonly direction: 'undo' | 'redo'; readonly sheetId: string }
+  | { readonly type: 'drawing-set'; readonly sheetId: string; readonly drawing: SheetDrawing }
+  | { readonly type: 'drawing-remove'; readonly sheetId: string; readonly id: string }
+  | {
+      readonly type: 'drawing-order'
+      readonly sheetId: string
+      readonly id: string
+      readonly toFront: boolean
+    }
   | {
       readonly type: 'replace'
       readonly targets: readonly WorkbookTarget[]
@@ -130,4 +139,7 @@ export const operationCommands = {
   'sheet-color': 'workbook.setSheetTabColor',
   history: 'history.apply',
   replace: 'workbook.replace',
+  'drawing-set': 'drawings.set',
+  'drawing-remove': 'drawings.remove',
+  'drawing-order': 'drawings.reorder',
 } as const

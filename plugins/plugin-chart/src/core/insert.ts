@@ -2,19 +2,13 @@ import { atom } from '@einfach/core'
 import {
   activeWorkbookSheetAtom, changeSheetDrawingAtom, drawingErrorAtom, editingSessionAtom,
   readWorkbookDisplayRangeAtom,
-  selectDrawingAtom, selectionRangesAtom, sheetDrawingsAtom,
-  type DrawingRange, type SheetDrawing,
+  selectDrawingAtom, selectionRangesAtom, sheetDrawingsAtom, type DrawingRange,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { areaLayout, combineAreaGrids, validateChartAreas } from './areas'
+import { buildChartDrawing, nextChartId } from './chart-drawing'
 import { chartGridFromSnapshot } from './data'
 import { toCellRange } from './range-text'
-import { recommendChart } from './recommend'
-import { detectChartLayout } from './series-layout'
-import { CHART_KIND, DEFAULT_CHART_SPEC, type ChartType } from './spec'
-
-export const DEFAULT_CHART_WIDTH = 480
-export const DEFAULT_CHART_HEIGHT = 288
-const EXCEL_MAX_COLS = 16_384
+import type { ChartType } from './spec'
 
 const errorAtom = atom<string | null>(null)
 errorAtom.debugLabel = 'plugin.chart.insert.error.state'
@@ -26,14 +20,6 @@ insertChartFeedbackAtom.debugLabel = 'plugin.chart.insert.feedback'
 
 export const dismissChartErrorAtom = atom(null, (_get, set) => set(errorAtom, null))
 dismissChartErrorAtom.debugLabel = 'plugin.chart.insert.dismiss'
-
-/** 本表内唯一：chart-1、chart-2…；删除后不复用更小的号也无妨，只要不撞。 */
-function nextChartId(drawings: readonly SheetDrawing[]): string {
-  const used = new Set(drawings.map((drawing) => drawing.id))
-  let index = drawings.length + 1
-  while (used.has(`chart-${index}`)) index += 1
-  return `chart-${index}`
-}
 
 /**
  * 用当前连续选区插入图表：读一次数据猜表头与系列方向，放在选区右侧，
@@ -61,19 +47,8 @@ export const insertChartAtom = atom(null,
     if (get(activeWorkbookSheetAtom)?.id !== sheet.id) return false
     const grid = combineAreaGrids(reads.flatMap((read, index) => read.status === 'ok'
       ? [chartGridFromSnapshot(read.snapshot, areas[index]!)] : []), areaLayout(areas)!)
-    const detected = detectChartLayout(grid)
-    const { type, layout } = requested === 'recommended'
-      ? recommendChart(grid, detected) : { type: requested, layout: detected }
     const id = nextChartId(get(sheetDrawingsAtom))
-    const drawing: SheetDrawing = {
-      id,
-      kind: CHART_KIND,
-      anchor: { row: Math.min(...areas.map((area) => area.startRow)),
-        col: Math.min(EXCEL_MAX_COLS - 1, Math.max(...areas.map((area) => area.endCol)) + 2),
-        offsetX: 0, offsetY: 0, width: DEFAULT_CHART_WIDTH, height: DEFAULT_CHART_HEIGHT },
-      refs: areas,
-      payload: { ...DEFAULT_CHART_SPEC, ...layout, type },
-    }
+    const drawing = buildChartDrawing({ id, areas, grid, requested })
     const changed = await set(changeSheetDrawingAtom, { type: 'set', drawing })
     if (changed) set(selectDrawingAtom, id)
     // 受保护的表等由 Rust 拒绝；把原因带回插入按钮旁。

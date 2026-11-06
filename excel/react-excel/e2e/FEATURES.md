@@ -1257,3 +1257,5 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CHART-011 | 隐藏数据行后图表不画该点，撤销恢复 | `charts/data-refresh.spec.ts` | hiding a data row drops that point from the chart and undo draws it again |
 | CHART-012 | 设置栏数据区域填多区域 `A3:A15,C3:C15` 拼接作图，对不齐时报错 | `charts/settings.spec.ts` | a multi-area data range charts the joined columns and misaligned areas report an error |
 | CHART-013 | 「更多图表」菜单逐一插入雷达、漏斗、瀑布、直方、箱线、树状、旭日图；股价图数值列不足四列时显示错误 | `charts/more-types.spec.ts` | the More charts menu inserts each extra chart type from the selection |
+| CHART-014 | 宿主经 `createChartApi` 在非当前表插入、修改、删除图表，撤销共享，逐张图表收到变化事件 | `charts/host-api.spec.ts` | host inserts, edits and removes a chart on another sheet with change events |
+| CHART-015 | 宿主图表写入经过 beforeChange 拦截，非法区域返回结构化错误 | `charts/host-api.spec.ts` | host chart writes respect beforeChange and report invalid input |

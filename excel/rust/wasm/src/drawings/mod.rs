@@ -28,4 +28,11 @@ impl WasmWorkbook {
             .remove_drawing(&mut self.workbook, sheet as usize, id)
             .map_err(JsValue::from_str)
     }
+
+    /// 置于顶层（`to_front`）或底层；一次调用一条撤销记录。
+    pub fn reorder_drawing(&mut self, sheet: u32, id: &str, to_front: bool) -> Result<bool, JsValue> {
+        self.history
+            .reorder_drawing(&mut self.workbook, sheet as usize, id, to_front)
+            .map_err(JsValue::from_str)
+    }
 }

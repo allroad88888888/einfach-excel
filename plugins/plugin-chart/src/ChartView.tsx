@@ -1,17 +1,17 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui } from '@lingui/react'
 import type { DrawingRendererProps } from '@einfach-excel/react-excel'
-import { useEffect, useMemo, useRef } from 'react'
-import { chartGridsAtom, chartRevisionAtom, chartTheme, layoutChartData, loadChartGridAtom,
-  openChartSettingsAtom, parseChartSpec, toEChartsOption, type ChartOption } from './core'
+import { useEffect, useRef } from 'react'
+import { chartRevisionAtom, loadChartGridAtom, openChartSettingsAtom, type ChartOption } from './core'
 import type { EChartsType } from './echarts-runtime'
 import { labels } from './messages'
+import { useChartOption } from './use-chart-option'
 import './chart.css'
 
 /** 图表内容：数据格 → 整形 → 转换器 → ECharts。实例只是 DOM 资源，状态全在 atom 与 Rust。 */
 export function ChartView({ drawing, width, height }: DrawingRendererProps) {
   const { i18n } = useLingui()
-  const entry = useAtomValue(chartGridsAtom)[drawing.id]
+  const { entry, spec, option, plottable } = useChartOption(drawing)
   const load = useSetAtom(loadChartGridAtom)
   const openSettings = useSetAtom(openChartSettingsAtom)
   const revision = useAtomValue(chartRevisionAtom)
@@ -21,15 +21,6 @@ export function ChartView({ drawing, width, height }: DrawingRendererProps) {
 
   // 修订版推进（编辑、公式重算、撤销）或数据区域改变后重读；同修订在 Core 内去重。
   useEffect(() => { void load(drawing) }, [load, drawing, revision])
-
-  const spec = useMemo(() => parseChartSpec(drawing.payload), [drawing.payload])
-  const seriesWord = i18n._(labels.series)
-  const data = useMemo(() => entry?.grid
-    ? layoutChartData(entry.grid, spec, (index) => `${seriesWord} ${index + 1}`) : null,
-  [entry?.grid, spec, seriesWord])
-  const option = useMemo(() => data
-    ? toEChartsOption({ spec, data, theme: chartTheme(false) }) : null, [data, spec])
-  const plottable = data?.series.some((series) => series.values.some((value) => value !== null))
 
   useEffect(() => {
     let disposed = false

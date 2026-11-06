@@ -627,6 +627,14 @@ msgstr "下框线"
 msgid "Break positions"
 msgstr "分隔位置"
 
+#: src/i18n/feedback-messages.ts
+msgid "Bring object to front"
+msgstr "将对象置于顶层"
+
+#: src/workbook/drawings/DrawingContextMenu.tsx
+msgid "Bring to front"
+msgstr "置于顶层"
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "broken defined names"
 msgstr "失效的名称定义"
@@ -1227,6 +1235,7 @@ msgstr "已复制 {rows} × {cols} 个单元格。"
 
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/drawings/DrawingContextMenu.tsx
 msgid "Copy"
 msgstr "复制"
 
@@ -1503,6 +1512,7 @@ msgstr "自定义…"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
+#: src/workbook/drawings/DrawingContextMenu.tsx
 msgid "Cut"
 msgstr "剪切"
 
@@ -1629,6 +1639,7 @@ msgid "Define a formula once, then call it in any sheet."
 msgstr "定义一次公式，即可在任意工作表中调用。"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/drawings/DrawingContextMenu.tsx
 #: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Delete"
 msgstr "删除"
@@ -3869,6 +3880,10 @@ msgstr "数值计数"
 msgid "Object"
 msgstr "对象"
 
+#: src/workbook/drawings/DrawingContextMenu.tsx
+msgid "Object actions"
+msgstr "对象操作"
+
 #: src/i18n/feedback-messages.ts
 msgid "Object settings cannot exceed 64 KiB."
 msgstr "对象设置不能超过 64 KiB。"
@@ -4016,6 +4031,7 @@ msgstr "请将单元格和区域引用作为自定义公式实参传入。"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
+#: src/workbook/drawings/DrawingContextMenu.tsx
 msgid "Paste"
 msgstr "粘贴"
 
@@ -4074,6 +4090,10 @@ msgstr "仅粘贴公式"
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "Paste notes only"
 msgstr "仅粘贴备注"
+
+#: src/workbook/shift-cells/CellContextMenu.tsx
+msgid "Paste object here"
+msgstr "在此粘贴对象"
 
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "Paste options"
@@ -5171,6 +5191,14 @@ msgstr "选区统计设置"
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Semicolon"
 msgstr "分号"
+
+#: src/i18n/feedback-messages.ts
+msgid "Send object to back"
+msgstr "将对象置于底层"
+
+#: src/workbook/drawings/DrawingContextMenu.tsx
+msgid "Send to back"
+msgstr "置于底层"
 
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 msgid "Sequence type"

@@ -1,6 +1,7 @@
 import { useLingui } from '@lingui/react/macro'
 import { useSetAtom } from '@einfach/react'
-import { changeSheetDrawingAtom, dragDrawingAtom, selectDrawingAtom,
+import { changeSheetDrawingAtom, copyDrawingAtom, dragDrawingAtom, openDrawingMenuAtom,
+  pasteDrawingAtom, selectDrawingAtom,
   type DrawingHandle, type SheetDrawing } from '@einfach-excel/spreadsheet-ui-core'
 import { memo, useRef, type KeyboardEvent, type PointerEvent } from 'react'
 import type { DrawingContribution } from '../../plugin/types'
@@ -32,6 +33,9 @@ export const DrawingFrame = memo(function DrawingFrame({ drawing, left, top, wid
   const drag = useSetAtom(dragDrawingAtom)
   const change = useSetAtom(changeSheetDrawingAtom)
   const select = useSetAtom(selectDrawingAtom)
+  const copy = useSetAtom(copyDrawingAtom)
+  const paste = useSetAtom(pasteDrawingAtom)
+  const openMenu = useSetAtom(openDrawingMenuAtom)
   const pointer = useRef<
     { id: number; x: number; y: number; zoom: number; moved: boolean } | null>(null)
   const label = contribution ? i18n._(contribution.label) : t`Object`
@@ -79,6 +83,15 @@ export const DrawingFrame = memo(function DrawingFrame({ drawing, left, top, wid
       event.stopPropagation()
       select(null)
       focusGrid()
+    } else if ((event.ctrlKey || event.metaKey) && !event.altKey &&
+      ['c', 'x', 'v'].includes(event.key.toLowerCase())) {
+      // 阻止默认后不会触发网格的 copy/paste 事件，单元格剪贴板不受影响。
+      event.preventDefault()
+      event.stopPropagation()
+      const key = event.key.toLowerCase()
+      if (key === 'v') void paste()
+      else void copy({ id: drawing.id, cut: key === 'x' })
+      if (key === 'x') focusGrid()
     }
   }
 
@@ -93,7 +106,11 @@ export const DrawingFrame = memo(function DrawingFrame({ drawing, left, top, wid
       onPointerMove={move}
       onPointerUp={(event) => end(event)}
       onPointerCancel={(event) => end(event, true)}
-      onContextMenu={(event) => event.stopPropagation()}>
+      onContextMenu={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        openMenu({ id: drawing.id, x: event.clientX, y: event.clientY })
+      }}>
       <div className="drawing-content">
         {contribution
           ? <contribution.Renderer drawing={drawing} width={width} height={height}

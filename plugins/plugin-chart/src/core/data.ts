@@ -6,6 +6,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { formatRangeText, rangeCellCount, toCellRange } from './range-text'
 import type { ChartCell, ChartGrid } from './series-layout'
+import { chartHiddenFromSnapshot, type ChartHidden } from './visible-grid'
 
 /** 一张图最多读 10,000 格，远低于显示读取上限，避免一次编辑触发大读。 */
 export const MAX_CHART_CELLS = 10_000
@@ -13,6 +14,7 @@ export const MAX_CHART_CELLS = 10_000
 export interface ChartGridEntry {
   readonly status: 'loading' | 'ready' | 'error'
   readonly grid?: ChartGrid
+  readonly hidden?: ChartHidden
   readonly error?: string
 }
 interface CacheEntry extends ChartGridEntry {
@@ -85,7 +87,7 @@ export const loadChartGridAtom = atom(null,
   if (rangeCellCount(range) > MAX_CHART_CELLS)
     return publish({ status: 'error', error: 'Choose at most 10,000 cells for a chart.' })
   // 读取期间保留上一份数据格，图表不闪空。
-  publish({ status: 'loading', grid: current?.grid })
+  publish({ status: 'loading', grid: current?.grid, hidden: current?.hidden })
   const read = await set(readWorkbookDisplayRangeAtom,
     { sheetId: sheet.id, range: toCellRange(range) })
   const latest = get(cacheAtom)[drawing.id]
@@ -93,7 +95,8 @@ export const loadChartGridAtom = atom(null,
   if (get(rustWorkbookConnectionAtom) !== connection || latest?.revision !== revision ||
     latest.range !== key || latest.sheetId !== sheet.id) return
   publish(read.status === 'ok'
-    ? { status: 'ready', grid: chartGridFromSnapshot(read.snapshot, range) }
+    ? { status: 'ready', grid: chartGridFromSnapshot(read.snapshot, range),
+      hidden: chartHiddenFromSnapshot(read.snapshot, range) }
     : { status: 'error', error: read.error.message })
 })
 loadChartGridAtom.debugLabel = 'plugin.chart.data.load'

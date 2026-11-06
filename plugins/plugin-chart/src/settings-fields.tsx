@@ -1,4 +1,4 @@
-import { useId, type KeyboardEvent } from 'react'
+import { useEffect, useId, useRef, type KeyboardEvent } from 'react'
 
 /** 回车或失焦才提交：一次输入一条撤销记录，不在每个按键写 Rust。 */
 const commitOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -73,4 +73,27 @@ export function Choice<T extends string>({ label, value, options, disabled, onCh
         <option key={option.value} value={option.value}>{option.label}</option>)}
     </select>
   </div>
+}
+
+/** 取色器拖动时不写 Rust；关闭取色器的原生 change 才提交，一次取色一条撤销记录。 */
+export function ColorField({ label, value, disabled, onCommit }: {
+  readonly label: string
+  readonly value: string
+  readonly disabled: boolean
+  readonly onCommit: (value: string) => void
+}) {
+  const input = useRef<HTMLInputElement>(null)
+  const commit = useRef(onCommit)
+  commit.current = onCommit
+  useEffect(() => {
+    const element = input.current
+    if (!element) return
+    const onChange = () => { if (element.value !== value) commit.current(element.value) }
+    element.addEventListener('change', onChange)
+    return () => element.removeEventListener('change', onChange)
+  }, [value])
+  return <label className="plugin-chart-toggle">
+    <input ref={input} key={value} type="color" defaultValue={value} disabled={disabled} />
+    {label}
+  </label>
 }

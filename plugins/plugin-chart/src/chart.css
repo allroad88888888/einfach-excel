@@ -103,3 +103,47 @@
 }
 
 :where(.einfach-spreadsheet) .plugin-chart-settings :disabled { opacity: .5; }
+
+:where(.einfach-spreadsheet) .plugin-chart-colors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 8px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-colors input[type='color'] {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-colors button { grid-column: 1 / -1; }
+
+:where(.einfach-spreadsheet) .plugin-chart-combo {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-combo-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-combo-row > span {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

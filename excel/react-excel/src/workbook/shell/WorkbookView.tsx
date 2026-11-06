@@ -1,4 +1,5 @@
 import { CellContextMenu } from '../shift-cells/CellContextMenu'
+import { DrawingContextMenu } from '../drawings/DrawingContextMenu'
 import { ShiftCellsDialog } from '../shift-cells/ShiftCellsDialog'
 import { EvaluateFormulaDialog, WatchWindowPanel } from '../../components/formula-auditing'
 import { FormulaBar } from '../chrome/formula-bar/FormulaBar'
@@ -70,6 +71,7 @@ export function WorkbookView() {
       <SelectSpecialStatus />
       <WorkbookFooter />
       <CellContextMenu />
+      <DrawingContextMenu />
       <ShiftCellsDialog />
       <EvaluateFormulaDialog />
       <WatchWindowPanel />

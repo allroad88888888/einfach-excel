@@ -5,7 +5,7 @@ import { CHART_TYPES, dismissChartErrorAtom, insertChartAtom, insertChartFeedbac
 import { labels, typeLabels } from './messages'
 
 const ICONS: Record<ChartType, string> = {
-  column: '▥', bar: '☰', line: '⟋', area: '◭', pie: '◔', doughnut: '◎', scatter: '⁘',
+  column: '▥', bar: '☰', line: '⟋', area: '◭', combo: '⫼', pie: '◔', doughnut: '◎', scatter: '⁘',
 }
 
 /** 「插入」分组：按类型插入图表；选中图表时可打开设置。 */
@@ -18,6 +18,9 @@ export function InsertChartTools() {
   const selected = useAtomValue(selectedChartAtom)
   return (
     <div className="plugin-chart-tools" role="group" aria-label={i18n._(labels.insert)}>
+      <button type="button" className="tool-button" data-chart-type="recommended"
+        aria-label={i18n._(labels.recommended)} title={i18n._(labels.recommended)}
+        disabled={feedback.busy} onClick={() => void insert('recommended')}>★</button>
       {CHART_TYPES.map((type) => {
         const name = i18n._(typeLabels[type])
         return <button key={type} type="button" className="tool-button" data-chart-type={type}

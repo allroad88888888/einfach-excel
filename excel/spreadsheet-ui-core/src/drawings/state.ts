@@ -79,9 +79,10 @@ export const refreshSheetDrawingsAtom = atom(null, async (get, set): Promise<voi
 })
 refreshSheetDrawingsAtom.debugLabel = 'spreadsheet.drawings.refresh'
 
-type DrawingChange =
+export type DrawingChange =
   | { readonly type: 'set'; readonly drawing: SheetDrawing }
   | { readonly type: 'remove'; readonly id: string }
+  | { readonly type: 'order'; readonly id: string; readonly toFront: boolean }
 
 /** 新增、修改、移动、删除都是一次 Rust 命令、一条撤销记录、一次投影发布。 */
 export const changeSheetDrawingAtom = atom(null,
@@ -99,8 +100,11 @@ export const changeSheetDrawingAtom = atom(null,
       const reply = change.type === 'set'
         ? await connection.request('drawings.set',
           { sheetId: sheet.id, drawing: change.drawing, projection })
-        : await connection.request('drawings.remove',
-          { sheetId: sheet.id, id: change.id, projection })
+        : change.type === 'order'
+          ? await connection.request('drawings.reorder',
+            { sheetId: sheet.id, id: change.id, toFront: change.toFront, projection })
+          : await connection.request('drawings.remove',
+            { sheetId: sheet.id, id: change.id, projection })
       if (get(rustWorkbookConnectionAtom) !== connection) return false
       if (typeof reply.changed !== 'boolean' || !Array.isArray(reply.drawings) ||
         !validateProjectionResult(reply.projection, { request: projection }).ok)

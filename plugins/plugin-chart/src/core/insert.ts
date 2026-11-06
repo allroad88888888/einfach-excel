@@ -7,6 +7,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { chartGridFromSnapshot, MAX_CHART_CELLS } from './data'
 import { rangeCellCount, toCellRange } from './range-text'
+import { recommendChart } from './recommend'
 import { detectChartLayout } from './series-layout'
 import { CHART_KIND, DEFAULT_CHART_SPEC, type ChartType } from './spec'
 
@@ -37,7 +38,8 @@ function nextChartId(drawings: readonly SheetDrawing[]): string {
  * 用当前连续选区插入图表：读一次数据猜表头与系列方向，放在选区右侧，
  * 一次 Rust 命令、一条撤销记录，插入后选中新图表。
  */
-export const insertChartAtom = atom(null, async (get, set, type: ChartType): Promise<boolean> => {
+export const insertChartAtom = atom(null,
+  async (get, set, requested: ChartType | 'recommended'): Promise<boolean> => {
   if (get(busyAtom) || get(editingSessionAtom).source) return false
   const sheet = get(activeWorkbookSheetAtom)
   if (!sheet) return false
@@ -56,7 +58,10 @@ export const insertChartAtom = atom(null, async (get, set, type: ChartType): Pro
       { sheetId: sheet.id, range: toCellRange(range) })
     if (read.status === 'error') return fail(read.error.message)
     if (get(activeWorkbookSheetAtom)?.id !== sheet.id) return false
-    const layout = detectChartLayout(chartGridFromSnapshot(read.snapshot, range))
+    const grid = chartGridFromSnapshot(read.snapshot, range)
+    const detected = detectChartLayout(grid)
+    const { type, layout } = requested === 'recommended'
+      ? recommendChart(grid, detected) : { type: requested, layout: detected }
     const id = nextChartId(get(sheetDrawingsAtom))
     const drawing: SheetDrawing = {
       id,

@@ -1,5 +1,5 @@
 import type { Messages } from '@lingui/core'
-import type { ChartType, LegendPosition, StackMode } from './core'
+import type { ChartType, EmptyCellMode, LegendPosition, StackMode } from './core'
 
 export const labels = {
   chart: { id: 'plugin.chart.chart', message: 'Chart' },
@@ -27,6 +27,18 @@ export const labels = {
   series: { id: 'plugin.chart.series', message: 'Series' },
   loading: { id: 'plugin.chart.loading', message: 'Loading chart…' },
   empty: { id: 'plugin.chart.empty', message: 'No numbers to plot in the data range.' },
+  copyImage: { id: 'plugin.chart.copyImage', message: 'Copy image' },
+  fontSize: { id: 'plugin.chart.fontSize', message: 'Font size' },
+  colors: { id: 'plugin.chart.colors', message: 'Colors' },
+  resetColors: { id: 'plugin.chart.resetColors', message: 'Reset colors' },
+  comboSeries: { id: 'plugin.chart.comboSeries', message: 'Series type' },
+  secondaryAxis: { id: 'plugin.chart.secondaryAxis', message: 'Secondary axis' },
+  recommended: { id: 'plugin.chart.recommended', message: 'Recommended chart' },
+  emptyCells: { id: 'plugin.chart.emptyCells', message: 'Empty cells' },
+  showHidden: { id: 'plugin.chart.showHidden', message: 'Show data in hidden rows and columns' },
+  downloadPng: { id: 'plugin.chart.downloadPng', message: 'Download PNG' },
+  copied: { id: 'plugin.chart.copied', message: 'Chart image copied.' },
+  downloaded: { id: 'plugin.chart.downloaded', message: 'PNG downloaded.' },
 }
 
 export const typeLabels: Record<ChartType, { id: string; message: string }> = {
@@ -34,6 +46,7 @@ export const typeLabels: Record<ChartType, { id: string; message: string }> = {
   bar: { id: 'plugin.chart.type.bar', message: 'Bar' },
   line: { id: 'plugin.chart.type.line', message: 'Line' },
   area: { id: 'plugin.chart.type.area', message: 'Area' },
+  combo: { id: 'plugin.chart.type.combo', message: 'Combo' },
   pie: { id: 'plugin.chart.type.pie', message: 'Pie' },
   doughnut: { id: 'plugin.chart.type.doughnut', message: 'Doughnut' },
   scatter: { id: 'plugin.chart.type.scatter', message: 'Scatter' },
@@ -51,6 +64,12 @@ export const stackLabels: Record<StackMode, { id: string; message: string }> = {
   percent: { id: 'plugin.chart.stack.percent', message: '100% stacked' },
 }
 
+export const emptyCellLabels: Record<EmptyCellMode, { id: string; message: string }> = {
+  gap: { id: 'plugin.chart.empty.gap', message: 'Gaps' },
+  zero: { id: 'plugin.chart.empty.zero', message: 'Zero' },
+  connect: { id: 'plugin.chart.empty.connect', message: 'Connect with line' },
+}
+
 const errors: Record<string, string> = {
   'Choose one continuous range.': '请选择一个连续区域。',
   'Select the chart data first, including headers.': '请先选中图表数据（含标题行/列）。',
@@ -60,6 +79,7 @@ const errors: Record<string, string> = {
   'The workbook is not ready.': '工作簿尚未准备好。',
   'Choose a range inside the worksheet.': '请选择工作表内的区域。',
   'Rust returned an incomplete display range.': '读取的区域不完整，请重试。',
+  'Image clipboard is unavailable. Download the PNG instead.': '当前环境不支持图片剪贴板，请下载 PNG。',
 }
 
 const zh: Record<string, string> = {
@@ -74,15 +94,24 @@ const zh: Record<string, string> = {
   [labels.yMin.id]: '值轴最小值', [labels.yMax.id]: '值轴最大值', [labels.auto.id]: '自动',
   [labels.series.id]: '系列', [labels.loading.id]: '正在加载图表…',
   [labels.empty.id]: '数据区域中没有可绘制的数字。',
+  [labels.copyImage.id]: '复制图片', [labels.downloadPng.id]: '下载 PNG',
+  [labels.fontSize.id]: '字号', [labels.colors.id]: '颜色', [labels.resetColors.id]: '恢复默认配色',
+  [labels.comboSeries.id]: '系列类型', [labels.secondaryAxis.id]: '次坐标轴',
+  [labels.recommended.id]: '推荐的图表',
+  [labels.emptyCells.id]: '空单元格', [labels.showHidden.id]: '显示隐藏行列中的数据',
+  [labels.copied.id]: '图表图片已复制。', [labels.downloaded.id]: 'PNG 已下载。',
   [typeLabels.column.id]: '柱形图', [typeLabels.bar.id]: '条形图', [typeLabels.line.id]: '折线图',
-  [typeLabels.area.id]: '面积图', [typeLabels.pie.id]: '饼图', [typeLabels.doughnut.id]: '圆环图',
+  [typeLabels.area.id]: '面积图', [typeLabels.combo.id]: '组合图', [typeLabels.pie.id]: '饼图', [typeLabels.doughnut.id]: '圆环图',
   [typeLabels.scatter.id]: '散点图',
   [legendLabels.right.id]: '右侧', [legendLabels.bottom.id]: '底部', [legendLabels.top.id]: '顶部',
   [legendLabels.left.id]: '左侧', [legendLabels.none.id]: '无',
+  [emptyCellLabels.gap.id]: '空距', [emptyCellLabels.zero.id]: '零值',
+  [emptyCellLabels.connect.id]: '用直线连接数据点',
   [stackLabels.none.id]: '无', [stackLabels.stacked.id]: '堆积', [stackLabels.percent.id]: '百分比堆积',
 }
 
-const all = [labels, typeLabels, legendLabels, stackLabels].flatMap((group) => Object.values(group))
+const all = [labels, typeLabels, legendLabels, stackLabels, emptyCellLabels]
+  .flatMap((group) => Object.values(group))
 export const messages: Partial<Record<'en' | 'zh', Messages>> = {
   en: { ...Object.fromEntries(Object.keys(errors).map((key) => [key, key])),
     ...Object.fromEntries(all.map(({ id, message }) => [id, message])) },

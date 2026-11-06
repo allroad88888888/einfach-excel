@@ -96,6 +96,28 @@ impl WorkbookHistory {
         Ok(true)
     }
 
+    /// 置于顶层 / 置于底层：只改绘制顺序；已经在目标位置时不进历史。
+    pub fn reorder_drawing(
+        &mut self,
+        workbook: &mut Workbook,
+        sheet: usize,
+        id: &str,
+        to_front: bool,
+    ) -> Result<bool, &'static str> {
+        self.ensure_drawing_target(workbook, sheet)?;
+        let target = workbook.sheet_mut(sheet).unwrap();
+        let before = target.drawings().to_vec();
+        let Some(anchor) = target.drawing(id).map(anchor_cell) else {
+            return Ok(false);
+        };
+        if !target.reorder_drawing(id, to_front) {
+            return Ok(false);
+        }
+        let label = if to_front { "Bring object to front" } else { "Send object to back" };
+        self.push_drawing_change(workbook, sheet, anchor, label, before);
+        Ok(true)
+    }
+
     fn ensure_drawing_target(&self, workbook: &Workbook, sheet: usize) -> Result<(), &'static str> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.");

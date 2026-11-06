@@ -4,7 +4,10 @@ import { useLingui } from '@lingui/react/macro'
 import {
   cellContextMenuAtom,
   closeCellContextMenuAtom,
+  drawingClipboardAtom,
   openShiftCellsDialogAtom,
+  pasteDrawingAtom,
+  selectionSnapshotAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { PluginMenuItems } from '../../plugin/PluginMounts'
 import { contextMenuItemShown, useWorkbookUiOptions } from '../../page/workbook-ui-options'
@@ -16,6 +19,9 @@ export function CellContextMenu() {
   const menu = useAtomValue(cellContextMenuAtom)
   const close = useSetAtom(closeCellContextMenuAtom)
   const open = useSetAtom(openShiftCellsDialogAtom)
+  const drawingClipboard = useAtomValue(drawingClipboardAtom)
+  const pasteDrawing = useSetAtom(pasteDrawingAtom)
+  const activeCell = useAtomValue(selectionSnapshotAtom).activeCell
   const ref = useRef<HTMLDivElement>(null)
   const ui = useWorkbookUiOptions()
   useLayoutEffect(() => {
@@ -56,6 +62,14 @@ export function CellContextMenu() {
       {contextMenuItemShown(ui, 'cells.delete') && <button type="button" role="menuitem"
         data-menu-item="cells.delete" onClick={() => void open({ mode: 'delete', source: 'menu' })}>
         {t`Delete…`}
+      </button>}
+      {drawingClipboard.pasteHere && contextMenuItemShown(ui, 'drawings.paste') && <button
+        type="button" role="menuitem" data-menu-item="drawings.paste"
+        onClick={() => {
+          close()
+          void pasteDrawing({ row: activeCell.row, col: activeCell.col })
+        }}>
+        {t`Paste object here`}
       </button>}
       <PluginMenuItems close={close} />
     </div>

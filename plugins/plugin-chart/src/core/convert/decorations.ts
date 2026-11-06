@@ -4,17 +4,35 @@ import type { ChartOption, ChartPoint, OptionOperator } from './types'
 const pointLabel = (data: unknown) => (data as ChartPoint | undefined)?.label ?? ''
 
 /** 全局文字、配色与背景；背景透明，交给对象框的表面色。 */
-export const applyTheme: OptionOperator = (option, { theme }) => ({
+export const applyTheme: OptionOperator = (option, { spec, theme }) => ({
   ...option,
   color: [...theme.palette],
   backgroundColor: 'transparent',
-  textStyle: { color: theme.text, fontFamily: theme.fontFamily },
+  textStyle: { color: theme.text, fontFamily: theme.fontFamily, fontSize: spec.fontSize ?? 12 },
   animation: false,
 })
 
+/** 用户指定的颜色：普通图按系列，饼图按扇区；未指定的位置沿用主题配色。 */
+export const applyColors: OptionOperator = (option, { spec }) => {
+  if (!spec.colors.some(Boolean)) return option
+  const series = (option.series as Record<string, unknown>[] | undefined) ?? []
+  const pie = spec.type === 'pie' || spec.type === 'doughnut'
+  const colored = series.map((entry, index) => {
+    if (!pie) {
+      const color = spec.colors[index]
+      // 系列级 color 同时作用于柱、线、点与面积。
+      return color ? { ...entry, color } : entry
+    }
+    const points = (entry.data as Record<string, unknown>[] | undefined) ?? []
+    return { ...entry, data: points.map((point, at) =>
+      spec.colors[at] ? { ...point, itemStyle: { color: spec.colors[at] } } : point) }
+  })
+  return { ...option, series: colored as ChartOption['series'] }
+}
+
 export const applyTitle: OptionOperator = (option, { spec, theme }) => spec.title
   ? { ...option, title: { text: spec.title, left: 'center', top: 8,
-    textStyle: { color: theme.text, fontSize: 14, fontWeight: 600,
+    textStyle: { color: theme.text, fontSize: (spec.fontSize ?? 12) + 2, fontWeight: 600,
       fontFamily: theme.fontFamily } } }
   : option
 
@@ -29,7 +47,7 @@ export const applyLegend: OptionOperator = (option, { spec, theme }) => {
       orient: vertical ? 'vertical' : 'horizontal',
       ...(vertical ? { [spec.legend]: 8, top: 'middle' } : { left: 'center',
         [spec.legend]: spec.legend === 'top' && spec.title ? 34 : 8 }),
-      textStyle: { color: theme.text, fontFamily: theme.fontFamily },
+      textStyle: { color: theme.text, fontFamily: theme.fontFamily, fontSize: spec.fontSize ?? 12 },
       pageTextStyle: { color: theme.muted },
     },
   }
@@ -69,7 +87,7 @@ export const applyDataLabels: OptionOperator = (option, { spec, theme }) => {
       // 有图例时名称已在图例里，数据标签只给百分比，避免外侧标签挤压截断。
       !spec.dataLabels ? p.name ?? ''
         : spec.legend === 'none' ? `${p.name ?? ''}: ${p.percent ?? 0}%` : `${p.percent ?? 0}%` }
-    : { show: spec.dataLabels, color: theme.text, fontSize: 11,
+    : { show: spec.dataLabels, color: theme.text, fontSize: (spec.fontSize ?? 12) - 1,
       formatter: (p: { data?: unknown }) => pointLabel(p.data) }
   return { ...option,
     series: series.map((entry) => ({ ...entry, label })) as ChartOption['series'] }

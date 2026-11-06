@@ -1,6 +1,7 @@
 import type { ChartType } from '../spec'
 import { cartesianOption } from './cartesian'
-import { applyDataLabels, applyGrid, applyLegend, applyTheme, applyTitle,
+import { comboOption } from './combo'
+import { applyColors, applyDataLabels, applyGrid, applyLegend, applyTheme, applyTitle,
   applyTooltip } from './decorations'
 import { pieOption } from './pie'
 import { scatterOption } from './scatter'
@@ -11,6 +12,7 @@ const BASE: Record<ChartType, (input: ConvertInput) => ChartOption> = {
   bar: cartesianOption,
   line: cartesianOption,
   area: cartesianOption,
+  combo: comboOption,
   pie: pieOption,
   doughnut: pieOption,
   scatter: scatterOption,
@@ -18,7 +20,7 @@ const BASE: Record<ChartType, (input: ConvertInput) => ChartOption> = {
 
 /** 顺序有意义：数据标签要在系列建好之后，网格边距要知道标题与图例的位置。 */
 const OPERATORS: readonly OptionOperator[] = [
-  applyTheme, applyTitle, applyLegend, applyTooltip, applyDataLabels, applyGrid,
+  applyTheme, applyTitle, applyLegend, applyTooltip, applyDataLabels, applyColors, applyGrid,
 ]
 
 /**

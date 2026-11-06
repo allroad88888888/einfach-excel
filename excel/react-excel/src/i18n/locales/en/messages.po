@@ -627,6 +627,14 @@ msgstr "Bottom border"
 msgid "Break positions"
 msgstr "Break positions"
 
+#: src/i18n/feedback-messages.ts
+msgid "Bring object to front"
+msgstr "Bring object to front"
+
+#: src/workbook/drawings/DrawingContextMenu.tsx
+msgid "Bring to front"
+msgstr "Bring to front"
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "broken defined names"
 msgstr "broken defined names"
@@ -1227,6 +1235,7 @@ msgstr "Copied {rows} × {cols} cells."
 
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/drawings/DrawingContextMenu.tsx
 msgid "Copy"
 msgstr "Copy"
 
@@ -1503,6 +1512,7 @@ msgstr "Custom…"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
+#: src/workbook/drawings/DrawingContextMenu.tsx
 msgid "Cut"
 msgstr "Cut"
 
@@ -1629,6 +1639,7 @@ msgid "Define a formula once, then call it in any sheet."
 msgstr "Define a formula once, then call it in any sheet."
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/drawings/DrawingContextMenu.tsx
 #: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Delete"
 msgstr "Delete"
@@ -3869,6 +3880,10 @@ msgstr "Numerical count"
 msgid "Object"
 msgstr "Object"
 
+#: src/workbook/drawings/DrawingContextMenu.tsx
+msgid "Object actions"
+msgstr "Object actions"
+
 #: src/i18n/feedback-messages.ts
 msgid "Object settings cannot exceed 64 KiB."
 msgstr "Object settings cannot exceed 64 KiB."
@@ -4016,6 +4031,7 @@ msgstr "Pass cell and range references as custom formula arguments."
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
+#: src/workbook/drawings/DrawingContextMenu.tsx
 msgid "Paste"
 msgstr "Paste"
 
@@ -4074,6 +4090,10 @@ msgstr "Paste formulas only"
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "Paste notes only"
 msgstr "Paste notes only"
+
+#: src/workbook/shift-cells/CellContextMenu.tsx
+msgid "Paste object here"
+msgstr "Paste object here"
 
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "Paste options"
@@ -5171,6 +5191,14 @@ msgstr "Selection statistics settings"
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Semicolon"
 msgstr "Semicolon"
+
+#: src/i18n/feedback-messages.ts
+msgid "Send object to back"
+msgstr "Send object to back"
+
+#: src/workbook/drawings/DrawingContextMenu.tsx
+msgid "Send to back"
+msgstr "Send to back"
 
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 msgid "Sequence type"

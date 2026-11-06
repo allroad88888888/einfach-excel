@@ -1,10 +1,14 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui } from '@lingui/react'
 import { useId } from 'react'
-import { CHART_TYPES, chartSettingsAtom, hasAxes, LEGEND_POSITIONS, STACK_MODES, supportsStack,
+import { CHART_TYPES, chartSettingsAtom, EMPTY_CELL_MODES, hasAxes, LEGEND_POSITIONS, STACK_MODES,
+  supportsStack,
   updateChartSettingsAtom, type ChartSpec } from './core'
-import { labels, legendLabels, stackLabels, typeLabels } from './messages'
+import { emptyCellLabels, labels, legendLabels, stackLabels, typeLabels } from './messages'
 import { Choice, NumberField, TextField, Toggle } from './settings-fields'
+import { ChartExportActions } from './ChartExportActions'
+import { ChartStyleFields } from './ChartStyleFields'
+import { ComboSeriesFields } from './ComboSeriesFields'
 
 /** 非模态侧栏：改动立即生效，图表与表格保持可见；关闭不撤销已做的改动。 */
 export function ChartSettingsPanel() {
@@ -44,6 +48,8 @@ export function ChartSettingsPanel() {
             onClick={() => void update({ type: 'applyRange' })}>{i18n._(labels.applyRange)}</button>
         </div>
       </div>
+      {spec.type === 'combo' && <ComboSeriesFields drawing={panel.drawing} spec={spec}
+        disabled={busy} patch={patch} />}
       {panel.error && <p className="plugin-chart-error" role="alert">
         {i18n._({ id: panel.error, message: panel.error })}</p>}
       <Choice label={i18n._(labels.seriesIn)} value={spec.seriesIn} disabled={busy}
@@ -64,6 +70,11 @@ export function ChartSettingsPanel() {
         onChange={(stack) => patch({ stack })} />}
       <Toggle label={i18n._(labels.dataLabels)} checked={spec.dataLabels} disabled={busy}
         onChange={(dataLabels) => patch({ dataLabels })} />
+      {hasAxes(spec.type) && spec.type !== 'scatter' && <Choice label={i18n._(labels.emptyCells)}
+        value={spec.emptyCells} disabled={busy} options={options(EMPTY_CELL_MODES, emptyCellLabels)}
+        onChange={(emptyCells) => patch({ emptyCells })} />}
+      <Toggle label={i18n._(labels.showHidden)} checked={spec.showHidden} disabled={busy}
+        onChange={(showHidden) => patch({ showHidden })} />
       {hasAxes(spec.type) && <>
         <Toggle label={i18n._(labels.gridlines)} checked={spec.gridlines} disabled={busy}
           onChange={(gridlines) => patch({ gridlines })} />
@@ -78,6 +89,8 @@ export function ChartSettingsPanel() {
             placeholder={i18n._(labels.auto)} onCommit={(yMax) => patch({ yMax })} />
         </>}
       </>}
+      <ChartStyleFields drawing={panel.drawing} spec={spec} disabled={busy} patch={patch} />
+      <ChartExportActions drawing={panel.drawing} />
     </aside>
   )
 }

@@ -405,6 +405,8 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'Resize object': msg`Resize object`,
   'Edit object': msg`Edit object`,
   'Delete object': msg`Delete object`,
+  'Bring object to front': msg`Bring object to front`,
+  'Send object to back': msg`Send object to back`,
   'Objects changed outside history.': msg`Objects changed outside history.`,
   'A worksheet can hold at most 1000 objects.': msg`A worksheet can hold at most 1000 objects.`,
   'Object settings cannot exceed 64 KiB.': msg`Object settings cannot exceed 64 KiB.`,

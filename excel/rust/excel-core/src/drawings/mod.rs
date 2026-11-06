@@ -153,6 +153,24 @@ impl Sheet {
         self.drawings.len() != before
     }
 
+    /// 移到最上层（目录末尾）或最下层（目录开头）；已在该位置或不存在时返回 false。
+    pub fn reorder_drawing(&mut self, id: &str, to_front: bool) -> bool {
+        let Some(index) = self.drawings.iter().position(|drawing| drawing.id == id) else {
+            return false;
+        };
+        let last = self.drawings.len() - 1;
+        if (to_front && index == last) || (!to_front && index == 0) {
+            return false;
+        }
+        let drawing = self.drawings.remove(index);
+        if to_front {
+            self.drawings.push(drawing);
+        } else {
+            self.drawings.insert(0, drawing);
+        }
+        true
+    }
+
     /// 文件恢复：整份校验通过才替换，重复 id 拒绝。
     pub fn replace_drawings(&mut self, drawings: Vec<SheetDrawing>) -> Result<(), &'static str> {
         if drawings.len() > MAX_DRAWINGS_PER_SHEET {

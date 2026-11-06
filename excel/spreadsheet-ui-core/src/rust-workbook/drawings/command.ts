@@ -9,6 +9,7 @@ export interface WasmDrawingQueries {
   sheet_drawings?: (sheet: number) => string
   set_drawing?: (sheet: number, drawingJson: string) => boolean
   remove_drawing?: (sheet: number, id: string) => boolean
+  reorder_drawing?: (sheet: number, id: string, toFront: boolean) => boolean
 }
 
 interface DrawingChangeReply {
@@ -27,6 +28,12 @@ export interface RustDrawingCommands {
   'drawings.remove': WorkerCommand<{
     readonly sheetId: string
     readonly id: string
+    readonly projection: VisibleProjectionRequest
+  }, DrawingChangeReply>
+  'drawings.reorder': WorkerCommand<{
+    readonly sheetId: string
+    readonly id: string
+    readonly toFront: boolean
     readonly projection: VisibleProjectionRequest
   }, DrawingChangeReply>
 }
@@ -66,4 +73,15 @@ export function removeDrawing(workbook: WasmWorkbook,
   if (typeof input.id !== 'string') throw new Error('Invalid object id.')
   if (!workbook.remove_drawing) throw new Error('Rust objects are unavailable.')
   return workbook.remove_drawing(index, input.id)
+}
+
+export function reorderDrawing(workbook: WasmWorkbook,
+  sheets: ReadonlyMap<string, RustWorkbookSheet>,
+  input: RustDrawingCommands['drawings.reorder']['payload']): boolean {
+  const index = sheetIndex(sheets, input.sheetId)
+  checkProjection(input.sheetId, input.projection)
+  if (typeof input.id !== 'string' || typeof input.toFront !== 'boolean')
+    throw new Error('Invalid object order request.')
+  if (!workbook.reorder_drawing) throw new Error('Rust objects are unavailable.')
+  return workbook.reorder_drawing(index, input.id, input.toFront)
 }

@@ -26,6 +26,45 @@
   gap: 2px;
 }
 
+:where(.einfach-spreadsheet) .plugin-chart-menu {
+  position: fixed;
+  z-index: 60;
+  display: grid;
+  min-width: 190px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 8px 24px rgb(20 25 45 / 16%);
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: 13px/1.4 system-ui, sans-serif;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-menu button > span { width: 16px; text-align: center; }
+
+:where(.einfach-spreadsheet) .plugin-chart-menu button:hover:not(:disabled),
+:where(.einfach-spreadsheet) .plugin-chart-menu button:focus-visible {
+  background: var(--hover, rgb(120 120 150 / 14%));
+  outline: none;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-menu button:disabled { opacity: .5; cursor: default; }
+
 :where(.einfach-spreadsheet) .plugin-chart-error {
   display: inline-flex;
   align-items: center;

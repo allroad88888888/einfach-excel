@@ -14,11 +14,29 @@ export interface ChartTheme {
   readonly fontFamily: string
 }
 
-/** 转换器只读这三样；同输入同输出，不碰 DOM、不读 atom。 */
+/** 提示框里转换器自己造出来的词（统计量等）；转换器是纯函数，译文由调用方传入。 */
+export interface ChartWords {
+  readonly max: string
+  readonly q3: string
+  readonly median: string
+  readonly q1: string
+  readonly min: string
+  readonly mean: string
+  readonly outlier: string
+  readonly count: string
+}
+
+export const DEFAULT_CHART_WORDS: ChartWords = {
+  max: 'Max', q3: 'Q3', median: 'Median', q1: 'Q1', min: 'Min', mean: 'Mean',
+  outlier: 'Outlier', count: 'Count',
+}
+
+/** 转换器只读这几样；同输入同输出，不碰 DOM、不读 atom。 */
 export interface ConvertInput {
   readonly spec: ChartSpec
   readonly data: ChartData
   readonly theme: ChartTheme
+  readonly words?: ChartWords
 }
 
 /** 一个数据点：value 用于绘制，label 是单元格显示文本（保持单元格数字格式）。 */
@@ -26,6 +44,8 @@ export interface ChartPoint {
   readonly value: number | null | readonly [number | null, number | null]
   readonly label: string
   readonly name?: string
+  /** 饼图扇区对应的类别序号；空值与非正值被跳过后，按它取用户配色。 */
+  readonly slot?: number
 }
 
 /** 配置加工步骤：拿到上一步的 option，返回加工后的新 option。 */

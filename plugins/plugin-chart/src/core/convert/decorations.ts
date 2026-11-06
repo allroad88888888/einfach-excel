@@ -1,4 +1,5 @@
-import { hasAxes } from '../spec'
+import { hasAxes, hasLegend, ownsStyle } from '../spec'
+import { escapeHtml } from './text'
 import type { ChartOption, ChartPoint, OptionOperator } from './types'
 
 const pointLabel = (data: unknown) => (data as ChartPoint | undefined)?.label ?? ''
@@ -14,7 +15,7 @@ export const applyTheme: OptionOperator = (option, { spec, theme }) => ({
 
 /** 用户指定的颜色：普通图按系列，饼图按扇区；未指定的位置沿用主题配色。 */
 export const applyColors: OptionOperator = (option, { spec }) => {
-  if (!spec.colors.some(Boolean)) return option
+  if (!spec.colors.some(Boolean) || ownsStyle(spec.type)) return option
   const series = (option.series as Record<string, unknown>[] | undefined) ?? []
   const pie = spec.type === 'pie' || spec.type === 'doughnut'
   const colored = series.map((entry, index) => {
@@ -23,9 +24,11 @@ export const applyColors: OptionOperator = (option, { spec }) => {
       // 系列级 color 同时作用于柱、线、点与面积。
       return color ? { ...entry, color } : entry
     }
-    const points = (entry.data as Record<string, unknown>[] | undefined) ?? []
-    return { ...entry, data: points.map((point, at) =>
-      spec.colors[at] ? { ...point, itemStyle: { color: spec.colors[at] } } : point) }
+    const points = (entry.data as ChartPoint[] | undefined) ?? []
+    return { ...entry, data: points.map((point, at) => {
+      const color = spec.colors[point.slot ?? at]
+      return color ? { ...point, itemStyle: { color } } : point
+    }) }
   })
   return { ...option, series: colored as ChartOption['series'] }
 }
@@ -38,7 +41,7 @@ export const applyTitle: OptionOperator = (option, { spec, theme }) => spec.titl
 
 /** 图例位置同 Excel 的五个选项；竖排在左右两侧。 */
 export const applyLegend: OptionOperator = (option, { spec, theme }) => {
-  if (spec.legend === 'none') return { ...option, legend: { show: false } }
+  if (spec.legend === 'none' || !hasLegend(spec.type)) return { ...option, legend: { show: false } }
   const vertical = spec.legend === 'left' || spec.legend === 'right'
   return {
     ...option,
@@ -57,6 +60,7 @@ export const applyLegend: OptionOperator = (option, { spec, theme }) => {
 export const applyTooltip: OptionOperator = (option, { spec, theme }) => ({
   ...option,
   tooltip: {
+    // 先放通用默认，再让转换器自带的提示框（trigger / formatter）覆盖。
     trigger: hasAxes(spec.type) && spec.type !== 'scatter' ? 'axis' : 'item',
     confine: true,
     backgroundColor: theme.background,
@@ -75,11 +79,13 @@ export const applyTooltip: OptionOperator = (option, { spec, theme }) => ({
         return `${item.marker ?? ''}${escapeHtml(name ?? '')}: ${value}${percent}`
       }).join('<br/>')
     },
+    ...(option.tooltip as object | undefined),
   },
 })
 
 /** 数据标签用单元格原文；饼图标签放外侧并带百分比。 */
 export const applyDataLabels: OptionOperator = (option, { spec, theme }) => {
+  if (ownsStyle(spec.type)) return option
   const series = (option.series as Record<string, unknown>[] | undefined) ?? []
   const pie = spec.type === 'pie' || spec.type === 'doughnut'
   const label = pie
@@ -109,11 +115,5 @@ export const applyGrid: OptionOperator = (option, { spec }) => {
       right: 16 + (legend === 'right' ? 96 : 0),
     },
   }
-}
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  })[char]!)
 }
 

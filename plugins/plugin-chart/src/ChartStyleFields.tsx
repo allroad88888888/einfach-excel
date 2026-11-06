@@ -1,6 +1,7 @@
 import { useLingui } from '@lingui/react'
 import type { SheetDrawing } from '@einfach-excel/spreadsheet-ui-core'
-import { LIGHT_CHART_THEME, MAX_CHART_FONT_SIZE, MIN_CHART_FONT_SIZE, type ChartSpec } from './core'
+import { colorSlots, defaultSlotColor, LIGHT_CHART_THEME, MAX_CHART_FONT_SIZE, MIN_CHART_FONT_SIZE,
+  type ChartSpec } from './core'
 import { labels } from './messages'
 import { ColorField, NumberField } from './settings-fields'
 import { useChartOption } from './use-chart-option'
@@ -16,8 +17,7 @@ export function ChartStyleFields({ drawing, spec, disabled, patch }: {
 }) {
   const { i18n } = useLingui()
   const { data } = useChartOption(drawing)
-  const pie = spec.type === 'pie' || spec.type === 'doughnut'
-  const names = (pie ? data?.categories : data?.series.map((series) => series.name)) ?? []
+  const slots = colorSlots(spec, data)
   const palette = LIGHT_CHART_THEME.palette
   const setColor = (index: number, color: string) => {
     const colors = Array.from({ length: Math.max(spec.colors.length, index + 1) },
@@ -31,9 +31,10 @@ export function ChartStyleFields({ drawing, spec, disabled, patch }: {
         : Math.round(Math.min(MAX_CHART_FONT_SIZE, Math.max(MIN_CHART_FONT_SIZE, fontSize))) })} />
     <fieldset className="plugin-chart-colors" disabled={disabled}>
       <legend>{i18n._(labels.colors)}</legend>
-      {names.slice(0, MAX_COLOR_FIELDS).map((name, index) => (
-        <ColorField key={index} label={name || '—'} disabled={disabled}
-          value={spec.colors[index] ?? palette[index % palette.length]!}
+      {slots.slice(0, MAX_COLOR_FIELDS).map((slot, index) => (
+        <ColorField key={index} label={(slot.role ? i18n._(labels[slot.role]) : slot.name) || '—'}
+          disabled={disabled}
+          value={spec.colors[index] ?? defaultSlotColor(spec, index, palette)}
           onCommit={(color) => setColor(index, color)} />
       ))}
       {spec.colors.some(Boolean) && <button type="button"

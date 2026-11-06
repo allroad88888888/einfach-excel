@@ -1,9 +1,9 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui } from '@lingui/react'
 import { useId } from 'react'
-import { CHART_TYPES, chartSettingsAtom, EMPTY_CELL_MODES, hasAxes, LEGEND_POSITIONS, STACK_MODES,
-  supportsStack,
-  updateChartSettingsAtom, type ChartSpec } from './core'
+import { ALL_CHART_TYPES, chartSettingsAtom, EMPTY_CELL_MODES, hasAxes, hasDataLabels, hasLegend,
+  LEGEND_POSITIONS, STACK_MODES, supportsStack, updateChartSettingsAtom, usesEmptyCells,
+  type ChartSpec } from './core'
 import { emptyCellLabels, labels, legendLabels, stackLabels, typeLabels } from './messages'
 import { Choice, NumberField, TextField, Toggle } from './settings-fields'
 import { ChartExportActions } from './ChartExportActions'
@@ -32,7 +32,7 @@ export function ChartSettingsPanel() {
           onClick={() => void update({ type: 'close' })}>×</button>
       </header>
       <Choice label={i18n._(labels.type)} value={spec.type} disabled={busy}
-        options={options(CHART_TYPES, typeLabels)}
+        options={options(ALL_CHART_TYPES, typeLabels)}
         onChange={(type) => patch({ type, ...(supportsStack(type) ? {} : { stack: 'none' }) })} />
       <div className="plugin-chart-field">
         <label htmlFor={`${id}-range`}>{i18n._(labels.range)}</label>
@@ -62,15 +62,16 @@ export function ChartSettingsPanel() {
         onChange={(headerCol) => patch({ headerCol })} />
       <TextField label={i18n._(labels.title)} value={spec.title} disabled={busy}
         onCommit={(title) => patch({ title })} />
-      <Choice label={i18n._(labels.legend)} value={spec.legend} disabled={busy}
-        options={options(LEGEND_POSITIONS, legendLabels)}
-        onChange={(legend) => patch({ legend })} />
+      {hasLegend(spec.type) && <Choice label={i18n._(labels.legend)} value={spec.legend}
+        disabled={busy} options={options(LEGEND_POSITIONS, legendLabels)}
+        onChange={(legend) => patch({ legend })} />}
       {supportsStack(spec.type) && <Choice label={i18n._(labels.stack)} value={spec.stack}
         disabled={busy} options={options(STACK_MODES, stackLabels)}
         onChange={(stack) => patch({ stack })} />}
-      <Toggle label={i18n._(labels.dataLabels)} checked={spec.dataLabels} disabled={busy}
-        onChange={(dataLabels) => patch({ dataLabels })} />
-      {hasAxes(spec.type) && spec.type !== 'scatter' && <Choice label={i18n._(labels.emptyCells)}
+      {hasDataLabels(spec.type) && <Toggle label={i18n._(labels.dataLabels)}
+        checked={spec.dataLabels} disabled={busy}
+        onChange={(dataLabels) => patch({ dataLabels })} />}
+      {usesEmptyCells(spec.type) && <Choice label={i18n._(labels.emptyCells)}
         value={spec.emptyCells} disabled={busy} options={options(EMPTY_CELL_MODES, emptyCellLabels)}
         onChange={(emptyCells) => patch({ emptyCells })} />}
       <Toggle label={i18n._(labels.showHidden)} checked={spec.showHidden} disabled={busy}

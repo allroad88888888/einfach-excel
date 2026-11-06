@@ -1,6 +1,7 @@
-export { CHART_KIND, CHART_TYPES, DEFAULT_CHART_SPEC, EMPTY_CELL_MODES, LEGEND_POSITIONS,
-  STACK_MODES,
-  MAX_CHART_FONT_SIZE, MIN_CHART_FONT_SIZE, comboSeriesKind, hasAxes, parseChartSpec, supportsStack,
+export { ALL_CHART_TYPES, CHART_KIND, CHART_TYPES, DEFAULT_CHART_SPEC, EMPTY_CELL_MODES,
+  LEGEND_POSITIONS, MORE_CHART_TYPES, STACK_MODES,
+  MAX_CHART_FONT_SIZE, MIN_CHART_FONT_SIZE, comboSeriesKind, hasAxes, hasDataLabels, hasLegend,
+  parseChartSpec, supportsStack, usesEmptyCells,
   type ChartSpec, type ChartType, type ComboSeriesOption, type EmptyCellMode, type LegendPosition, type StackMode } from './spec'
 export { detectChartLayout, layoutChartData,
   type ChartCell, type ChartData, type ChartGrid, type ChartSeries } from './series-layout'
@@ -12,8 +13,11 @@ export { DEFAULT_CHART_HEIGHT, DEFAULT_CHART_WIDTH, dismissChartErrorAtom, inser
   insertChartFeedbackAtom } from './insert'
 export { chartSettingsAtom, openChartSettingsAtom, selectedChartAtom, updateChartSettingsAtom,
   type ChartSettingsAction } from './settings'
-export { chartTheme, LIGHT_CHART_THEME, toEChartsOption,
-  type ChartOption, type ChartTheme, type ConvertInput } from './convert'
+export { chartIssue, chartTheme, DEFAULT_CHART_WORDS, isPlottable, LIGHT_CHART_THEME,
+  toEChartsOption,
+  type ChartOption, type ChartTheme, type ChartWords, type ConvertInput } from './convert'
+export { moreChartsMenuOpenAtom } from './more-menu'
+export { colorSlots, defaultSlotColor, type ColorSlot } from './color-slots'
 export { chartExportFeedbackAtom, resetChartExportAtom, runChartExportAtom } from './export'
 export { recommendChart } from './recommend'
 export { chartHiddenFromSnapshot, visibleChartGrid, type ChartHidden } from './visible-grid'

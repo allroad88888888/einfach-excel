@@ -11,7 +11,7 @@ import './chart.css'
 /** 图表内容：数据格 → 整形 → 转换器 → ECharts。实例只是 DOM 资源，状态全在 atom 与 Rust。 */
 export function ChartView({ drawing, width, height }: DrawingRendererProps) {
   const { i18n } = useLingui()
-  const { entry, spec, option, plottable } = useChartOption(drawing)
+  const { entry, spec, option, plottable, issue } = useChartOption(drawing)
   const load = useSetAtom(loadChartGridAtom)
   const openSettings = useSetAtom(openChartSettingsAtom)
   const revision = useAtomValue(chartRevisionAtom)
@@ -42,14 +42,15 @@ export function ChartView({ drawing, width, height }: DrawingRendererProps) {
   }, [option])
   useEffect(() => { chart.current?.resize({ width, height }) }, [width, height])
 
-  const message = entry?.status === 'error' ? i18n._({ id: entry.error!, message: entry.error! })
+  const failure = entry?.status === 'error' ? entry.error! : issue
+  const message = failure ? i18n._({ id: failure, message: failure })
     : !entry || (entry.status === 'loading' && !entry.grid) ? i18n._(labels.loading)
       : !plottable ? i18n._(labels.empty) : null
   return (
     <div className="plugin-chart" onDoubleClick={() => openSettings(drawing.id)}>
       <div ref={host} className="plugin-chart-canvas" style={{ width, height }}
         role="img" aria-label={spec.title || i18n._(labels.chart)} />
-      {message && <div className="plugin-chart-message" role={entry?.status === 'error'
+      {message && <div className="plugin-chart-message" role={failure
         ? 'alert' : 'status'}>{message}</div>}
     </div>
   )

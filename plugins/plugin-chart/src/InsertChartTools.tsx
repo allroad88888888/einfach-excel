@@ -1,10 +1,11 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui } from '@lingui/react'
 import { CHART_TYPES, dismissChartErrorAtom, insertChartAtom, insertChartFeedbackAtom,
-  openChartSettingsAtom, selectedChartAtom, type ChartType } from './core'
+  openChartSettingsAtom, selectedChartAtom } from './core'
 import { labels, typeLabels } from './messages'
+import { MoreChartsMenu } from './MoreChartsMenu'
 
-const ICONS: Record<ChartType, string> = {
+const ICONS: Record<(typeof CHART_TYPES)[number], string> = {
   column: '▥', bar: '☰', line: '⟋', area: '◭', combo: '⫼', pie: '◔', doughnut: '◎', scatter: '⁘',
 }
 
@@ -27,6 +28,7 @@ export function InsertChartTools() {
           aria-label={`${i18n._(labels.insert)}: ${name}`} title={name} disabled={feedback.busy}
           onClick={() => void insert(type)}>{ICONS[type]}</button>
       })}
+      <MoreChartsMenu disabled={feedback.busy} onInsert={(type) => void insert(type)} />
       <button type="button" className="tool-button" disabled={!selected}
         aria-label={i18n._(labels.settings)} title={i18n._(labels.settings)}
         onClick={() => openSettings()}>⚙</button>

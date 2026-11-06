@@ -1214,3 +1214,21 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | DEFAULTS-001 | 宿主默认行高：空白／有值行使用配置，显式行高优先 | `ui-options/defaults.spec.ts` | host default row height applies to blank and populated rows while explicit heights win |
 | DEFAULTS-002 | 宿主默认列宽：显式列宽优先，滚动后的编辑器位置一致 | `ui-options/defaults.spec.ts` | host default column width keeps explicit widths and aligns the editor after scrolling |
 | DEFAULTS-003 | 宿主默认字号：继承、显式覆盖与撤销 | `ui-options/defaults.spec.ts` | host default font size is inherited until explicit formatting and restored by undo |
+
+## 图表（浮动对象 + 可选图表插件，`?plugins=chart` 或 `?demo=charts`）
+
+| ID | 用户操作 | 主用例文件 | 主用例标题 |
+| --- | --- | --- | --- |
+| CHART-001 | 选区后点「插入」组的柱形图按钮，图表出现在选区旁；撤销移除、重做恢复 | `charts/insert-edit.spec.ts` | inserting a column chart from the selection places it beside the data and is undoable |
+| CHART-002 | 点推荐图表按钮（★），按数据形状选类型 | `charts/insert-edit.spec.ts` | the recommended chart button picks a chart type that fits the selected data |
+| CHART-003 | 拖动图表移动、拖右下角手柄缩放，撤销恢复位置与尺寸 | `charts/object-editing.spec.ts` | dragging a chart moves it and dragging the corner handle resizes it, both undoable |
+| CHART-004 | 修改数据单元格（含公式驱动的数据），图表随之刷新，撤销还原 | `charts/data-refresh.spec.ts` | editing a data cell refreshes the chart, including one driven by formulas, and undo reverts it |
+| CHART-005 | 在图表上方插入整行，锚点与数据引用一起下移 | `charts/data-refresh.spec.ts` | inserting a row above a chart moves its anchor and its data reference down together |
+| CHART-006 | 双击图表打开设置栏，改标题与类型，撤销恢复 | `charts/settings.spec.ts` | double-clicking a chart opens settings where title and type change and undo |
+| CHART-007 | 选中图表按 Delete 删除，撤销找回 | `charts/object-editing.spec.ts` | Delete removes the selected chart and undo brings it back |
+| CHART-008 | 图表右键菜单置于顶层／置于底层 | `charts/object-editing.spec.ts` | the chart context menu brings a chart to the front and sends it to the back |
+| CHART-009 | 选中图表 Ctrl／⌘+C、Ctrl／⌘+V 复制粘贴，撤销移除副本 | `charts/object-editing.spec.ts` | copying and pasting a chart with the keyboard adds a duplicate that undo removes |
+| CHART-010 | 打开图表演示簿：五张图表加载，滚动时图表跟随网格 | `charts/demo-workbook.spec.ts` | the charts demo loads five charts that scroll together with the grid |
+| CHART-011 | 隐藏数据行后图表不画该点，撤销恢复 | `charts/data-refresh.spec.ts` | hiding a data row drops that point from the chart and undo draws it again |
+| CHART-012 | 设置栏数据区域填多区域 `A3:A15,C3:C15` 拼接作图，对不齐时报错 | `charts/settings.spec.ts` | a multi-area data range charts the joined columns and misaligned areas report an error |
+| CHART-013 | 「更多图表」菜单逐一插入雷达、漏斗、瀑布、直方、箱线、树状、旭日图；股价图数值列不足四列时显示错误 | `charts/more-types.spec.ts` | the More charts menu inserts each extra chart type from the selection |

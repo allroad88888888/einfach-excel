@@ -3,7 +3,11 @@ export const CHART_KIND = 'chart'
 
 export const CHART_TYPES =
   ['column', 'bar', 'line', 'area', 'combo', 'pie', 'doughnut', 'scatter'] as const
-export type ChartType = (typeof CHART_TYPES)[number]
+/** 「更多图表」菜单里的类型：数据约定各不相同，样式全由各自的转换器负责。 */
+export const MORE_CHART_TYPES = ['radar', 'funnel', 'waterfall', 'histogram', 'boxplot', 'stock',
+  'treemap', 'sunburst'] as const
+export const ALL_CHART_TYPES = [...CHART_TYPES, ...MORE_CHART_TYPES] as const
+export type ChartType = (typeof ALL_CHART_TYPES)[number]
 export const LEGEND_POSITIONS = ['right', 'bottom', 'top', 'left', 'none'] as const
 export type LegendPosition = (typeof LEGEND_POSITIONS)[number]
 export const STACK_MODES = ['none', 'stacked', 'percent'] as const
@@ -72,7 +76,7 @@ export function parseChartSpec(payload: unknown): ChartSpec {
   const yMin = bound(source.yMin)
   const yMax = bound(source.yMax)
   return {
-    type: oneOf(CHART_TYPES, source.type, d.type),
+    type: oneOf(ALL_CHART_TYPES, source.type, d.type),
     title: text(source.title),
     seriesIn: source.seriesIn === 'rows' ? 'rows' : 'columns',
     headerRow: flag(source.headerRow, d.headerRow),
@@ -117,11 +121,37 @@ export function comboSeriesKind(spec: ChartSpec, index: number, count: number) {
   } as const
 }
 
-/** 饼图、圆环、散点、组合图没有堆积选项。 */
+/** 饼图、圆环、散点、组合图以及所有「更多图表」没有堆积选项。 */
 export function supportsStack(type: ChartType): boolean {
   return type === 'column' || type === 'bar' || type === 'line' || type === 'area'
 }
 
+const AXISLESS: readonly ChartType[] = ['pie', 'doughnut', 'radar', 'funnel', 'treemap', 'sunburst']
+
+/** 有直角坐标轴（坐标轴标题、网格线、上下限才有意义）。 */
 export function hasAxes(type: ChartType): boolean {
-  return type !== 'pie' && type !== 'doughnut'
+  return !AXISLESS.includes(type)
+}
+
+/** 空单元格选项只对按类别连续取值的柱线面积组合图有意义。 */
+export function usesEmptyCells(type: ChartType): boolean {
+  return type === 'column' || type === 'bar' || type === 'line' || type === 'area' || type === 'combo'
+}
+
+const NO_LEGEND: readonly ChartType[] = ['waterfall', 'histogram', 'boxplot', 'stock', 'treemap',
+  'sunburst']
+
+/** 图例有内容可列：系列、扇区、漏斗层；单系列或层级图没有。 */
+export function hasLegend(type: ChartType): boolean {
+  return !NO_LEGEND.includes(type)
+}
+
+/** 箱线图、股价图的数据标签没有对应的单点数值，不提供该开关。 */
+export function hasDataLabels(type: ChartType): boolean {
+  return type !== 'boxplot' && type !== 'stock'
+}
+
+/** 这些类型的配色、数据标签、提示框由转换器自己生成，通用装饰步骤不再改写。 */
+export function ownsStyle(type: ChartType): boolean {
+  return (MORE_CHART_TYPES as readonly ChartType[]).includes(type)
 }

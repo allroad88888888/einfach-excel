@@ -39,6 +39,22 @@ export const labels = {
   downloadPng: { id: 'plugin.chart.downloadPng', message: 'Download PNG' },
   copied: { id: 'plugin.chart.copied', message: 'Chart image copied.' },
   downloaded: { id: 'plugin.chart.downloaded', message: 'PNG downloaded.' },
+  more: { id: 'plugin.chart.more', message: 'More charts' },
+  increase: { id: 'plugin.chart.increase', message: 'Increase' },
+  decrease: { id: 'plugin.chart.decrease', message: 'Decrease' },
+  total: { id: 'plugin.chart.total', message: 'Total' },
+}
+
+/** 转换器在提示框里自己造出的统计词；经 ConvertInput.words 传入纯函数。 */
+export const wordLabels = {
+  max: { id: 'plugin.chart.word.max', message: 'Max' },
+  q3: { id: 'plugin.chart.word.q3', message: 'Q3' },
+  median: { id: 'plugin.chart.word.median', message: 'Median' },
+  q1: { id: 'plugin.chart.word.q1', message: 'Q1' },
+  min: { id: 'plugin.chart.word.min', message: 'Min' },
+  mean: { id: 'plugin.chart.word.mean', message: 'Mean' },
+  outlier: { id: 'plugin.chart.word.outlier', message: 'Outlier' },
+  count: { id: 'plugin.chart.word.count', message: 'Count' },
 }
 
 export const typeLabels: Record<ChartType, { id: string; message: string }> = {
@@ -50,6 +66,14 @@ export const typeLabels: Record<ChartType, { id: string; message: string }> = {
   pie: { id: 'plugin.chart.type.pie', message: 'Pie' },
   doughnut: { id: 'plugin.chart.type.doughnut', message: 'Doughnut' },
   scatter: { id: 'plugin.chart.type.scatter', message: 'Scatter' },
+  radar: { id: 'plugin.chart.type.radar', message: 'Radar' },
+  funnel: { id: 'plugin.chart.type.funnel', message: 'Funnel' },
+  waterfall: { id: 'plugin.chart.type.waterfall', message: 'Waterfall' },
+  histogram: { id: 'plugin.chart.type.histogram', message: 'Histogram' },
+  boxplot: { id: 'plugin.chart.type.boxplot', message: 'Box and whisker' },
+  stock: { id: 'plugin.chart.type.stock', message: 'Stock (open-high-low-close)' },
+  treemap: { id: 'plugin.chart.type.treemap', message: 'Treemap' },
+  sunburst: { id: 'plugin.chart.type.sunburst', message: 'Sunburst' },
 }
 export const legendLabels: Record<LegendPosition, { id: string; message: string }> = {
   right: { id: 'plugin.chart.legend.right', message: 'Right' },
@@ -81,6 +105,10 @@ const errors: Record<string, string> = {
   'Choose a range inside the worksheet.': '请选择工作表内的区域。',
   'Rust returned an incomplete display range.': '读取的区域不完整，请重试。',
   'Image clipboard is unavailable. Download the PNG instead.': '当前环境不支持图片剪贴板，请下载 PNG。',
+  'A stock chart needs exactly four number series: open, high, low, close.':
+    '股价图需要恰好四个数值系列，依次为开盘、最高、最低、收盘。',
+  'A treemap or sunburst needs category columns followed by a number column.':
+    '树状图和旭日图需要若干层级类别列，最后一列为数值。',
 }
 
 const zh: Record<string, string> = {
@@ -104,6 +132,15 @@ const zh: Record<string, string> = {
   [typeLabels.column.id]: '柱形图', [typeLabels.bar.id]: '条形图', [typeLabels.line.id]: '折线图',
   [typeLabels.area.id]: '面积图', [typeLabels.combo.id]: '组合图', [typeLabels.pie.id]: '饼图', [typeLabels.doughnut.id]: '圆环图',
   [typeLabels.scatter.id]: '散点图',
+  [typeLabels.radar.id]: '雷达图', [typeLabels.funnel.id]: '漏斗图',
+  [typeLabels.waterfall.id]: '瀑布图', [typeLabels.histogram.id]: '直方图',
+  [typeLabels.boxplot.id]: '箱线图', [typeLabels.stock.id]: '股价图（开盘-最高-最低-收盘）',
+  [typeLabels.treemap.id]: '树状图', [typeLabels.sunburst.id]: '旭日图',
+  [labels.more.id]: '更多图表', [labels.increase.id]: '增加', [labels.decrease.id]: '减少',
+  [labels.total.id]: '汇总',
+  [wordLabels.max.id]: '最大值', [wordLabels.q3.id]: '上四分位', [wordLabels.median.id]: '中位数',
+  [wordLabels.q1.id]: '下四分位', [wordLabels.min.id]: '最小值', [wordLabels.mean.id]: '平均值',
+  [wordLabels.outlier.id]: '离群点', [wordLabels.count.id]: '个数',
   [legendLabels.right.id]: '右侧', [legendLabels.bottom.id]: '底部', [legendLabels.top.id]: '顶部',
   [legendLabels.left.id]: '左侧', [legendLabels.none.id]: '无',
   [emptyCellLabels.gap.id]: '空距', [emptyCellLabels.zero.id]: '零值',
@@ -111,7 +148,7 @@ const zh: Record<string, string> = {
   [stackLabels.none.id]: '无', [stackLabels.stacked.id]: '堆积', [stackLabels.percent.id]: '百分比堆积',
 }
 
-const all = [labels, typeLabels, legendLabels, stackLabels, emptyCellLabels]
+const all = [labels, wordLabels, typeLabels, legendLabels, stackLabels, emptyCellLabels]
   .flatMap((group) => Object.values(group))
 export const messages: Partial<Record<'en' | 'zh', Messages>> = {
   en: { ...Object.fromEntries(Object.keys(errors).map((key) => [key, key])),

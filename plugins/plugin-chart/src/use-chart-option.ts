@@ -2,9 +2,9 @@ import { useAtomValue } from '@einfach/react'
 import { useLingui } from '@lingui/react'
 import type { SheetDrawing } from '@einfach-excel/spreadsheet-ui-core'
 import { useMemo } from 'react'
-import { chartGridsAtom, chartTheme, layoutChartData, parseChartSpec, toEChartsOption,
-  visibleChartGrid } from './core'
-import { labels } from './messages'
+import { chartGridsAtom, chartIssue, chartTheme, isPlottable, layoutChartData, parseChartSpec,
+  toEChartsOption, visibleChartGrid } from './core'
+import { labels, wordLabels } from './messages'
 
 /** 一张图表的设置、数据格与 ECharts 配置；画布与导出共用，保证导出图与屏幕一致。 */
 export function useChartOption(drawing: SheetDrawing) {
@@ -16,9 +16,16 @@ export function useChartOption(drawing: SheetDrawing) {
     ? layoutChartData(visibleChartGrid(entry.grid, entry.hidden, spec), spec,
       (index) => `${seriesWord} ${index + 1}`) : null,
   [entry?.grid, entry?.hidden, spec, seriesWord])
+  const words = useMemo(() => ({
+    max: i18n._(wordLabels.max), q3: i18n._(wordLabels.q3), median: i18n._(wordLabels.median),
+    q1: i18n._(wordLabels.q1), min: i18n._(wordLabels.min), mean: i18n._(wordLabels.mean),
+    outlier: i18n._(wordLabels.outlier), count: i18n._(wordLabels.count),
+  }), [i18n])
   const option = useMemo(() => data
-    ? toEChartsOption({ spec, data, theme: chartTheme(false) }) : null, [data, spec])
-  const plottable = Boolean(data?.series.some((series) =>
-    series.values.some((value) => value !== null)))
-  return { entry, spec, data, option, plottable }
+    ? toEChartsOption({ spec, data, theme: chartTheme(false), words }) : null,
+  [data, spec, words])
+  // 数据形状不满足类型约定（如股价图的系列数）时给出错误，不画图。
+  const issue = data ? chartIssue(spec, data) : null
+  const plottable = !issue && Boolean(data && isPlottable(spec, data))
+  return { entry, spec, data, option, plottable, issue }
 }

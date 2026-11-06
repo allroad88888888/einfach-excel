@@ -2,7 +2,7 @@ import type { ChartSpec } from '../spec'
 import type { ChartOption, ChartPoint, ConvertInput } from './types'
 
 /** 饼心避开图例与标题；左右图例占横向，上下图例与标题占纵向。 */
-function pieCenter(spec: ChartSpec): [string, string] {
+export function pieCenter(spec: ChartSpec): [string, string] {
   const x = spec.legend === 'right' ? 42 : spec.legend === 'left' ? 58 : 50
   const top = (spec.title ? 8 : 0) + (spec.legend === 'top' ? 8 : 0)
   const bottom = spec.legend === 'bottom' ? 10 : 0
@@ -16,7 +16,7 @@ export function pieOption({ spec, data }: ConvertInput): ChartOption {
     ? data.categories.flatMap((name, index) => {
       const value = first.values[index]
       return value !== null && value !== undefined && value > 0
-        ? [{ name, value, label: first.labels[index] ?? '' }] : []
+        ? [{ name, value, label: first.labels[index] ?? '', slot: index }] : []
     })
     : []
   const crowded = spec.legend !== 'none' || Boolean(spec.title)

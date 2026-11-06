@@ -1,6 +1,8 @@
 /* 图表计划页：沿用原树的 ProjectCoverage / UniverCoverage 接口，左侧为实现归属，右侧为 Office Excel 行为。 */
 (() => {
   const gap = window.CHART_PLAN;
+  // 父项徽标统计哪一种归属；图表页默认 ECharts，其他计划页可在数据里指定。
+  const parentBadge = gap.badge ?? { state: 'echarts', label: 'ECharts' };
   const key = path => JSON.stringify(path);
   const records = new Map(gap.items.map(item => [key(item.path), item]));
   const make = (tag, cls, text) => {
@@ -42,7 +44,7 @@
       const element = make('span', tagClass);
       if (node.children.length) {
         element.dataset[stateAttr] = 'mixed';
-        element.textContent = field === 'project' ? `ECharts ${node[countsField].echarts}/${node.leaves}` : `✓ ${node[countsField].done}/${node.leaves}`;
+        element.textContent = field === 'project' ? `${parentBadge.label} ${node[countsField][parentBadge.state]}/${node.leaves}` : `✓ ${node[countsField].done}/${node.leaves}`;
         element.title = `${name}子项汇总：${countsText(node[countsField])}`;
       } else {
         element.dataset[stateAttr] = states[leafState(node)].css;

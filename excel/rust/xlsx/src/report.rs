@@ -28,6 +28,7 @@ const IMPORT_ORDER: &[(&str, &str)] = &[
     ("date1904", "1904 date system"),
     ("drawings", "images or drawings"),
     ("charts", "charts"),
+    ("chartSeriesNames", "chart series names"),
     ("pivotTables", "pivot tables"),
     ("threadedComments", "threaded comments"),
     ("conditionalFormats", "unsupported conditional formats"),

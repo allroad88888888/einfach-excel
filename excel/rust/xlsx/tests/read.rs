@@ -259,14 +259,17 @@ fn converts_1904_dates_and_reports_dropped_parts_from_edge_cases_fixture() {
 
     let kinds: Vec<&str> = report.items.iter().map(|i| i.kind.as_str()).collect();
     for expected in [
-        "date1904", "charts", "threadedComments", "conditionalFormats", "dataValidations",
+        "date1904", "threadedComments", "conditionalFormats", "dataValidations",
         "hyperlinks", "sheetProtection", "autoFilter",
         "outline", "printSetup", "macros",
     ] {
         assert!(kinds.contains(&expected), "expected {expected} in {kinds:?}");
     }
     assert!(!kinds.contains(&"richText"), "supported runs must not be reported as skipped");
-    assert!(report.summary.starts_with("Opened Excel workbook. Skipped: 1904 date system, charts, "));
+    // 这张表里的簇状柱形图能转换，不再算「跳过」，而是进了浮动对象目录。
+    assert!(!kinds.contains(&"charts"), "convertible charts are not reported: {kinds:?}");
+    assert_eq!(file["workbook"]["drawings"][0]["drawings"][0]["kind"], "chart");
+    assert!(report.summary.starts_with("Opened Excel workbook. Skipped: 1904 date system, "));
 }
 
 #[test]

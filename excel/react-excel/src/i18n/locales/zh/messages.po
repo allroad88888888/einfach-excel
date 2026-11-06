@@ -801,6 +801,10 @@ msgid "Changing display text replaces the cell content with text. Leave it uncha
 msgstr "修改显示文字会将单元格内容替换为文本。保持不变则保留原值或公式。"
 
 #: src/i18n/xlsx-report-feedback.ts
+msgid "chart series names"
+msgstr "图表系列名称"
+
+#: src/i18n/xlsx-report-feedback.ts
 msgid "charts"
 msgstr "图表"
 

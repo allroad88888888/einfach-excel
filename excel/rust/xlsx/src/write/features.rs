@@ -4,7 +4,7 @@
 use super::package::Part;
 use super::rels::Rels;
 use super::styles::StyleTable;
-use super::{comments, conditional, hyperlinks, tables, validation, vml};
+use super::{comments, conditional, drawings, hyperlinks, tables, validation, vml};
 use crate::native::NativeFile;
 use crate::report::ReportBuilder;
 
@@ -14,6 +14,8 @@ const COMMENTS_CONTENT_TYPE: &str = "application/vnd.openxmlformats-officedocume
 pub struct Counters {
     pub comments: usize,
     pub tables: usize,
+    pub drawings: usize,
+    pub charts: usize,
 }
 
 pub struct SheetOut {
@@ -42,6 +44,9 @@ pub fn sheet(
     tail.push_str(&hyperlinks::xml(&links, &mut rels));
     report.add("conditionalFormats", skipped_cf);
     report.add("dataValidations", skipped_val);
+
+    // <drawing> 在 hyperlinks 之后、legacyDrawing（批注 VML）之前。
+    tail.push_str(&drawings::sheet(file, index, &mut rels, counters, parts, report));
 
     let (texts, downgraded) = comments::collect(index, &book.notes, &book.comments);
     report.add("threadedCommentsAsNotes", downgraded);

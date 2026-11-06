@@ -1,13 +1,16 @@
 //! XLSX 字节 → 原生工作簿文件。
 
 mod archive;
+mod charts;
 mod conditional;
 mod defined_names;
 mod dom;
+mod drawings;
 mod dxf;
 mod features;
 mod hyperlinks;
 mod notes;
+mod placement;
 mod rels;
 mod shared_strings;
 mod rich_text;
@@ -86,6 +89,7 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
     let mut workbook = Persistence { version: 1, ..Default::default() };
     let mut canvases = Vec::new();
     let mut used = Vec::new();
+    let mut pending_charts = Vec::new();
     for (index, part) in parts.sheets.iter().enumerate() {
         let xml = archive.read(&part.path)?
             .ok_or_else(|| XlsxError::new(format!("Worksheet {} is missing from the file.", part.name)))?;
@@ -104,7 +108,7 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         let mut rich_cells = rich_text::cells(&xml, &rich_strings, &theme.colors);
         report.add("outline", data.outline);
         let name = sheet_name(&part.name, index, &mut used);
-        let extras = features::read_sheet(&mut archive, &part.path, &xml, index, &name, &shared, &mut report);
+        let extras = features::read_sheet(&mut archive, &part.path, &xml, index, &name, &part.name, &shared, &mut report);
         let (hide_gridlines, hide_headings) = data.view.unwrap_or_default();
         workbook.sheets.push(SheetMeta {
             idx: index as u32, name, hidden: false, tab_color: None, hide_gridlines, hide_headings,
@@ -176,6 +180,9 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         workbook.hyperlinks.extend(extras.hyperlinks);
         workbook.notes.extend(extras.notes);
         workbook.tables.extend(extras.tables);
+        if !extras.charts.is_empty() {
+            pending_charts.push((index, extras.charts));
+        }
         if !extras.validations.is_empty() {
             workbook.data_validations.push(SheetValidation { sheet: index, regions: extras.validations });
         }
@@ -185,6 +192,9 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
             });
         }
     }
+    // 图表的锚点和区域依赖行高列宽与最终表名，所以等所有表读完再放。
+    let raw_names: Vec<String> = parts.sheets.iter().map(|part| part.name.clone()).collect();
+    placement::place_all(&mut workbook, pending_charts, &raw_names, &mut report);
     if parts.pivot_caches > 0 && !report.has("pivotTables") {
         report.add("pivotTables", parts.pivot_caches);
     }

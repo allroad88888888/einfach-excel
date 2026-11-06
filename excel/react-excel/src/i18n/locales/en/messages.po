@@ -801,6 +801,10 @@ msgid "Changing display text replaces the cell content with text. Leave it uncha
 msgstr "Changing display text replaces the cell content with text. Leave it unchanged to keep its value or formula."
 
 #: src/i18n/xlsx-report-feedback.ts
+msgid "chart series names"
+msgstr "chart series names"
+
+#: src/i18n/xlsx-report-feedback.ts
 msgid "charts"
 msgstr "charts"
 

@@ -8,6 +8,8 @@ mod native;
 mod native_rich_text;
 mod native_features;
 mod native_drawings;
+mod chart_payload;
+mod drawing_geometry;
 mod native_rules;
 mod number_format;
 mod read;

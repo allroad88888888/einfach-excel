@@ -2,7 +2,9 @@
 
 mod comments;
 mod conditional;
+mod charts;
 mod defined_names;
+mod drawings;
 mod dxf;
 mod features;
 mod hyperlinks;
@@ -62,9 +64,6 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
         .count();
     report.add("printSetup", custom_print);
     report.add("customFormulas", workbook.custom_formulas.len());
-    let (charts, other_drawings) = crate::native_drawings::count_by_kind(&workbook.drawings);
-    report.add("charts", charts);
-    report.add("drawings", other_drawings);
     let hidden_or_colored = workbook.sheets.iter().filter(|s| s.hidden || s.tab_color.is_some()).count();
     report.add("sheetVisibilityOrColor", hidden_or_colored);
 
@@ -136,7 +135,7 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
             target.hidden_cols.extend(hidden.columns.iter().copied());
         }
     }
-    let mut counters = features::Counters { comments: 1, tables: 1 };
+    let mut counters = features::Counters { comments: 1, tables: 1, drawings: 1, charts: 1 };
     let mut parts = Vec::new();
     let mut sheet_rels = Vec::new();
     for (index, target) in sheets.iter_mut().enumerate() {

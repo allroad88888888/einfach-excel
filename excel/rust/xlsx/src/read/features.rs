@@ -4,6 +4,7 @@
 use serde_json::Value;
 
 use super::archive::Archive;
+use super::drawings::{self, RawChart};
 use super::{conditional, dom, hyperlinks, notes, rels, tables, validation};
 use crate::native::{ConditionalEntry, Hyperlink, Note, Table, ValidationRegion};
 use crate::report::ReportBuilder;
@@ -15,6 +16,8 @@ pub struct SheetFeatures {
     pub validations: Vec<ValidationRegion>,
     pub conditional: Vec<ConditionalEntry>,
     pub tables: Vec<Table>,
+    /// 已转换的图表；锚点要等行高列宽读完才能换成像素。
+    pub charts: Vec<RawChart>,
 }
 
 /// 各工作表共用的解析上下文。
@@ -30,6 +33,7 @@ pub fn read_sheet(
     xml: &str,
     index: usize,
     sheet_name: &str,
+    raw_name: &str,
     shared: &Shared,
     report: &mut ReportBuilder,
 ) -> SheetFeatures {
@@ -59,27 +63,9 @@ pub fn read_sheet(
         report.add("printSetup", 1);
     }
 
-    let drawings = relationships.iter().filter(|rel| !rel.external && rel.kind.ends_with("/drawing")).count()
-        .max(extras.each("drawing").count());
-    let mut charts = 0usize;
-    let mut images = 0usize;
-    for rel in relationships.iter().filter(|rel| !rel.external && rel.kind.ends_with("/drawing")) {
-        let drw_rels_xml = archive.read(&rels::rels_path(&rel.target)).ok().flatten().unwrap_or_default();
-        let drw_rels = rels::parse(&drw_rels_xml, rels::dir_of(&rel.target));
-        let c = drw_rels.iter().filter(|r| r.kind.ends_with("/chart") || r.kind.ends_with("/chartEx")).count();
-        let img = drw_rels.iter().filter(|r| r.kind.ends_with("/image")).count();
-        charts += c;
-        if img > 0 {
-            images += img;
-        } else if c == 0 {
-            images += 1;
-        }
-    }
-    if drawings > 0 && charts == 0 && images == 0 {
-        images = drawings;
-    }
-    report.add("charts", charts);
-    report.add("drawings", images);
+    let objects = drawings::read_sheet(archive, &relationships, raw_name, extras.each("drawing").next().is_some());
+    report.add("charts", objects.skipped_charts);
+    report.add("drawings", objects.others);
 
     let pivots = relationships.iter().filter(|rel| !rel.external && rel.kind.ends_with("/pivotTable")).count();
     report.add("pivotTables", pivots);
@@ -94,7 +80,7 @@ pub fn read_sheet(
         }
     }
 
-    let mut features = SheetFeatures { hyperlinks, validations, conditional, ..Default::default() };
+    let mut features = SheetFeatures { hyperlinks, validations, conditional, charts: objects.charts, ..Default::default() };
     if let Some(comments) = relationships.iter().find(|rel| !rel.external && rel.kind.ends_with("/comments")) {
         if let Ok(Some(text)) = archive.read(&comments.target) {
             let (notes, placeholders) = notes::parse(&text, index);

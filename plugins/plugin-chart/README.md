@@ -40,6 +40,30 @@ ECharts 只在本包依赖，按需注册柱、线、饼、散点及标题、图
 插入：选中区域（可 Ctrl 多选）后在「插入」分组选类型或 ★ 推荐；按 Excel 规则猜表头与系列方向，放在选区右侧。
 对象：双击打开设置；拖动、缩放、Delete、右键菜单与 Ctrl/⌘+C/X/V、置于顶层/底层；设置栏可复制图片或下载 PNG。
 
+## 载荷字段
+
+图表存在浮动对象目录里（`kind: "chart"`），设置就是对象的 `payload`。XLSX 转换器
+（`excel/rust/xlsx/src/chart_payload.rs`）按同一份字段读写；增减字段两边要同步。
+读到缺失或非法的字段时回落默认值（`parseChartSpec`），所以转换器只写它认识的字段。
+
+| 字段 | 取值 | 默认 |
+| --- | --- | --- |
+| `type` | column、bar、line、area、combo、pie、doughnut、scatter、radar、funnel、waterfall、histogram、boxplot、stock、treemap、sunburst | column |
+| `title` / `xTitle` / `yTitle` | 文本，≤255 字符 | 空 |
+| `seriesIn` | columns（每列一个系列）、rows | columns |
+| `headerRow` / `headerCol` | 拼好的数据表首行是系列名 / 首列是类别 | true / true |
+| `legend` | right、bottom、top、left、none | right |
+| `stack` | none、stacked、percent | none |
+| `dataLabels` / `gridlines` / `showHidden` | 布尔 | false / true / false |
+| `yMin` / `yMax` | 数字或 null | null |
+| `fontSize` | 8–24 或 null | null（12） |
+| `colors` | 按系列（饼图、圆环按类别）的 `#RRGGBB` 或 null | 空 |
+| `combo` | 逐系列 `{ kind?: column \| line, secondary?: boolean }` | 空（最后一个系列是线、在次坐标轴） |
+| `emptyCells` | gap、zero、connect | gap |
+
+数据区域在对象的 `refs` 里：多块区域先拼成一张表（同高左右拼、同宽上下拼），再按 `seriesIn`、
+`headerRow`、`headerCol` 切出类别与系列。
+
 ## 宿主 API
 
 ```ts

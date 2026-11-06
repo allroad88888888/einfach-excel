@@ -90,7 +90,8 @@ test('opening a 1904 xlsx file with unsupported parts converts dates and reports
   const status = page.getByRole('status', { name: 'Workbook file status' })
   await expect(status).toContainText('Opened Excel workbook. Skipped:')
   await expect(status).toContainText('1904 date system')
-  await expect(status).toContainText('charts')
+  // 文件里的簇状柱形图会作为图表对象导入，不再列为跳过项。
+  await expect(status).not.toContainText('charts')
   await expect(status).toContainText('macros')
 })
 

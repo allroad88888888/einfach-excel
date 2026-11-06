@@ -73,8 +73,8 @@ pub struct Persistence {
     pub print_configs: Vec<serde_json::Value>,
     #[serde(default, rename = "customFormulas", skip_serializing)]
     pub custom_formulas: Vec<serde_json::Value>,
-    /// 浮动对象（图表等）尚不写入 XLSX，只读出种类用于导出报告。
-    #[serde(default, skip_serializing)]
+    /// 浮动对象（图表等）；与 `.einfach.json` 同形，见 native_drawings.rs。
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub drawings: Vec<crate::native_drawings::SheetDrawings>,
 }
 

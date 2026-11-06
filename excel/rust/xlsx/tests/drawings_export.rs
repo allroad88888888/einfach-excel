@@ -1,11 +1,11 @@
-//! 浮动对象尚不写入 XLSX：导出报告必须逐类列出，单元格内容照常导出。
+//! 不支持的图表类型与非图表对象不写入 XLSX（支持的图表见 charts_export*.rs）：导出报告必须逐类列出，单元格内容照常导出。
 
 fn native(drawings: serde_json::Value) -> String {
     let anchor = serde_json::json!({"row": 0, "col": 3, "offsetX": 0, "offsetY": 0,
         "width": 480, "height": 288});
     let chart = |id: &str| serde_json::json!({"id": id, "kind": "chart", "anchor": anchor,
         "refs": [{"startRow": 0, "startCol": 0, "endRow": 4, "endCol": 1, "sheetName": "Data"}],
-        "payload": {"type": "column", "title": "Sales"}});
+        "payload": {"type": "radar", "title": "Sales"}});
     let drawings = if drawings.is_null() {
         serde_json::json!([
             {"sheet": 0, "drawings": [chart("chart-1"), chart("chart-2")]},

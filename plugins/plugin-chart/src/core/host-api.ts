@@ -30,15 +30,20 @@ type Result<T = object> = ({ readonly status: 'ok' } & T) | HostCommandFailure
 const failure = (code: string, message = code): HostCommandFailure =>
   ({ status: 'error', error: { code, message } })
 
-function areasOf(data: string | readonly DrawingRange[]): readonly DrawingRange[] | null {
-  return typeof data === 'string' ? parseRangesText(data) : data
-}
 
 /**
  * 图表的宿主门面：建在 `createWorkbookApi` 之上，写入走同一条宿主操作链
  * （明确目标表、修改前拦截、共享撤销、变化事件），本身不保存任何图表状态。
  */
 export function createChartApi(api: WorkbookApi) {
+  const info = (sheetId: string, drawing: SheetDrawing) =>
+    chartInfo(sheetId, drawing, api.getDocument().sheets)
+  /** 文本区域可带表名（Data!A1:B5）；对象所在表的引用不记表名。 */
+  const areasOf = (sheetId: string, data: string | readonly DrawingRange[]) =>
+    typeof data === 'string'
+      ? parseRangesText(data, { sheets: api.getDocument().sheets, ownerId: sheetId })
+      : data.map(({ sheetId: target, ...cells }) =>
+        target && target !== sheetId ? { ...cells, sheetId: target } : cells)
   async function drawingsOf(sheetId: string):
     Promise<Result<{ drawings: readonly SheetDrawing[] }>> {
     const read = await api.readDrawings(sheetId)
@@ -53,11 +58,11 @@ export function createChartApi(api: WorkbookApi) {
   async function write(sheetId: string, drawing: SheetDrawing):
     Promise<Result<{ chart: ChartInfo }>> {
     const result = await api.setDrawing({ sheetId, drawing })
-    return result.status === 'ok' ? { status: 'ok', chart: chartInfo(sheetId, drawing) } : result
+    return result.status === 'ok' ? { status: 'ok', chart: info(sheetId, drawing) } : result
   }
   async function readGrid(sheetId: string, areas: readonly DrawingRange[]) {
     const reads = await Promise.all(areas.map((area) =>
-      api.readDisplay({ sheetId, range: toCellRange(area) })))
+      api.readDisplay({ sheetId: area.sheetId ?? sheetId, range: toCellRange(area) })))
     const failed = reads.find((read) => read.status === 'error')
     if (failed?.status === 'error') return failed
     return { status: 'ok' as const, grid: combineAreaGrids(reads.flatMap((read, index) =>
@@ -74,16 +79,16 @@ export function createChartApi(api: WorkbookApi) {
         const read = await drawingsOf(id)
         if (read.status !== 'ok') return read
         charts.push(...read.drawings.filter((drawing) => drawing.kind === CHART_KIND)
-          .map((drawing) => chartInfo(id, drawing)))
+          .map((drawing) => info(id, drawing)))
       }
       return { status: 'ok', charts }
     },
     async get(sheetId: string, id: string): Promise<Result<{ chart: ChartInfo }>> {
       const found = await chartOf(sheetId, id)
-      return found.status === 'ok' ? { status: 'ok', chart: chartInfo(sheetId, found.drawing) } : found
+      return found.status === 'ok' ? { status: 'ok', chart: info(sheetId, found.drawing) } : found
     },
     async insert(input: ChartInsertInput): Promise<Result<{ chart: ChartInfo }>> {
-      const areas = areasOf(input.data)
+      const areas = areasOf(input.sheetId, input.data)
       if (!areas) return failure('INVALID_RANGE', 'Enter a range such as B2:D10.')
       const invalid = validateChartAreas(areas)
       if (invalid) return failure('INVALID_CHART_DATA', invalid)
@@ -104,7 +109,7 @@ export function createChartApi(api: WorkbookApi) {
       Promise<Result<{ chart: ChartInfo }>> {
       const found = await chartOf(sheetId, id)
       if (found.status !== 'ok') return found
-      const areas = patch.data === undefined ? found.drawing.refs : areasOf(patch.data)
+      const areas = patch.data === undefined ? found.drawing.refs : areasOf(sheetId, patch.data)
       if (!areas) return failure('INVALID_RANGE', 'Enter a range such as B2:D10.')
       if (patch.data !== undefined) {
         const invalid = validateChartAreas(areas as readonly DrawingRange[])

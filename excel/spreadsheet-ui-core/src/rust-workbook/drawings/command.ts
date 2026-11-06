@@ -4,6 +4,7 @@ import type { SheetDrawing } from '../../drawings/types'
 import type { RustWorkbookSheet } from '../commands'
 import type { WasmWorkbook } from '../wasm-types'
 import { validateProjectionRequest } from '../../projection/contracts'
+import { fromRustDrawing, toRustDrawing, type RustSheetDrawing } from './sheet-refs'
 
 export interface WasmDrawingQueries {
   sheet_drawings?: (sheet: number) => string
@@ -54,7 +55,8 @@ export function readDrawings(workbook: WasmWorkbook,
   sheets: ReadonlyMap<string, RustWorkbookSheet>, sheetId: string): SheetDrawing[] {
   const index = sheetIndex(sheets, sheetId)
   if (!workbook.sheet_drawings) throw new Error('Rust objects are unavailable.')
-  return JSON.parse(workbook.sheet_drawings(index)) as SheetDrawing[]
+  return (JSON.parse(workbook.sheet_drawings(index)) as RustSheetDrawing[])
+    .map((drawing) => fromRustDrawing(drawing, sheets))
 }
 
 export function setDrawing(workbook: WasmWorkbook, sheets: ReadonlyMap<string, RustWorkbookSheet>,
@@ -62,7 +64,8 @@ export function setDrawing(workbook: WasmWorkbook, sheets: ReadonlyMap<string, R
   const index = sheetIndex(sheets, input.sheetId)
   checkProjection(input.sheetId, input.projection)
   if (!workbook.set_drawing) throw new Error('Rust objects are unavailable.')
-  return workbook.set_drawing(index, JSON.stringify(input.drawing))
+  return workbook.set_drawing(index,
+    JSON.stringify(toRustDrawing(input.drawing, input.sheetId, sheets)))
 }
 
 export function removeDrawing(workbook: WasmWorkbook,

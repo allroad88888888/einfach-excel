@@ -1259,3 +1259,4 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CHART-013 | 「更多图表」菜单逐一插入雷达、漏斗、瀑布、直方、箱线、树状、旭日图；股价图数值列不足四列时显示错误 | `charts/more-types.spec.ts` | the More charts menu inserts each extra chart type from the selection |
 | CHART-014 | 宿主经 `createChartApi` 在非当前表插入、修改、删除图表，撤销共享，逐张图表收到变化事件 | `charts/host-api.spec.ts` | host inserts, edits and removes a chart on another sheet with change events |
 | CHART-015 | 宿主图表写入经过 beforeChange 拦截，非法区域返回结构化错误 | `charts/host-api.spec.ts` | host chart writes respect beforeChange and report invalid input |
+| CHART-016 | 图表引用其他表的数据：那张表插行时引用随之移动并可撤销，改名后显示新表名，删表显示 #REF! 且撤销删表后恢复；设置栏按表名显示与修改区域 | `charts/cross-sheet.spec.ts` | a chart on one sheet follows row edits, deletion and undo of its data sheet |

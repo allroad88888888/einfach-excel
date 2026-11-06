@@ -119,7 +119,9 @@ impl StructuralHistoryChange {
             .map(|owner| (owner, workbook.conditional_formats[owner].rules.clone(),
                 workbook.sheets[owner].data_validations().to_vec()))
             .collect();
-        let before = StructuralSnapshot::capture(workbook, sheet, &targets, &own_rules);
+        let drawing_sheets = workbook.drawing_catalog_sheets(sheet);
+        let before =
+            StructuralSnapshot::capture(workbook, sheet, &targets, &own_rules, &drawing_sheets);
         let named_ranges = workbook.shifted_named_ranges(sheet, edit);
         if !inherited.is_empty() {
             let bytes = inherited
@@ -179,7 +181,9 @@ impl StructuralHistoryChange {
                     })
                     .and_then(|_| workbook.validate_inserted_table_arrays(sheet, edit));
             }
-            let after = StructuralSnapshot::capture(workbook, sheet, &targets, &own_rules);
+            let after = StructuralSnapshot::capture(
+                workbook, sheet, &targets, &own_rules, &drawing_sheets,
+            );
             let references = sources.iter().filter_map(|(index, addr, source)|
                 FormulaSourceChange::cell(workbook, *index, *addr, source.clone())).collect();
             let rules = referenced.iter().filter_map(|(owner, rules, validations)|
@@ -232,6 +236,9 @@ impl StructuralHistoryChange {
                     .iter()
                     .map(|(sheet, _)| *sheet),
             )
+            // 图表数据引用被平移的其他表，宿主 onChange 也要带上。
+            .chain(self.before.drawings.iter().zip(&self.after.drawings)
+                .filter(|(before, after)| before.1 != after.1).map(|(before, _)| before.0))
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect()
@@ -332,7 +339,9 @@ impl StructuralHistoryChange {
             workbook.sheets[sheet]
                 .data_validations
                 .clone_from(&snapshot.data_validations);
-            workbook.sheets[sheet].drawings.clone_from(&snapshot.drawings);
+            for (owner, drawings) in &snapshot.drawings {
+                workbook.sheets[*owner].drawings.clone_from(drawings);
+            }
             // 权限不进入内容历史；只让当前配置随本次回放的几何移动。
             let edit = if undo {
                 match self.edit {

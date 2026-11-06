@@ -182,17 +182,19 @@ describe('copyDrawingAtom and pasteDrawingAtom', () => {
     expect(idsOf(store)).toEqual(['a'])
   })
 
-  test('paste is refused on another sheet because the data refs are same-sheet', async () => {
-    const { store, request } = await loaded()
+  test('paste on another sheet keeps drawing the source data', async () => {
+    const own = { startRow: 0, startCol: 0, endRow: 4, endCol: 1 }
+    const { store, callsOf } = await loaded({ s: [drawing('a', {
+      refs: [own, { ...own, sheetId: 't' }, null] })] })
     await store.setter(copyDrawingAtom, { id: 'a' })
     switchSheet(store, 't')
-    expect(store.getter(drawingClipboardAtom)).toEqual({ available: true, pasteHere: false })
-    expect(await store.setter(pasteDrawingAtom)).toBe(false)
-    expect(await store.setter(pasteDrawingAtom, { row: 0, col: 0 })).toBe(false)
-    expect(request).not.toHaveBeenCalled()
-    switchSheet(store, 's')
-    publishProjection(store, 's', 1)
-    expect(store.getter(drawingClipboardAtom).pasteHere).toBe(true)
+    publishProjection(store, 't', 1)
+    expect(store.getter(drawingClipboardAtom)).toEqual({ available: true, pasteHere: true })
+    expect(await store.setter(pasteDrawingAtom, { row: 1, col: 1 })).toBe(true)
+    const [call] = callsOf('drawings.set')
+    expect(call.sheetId).toBe('t')
+    // 同表引用改指来源表；原本指向目标表的引用变回同表；#REF! 保持。
+    expect(call.drawing.refs).toEqual([{ ...own, sheetId: 's' }, own, null])
   })
 
   test('paste with an empty clipboard does nothing', async () => {

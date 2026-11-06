@@ -119,8 +119,9 @@ DOM、Canvas、原生文件及 XLSX 的共享字符串／内联字符串读写�
 
 ## 浮动对象
 
-图表等浮动对象挂在单元格上（anchor：行、列、偏移、尺寸），`refs` 是对象读取的同表区域，
-插删行列时随之移动，整段被删写成 `null`。核心只保存位置、引用与 `payload`，不解释 `kind`；
+图表等浮动对象挂在单元格上（anchor：行、列、偏移、尺寸），`refs` 是对象读取的区域
+（`sheetId` 缺省为对象所在表），所在表插删行列时随之移动，整段被删写成 `null`；
+指向的表被删除时引用保留、由读取方显示 #REF!，撤销删表即恢复。核心只保存位置、引用与 `payload`，不解释 `kind`；
 `setDrawing` 按 id 新增或替换，`orderDrawing` 置于顶层／底层，每次写入一条撤销记录，
 并像其他持久操作一样经过 `beforeChange` 与 `onChange`（事件的 changes 带该表、空 ranges）。
 具体对象请用插件门面，例如图表插件的 `createChartApi(api)`，见

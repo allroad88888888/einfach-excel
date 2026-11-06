@@ -13,15 +13,12 @@ interface DrawingClipboard {
 const clipboardAtom = atom<DrawingClipboard | null>(null)
 clipboardAtom.debugLabel = 'spreadsheet.drawings.clipboard.state'
 
-/** 对象剪贴板只在本工作簿内有效；数据引用是同表区域，所以只能粘贴回来源工作表。 */
+/** 对象剪贴板只在本工作簿内有效；可粘贴到任一工作表。 */
 export const drawingClipboardAtom = atom((get) => {
   const clipboard = get(clipboardAtom)
-  const sheet = get(activeWorkbookSheetAtom)
-  return {
-    available: Boolean(clipboard && clipboard.connection === get(rustWorkbookConnectionAtom)),
-    pasteHere: Boolean(clipboard && clipboard.sheetId === sheet?.id &&
-      clipboard.connection === get(rustWorkbookConnectionAtom)),
-  }
+  const ready = Boolean(clipboard && clipboard.connection === get(rustWorkbookConnectionAtom) &&
+    get(activeWorkbookSheetAtom))
+  return { available: ready, pasteHere: ready }
 })
 drawingClipboardAtom.debugLabel = 'spreadsheet.drawings.clipboard'
 
@@ -36,6 +33,18 @@ export const copyDrawingAtom = atom(null,
     return input.cut ? set(changeSheetDrawingAtom, { type: 'remove', id: drawing.id }) : true
   })
 copyDrawingAtom.debugLabel = 'spreadsheet.drawings.copy'
+
+/** 粘到别的表时，同表引用改指来源表，同 Excel：副本仍画原来的数据。 */
+function retargetRefs(drawing: SheetDrawing, from: string, to: string): SheetDrawing['refs'] {
+  if (from === to) return drawing.refs
+  return drawing.refs.map((range) => {
+    if (!range) return null
+    const sheetId = range.sheetId ?? from
+    if (sheetId !== to) return { ...range, sheetId }
+    const { sheetId: _own, ...cells } = range
+    return cells
+  })
+}
 
 function uniqueId(drawing: SheetDrawing, existing: readonly SheetDrawing[]): string {
   const used = new Set(existing.map((entry) => entry.id))
@@ -52,8 +61,10 @@ function uniqueId(drawing: SheetDrawing, existing: readonly SheetDrawing[]): str
 export const pasteDrawingAtom = atom(null,
   async (get, set, at?: { readonly row: number; readonly col: number }): Promise<boolean> => {
     const clipboard = get(clipboardAtom)
-    if (!clipboard || !get(drawingClipboardAtom).pasteHere) return false
+    const sheet = get(activeWorkbookSheetAtom)
+    if (!clipboard || !sheet || !get(drawingClipboardAtom).pasteHere) return false
     const source = clipboard.drawing
+    const refs = retargetRefs(source, clipboard.sheetId, sheet.id)
     const drawings = get(sheetDrawingsAtom)
     const offset = (value: number) => Math.min(MAX_DRAWING_SIZE_PX, value + 20)
     const anchor = at
@@ -62,7 +73,7 @@ export const pasteDrawingAtom = atom(null,
         offsetY: offset(source.anchor.offsetY) }
     const id = uniqueId(source, drawings)
     const changed = await set(changeSheetDrawingAtom,
-      { type: 'set', drawing: { ...source, id, anchor } })
+      { type: 'set', drawing: { ...source, id, anchor, refs } })
     if (changed) {
       set(selectDrawingAtom, id)
       // 连续粘贴继续错开，而不是叠在同一位置。

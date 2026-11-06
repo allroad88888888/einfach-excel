@@ -8,8 +8,12 @@ export interface DrawingAnchor {
   readonly height: number
 }
 
-/** 对象读取的同表区域；结构编辑删光时 Rust 写成 `null`（等同 #REF!），下标保持不变。 */
+/**
+ * 对象读取的区域；结构编辑删光时 Rust 写成 `null`（等同 #REF!），下标保持不变。
+ * `sheetId` 缺省是对象所在表；指向其他表时，那张表插删行列也会移动这条引用。
+ */
 export interface DrawingRange {
+  readonly sheetId?: string
   readonly startRow: number
   readonly startCol: number
   readonly endRow: number

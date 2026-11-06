@@ -27,7 +27,7 @@ export function watchChartChanges(api: WorkbookApi, listener: (event: ChartChang
     // 读不到（表已删除）按没有图表处理，随后报出删除。
     if (read.status !== 'ok') return new Map()
     return new Map(read.drawings.filter((drawing) => drawing.kind === CHART_KIND)
-      .map((drawing) => [drawing.id, chartInfo(sheetId, drawing)]))
+      .map((drawing) => [drawing.id, chartInfo(sheetId, drawing, api.getDocument().sheets)]))
   }
 
   async function compare(sheetIds: readonly string[], source: ChartChangeEvent['source']) {

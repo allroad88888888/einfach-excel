@@ -1,5 +1,7 @@
 // 浮动对象 WASM 入口只转发原生目录语义；对象类型与载荷由插件解释。
+include!("file_ranges.rs");
 include!("persistence.rs");
+include!("cross_sheet_tests.rs");
 
 #[wasm_bindgen]
 impl WasmWorkbook {

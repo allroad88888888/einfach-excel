@@ -12,7 +12,8 @@ function fakeWorkbook(cells: Record<string, readonly Cell[]> = {}) {
     changes: [{ sheetId, ranges: [] }] }))
   const ok = { status: 'ok' as const, changed: true, revision: 1, sheets: [] }
   const api = {
-    getDocument: () => ({ sheets: [...catalogs.keys()].map((id) => ({ id })) }),
+    getDocument: () =>
+      ({ sheets: [...catalogs.keys()].map((id) => ({ id, name: id.toUpperCase() })) }),
     readDrawings: vi.fn(async (sheetId: string) => catalogs.has(sheetId)
       ? { status: 'ok', drawings: catalogs.get(sheetId)! }
       : { status: 'error', error: { code: 'INVALID_SHEET', message: 'gone' } }),
@@ -68,6 +69,21 @@ test('insert rejects bad ranges, misaligned areas and duplicate ids before writi
   expect(await charts.insert({ sheetId: 'b', data: 'A1:B3', id: 'sales' }))
     .toMatchObject({ status: 'error', error: { code: 'DUPLICATE_OBJECT_ID' } })
   expect(raw.setDrawing).toHaveBeenCalledOnce()
+})
+
+test('data on another sheet is named by sheet and read from that sheet', async () => {
+  const { api, raw, catalogs } = fakeWorkbook({ b: SALES })
+  const charts = createChartApi(api)
+  expect(await charts.insert({ sheetId: 'a', data: 'B!A1:B3', type: 'column' })).toMatchObject({
+    status: 'ok', chart: { sheetId: 'a', data: 'B!A1:B3', anchor: { row: 0, col: 3 } } })
+  expect(raw.readDisplay).toHaveBeenCalledWith(expect.objectContaining({ sheetId: 'b' }))
+  expect(catalogs.get('a')![0]!.refs).toEqual([{ startRow: 0, startCol: 0, endRow: 2, endCol: 1,
+    sheetId: 'b' }])
+  // 写成所在表的名字等同于同表引用。
+  expect(await charts.update('a', 'chart-1', { data: 'A!A1:B3' }))
+    .toMatchObject({ status: 'ok', chart: { data: 'A1:B3' } })
+  expect(await charts.insert({ sheetId: 'a', data: 'Nope!A1:B3' }))
+    .toMatchObject({ status: 'error', error: { code: 'INVALID_RANGE' } })
 })
 
 test('update, remove and order only touch chart objects', async () => {

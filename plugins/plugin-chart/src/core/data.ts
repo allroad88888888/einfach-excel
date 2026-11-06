@@ -1,11 +1,12 @@
 import { atom } from '@einfach/core'
 import {
   activeWorkbookSheetAtom, projectionSnapshotAtom, readWorkbookDisplayRangeAtom,
+  workbookDocumentAtom,
   rustWorkbookConnectionAtom, type DisplayCell, type DrawingRange, type ProjectionRevision,
   type RustWorkbookConnection, type SheetDrawing, type VisibleProjectionResult,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { areaLayout, combineAreaGrids, combineAreaHidden, MAX_CHART_CELLS } from './areas'
-import { formatRangesText, rangeCellCount, toCellRange } from './range-text'
+import { rangeCellCount, toCellRange } from './range-text'
 import type { ChartCell, ChartGrid } from './series-layout'
 import { chartHiddenFromSnapshot, type ChartHidden } from './visible-grid'
 
@@ -75,7 +76,7 @@ export const loadChartGridAtom = atom(null,
   const result = get(projectionSnapshotAtom).result
   const revision = result?.kind === 'visible-window' ? result.revision : undefined
   if (!connection || !sheet || revision === undefined) return
-  const key = formatRangesText(drawing.refs)
+  const key = JSON.stringify(drawing.refs)
   const current = get(cacheAtom)[drawing.id]
   if (current?.connection === connection && current.sheetId === sheet.id &&
     current.revision === revision && current.range === key) return
@@ -85,6 +86,10 @@ export const loadChartGridAtom = atom(null,
   const areas = drawing.refs.filter((range): range is DrawingRange => range !== null)
   if (!areas.length || areas.length !== drawing.refs.length)
     return publish({ status: 'error', error: 'The chart data range was deleted.' })
+  // 跨表区域：那张表被删时显示 #REF!；撤销删表后修订变化会再读。
+  const live = new Set(get(workbookDocumentAtom).sheets.map((entry) => entry.id))
+  if (areas.some((area) => area.sheetId && !live.has(area.sheetId)))
+    return publish({ status: 'error', error: 'The chart data worksheet was deleted.' })
   if (areas.reduce((sum, area) => sum + rangeCellCount(area), 0) > MAX_CHART_CELLS)
     return publish({ status: 'error', error: 'Choose at most 10,000 cells for a chart.' })
   const layout = areaLayout(areas)
@@ -92,7 +97,8 @@ export const loadChartGridAtom = atom(null,
   // 读取期间保留上一份数据格，图表不闪空。
   publish({ status: 'loading', grid: current?.grid, hidden: current?.hidden })
   const reads = await Promise.all(areas.map((area) =>
-    set(readWorkbookDisplayRangeAtom, { sheetId: sheet.id, range: toCellRange(area) })))
+    set(readWorkbookDisplayRangeAtom,
+      { sheetId: area.sheetId ?? sheet.id, range: toCellRange(area) })))
   const latest = get(cacheAtom)[drawing.id]
   // 更晚发起的读取已经接手时丢弃这次结果。
   if (get(rustWorkbookConnectionAtom) !== connection || latest?.revision !== revision ||

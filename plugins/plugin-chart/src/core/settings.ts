@@ -4,6 +4,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { validateChartAreas } from './areas'
 import { formatRangesText, parseRangesText } from './range-text'
+import { activeSheetDirectoryAtom } from './sheet-directory'
 import { CHART_KIND, parseChartSpec, type ChartSpec } from './spec'
 
 interface SettingsState {
@@ -41,7 +42,8 @@ export const openChartSettingsAtom = atom(null, (get, set, id?: string): boolean
   const target = id ?? get(selectedChartAtom)?.id
   const drawing = get(sheetDrawingsAtom).find((entry) => entry.id === target)
   if (!sheet || drawing?.kind !== CHART_KIND) return false
-  set(stateAtom, { sheetId: sheet.id, id: drawing.id, rangeDraft: formatRangesText(drawing.refs),
+  set(stateAtom, { sheetId: sheet.id, id: drawing.id,
+    rangeDraft: formatRangesText(drawing.refs, get(activeSheetDirectoryAtom)),
     error: null, busy: false })
   return true
 })
@@ -68,7 +70,7 @@ export const updateChartSettingsAtom = atom(null,
     if (action.type === 'spec') {
       next = { ...next, payload: { ...parseChartSpec(next.payload), ...action.patch } }
     } else {
-      const ranges = parseRangesText(state.rangeDraft)
+      const ranges = parseRangesText(state.rangeDraft, get(activeSheetDirectoryAtom))
       if (!ranges) return fail('Enter a range such as B2:D10.')
       const invalid = validateChartAreas(ranges)
       if (invalid) return fail(invalid)
@@ -78,7 +80,8 @@ export const updateChartSettingsAtom = atom(null,
     const changed = await set(changeSheetDrawingAtom, { type: 'set', drawing: next })
     const latest = get(stateAtom)
     if (latest?.id === state.id) set(stateAtom, { ...latest, busy: false,
-      rangeDraft: action.type === 'applyRange' ? formatRangesText(next.refs) : latest.rangeDraft })
+      rangeDraft: action.type === 'applyRange'
+        ? formatRangesText(next.refs, get(activeSheetDirectoryAtom)) : latest.rangeDraft })
     return changed
   })
 updateChartSettingsAtom.debugLabel = 'plugin.chart.settings.update'

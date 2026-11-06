@@ -25,7 +25,9 @@ impl DrawingChange {
         if target.drawings() != expected.as_slice() {
             return Err("Objects changed outside history.");
         }
-        target.drawings.clone_from(if undo { &self.before } else { &self.after });
+        target
+            .drawings
+            .clone_from(if undo { &self.before } else { &self.after });
         Ok(())
     }
 
@@ -36,7 +38,10 @@ impl DrawingChange {
 
 /// 撤销后选区回到对象锚点格，而不是跳到 A1。
 fn anchor_cell(drawing: &SheetDrawing) -> CellRange {
-    CellRange::single(crate::CellAddress::new(drawing.anchor.row, drawing.anchor.col))
+    CellRange::single(crate::CellAddress::new(
+        drawing.anchor.row,
+        drawing.anchor.col,
+    ))
 }
 
 fn change_label(before: Option<&SheetDrawing>, after: &SheetDrawing) -> &'static str {
@@ -59,6 +64,24 @@ fn change_label(before: Option<&SheetDrawing>, after: &SheetDrawing) -> &'static
     }
 }
 
+/// 指向自己的 key 规范成 `None`；指向不存在的表拒绝。
+fn normalize_ranges(
+    workbook: &Workbook,
+    sheet: usize,
+    mut drawing: SheetDrawing,
+) -> Result<SheetDrawing, &'static str> {
+    let own = workbook.sheet_key(sheet);
+    for range in drawing.refs.iter_mut().flatten() {
+        let Some(key) = range.sheet else { continue };
+        if Some(key) == own {
+            range.sheet = None;
+        } else if !(0..workbook.sheet_count()).any(|i| workbook.sheet_key(i) == Some(key)) {
+            return Err("The object data worksheet does not exist.");
+        }
+    }
+    Ok(drawing)
+}
+
 impl WorkbookHistory {
     /// 新 id 插入到最上层，已有 id 原位替换；无变化不进历史。
     pub fn set_drawing(
@@ -68,6 +91,7 @@ impl WorkbookHistory {
         drawing: SheetDrawing,
     ) -> Result<bool, &'static str> {
         self.ensure_drawing_target(workbook, sheet)?;
+        let drawing = normalize_ranges(workbook, sheet, drawing)?;
         let target = workbook.sheet_mut(sheet).unwrap();
         let before = target.drawings().to_vec();
         let label = change_label(target.drawing(&drawing.id), &drawing);
@@ -113,7 +137,11 @@ impl WorkbookHistory {
         if !target.reorder_drawing(id, to_front) {
             return Ok(false);
         }
-        let label = if to_front { "Bring object to front" } else { "Send object to back" };
+        let label = if to_front {
+            "Bring object to front"
+        } else {
+            "Send object to back"
+        };
         self.push_drawing_change(workbook, sheet, anchor, label, before);
         Ok(true)
     }

@@ -101,6 +101,8 @@ const errors: Record<string, string> = {
   'Choose at most 10,000 cells for a chart.': '图表数据最多 10,000 个单元格。',
   'Enter a range such as B2:D10.': '请输入区域，例如 B2:D10。',
   'The chart data range was deleted.': '图表的数据区域已被删除。',
+  'The chart data worksheet was deleted.': '图表数据所在的工作表已被删除。',
+  'The object data worksheet does not exist.': '图表数据所在的工作表不存在。',
   'The workbook is not ready.': '工作簿尚未准备好。',
   'Choose a range inside the worksheet.': '请选择工作表内的区域。',
   'Rust returned an incomplete display range.': '读取的区域不完整，请重试。',

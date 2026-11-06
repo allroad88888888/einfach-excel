@@ -29,6 +29,7 @@ fn range(r0: u32, c0: u32, r1: u32, c1: u32) -> DrawingRange {
         start_col: c0,
         end_row: r1,
         end_col: c1,
+        sheet: None,
     }
 }
 

@@ -85,6 +85,7 @@ impl Workbook {
         let store = self.store.clone();
         store.batch(|_| {
             self.shift_sheet_and_tables(sheet_index, edit);
+            self.retarget_drawing_references(sheet_index, edit);
             // 包含目标表自己的 Sheet1!A1 写法；同表裸引用已经由 Sheet 位移处理。
             for sheet in &mut self.sheets {
                 sheet.retarget_sheet_references(&name, edit);

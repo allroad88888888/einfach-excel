@@ -13,7 +13,7 @@ pub(super) struct StructuralSnapshot {
     pub(super) freeze: crate::FrozenPanes,
     pub(super) outline: crate::outline::SheetOutline,
     pub(super) data_validations: Vec<crate::data_validation::DataValidationRegion>,
-    pub(super) drawings: Vec<crate::drawings::SheetDrawing>,
+    pub(super) drawings: Vec<(usize, Vec<crate::drawings::SheetDrawing>)>,
     pub(super) conditional_formats: Vec<(usize, Vec<ConditionalFormatRuleEntry>)>,
 }
 
@@ -23,6 +23,7 @@ impl StructuralSnapshot {
         sheet: usize,
         targets: &[(usize, CellRange)],
         rule_sheets: &[usize],
+        drawing_sheets: &[usize],
     ) -> Self {
         Self {
             cells: targets.iter().map(|(index, range)| {
@@ -33,7 +34,8 @@ impl StructuralSnapshot {
             freeze: workbook.sheets[sheet].frozen_panes(),
             outline: workbook.sheets[sheet].outline.clone(),
             data_validations: workbook.sheets[sheet].data_validations.clone(),
-            drawings: workbook.sheets[sheet].drawings.clone(),
+            drawings: drawing_sheets.iter()
+                .map(|&index| (index, workbook.sheets[index].drawings.clone())).collect(),
             conditional_formats: rule_sheets.iter()
                 .map(|&index| (index, workbook.conditional_formats[index].rules.clone())).collect(),
             filter: workbook.sheets[sheet].filter().cloned(),

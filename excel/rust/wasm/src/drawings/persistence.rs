@@ -1,9 +1,3 @@
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct SheetDrawingsJSON {
-    sheet: usize,
-    drawings: Vec<einfach_excel_core::drawings::SheetDrawing>,
-}
-
 impl WasmWorkbook {
     fn drawings_json(&self) -> Vec<SheetDrawingsJSON> {
         (0..self.workbook.sheet_count())
@@ -11,13 +5,16 @@ impl WasmWorkbook {
                 let drawings = self.workbook.sheet(sheet)?.drawings();
                 (!drawings.is_empty()).then(|| SheetDrawingsJSON {
                     sheet,
-                    drawings: drawings.to_vec(),
+                    drawings: drawings
+                        .iter()
+                        .map(|drawing| FileDrawing::from_core(&self.workbook, sheet, drawing))
+                        .collect(),
                 })
             })
             .collect()
     }
 
-    /// 恢复在临时工作簿内完成；重复表、重复 id 或非法对象使整个文件失败。
+    /// 恢复在临时工作簿内完成（所有表已建好）；重复表、重复 id 或非法对象使整个文件失败。
     fn restore_drawings_json(
         workbook: &mut Workbook,
         entries: Vec<SheetDrawingsJSON>,
@@ -27,10 +24,18 @@ impl WasmWorkbook {
             if !seen.insert(entry.sheet) {
                 return Err("Duplicate object worksheet in workbook file.".into());
             }
+            if workbook.sheet(entry.sheet).is_none() {
+                return Err("The object worksheet no longer exists.".into());
+            }
+            let drawings = entry
+                .drawings
+                .into_iter()
+                .map(|drawing| drawing.into_core(workbook, entry.sheet))
+                .collect();
             workbook
                 .sheet_mut(entry.sheet)
-                .ok_or("The object worksheet no longer exists.")?
-                .replace_drawings(entry.drawings)?;
+                .unwrap()
+                .replace_drawings(drawings)?;
         }
         Ok(())
     }
@@ -59,11 +64,20 @@ mod drawing_persistence_tests {
                     start_col: 0,
                     end_row: 9,
                     end_col: 1,
+                    sheet: None,
                 }),
                 None,
             ],
             payload: serde_json::json!({ "title": "Sales", "series": [1, 2] }),
         }
+    }
+
+    fn plain(drawings: Vec<SheetDrawing>) -> Vec<FileDrawing> {
+        let book = WasmWorkbook::new();
+        drawings
+            .iter()
+            .map(|d| FileDrawing::from_core(&book.workbook, 0, d))
+            .collect()
     }
 
     fn book_with_drawings() -> WasmWorkbook {
@@ -97,7 +111,7 @@ mod drawing_persistence_tests {
         let entries = book.drawings_json();
         assert_eq!(entries.len(), 1);
         assert_eq!(entries[0].sheet, 1);
-        assert_eq!(entries[0].drawings, vec![drawing("c", 3)]);
+        assert_eq!(entries[0].drawings, plain(vec![drawing("c", 3)]));
     }
 
     #[test]
@@ -127,7 +141,7 @@ mod drawing_persistence_tests {
             .unwrap();
         let entries = vec![SheetDrawingsJSON {
             sheet: 0,
-            drawings: vec![drawing("new", 5)],
+            drawings: plain(vec![drawing("new", 5)]),
         }];
         WasmWorkbook::restore_drawings_json(&mut target.workbook, entries).unwrap();
         assert_eq!(catalog(&target, 0), vec![drawing("new", 5)]);
@@ -141,24 +155,24 @@ mod drawing_persistence_tests {
             vec![
                 SheetDrawingsJSON {
                     sheet: 0,
-                    drawings: vec![drawing("a", 0)],
+                    drawings: plain(vec![drawing("a", 0)]),
                 },
                 SheetDrawingsJSON {
                     sheet: 0,
-                    drawings: vec![drawing("b", 0)],
+                    drawings: plain(vec![drawing("b", 0)]),
                 },
             ],
             vec![SheetDrawingsJSON {
                 sheet: 7,
-                drawings: vec![drawing("a", 0)],
+                drawings: plain(vec![drawing("a", 0)]),
             }],
             vec![SheetDrawingsJSON {
                 sheet: 0,
-                drawings: vec![drawing("a", 0), drawing("a", 1)],
+                drawings: plain(vec![drawing("a", 0), drawing("a", 1)]),
             }],
             vec![SheetDrawingsJSON {
                 sheet: 0,
-                drawings: vec![bad_kind],
+                drawings: plain(vec![bad_kind]),
             }],
         ];
         for entries in cases {

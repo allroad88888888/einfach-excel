@@ -34,6 +34,10 @@ pub struct DrawingRange {
     pub start_col: u32,
     pub end_row: u32,
     pub end_col: u32,
+    /// 数据所在工作表的稳定 key（`Workbook::sheet_key`）；`None` = 对象所在的表。
+    /// 指向已删除的表时原样保留，由读取方判定为 #REF!，撤销删表后重新有效。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sheet: Option<u64>,
 }
 
 impl DrawingRange {
@@ -50,6 +54,7 @@ impl DrawingRange {
             start_col: range.start.col,
             end_row: range.end.row,
             end_col: range.end.col,
+            sheet: None,
         }
     }
 }

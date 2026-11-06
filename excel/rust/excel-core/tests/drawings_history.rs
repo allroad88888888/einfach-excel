@@ -23,6 +23,7 @@ fn drawing(id: &str) -> SheetDrawing {
             start_col: 1,
             end_row: 4,
             end_col: 1,
+            sheet: None,
         })],
         payload: json!({ "title": "t" }),
     }

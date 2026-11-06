@@ -9,6 +9,7 @@ import {
 import { exportWorkbookFile } from '../file-io'
 import { importTables } from '../table-commands'
 import { readVisibleProjection } from '../visible-projection'
+import { toRustDrawing } from '../drawings/sheet-refs'
 import type { WorkbookHandlers } from './context'
 
 /** 工作簿级操作：工作表增删改移、导入导出。 */
@@ -68,7 +69,8 @@ export const sheetHandlers: WorkbookHandlers = {
     importTables(current, context.sheetsById, input.tables ?? [])
     for (const { sheetId, drawing } of input.drawings ?? []) {
       if (!current.set_drawing) throw new Error('Rust objects are unavailable.')
-      current.set_drawing(context.sheetIndex(sheetId), JSON.stringify(drawing))
+      current.set_drawing(context.sheetIndex(sheetId),
+        JSON.stringify(toRustDrawing(drawing, sheetId, context.sheetsById)))
     }
     current.history_clear?.('')
     return stats

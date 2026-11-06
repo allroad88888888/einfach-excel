@@ -34,6 +34,7 @@ export function displayCell(snapshot: RustCellSnapshot): DisplayCell | null {
     ...coord, displayValue: snapshot.formattedDisplay ?? snapshot.display, valueKind,
   }
   cell.inputText = snapshot.inputText ?? (snapshot.formula || snapshot.display)
+  if (snapshot.richText?.length) cell.richText = snapshot.richText
   if (snapshot.hyperlink) cell.hyperlink = snapshot.hyperlink
   if (snapshot.noteIndicator) cell.noteIndicator = true
   if (snapshot.commentIndicator) cell.commentIndicator = true

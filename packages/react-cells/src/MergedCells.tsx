@@ -12,6 +12,7 @@ import {
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { createMergedBorderStyle, MergedCellBorders } from './MergedCellBorders'
 import { CellDataBar } from './CellDataBar'
+import { RichCellText } from './RichCellText'
 import { CellHyperlink } from './hyperlink/CellHyperlink'
 import { CellMetadata, type CellMetadataLabels } from './cell-metadata/CellMetadata'
 import { useMemo } from 'react'
@@ -62,7 +63,9 @@ export function MergedCells({ window, anchors, metadataLabels }: {
             aria-selected={selected}
             className={`cell merged-cell cell-metadata-host${cell.dataBar ? ' cell-data-bar-host' : ''}`}
             style={{
-              ...cellFormatStyle({ ...cell.format, borders: undefined }, cell.valueKind),
+              ...cellFormatStyle({ ...cell.format, borders: undefined,
+              ...(cell.richText?.length && !showFormulas
+                ? { underline: false, strikethrough: false } : {}) }, cell.valueKind),
               border: 0,
               top: rect.top - origin.top,
               left: rect.left - origin.left,
@@ -85,7 +88,8 @@ export function MergedCells({ window, anchors, metadataLabels }: {
               <span style={cellTextRotationStyle(cell.format)}>
                 <CellHyperlink url={showFormulas ? undefined : cell.hyperlink}
                   color={cell.format?.fgColor}>
-                  {formulaViewText(cell, showFormulas)}
+                  <RichCellText cell={cell} text={formulaViewText(cell, showFormulas)}
+            showFormulas={showFormulas} />
                 </CellHyperlink>
               </span>
             </span>

@@ -1,3 +1,4 @@
+import { paintRichText } from './rich-text'
 import type { Rect } from '@einfach-excel/canvas'
 import { externalHyperlink, type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import type { CanvasCellsTheme } from './types'
@@ -35,6 +36,8 @@ export function paintText(
   ctx: CanvasRenderingContext2D, bounds: Rect, cell: DisplayCell | undefined,
   text: string, theme: CanvasCellsTheme, filter: boolean, showFormulas = false, clip?: Rect) {
   if (!text) return
+  if (!showFormulas && cell?.richText?.length)
+    return paintRichText(ctx, bounds, cell, theme, filter, clip)
   const format = cell?.format
   const hyperlink = !showFormulas && Boolean(externalHyperlink(cell?.hyperlink))
   const fontSize = Math.min(512, Math.max(1, format?.fontSize ?? 12))

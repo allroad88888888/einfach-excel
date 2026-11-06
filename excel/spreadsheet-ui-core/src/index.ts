@@ -146,6 +146,7 @@ export { spillAvailableAtom, spillPanelAtom, runSpillAtom } from './spill/comman
 export * from './formula-auditing'
 
 export { createCellBorderResolver, sharedBorder } from './viewport/cell-border-resolver'
+export { richTextPanelAtom, runRichTextAtom, type RichTextAction } from './rich-text/command'
 export { hyperlinkPanelAtom, runHyperlinkAtom, readCellHyperlinkAtom } from './hyperlink/command'
 export { externalHyperlink } from './hyperlink/url'
 export * from './shift-cells'

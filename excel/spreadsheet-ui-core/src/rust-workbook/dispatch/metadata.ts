@@ -1,5 +1,6 @@
 import { readComment, changeComment } from '../comments/command'
 import { readCustomFormulas, changeCustomFormula } from '../custom-formulas/command'
+import { changeRichText } from '../rich-text-command'
 import { changeHyperlink } from '../hyperlink/command'
 import { readNote, changeNote } from '../notes/command'
 import { readProtection, changeProtection } from '../protection/commands'
@@ -47,6 +48,9 @@ export const metadataHandlers: WorkbookHandlers = {
       changeProtection(current, context.sheetsById, input, context.revision), input)
     return { ...result, protection: readProtection(current, context.sheetsById, input) }
   },
+  'richText.change': (context, current, input) =>
+    context.projectChange(
+      changeRichText(current, context.sheetsById, input, context.revision), input),
   'hyperlink.change': (context, current, input) =>
     context.projectChange(
       changeHyperlink(current, context.sheetsById, input, context.revision), input),

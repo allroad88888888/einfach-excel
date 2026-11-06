@@ -35,6 +35,7 @@ import type { RustNamedRangeCommands } from './named-range-commands'
 import type { RustTableCommands } from './table-commands'
 import type { RustWorkbookFileCommands } from './file-commands'
 import type { RustSpillCommands } from './spill-commands'
+import type { RustRichTextCommands } from './rich-text-command'
 import type { RustHyperlinkCommands } from './hyperlink/command'
 import type { RustNoteCommands } from './notes/command'
 import type { RustDrawingCommands } from './drawings/command'
@@ -206,6 +207,7 @@ export interface RustWorkbookCommands
     RustTableCommands,
     RustWorkbookFileCommands,
     RustHyperlinkCommands,
+    RustRichTextCommands,
     RustNoteCommands,
     RustDrawingCommands,
     RustCommentCommands,

@@ -1,4 +1,5 @@
 import type { DisplayCell } from '../contracts'
+import { validRichText } from '../contracts/rich-text'
 import { snapshotSheetDefaults } from '../runtime/sheet-defaults'
 import type { ProjectionResult } from './types'
 import { validateCustomFormulaDefinitions } from '../custom-formulas/expression-types'
@@ -6,6 +7,9 @@ import { validateCustomFormulaDefinitions } from '../custom-formulas/expression-
 /** Transport validation only: native code owns thresholds, permissions and content. */
 export function validCellMetadata(cell: DisplayCell): boolean {
   if (!cell || typeof cell !== 'object') return false
+  if (cell.richText !== undefined &&
+    (cell.formula || !validRichText(cell.richText, cell.displayValue)))
+    return false
   if (cell.noteIndicator !== undefined && typeof cell.noteIndicator !== 'boolean') return false
   if (cell.commentIndicator !== undefined && typeof cell.commentIndicator !== 'boolean') return false
   if (cell.commentThreadId !== undefined &&

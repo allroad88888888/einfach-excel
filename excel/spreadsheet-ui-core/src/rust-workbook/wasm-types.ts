@@ -1,3 +1,4 @@
+import type { RichTextRun } from '../contracts'
 import type { SheetDefaults } from '../runtime/sheet-defaults'
 import type {
   DisplayCell,
@@ -46,6 +47,7 @@ export interface RustCellSnapshot {
   readonly display: string
   readonly formattedDisplay?: string
   readonly inputText?: string
+  readonly richText?: readonly RichTextRun[]
   readonly hyperlink?: string
   readonly noteIndicator?: boolean
   readonly commentIndicator?: boolean
@@ -86,6 +88,9 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   WasmNoteQueries, WasmDrawingQueries,
   WasmCommentQueries, WasmProtectionQueries, WasmAsyncFormulaQueries,
   WasmFormulaAuditingQueries, WasmDragMoveQueries {
+  change_rich_text?: (
+    sheet: number, row: number, col: number, runs: readonly RichTextRun[]
+  ) => boolean
   change_hyperlink?: (sheet: number, row: number, col: number,
     url?: string, text?: string) => boolean
   recalculate?: (sheet?: number) => number

@@ -7,6 +7,7 @@ import {
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'
+import { RichCellText } from './RichCellText'
 import { CellHyperlink } from './hyperlink/CellHyperlink'
 import { CellMetadata, type CellMetadataLabels } from './cell-metadata/CellMetadata'
 import { SelectionOutlines } from './SelectionOutlines'
@@ -94,7 +95,9 @@ export function SpreadsheetGrid({
           : undefined
         const formatStyle = {
           ...cellFormatStyle(
-            cell?.format ? { ...cell.format, borders: undefined } : undefined, cell?.valueKind,
+            cell?.format ? { ...cell.format, borders: undefined,
+              ...(cell.richText?.length && !showFormulas
+                ? { underline: false, strikethrough: false } : {}) } : undefined, cell?.valueKind,
           ),
           ...borderStyle(row, col, cell?.format),
           ...across?.cell,
@@ -105,7 +108,12 @@ export function SpreadsheetGrid({
           String(formatStyle.borderTopWidth ?? (formatStyle.borderTopStyle ? 3 : 0)),
         )
         const bottomBorder = Number.parseFloat(String(formatStyle.borderBottomWidth ?? 1))
-        const displayValue = formulaViewText(cell, showFormulas)
+        const text = formulaViewText(cell, showFormulas)
+        // Keep the common plain-text path as a text node: thousands of redundant
+        // component fibers otherwise delay buffered viewport replacement on scroll.
+        const displayValue = cell?.richText?.length && !showFormulas
+          ? <RichCellText cell={cell} text={text} showFormulas={false} />
+          : text
         const filterTable = tableHeaders.find(({ range }) =>
           col >= range.colStart && col <= range.colEnd)?.table
         const filterHeader = !merged && (filterTable !== undefined || row === filterRange?.rowStart

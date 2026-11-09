@@ -490,6 +490,14 @@ FETCHJSON只允许同源JSON，不执行文件脚本，须手填而非伪装原�
 单次读取最多 65,536 格；不改变工作簿内容或撤销历史。宿主按需传入插件，核心不依赖插件。
 详见[插件说明](../../../plugins/README.md)。
 
+`?plugins=image,sparkline` 启用浮动图片与迷你图插件（均未发布）。图片从文件或 http(s) 地址插入，
+挂在活动单元格，拖动、缩放、删除和撤销由对象层负责；本地字节存进 Rust 工作簿媒体库
+（PNG/JPEG/GIF/WebP/BMP，单张 10 MiB、整簿 200 MiB，按内容去重，不进撤销历史），`.einfach.json`
+只写仍被引用的图片，XLSX 读写 `xl/media`；宿主可传 `upload` 钩子只存地址，地址图片不写进 XLSX 并在报告中列出。
+迷你图支持折线、柱形、盈亏，一组存成一个格内对象（位置一行或一列、数据按 Excel 规则切分），
+高/低/首/尾/负点、标记与坐标轴，随数据编辑与撤销刷新；XLSX 读写 `x14:sparklineGroups`。
+详见[图片插件](../../../plugins/plugin-image/README.md)与[迷你图插件](../../../plugins/plugin-sparkline/README.md)。
+
 ## 初始尺寸与字号
 
 宿主可传入 `<Spreadsheet defaults={{ rowHeight: 36, colWidth: 160, fontSize: 18 }} ... />`。

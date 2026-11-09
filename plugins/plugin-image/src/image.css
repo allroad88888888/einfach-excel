@@ -1,0 +1,11 @@
+.plugin-image { display: block; width: 100%; height: 100%; object-fit: fill;
+  user-select: none; pointer-events: none; }
+.plugin-image-missing { display: flex; width: 100%; height: 100%; align-items: center;
+  justify-content: center; box-sizing: border-box; border: 1px dashed var(--grid-line, #c8c8c8);
+  color: var(--muted-text, #666); font-size: 12px; background: var(--surface, #fafafa); }
+.plugin-image-tools { display: inline-flex; align-items: center; gap: 2px; position: relative; }
+.plugin-image-url { position: absolute; top: 100%; left: 0; z-index: 30; display: flex;
+  gap: 4px; padding: 6px; background: var(--surface, #fff); border: 1px solid #c8c8c8;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%); }
+.plugin-image-url input { width: 260px; }
+.plugin-image-error { color: #b42318; font-size: 12px; margin-left: 4px; }

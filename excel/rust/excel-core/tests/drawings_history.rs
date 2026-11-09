@@ -26,6 +26,7 @@ fn drawing(id: &str) -> SheetDrawing {
             sheet: None,
         })],
         payload: json!({ "title": "t" }),
+        media: None,
     }
 }
 

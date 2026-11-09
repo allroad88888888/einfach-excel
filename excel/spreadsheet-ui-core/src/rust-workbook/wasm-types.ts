@@ -33,6 +33,7 @@ import type { NativeTable, NativeTableAction } from '../tables/native-types'
 import type { WasmSpillQueries } from './spill-commands'
 import type { WasmNoteQueries } from './notes/command'
 import type { WasmDrawingQueries } from './drawings/command'
+import type { WasmMediaQueries } from './media/command'
 import type { WasmDragMoveQueries } from './drag-move/command'
 import type { WasmCommentQueries } from './comments/command'
 import type { WasmProtectionQueries } from './protection/commands'
@@ -85,7 +86,7 @@ export interface RustFormatRangeSnapshot {
 
 export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   WasmFindQueries, WasmSelectSpecialQueries, WasmCustomFormulaQueries,
-  WasmNoteQueries, WasmDrawingQueries,
+  WasmNoteQueries, WasmDrawingQueries, WasmMediaQueries,
   WasmCommentQueries, WasmProtectionQueries, WasmAsyncFormulaQueries,
   WasmFormulaAuditingQueries, WasmDragMoveQueries {
   change_rich_text?: (

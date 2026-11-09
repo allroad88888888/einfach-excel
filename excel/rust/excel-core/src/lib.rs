@@ -32,6 +32,7 @@ pub mod hyperlink;
 pub mod rich_text;
 pub mod notes;
 pub mod drawings;
+pub mod media;
 pub mod comments;
 pub mod protection;
 pub mod custom_formulas;

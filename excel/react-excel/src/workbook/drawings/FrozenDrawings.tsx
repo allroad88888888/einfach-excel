@@ -1,8 +1,10 @@
 import { useAtomValue } from '@einfach/react'
-import { drawingContentRect, drawingDragAtom, selectedDrawingAtom, viewportGeometrySizesAtom,
+import { drawingDragAtom, selectedDrawingAtom, viewportGeometrySizesAtom,
   viewportMetricsAtom, type SheetDrawing } from '@einfach-excel/spreadsheet-ui-core'
 import type { DrawingContribution } from '../../plugin/types'
+import { CellDrawing } from './CellDrawing'
 import { DrawingFrame } from './DrawingFrame'
+import { placedDrawingRect } from './placed-rect'
 import { drawingViewportBox, type DrawingFreeze } from './drawing-viewport'
 
 /**
@@ -26,12 +28,18 @@ export function FrozenDrawings({ drawings, freeze, renderers, gutter, heading, f
     <div className="drawing-layer-viewport"
       style={{ width: metrics.viewportWidth + gutter, height: metrics.viewportHeight + heading }}>
       {drawings.map((drawing) => {
+        const contribution = renderers.get(drawing.kind)
         const rect = drag?.id === drawing.id
-          ? drag.current : drawingContentRect(drawing.anchor, metrics, sizes)
+          ? drag.current : placedDrawingRect(drawing, contribution, metrics, sizes)
+        if (!rect) return null
         const box = drawingViewportBox(rect, drawing.anchor, metrics, freeze, gutter, heading)
+        if (contribution?.placement === 'cell')
+          return box.visible ? <CellDrawing key={drawing.id} drawing={drawing} left={box.left}
+            top={box.top} width={box.width} height={box.height} clipTop={box.clipTop}
+            clipLeft={box.clipLeft} contribution={contribution} /> : null
         return <DrawingFrame key={drawing.id} drawing={drawing} left={box.left} top={box.top}
           width={box.width} height={box.height} clipTop={box.clipTop} clipLeft={box.clipLeft}
-          selected={selected?.id === drawing.id} contribution={renderers.get(drawing.kind)}
+          selected={selected?.id === drawing.id} contribution={contribution}
           focusGrid={focusGrid} />
       })}
     </div>

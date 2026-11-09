@@ -69,6 +69,7 @@ mod drawing_persistence_tests {
                 None,
             ],
             payload: serde_json::json!({ "title": "Sales", "series": [1, 2] }),
+            media: None,
         }
     }
 

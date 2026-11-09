@@ -1,0 +1,12 @@
+.plugin-sparkline { display: block; overflow: visible; }
+.plugin-sparkline-tools { display: inline-flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+.plugin-sparkline-tools input[type='color'] { width: 28px; height: 22px; padding: 0; }
+.plugin-sparkline-flag { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; }
+.plugin-sparkline-dialog { position: fixed; inset: 0; z-index: 60; display: flex;
+  align-items: center; justify-content: center; background: rgb(0 0 0 / 20%); }
+.plugin-sparkline-dialog form { display: grid; gap: 8px; min-width: 300px; padding: 16px;
+  background: var(--surface, #fff); border-radius: 6px; box-shadow: 0 8px 24px rgb(0 0 0 / 25%); }
+.plugin-sparkline-dialog h2 { margin: 0 0 4px; font-size: 15px; }
+.plugin-sparkline-dialog label { display: grid; gap: 2px; font-size: 13px; }
+.plugin-sparkline-dialog p { margin: 0; color: #b42318; font-size: 12px; }
+.plugin-sparkline-dialog footer { display: flex; justify-content: flex-end; gap: 6px; }

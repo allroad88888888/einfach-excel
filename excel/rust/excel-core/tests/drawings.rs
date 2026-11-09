@@ -20,6 +20,7 @@ fn drawing(id: &str) -> SheetDrawing {
         },
         refs: vec![],
         payload: json!({ "title": "t" }),
+        media: None,
     }
 }
 

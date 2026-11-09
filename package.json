@@ -18,7 +18,7 @@
     "check:presentation": "node scripts/check-presentation-boundary.mjs",
     "check:e2e-features": "node scripts/check-react-e2e-features.mjs",
     "check:cycles": "depcruise --config .dependency-cruiser.cjs --output-type err-long excel/excel-core-ts/src excel/spreadsheet-ui-core/src excel/react-excel/src plugins",
-    "lint:check": "npx eslint --config rules/.eslintrc --ext=.ts,.tsx --ignore-path ./rules/.eslintignore excel/excel-core-ts/src excel/excel-core-ts/test excel/react-excel/src excel/react-excel/test excel/spreadsheet-ui-core/src excel/spreadsheet-ui-core/test packages/canvas/src packages/canvas/test packages/react-cells/src packages/react-cells/test packages/canvas-cells/src packages/canvas-cells/test plugins",
+    "lint:check": "NODE_OPTIONS=--max-old-space-size=8192 npx eslint --config rules/.eslintrc --ext=.ts,.tsx --ignore-path ./rules/.eslintignore excel/excel-core-ts/src excel/excel-core-ts/test excel/react-excel/src excel/react-excel/test excel/spreadsheet-ui-core/src excel/spreadsheet-ui-core/test packages/canvas/src packages/canvas/test packages/react-cells/src packages/react-cells/test packages/canvas-cells/src packages/canvas-cells/test plugins",
     "typecheck:mainline": "tsc -build excel/spreadsheet-ui-core && pnpm --filter @einfach-excel/react-excel typecheck && pnpm --filter \"./plugins/*\" typecheck",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

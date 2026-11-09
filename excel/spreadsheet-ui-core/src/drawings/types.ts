@@ -27,6 +27,8 @@ export interface SheetDrawing {
   readonly anchor: DrawingAnchor
   readonly refs: readonly (DrawingRange | null)[]
   readonly payload: Readonly<Record<string, unknown>>
+  /** 引用的工作簿图片 id（见 `putWorkbookMediaAtom`）；保存时据此保留图片字节。 */
+  readonly media?: string
 }
 
 export const MAX_DRAWING_SIZE_PX = 10_000

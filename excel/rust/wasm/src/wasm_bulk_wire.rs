@@ -292,6 +292,9 @@ struct WorkbookPersistenceV1JSON {
     /// 浮动对象目录（图表等）；旧快照缺省为空，没有对象时输出不变。
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     drawings: Vec<SheetDrawingsJSON>,
+    /// 对象引用的图片字节（Base64）；没有图片时输出不变。
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    media: Vec<FileMediaJSON>,
     #[serde(default, rename = "calculationMode", skip_serializing_if = "Option::is_none")]
     calculation_mode: Option<String>,
     #[serde(default, rename = "iterativeCalculation", skip_serializing_if = "Option::is_none")]

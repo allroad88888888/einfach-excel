@@ -64,6 +64,7 @@ fn invalid_print_config_persistence_does_not_replace_the_live_workbook() {
         outlines: vec![],
         named_ranges: vec![],
         drawings: vec![],
+        media: vec![],
         hyperlinks: vec![],
         notes: vec![],
         comments: vec![],

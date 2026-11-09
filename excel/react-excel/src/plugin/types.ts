@@ -31,6 +31,11 @@ export interface DrawingContribution {
   readonly kind: string
   readonly label: MessageDescriptor
   readonly Renderer: ComponentType<DrawingRendererProps>
+  /**
+   * `'cell'`：对象铺满 `refs[0]` 指向的同表单元格（如迷你图），随行高列宽变化，
+   * 不能选中、拖动或缩放，指针事件穿透到网格。缺省 `'floating'`。
+   */
+  readonly placement?: 'floating' | 'cell'
 }
 
 /**

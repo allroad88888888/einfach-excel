@@ -1,5 +1,7 @@
 import { imageExportPlugin } from '@einfach-excel/plugin-image-export'
 import { chartPlugin } from '@einfach-excel/plugin-chart'
+import { imagePlugin } from '@einfach-excel/plugin-image'
+import { sparklinePlugin } from '@einfach-excel/plugin-sparkline'
 import { datePickerPlugin } from '@einfach-excel/plugin-date-picker'
 import { samplePlugin } from '@einfach-excel/plugin-sample'
 import { createWorkbookI18n, supportedUiLocale, type UiLocale } from '../../i18n/runtime'
@@ -56,7 +58,7 @@ async function loadXlsx() {
 /** `?plugins=sample` 挂上仓内样例插件；数组在模块内固定，挂载期间身份不变。 */
 const DEMO_PLUGINS: Readonly<Record<string, SpreadsheetPlugin>> = {
   sample: samplePlugin, 'date-picker': datePickerPlugin, 'image-export': imageExportPlugin,
-  chart: chartPlugin,
+  chart: chartPlugin, image: imagePlugin, sparkline: sparklinePlugin,
 }
 
 function demoPlugins(query: string): readonly SpreadsheetPlugin[] {

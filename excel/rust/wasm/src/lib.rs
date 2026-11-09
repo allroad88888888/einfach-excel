@@ -110,10 +110,13 @@ pub struct WasmWorkbook {
     ///   [10] flush_dep_register_ms   (Phase 1 sub-slice of [6])
     ///   [11] flush_formula_record_ms (Phase 1 sub-slice of [6])
     last_bulk_import_phase_ms: Cell<Option<[f64; 12]>>,
+    /// 图片等字节；不进撤销历史，保存时只写出仍被对象引用的条目。
+    media: einfach_excel_core::media::MediaStore,
 }
 
 include!("notes/mod.rs");
 include!("drawings/mod.rs");
+include!("media/mod.rs");
 include!("drag_move/mod.rs");
 include!("comments/mod.rs");
 include!("protection/mod.rs");

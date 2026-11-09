@@ -158,6 +158,8 @@ export type { RustCommentCommands, WasmCommentQueries } from './rust-workbook/co
 export { NOTE_MAX_CHARACTERS, validateNoteText } from './notes/text'
 export type { RustNoteCommands, WasmNoteQueries } from './rust-workbook/notes/command'
 export * from './drawings'
+export * from './media'
+export type { RustMediaCommands, WasmMediaQueries } from './rust-workbook/media/command'
 export type { RustDrawingCommands, WasmDrawingQueries } from './rust-workbook/drawings/command'
 export { nativeProtectionPanelAtom, nativeProtectionOpenAtom,
   runNativeProtectionAtom } from './protection/native/panel'

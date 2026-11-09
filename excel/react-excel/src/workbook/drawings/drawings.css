@@ -98,3 +98,6 @@
   color: #a12622;
   font-size: 12px;
 }
+
+/* 格内对象（迷你图等）：铺满单元格、指针穿透，盖在单元格内容之上、浮动对象之下。 */
+.drawing-cell { position: absolute; overflow: hidden; pointer-events: none; z-index: 0; }

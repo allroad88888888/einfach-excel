@@ -70,6 +70,9 @@ pub struct SheetDrawing {
     pub refs: Vec<Option<DrawingRange>>,
     #[serde(default = "empty_payload")]
     pub payload: serde_json::Value,
+    /// 引用的工作簿媒体（图片字节）id；核心只校验形状，保存时据此保留媒体条目。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub media: Option<String>,
 }
 
 fn empty_payload() -> serde_json::Value {
@@ -114,6 +117,9 @@ pub fn validate_drawing(drawing: &SheetDrawing) -> Result<(), &'static str> {
         {
             return Err("An object range is outside the worksheet.");
         }
+    }
+    if drawing.media.as_deref().is_some_and(|id| !crate::media::valid_media_id(id)) {
+        return Err("Image ids must be 1-64 letters, digits, '-' or '_'.");
     }
     if !drawing.payload.is_object() {
         return Err("Object settings must be a JSON object.");

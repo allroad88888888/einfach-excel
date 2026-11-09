@@ -29,6 +29,7 @@ fn chart(refs: Vec<Option<DrawingRange>>) -> SheetDrawing {
         },
         refs,
         payload: json!({}),
+        media: None,
     }
 }
 

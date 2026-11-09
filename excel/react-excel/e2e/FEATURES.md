@@ -1206,6 +1206,10 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | IMGEXP-001 | 下载选区 PNG | `plugins/image-export.spec.ts` | download selection as PNG preserves displayed conditional fills without changing history |
 | IMGEXP-002 | 复制选区 PNG | `plugins/image-export.spec.ts` | copy PNG writes an image clipboard item |
 | IMGEXP-003 | 右键打开图片导出 | `plugins/image-export.spec.ts` | context menu opens image export for the selected cell |
+| IMAGE-001 | 「插入」组从文件插入图片：挂在活动单元格，字节存进工作簿，可撤销重做，下载 `.einfach.json` 再打开仍显示 | `plugins/image.spec.ts` | inserting a picture from a file stores it in the workbook and survives save and reopen |
+| IMAGE-002 | 从地址插入图片只存 http(s) 地址，其他协议报错 | `plugins/image.spec.ts` | inserting a picture by address stores only the address and rejects other schemes |
+| SPARK-001 | 「插入」组创建折线迷你图：数据区域预填选区，位置不匹配时报错；每行一条画在位置格里，随数据编辑与撤销更新 | `plugins/sparkline.spec.ts` | creating line sparklines draws one per row in the location cells and follows edits |
+| SPARK-002 | 选中迷你图所在格出现设计选项：改类型为盈亏、标出负点；清除整组可撤销 | `plugins/sparkline.spec.ts` | selecting a sparkline cell offers its design options and clearing removes the group |
 
 ## 宿主默认尺寸与字号
 

@@ -110,9 +110,9 @@ impl WasmWorkbook :: [] :: pub fn change_custom_formula( &mut self, sheet: u32, 
 impl WasmWorkbook :: [] :: pub fn change_hyperlink( &mut self, sheet: u32, row: u32, col: u32, url: Option<String>, text: Option<String>, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_named_range(&mut self, sheet: u32, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_note( &mut self, sheet: u32, row: u32, col: u32, text: Option<String>, ) -> Result<bool, JsValue>
-impl WasmWorkbook :: [] :: pub fn change_rich_text(&mut self, sheet: u32, row: u32, col: u32, runs: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_outline(&mut self, sheet: u32, axis: &str, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_protection(&mut self, sheet: u32, change: JsValue) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn change_rich_text(&mut self, sheet: u32, row: u32, col: u32, runs: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_table(&mut self, sheet: u32, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn clear_cell(&mut self, sheet_idx: u32, addr: &str)
 impl WasmWorkbook :: [] :: pub fn clear_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> u32
@@ -158,6 +158,8 @@ impl WasmWorkbook :: [] :: pub fn is_error(&self, sheet_idx: u32, addr: &str) ->
 impl WasmWorkbook :: [] :: pub fn list_named_ranges(&self) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn list_non_empty_cells(&self) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn locate_cells(&self, request: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn media_bytes(&self, id: &str) -> Result<Vec<u8>, JsValue>
+impl WasmWorkbook :: [] :: pub fn media_type(&self, id: &str) -> Result<String, JsValue>
 impl WasmWorkbook :: [] :: pub fn merge_cells( &mut self, sheet: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, action: &str, discard: bool, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn merged_ranges(&self, sheet: u32) -> Result<Vec<u32>, JsValue>
 impl WasmWorkbook :: [] :: pub fn move_sheet(&mut self, from: u32, to: u32) -> bool
@@ -170,6 +172,7 @@ impl WasmWorkbook :: [] :: pub fn prepare_clipboard_blocks(&mut self, sheet_idx:
 impl WasmWorkbook :: [] :: pub fn preview_number_format( &self, sheet_idx: u32, addr: &str, format: JsValue, ) -> Result<String, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_remove_duplicates(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_text_columns(&self, request: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn put_media(&mut self, bytes: &[u8]) -> Result<String, JsValue>
 impl WasmWorkbook :: [] :: pub fn read_comment(&self, sheet: u32, row: u32, col: u32) -> Result<String, JsValue>
 impl WasmWorkbook :: [] :: pub fn read_custom_formulas(&self) -> Result<String, JsValue>
 impl WasmWorkbook :: [] :: pub fn read_note(&self, sheet: u32, row: u32, col: u32) -> Result<Option<String>, JsValue>

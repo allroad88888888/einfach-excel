@@ -30,6 +30,7 @@ fn drawing(id: &str, refs: Vec<Option<DrawingRange>>) -> SheetDrawing {
         },
         refs,
         payload: json!({ "title": "t" }),
+        media: None,
     }
 }
 

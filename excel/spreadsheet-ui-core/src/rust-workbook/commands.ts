@@ -40,6 +40,7 @@ import type { RustRichTextCommands } from './rich-text-command'
 import type { RustHyperlinkCommands } from './hyperlink/command'
 import type { RustNoteCommands } from './notes/command'
 import type { RustDrawingCommands } from './drawings/command'
+import type { RustMediaCommands } from './media/command'
 import type { RustDragMoveCommands } from './drag-move/command'
 import type { RustCommentCommands } from './comments/command'
 import type { RustProtectionCommands } from './protection/commands'
@@ -211,6 +212,7 @@ export interface RustWorkbookCommands
     RustRichTextCommands,
     RustNoteCommands,
     RustDrawingCommands,
+    RustMediaCommands,
     RustCommentCommands,
     RustProtectionCommands,
     RustCustomFormulaCommands,

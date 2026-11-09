@@ -17,6 +17,7 @@ mod drawing_cross_sheet_persistence_tests {
             },
             refs,
             payload: serde_json::json!({}),
+            media: None,
         }
     }
 

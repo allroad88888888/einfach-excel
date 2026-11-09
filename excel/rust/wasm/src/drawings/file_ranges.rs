@@ -21,6 +21,8 @@ struct FileDrawing {
     refs: Vec<Option<FileDrawingRange>>,
     #[serde(default = "empty_drawing_payload")]
     payload: serde_json::Value,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    media: Option<String>,
 }
 
 fn empty_drawing_payload() -> serde_json::Value {
@@ -68,6 +70,7 @@ impl FileDrawing {
             anchor: drawing.anchor,
             refs,
             payload: drawing.payload.clone(),
+            media: drawing.media.clone(),
         }
     }
 
@@ -107,6 +110,7 @@ impl FileDrawing {
             anchor: self.anchor,
             refs,
             payload: self.payload,
+            media: self.media,
         }
     }
 }

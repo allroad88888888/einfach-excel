@@ -163,6 +163,7 @@ impl WasmWorkbook {
         Self::restore_rich_text_json(&mut workbook, payload.rich_text)?;
         Self::restore_notes_json(&mut workbook, payload.notes)?;
         Self::restore_drawings_json(&mut workbook, payload.drawings)?;
+        let media = Self::restore_media_json(payload.media)?;
         Self::restore_comments_json(&mut workbook, payload.comments)?;
         let mut restored_formats = 0u32;
         for (sheet_idx, snapshot) in format_snapshots {
@@ -218,6 +219,7 @@ impl WasmWorkbook {
         self.subscriptions.clear();
         self.next_token = 0;
         self.workbook = workbook;
+        self.media = media;
         self.history = Default::default();
         self.clipboard = None;
         self.pending_clipboard = None;

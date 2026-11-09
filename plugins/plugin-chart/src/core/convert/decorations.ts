@@ -67,9 +67,11 @@ export const applyTooltip: OptionOperator = (option, { spec, theme }) => ({
     borderColor: theme.axisLine,
     textStyle: { color: theme.text, fontFamily: theme.fontFamily, fontSize: 12 },
     formatter: (params: unknown) => {
-      const list = (Array.isArray(params) ? params : [params]) as {
+      // 误差线是自定义系列，不进提示框。
+      const list = ((Array.isArray(params) ? params : [params]) as {
         marker?: string; seriesName?: string; name?: string; data?: unknown; percent?: number
-      }[]
+        seriesType?: string
+      }[]).filter((item) => item.seriesType !== 'custom')
       const head = list[0]?.name && spec.type !== 'scatter'
         ? `${escapeHtml(list[0].name)}<br/>` : ''
       return head + list.map((item) => {

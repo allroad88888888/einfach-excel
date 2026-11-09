@@ -2,7 +2,7 @@
 //! 涨用 `colors[0]`、跌用 `colors[1]`，缺省同插件的红绿。
 
 use super::axes::{cat_axis, val_axis, CatAxis, ValAxis};
-use super::elements::{color_at, solid};
+use super::elements::{explicit_color_at, solid};
 use super::series::SeriesRefs;
 use super::series_xml::{ser, SerKind};
 use crate::chart_payload::ChartPayload;
@@ -19,8 +19,9 @@ fn bar(tag: &str, color: &str) -> String {
 /// 调用方保证恰好 4 个系列。
 pub fn plot(p: &ChartPayload, series: &[SeriesRefs]) -> String {
     let sers: String = series.iter().enumerate().map(|(index, refs)| ser(SerKind::Stock, index, refs, p)).collect();
-    let up = color_at(p, 0).unwrap_or_else(|| UP_COLOR.into());
-    let down = color_at(p, 1).unwrap_or_else(|| DOWN_COLOR.into());
+    // 涨跌色有固定语义，不跟配色方案走。
+    let up = explicit_color_at(p, 0).unwrap_or_else(|| UP_COLOR.into());
+    let down = explicit_color_at(p, 1).unwrap_or_else(|| DOWN_COLOR.into());
     let mut xml = format!(
         r#"<c:stockChart>{sers}<c:hiLowLines><c:spPr><a:ln w="9525"><a:solidFill><a:srgbClr val="595959"/></a:solidFill></a:ln></c:spPr></c:hiLowLines><c:upDownBars><c:gapWidth val="150"/>{}{}</c:upDownBars><c:axId val="{CAT_AXIS}"/><c:axId val="{VAL_AXIS}"/></c:stockChart>"#,
         bar("upBars", &up), bar("downBars", &down));

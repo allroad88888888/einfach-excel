@@ -1,8 +1,10 @@
 //! 原生 kind=chart 对象 → `xl/charts/chartN.xml`（DrawingML chart）。
 //! 不支持的类型、无效引用、拼不成数据表的区域返回 None，由调用方计入报告 `charts`。
 
+mod analysis;
 mod axes;
 mod cache;
+mod palette;
 mod cartesian;
 mod elements;
 pub(crate) mod formula;

@@ -10,6 +10,7 @@ export interface ChartSnapshot {
   readonly title: string
   readonly categories: readonly unknown[]
   readonly series: readonly { type: string; name: string; values: readonly unknown[] }[]
+  readonly colors: readonly string[]
 }
 
 /**
@@ -28,8 +29,9 @@ export function trackECharts(page: Page) {
       const mod = await import(/* @vite-ignore */ url)
       const host = document.querySelector(`.drawing-frame[data-drawing-id="${chartId}"] .plugin-chart-canvas`)
       const instance = host && mod.getInstanceByDom(host)
-      if (!instance) return { title: '', categories: [], series: [] }
+      if (!instance) return { title: '', categories: [], series: [], colors: [] }
       const option = instance.getOption() as {
+        color?: string[]
         title?: { text?: string }[]
         xAxis?: { data?: unknown[] }[]
         series?: { type: string; name: string; data?: ({ value?: unknown } | unknown)[] }[]
@@ -42,6 +44,7 @@ export function trackECharts(page: Page) {
         series: (option.series ?? []).map((series) => ({
           type: series.type, name: series.name, values: (series.data ?? []).map(plain),
         })),
+        colors: option.color ?? [],
       }
     }, { url: core!, chartId: id })
   }

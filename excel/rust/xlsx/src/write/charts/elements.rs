@@ -43,10 +43,15 @@ pub fn font_size(p: &ChartPayload) -> String {
     }
 }
 
-/// `#RRGGBB` → `RRGGBB`；其他写法（主题色等）不写。
-pub fn color_at(p: &ChartPayload, index: usize) -> Option<String> {
+/// 显式颜色：`#RRGGBB` → `RRGGBB`；其他写法（主题色等）不写。
+pub fn explicit_color_at(p: &ChartPayload, index: usize) -> Option<String> {
     let text = p.colors.get(index)?.as_deref()?.trim().trim_start_matches('#');
     (text.len() == 6 && text.chars().all(|c| c.is_ascii_hexdigit())).then(|| text.to_ascii_uppercase())
+}
+
+/// 显式颜色优先，其次非 office 配色方案按序号循环取色；都没有则交给 Excel 主题色。
+pub fn color_at(p: &ChartPayload, index: usize) -> Option<String> {
+    explicit_color_at(p, index).or_else(|| super::palette::color(&p.palette, index).map(String::from))
 }
 
 pub fn solid(color: &str) -> String {

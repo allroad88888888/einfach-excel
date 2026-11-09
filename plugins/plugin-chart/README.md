@@ -37,8 +37,12 @@ ECharts 只在本包依赖，按需注册柱、线、饼、散点及标题、图
 设置：类型、数据区域（A1 区域，逗号分隔多区域；其他表写 `Data!A1:B5` 或 `'My data'!A1:B5`）、系列方向、首行/首列名称、标题、图例位置、
 数据标签、网格线、坐标轴标题、值轴最小/最大值、字号、逐系列（饼图按扇区）配色、空单元格、
 是否绘制隐藏行列；不适用于当前类型的项自动隐藏。每项改动立即写回 Rust，一项一条撤销记录。
+设计：快速布局（6 种标题 / 图例 / 数据标签 / 坐标轴标题组合，套用后可逐项再改）、更改颜色（彩色与单色方案）。
+分析（不堆积的柱、条、线、面积、散点、组合图）：逐系列趋势线（线性、指数、对数、多项式 2–6 阶、乘幂、
+移动平均，可显示公式与 R²，插件自己做最小二乘回归，类别图的 x 取 1、2、3…）；整图误差线（固定值、百分比、
+标准偏差（画在系列平均值处）、标准误差，正负 / 正 / 负）。
 插入：选中区域（可 Ctrl 多选）后在「插入」分组选类型或 ★ 推荐；按 Excel 规则猜表头与系列方向，放在选区右侧。
-对象：双击打开设置；拖动、缩放、Delete、右键菜单与 Ctrl/⌘+C/X/V、置于顶层/底层；设置栏可复制图片或下载 PNG。
+对象：双击打开设置；拖动、缩放、Delete、右键菜单与 Ctrl/⌘+C/X/V、置于顶层/底层；设置栏可复制图片、下载 PNG 或 SVG（浏览器内离屏重画，不走网络）。
 
 ## 载荷字段
 
@@ -60,6 +64,9 @@ ECharts 只在本包依赖，按需注册柱、线、饼、散点及标题、图
 | `colors` | 按系列（饼图、圆环按类别）的 `#RRGGBB` 或 null | 空 |
 | `combo` | 逐系列 `{ kind?: column \| line, secondary?: boolean }` | 空（最后一个系列是线、在次坐标轴） |
 | `emptyCells` | gap、zero、connect | gap |
+| `trendlines` | 按系列 `{ kind: linear \| exponential \| logarithmic \| polynomial \| power \| movingAverage, order: 2–6, period: 2–255, showEquation, showR2 }` 或 null | 空 |
+| `errorBars` | `{ kind: fixed \| percent \| stdDev \| stdErr, amount ≥ 0, direction: both \| plus \| minus }` 或 null | null |
+| `palette` | office、colorful、warm、cool、blue、orange、green、gray（色表与 `src/core/convert/theme.ts` 一致） | office |
 
 数据区域在对象的 `refs` 里：多块区域先拼成一张表（同高左右拼、同宽上下拼），再按 `seriesIn`、
 `headerRow`、`headerCol` 切出类别与系列。
@@ -92,4 +99,5 @@ const stop = charts.onChange((event) => console.log(event.type, event.sheetId, e
 跨表数据：引用按工作表的稳定身份保存，改名、移动不影响；那张表插删行列时引用随之移动（撤销一并还原）；
 删表后图表显示 #REF!，撤销删表即恢复。文件里按表名保存。把图表粘贴到别的表时，原来的同表引用改指来源表。
 
-暂不支持：XLSX 图表导入导出、趋势线与误差线、SVG 导出。
+XLSX：趋势线写成 `c:trendline`、误差线写成每个系列的 `c:errBars`；非默认配色方案导出为显式颜色，
+读回来是逐系列颜色（`palette` 回到 office）。移动平均没有公式与 R²，这两个开关不往返。

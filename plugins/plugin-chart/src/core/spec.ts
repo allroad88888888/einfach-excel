@@ -1,3 +1,6 @@
+import { parseErrorBars, parsePalette, parseTrendlines, type ChartPalette, type ErrorBars,
+  type Trendline } from './spec-analysis'
+
 /** 图表设置是浮动对象的插件载荷；核心只存不解释，这里是唯一解释处。 */
 export const CHART_KIND = 'chart'
 
@@ -41,6 +44,11 @@ export interface ChartSpec {
   readonly emptyCells: EmptyCellMode
   /** 绘制隐藏行列中的数据；默认同 Excel 不绘制。 */
   readonly showHidden: boolean
+  /** 按系列的趋势线；null 不画。 */
+  readonly trendlines: readonly (Trendline | null)[]
+  /** 整张图共用一套误差线；null 不画。 */
+  readonly errorBars: ErrorBars | null
+  readonly palette: ChartPalette
 }
 
 export interface ComboSeriesOption {
@@ -52,7 +60,7 @@ export const DEFAULT_CHART_SPEC: ChartSpec = {
   type: 'column', title: '', seriesIn: 'columns', headerRow: true, headerCol: true,
   legend: 'right', stack: 'none', dataLabels: false, gridlines: true,
   xTitle: '', yTitle: '', yMin: null, yMax: null, fontSize: null, colors: [], combo: [],
-  emptyCells: 'gap', showHidden: false,
+  emptyCells: 'gap', showHidden: false, trendlines: [], errorBars: null, palette: 'office',
 }
 
 export const MAX_CHART_TITLE_CHARS = 255
@@ -100,6 +108,9 @@ export function parseChartSpec(payload: unknown): ChartSpec {
       ? source.combo.slice(0, MAX_COLORS).map(parseComboOption) : [],
     emptyCells: oneOf(EMPTY_CELL_MODES, source.emptyCells, d.emptyCells),
     showHidden: flag(source.showHidden, d.showHidden),
+    trendlines: parseTrendlines(source.trendlines),
+    errorBars: parseErrorBars(source.errorBars),
+    palette: parsePalette(source.palette),
   }
 }
 
@@ -154,4 +165,11 @@ export function hasDataLabels(type: ChartType): boolean {
 /** 这些类型的配色、数据标签、提示框由转换器自己生成，通用装饰步骤不再改写。 */
 export function ownsStyle(type: ChartType): boolean {
   return (MORE_CHART_TYPES as readonly ChartType[]).includes(type)
+}
+
+const ANALYZABLE: readonly ChartType[] = ['column', 'bar', 'line', 'area', 'scatter', 'combo']
+
+/** 趋势线与误差线：只给不堆积的柱线面积、散点与组合图（同 Excel 对堆积图不提供趋势线）。 */
+export function supportsAnalysis(spec: Pick<ChartSpec, 'type' | 'stack'>): boolean {
+  return ANALYZABLE.includes(spec.type) && (spec.stack === 'none' || !supportsStack(spec.type))
 }

@@ -1,6 +1,7 @@
 //! `xl/charts/chartN.xml`（DrawingML chart）→ 图表载荷 + 数据区域。
 //! 转换 柱/条/线/面积/饼/圆环/散点/雷达/股价（OHLC）和「柱 + 线」组合；其余、字面量数据、外部引用返回 `None`。
 
+mod analysis;
 mod colors;
 mod elements;
 pub(crate) mod formula;
@@ -61,6 +62,9 @@ pub fn parse(xml: &str, own_sheet: &str) -> Option<Parsed> {
     }
     if chart_type == "combo" {
         payload.combo = types::combo(&groups, &secondary, &series_groups);
+    }
+    if matches!(chart_type, "column" | "bar" | "line" | "area" | "scatter" | "combo") {
+        analysis::apply(&mut payload, &sers, scatter);
     }
     elements::apply(&mut payload, &space, chart, plot, primary);
     Some(Parsed { refs: joined.refs, payload, names_dropped: joined.names_dropped })

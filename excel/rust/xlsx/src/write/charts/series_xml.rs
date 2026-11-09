@@ -1,5 +1,6 @@
 //! `c:ser`：子元素顺序按 ECMA-376（各图表类型的序列各不相同）。
 
+use super::analysis;
 use super::elements::{color_at, solid};
 use super::series::SeriesRefs;
 use crate::chart_payload::ChartPayload;
@@ -40,7 +41,9 @@ fn marker(kind: SerKind, color: Option<&str>) -> String {
 
 /// 饼图、圆环按类别上色。
 fn data_points(p: &ChartPayload) -> String {
-    (0..p.colors.len())
+    // 配色方案没有类别数可查，按调色板长度（8）给前 8 个类别上色。
+    let count = if super::palette::color(&p.palette, 0).is_some() { p.colors.len().max(8) } else { p.colors.len() };
+    (0..count)
         .filter_map(|i| Some(format!(r#"<c:dPt><c:idx val="{i}"/><c:bubble3D val="0"/><c:spPr>{}</c:spPr></c:dPt>"#, solid(&color_at(p, i)?))))
         .collect()
 }
@@ -57,6 +60,7 @@ pub fn ser(kind: SerKind, index: usize, refs: &SeriesRefs, p: &ChartPayload) -> 
         SerKind::Pie => xml.push_str(&data_points(p)),
         SerKind::Area => {}
     }
+    xml.push_str(&analysis::xml(kind, index, color.as_deref(), p));
     if kind == SerKind::Scatter {
         if let Some(cat) = &refs.cat { xml.push_str(&num_ref("xVal", cat)); }
         xml.push_str(&num_ref("yVal", &refs.val));

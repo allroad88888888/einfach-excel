@@ -8,6 +8,7 @@ mod native;
 mod native_rich_text;
 mod native_features;
 mod native_drawings;
+mod chart_analysis;
 mod chart_payload;
 mod chartex_totals;
 mod drawing_geometry;

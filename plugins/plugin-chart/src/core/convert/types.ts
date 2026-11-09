@@ -24,11 +24,20 @@ export interface ChartWords {
   readonly mean: string
   readonly outlier: string
   readonly count: string
+  /** 趋势线图例名里的类型词。 */
+  readonly linear: string
+  readonly exponential: string
+  readonly logarithmic: string
+  readonly polynomial: string
+  readonly power: string
+  /** 跟在周期数之后：「2 周期 移动平均」。 */
+  readonly movingAverage: string
 }
 
 export const DEFAULT_CHART_WORDS: ChartWords = {
   max: 'Max', q3: 'Q3', median: 'Median', q1: 'Q1', min: 'Min', mean: 'Mean',
-  outlier: 'Outlier', count: 'Count',
+  outlier: 'Outlier', count: 'Count', linear: 'Linear', exponential: 'Expon.',
+  logarithmic: 'Log.', polynomial: 'Poly.', power: 'Power', movingAverage: 'per. Mov. Avg.',
 }
 
 /** 转换器只读这几样；同输入同输出，不碰 DOM、不读 atom。 */

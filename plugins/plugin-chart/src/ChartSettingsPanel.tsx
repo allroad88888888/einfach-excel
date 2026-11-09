@@ -2,13 +2,17 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui } from '@lingui/react'
 import { useId } from 'react'
 import { ALL_CHART_TYPES, chartSettingsAtom, EMPTY_CELL_MODES, hasAxes, hasDataLabels, hasLegend,
-  LEGEND_POSITIONS, STACK_MODES, supportsStack, updateChartSettingsAtom, usesEmptyCells,
+  LEGEND_POSITIONS, STACK_MODES, supportsAnalysis, supportsStack, updateChartSettingsAtom,
+  usesEmptyCells,
   type ChartSpec } from './core'
 import { emptyCellLabels, labels, legendLabels, stackLabels, typeLabels } from './messages'
 import { Choice, NumberField, TextField, Toggle } from './settings-fields'
+import { ChartDesignFields } from './ChartDesignFields'
 import { ChartExportActions } from './ChartExportActions'
 import { ChartStyleFields } from './ChartStyleFields'
 import { ComboSeriesFields } from './ComboSeriesFields'
+import { ErrorBarFields } from './ErrorBarFields'
+import { TrendlineFields } from './TrendlineFields'
 
 /** 非模态侧栏：改动立即生效，图表与表格保持可见；关闭不撤销已做的改动。 */
 export function ChartSettingsPanel() {
@@ -34,6 +38,7 @@ export function ChartSettingsPanel() {
       <Choice label={i18n._(labels.type)} value={spec.type} disabled={busy}
         options={options(ALL_CHART_TYPES, typeLabels)}
         onChange={(type) => patch({ type, ...(supportsStack(type) ? {} : { stack: 'none' }) })} />
+      <ChartDesignFields spec={spec} disabled={busy} patch={patch} />
       <div className="plugin-chart-field">
         <label htmlFor={`${id}-range`}>{i18n._(labels.range)}</label>
         <div className="plugin-chart-range">
@@ -89,6 +94,10 @@ export function ChartSettingsPanel() {
           <NumberField label={i18n._(labels.yMax)} value={spec.yMax} disabled={busy}
             placeholder={i18n._(labels.auto)} onCommit={(yMax) => patch({ yMax })} />
         </>}
+      </>}
+      {supportsAnalysis(spec) && <>
+        <TrendlineFields drawing={panel.drawing} spec={spec} disabled={busy} patch={patch} />
+        <ErrorBarFields spec={spec} disabled={busy} patch={patch} />
       </>}
       <ChartStyleFields drawing={panel.drawing} spec={spec} disabled={busy} patch={patch} />
       <ChartExportActions drawing={panel.drawing} />

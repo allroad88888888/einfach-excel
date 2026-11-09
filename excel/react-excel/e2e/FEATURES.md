@@ -1262,3 +1262,6 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CHART-016 | 图表引用其他表的数据：那张表插行时引用随之移动并可撤销，改名后显示新表名，删表显示 #REF! 且撤销删表后恢复；设置栏按表名显示与修改区域 | `charts/cross-sheet.spec.ts` | a chart on one sheet follows row edits, deletion and undo of its data sheet |
 | CHART-017 | 图表演示簿下载为 Excel 再打开，五张图表都在且无跳过提示 | `charts/xlsx-export.spec.ts` | downloading the charts demo as Excel and opening it again keeps every chart |
 | CHART-018 | 打开含图表的 Excel 文件，常见图表显示出来，不支持的图表与图片列为跳过项 | `charts/xlsx-export.spec.ts` | opening an Excel file with charts shows them and reports the ones it skipped |
+| CHART-019 | 设置栏给系列加趋势线（可显示公式）、给整图加误差线，图上出现对应系列，撤销逐项还原 | `charts/analysis.spec.ts` | a series trendline and chart error bars are drawn and undo |
+| CHART-020 | 设置栏套用快速布局（标题、图例、数据标签一起变）与更改颜色方案，撤销还原配色 | `charts/analysis.spec.ts` | a quick layout and a colour scheme restyle the chart |
+| CHART-021 | 设置栏「下载 SVG」在浏览器内离屏重画并下载矢量图，文字保持为文本 | `charts/analysis.spec.ts` | the chart downloads as an SVG drawn in the browser |

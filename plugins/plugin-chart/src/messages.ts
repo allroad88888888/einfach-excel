@@ -1,5 +1,6 @@
 import type { Messages } from '@lingui/core'
 import type { ChartType, EmptyCellMode, LegendPosition, StackMode } from './core'
+import { designMessageGroups, designZh } from './design-messages'
 
 export const labels = {
   chart: { id: 'plugin.chart.chart', message: 'Chart' },
@@ -150,10 +151,10 @@ const zh: Record<string, string> = {
   [stackLabels.none.id]: '无', [stackLabels.stacked.id]: '堆积', [stackLabels.percent.id]: '百分比堆积',
 }
 
-const all = [labels, wordLabels, typeLabels, legendLabels, stackLabels, emptyCellLabels]
-  .flatMap((group) => Object.values(group))
+const all = [labels, wordLabels, typeLabels, legendLabels, stackLabels, emptyCellLabels,
+  ...designMessageGroups].flatMap((group) => Object.values(group))
 export const messages: Partial<Record<'en' | 'zh', Messages>> = {
   en: { ...Object.fromEntries(Object.keys(errors).map((key) => [key, key])),
     ...Object.fromEntries(all.map(({ id, message }) => [id, message])) },
-  zh: { ...errors, ...zh },
+  zh: { ...errors, ...zh, ...designZh },
 }

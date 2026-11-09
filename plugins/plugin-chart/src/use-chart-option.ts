@@ -4,6 +4,7 @@ import type { SheetDrawing } from '@einfach-excel/spreadsheet-ui-core'
 import { useMemo } from 'react'
 import { chartGridsAtom, chartIssue, chartTheme, isPlottable, layoutChartData, parseChartSpec,
   toEChartsOption, visibleChartGrid } from './core'
+import { trendWordLabels } from './design-messages'
 import { labels, wordLabels } from './messages'
 
 /** 一张图表的设置、数据格与 ECharts 配置；画布与导出共用，保证导出图与屏幕一致。 */
@@ -20,6 +21,10 @@ export function useChartOption(drawing: SheetDrawing) {
     max: i18n._(wordLabels.max), q3: i18n._(wordLabels.q3), median: i18n._(wordLabels.median),
     q1: i18n._(wordLabels.q1), min: i18n._(wordLabels.min), mean: i18n._(wordLabels.mean),
     outlier: i18n._(wordLabels.outlier), count: i18n._(wordLabels.count),
+    linear: i18n._(trendWordLabels.linear), exponential: i18n._(trendWordLabels.exponential),
+    logarithmic: i18n._(trendWordLabels.logarithmic),
+    polynomial: i18n._(trendWordLabels.polynomial), power: i18n._(trendWordLabels.power),
+    movingAverage: i18n._(trendWordLabels.movingAverage),
   }), [i18n])
   const option = useMemo(() => data
     ? toEChartsOption({ spec, data, theme: chartTheme(false), words }) : null,

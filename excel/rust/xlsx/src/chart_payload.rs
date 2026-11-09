@@ -2,6 +2,7 @@
 //! 插件 `parseChartSpec` 对缺省或非法字段回落默认值，所以这里读不到的字段一律给默认值，
 //! 写出时只写认识的字段。字段增减必须两边同步（插件 README 有字段表）。
 
+use crate::chart_analysis::{tolerant_error_bars, tolerant_palette, tolerant_trendlines, ErrorBars, Trendline};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -36,6 +37,15 @@ pub struct ChartPayload {
     /// gap / zero / connect
     pub empty_cells: String,
     pub show_hidden: bool,
+    /// 按系列序号的趋势线；坏项按 `None`。
+    #[serde(deserialize_with = "tolerant_trendlines")]
+    pub trendlines: Vec<Option<Trendline>>,
+    /// 整张图一份，作用于每个系列。
+    #[serde(deserialize_with = "tolerant_error_bars")]
+    pub error_bars: Option<ErrorBars>,
+    /// office / colorful / warm / cool / blue / orange / green / gray
+    #[serde(deserialize_with = "tolerant_palette")]
+    pub palette: String,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -69,6 +79,9 @@ impl Default for ChartPayload {
             combo: Vec::new(),
             empty_cells: "gap".into(),
             show_hidden: false,
+            trendlines: Vec::new(),
+            error_bars: None,
+            palette: "office".into(),
         }
     }
 }

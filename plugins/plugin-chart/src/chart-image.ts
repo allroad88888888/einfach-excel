@@ -1,20 +1,37 @@
 import type { ChartOption } from './core'
+import type { EChartsType } from './echarts-runtime'
 
 const PIXEL_RATIO = 2
+const BACKGROUND = '#ffffff'
 
-/** 离屏实例按当前配置重画一张 2× PNG（白底），与屏幕上的图表同一份配置。 */
-export async function renderChartPng(option: ChartOption, width: number,
-  height: number): Promise<Blob> {
+/** 在浏览器里建一个不挂到页面的离屏实例，按与屏幕相同的配置重画一次，用完即释放。 */
+async function withOffscreenChart<T>(renderer: 'canvas' | 'svg', option: ChartOption,
+  width: number, height: number, read: (chart: EChartsType) => T): Promise<T> {
   const { init } = await import('./echarts-runtime')
-  const host = document.createElement('div')
-  const chart = init(host, undefined, { renderer: 'canvas', width, height })
+  const chart = init(document.createElement('div'), undefined, { renderer, width, height })
   try {
-    chart.setOption({ ...option, animation: false }, { notMerge: true })
-    const url = chart.getDataURL({ type: 'png', pixelRatio: PIXEL_RATIO, backgroundColor: '#ffffff' })
-    return await (await fetch(url)).blob()
+    chart.setOption({ ...option, animation: false, backgroundColor: BACKGROUND },
+      { notMerge: true })
+    return read(chart)
   } finally {
     chart.dispose()
   }
+}
+
+/** 2× PNG（白底）。 */
+export async function renderChartPng(option: ChartOption, width: number,
+  height: number): Promise<Blob> {
+  const url = await withOffscreenChart('canvas', option, width, height,
+    (chart) => chart.getDataURL({ type: 'png', pixelRatio: PIXEL_RATIO }))
+  return (await fetch(url)).blob()
+}
+
+/** 矢量 SVG（白底），文字保持为文本。 */
+export async function renderChartSvg(option: ChartOption, width: number,
+  height: number): Promise<Blob> {
+  const svg = await withOffscreenChart('svg', option, width, height,
+    (chart) => chart.renderToSVGString())
+  return new Blob([svg], { type: 'image/svg+xml' })
 }
 
 export async function copyChartPng(png: Promise<Blob>): Promise<void> {
@@ -24,12 +41,13 @@ export async function copyChartPng(png: Promise<Blob>): Promise<void> {
   await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })])
 }
 
-export async function downloadChartPng(png: Promise<Blob>, name: string): Promise<void> {
-  const url = URL.createObjectURL(await png)
+export async function downloadChartImage(image: Promise<Blob>, name: string,
+  extension: 'png' | 'svg'): Promise<void> {
+  const url = URL.createObjectURL(await image)
   try {
     const link = document.createElement('a')
     link.href = url
-    link.download = `${name.replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'chart'}.png`
+    link.download = `${name.replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'chart'}.${extension}`
     link.click()
   } finally {
     setTimeout(() => URL.revokeObjectURL(url), 0)

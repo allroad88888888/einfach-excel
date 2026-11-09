@@ -1,7 +1,7 @@
 import { useLingui } from '@lingui/react'
 import type { SheetDrawing } from '@einfach-excel/spreadsheet-ui-core'
 import { colorSlots, defaultSlotColor, LIGHT_CHART_THEME, MAX_CHART_FONT_SIZE, MIN_CHART_FONT_SIZE,
-  type ChartSpec } from './core'
+  withPalette, type ChartSpec } from './core'
 import { labels } from './messages'
 import { ColorField, NumberField } from './settings-fields'
 import { useChartOption } from './use-chart-option'
@@ -18,7 +18,7 @@ export function ChartStyleFields({ drawing, spec, disabled, patch }: {
   const { i18n } = useLingui()
   const { data } = useChartOption(drawing)
   const slots = colorSlots(spec, data)
-  const palette = LIGHT_CHART_THEME.palette
+  const palette = withPalette(LIGHT_CHART_THEME, spec.palette).palette
   const setColor = (index: number, color: string) => {
     const colors = Array.from({ length: Math.max(spec.colors.length, index + 1) },
       (_, at) => spec.colors[at] ?? null)

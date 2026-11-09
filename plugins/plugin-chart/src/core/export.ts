@@ -1,9 +1,12 @@
 import { atom } from '@einfach/core'
 
+/** 复制 PNG、下载 PNG、下载 SVG。 */
+export type ChartExportKind = 'copy' | 'png' | 'svg'
+
 interface ExportState {
   readonly busy: boolean
   readonly error: string | null
-  readonly done: 'copy' | 'download' | null
+  readonly done: ChartExportKind | null
 }
 const IDLE: ExportState = { busy: false, error: null, done: null }
 const stateAtom = atom<ExportState>(IDLE)
@@ -14,7 +17,7 @@ chartExportFeedbackAtom.debugLabel = 'plugin.chart.export.feedback'
 
 /** 浏览器输出（剪贴板 / 下载）由视图注入；这里只管忙碌、成功与错误状态，同一时间只跑一次。 */
 export const runChartExportAtom = atom(null, async (get, set, input: {
-  readonly kind: 'copy' | 'download'
+  readonly kind: ChartExportKind
   readonly write: () => Promise<void>
 }): Promise<boolean> => {
   if (get(stateAtom).busy) return false

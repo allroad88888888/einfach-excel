@@ -1,6 +1,6 @@
-//! `cx:series`：子元素顺序按 schema（tx、dataLabels、dataId、layoutPr、axisId）。
+//! `cx:series`：子元素顺序按 schema（tx、dataLabels、dataId、layoutPr）；同 Excel 不写 axisId。
 
-use super::elements::{data_labels, has_axes};
+use super::elements::data_labels;
 use super::model::{ExSeries, Kind};
 use crate::chart_payload::ChartPayload;
 use crate::write::xml::escape;
@@ -35,7 +35,7 @@ fn layout_pr(kind: Kind, subtotals: &[usize]) -> String {
 pub fn series(kind: Kind, id: usize, s: &ExSeries, p: &ChartPayload, subtotals: &[usize]) -> String {
     let name = s.name.as_ref().map(|(formula, text)| format!(
         "<cx:tx><cx:txData><cx:f>{}</cx:f><cx:v>{}</cx:v></cx:txData></cx:tx>", escape(formula), escape(text))).unwrap_or_default();
-    let axis = if has_axes(kind) { r#"<cx:axisId val="1"/>"# } else { "" };
-    format!(r#"<cx:series layoutId="{}">{name}{}<cx:dataId val="{id}"/>{}{axis}</cx:series>"#,
+    // uniqueId 照 Excel 的写法：序号在前，后半段固定。
+    format!(r#"<cx:series layoutId="{}" uniqueId="{{{id:08X}-6F2B-4C3E-9A1D-5E8B2C7F4A10}}">{name}{}<cx:dataId val="{id}"/>{}</cx:series>"#,
         layout_id(kind), data_labels(kind, p), layout_pr(kind, subtotals))
 }

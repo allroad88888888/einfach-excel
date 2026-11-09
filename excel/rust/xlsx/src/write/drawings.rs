@@ -52,9 +52,16 @@ pub fn sheet(
             let Some(built) = chartex::build(cells.get_or_insert_with(|| chartex::Cells::new(&file.workbook)), &object.payload, &object.refs, sheet_name) else { skipped_charts += 1; continue };
             counters.charts += 1;
             parts.push(Part { path: format!("xl/charts/chartEx{chart_no}.xml"), body: built.xml, content_type: Some(chartex::CONTENT_TYPE) });
+            // Excel 要求 chartEx 配齐样式与配色部件，否则判为损坏。
+            parts.push(Part { path: format!("xl/charts/style{chart_no}.xml"), body: chartex::style_xml(built.style_id), content_type: Some(chartex::STYLE_CONTENT_TYPE) });
+            parts.push(Part { path: format!("xl/charts/colors{chart_no}.xml"), body: chartex::colors_xml(), content_type: Some(chartex::COLORS_CONTENT_TYPE) });
+            let mut chart_rels = Rels::default();
+            chart_rels.add_typed(chartex::STYLE_REL_TYPE, &format!("style{chart_no}.xml"));
+            chart_rels.add_typed(chartex::COLORS_REL_TYPE, &format!("colors{chart_no}.xml"));
+            parts.push(Part { path: format!("xl/charts/_rels/chartEx{chart_no}.xml.rels"), body: chart_rels.to_xml(), content_type: None });
             let rel_id = drawing_rels.add_typed(chartex::REL_TYPE, &format!("../charts/chartEx{chart_no}.xml"));
             shape_id += 1;
-            anchors.push_str(&chartex::anchor(shape_id, &object.id, from, to, &rel_id, built.funnel));
+            anchors.push_str(&chartex::anchor(shape_id, &object.id, from, to, &rel_id));
             continue;
         }
         let Some(xml) = chart_xml(&object.payload, &object.refs, sheet_name) else { skipped_charts += 1; continue };

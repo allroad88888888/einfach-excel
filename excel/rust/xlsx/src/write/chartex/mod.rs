@@ -6,8 +6,10 @@ mod data;
 mod elements;
 mod model;
 mod series;
+mod style;
 
 pub use anchor::{anchor, CONTENT_TYPE, REL_TYPE};
+pub use style::{colors_xml, style_xml, COLORS_CONTENT_TYPE, COLORS_REL_TYPE, STYLE_CONTENT_TYPE, STYLE_REL_TYPE};
 pub use crate::write::cell_values::Cells;
 
 use crate::chart_payload::ChartPayload;
@@ -19,7 +21,8 @@ const HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>"
 
 pub struct Built {
     pub xml: String,
-    pub funnel: bool,
+    /// 该类图表在 Excel 里的默认样式编号，写进配套的 chartStyle 部件。
+    pub style_id: u32,
 }
 
 pub fn is_chartex_type(chart_type: &str) -> bool { Kind::of(chart_type).is_some() }
@@ -39,5 +42,9 @@ pub fn build(cells: &Cells, payload: &serde_json::Value, refs: &[Option<NativeRa
         r#"{HEADER}
 <cx:chartSpace {}>{}<cx:chart>{}<cx:plotArea><cx:plotAreaRegion>{body}</cx:plotAreaRegion>{}</cx:plotArea>{}</cx:chart></cx:chartSpace>"#,
         elements::NS, data::chart_data(&list), elements::title(&p), elements::axes(kind, &p), elements::legend(&p));
-    Some(Built { xml, funnel: kind == Kind::Funnel })
+    let style_id = match kind {
+        Kind::Waterfall => 395, Kind::Funnel => 419, Kind::Histogram => 201,
+        Kind::Boxplot => 406, Kind::Treemap => 410, Kind::Sunburst => 381,
+    };
+    Some(Built { xml, style_id })
 }

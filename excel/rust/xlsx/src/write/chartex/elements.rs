@@ -31,8 +31,9 @@ pub fn data_labels(kind: Kind, p: &ChartPayload) -> String {
 
 pub fn has_axes(kind: Kind) -> bool { matches!(kind, Kind::Waterfall | Kind::Histogram | Kind::Boxplot) }
 
-/// 类别轴 id 0、值轴 id 1（系列的 `cx:axisId` 指向值轴）。
+/// 类别轴 id 0、值轴 id 1；漏斗图只有一条类别轴（id 1），Excel 模板如此，缺了会画不出。
 pub fn axes(kind: Kind, p: &ChartPayload) -> String {
+    if kind == Kind::Funnel { return r#"<cx:axis id="1"><cx:catScaling gapWidth="0.06"/><cx:tickLabels/></cx:axis>"#.into(); }
     if !has_axes(kind) { return String::new(); }
     let gap = match kind { Kind::Histogram => "0", Kind::Boxplot => "1", _ => "0.5" };
     let limit = |name: &str, value: Option<f64>| value.map(|v| format!(r#" {name}="{v}""#)).unwrap_or_default();

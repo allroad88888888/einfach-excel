@@ -73,7 +73,17 @@ fn exports_chartex_parts_with_content_type_relationship_and_alternate_content() 
     let drawing = out.part("xl/drawings/drawing1.xml");
     assert_eq!(drawing.matches("<mc:AlternateContent").count(), 6);
     assert_eq!(drawing.matches(r#"uri="http://schemas.microsoft.com/office/drawing/2014/chartex""#).count(), 6);
-    assert!(drawing.contains(r#"Requires="cx1""#) && drawing.contains(r#"Requires="cx2""#), "funnel uses cx2");
+    // 六种都用 cx1：漏斗图写 cx2 时 Mac Excel 只显示 Fallback（实测）。
+    assert_eq!(drawing.matches(r#"Requires="cx1""#).count(), 6);
+    assert!(!drawing.contains("cx2"));
+    // Excel 要求每张 chartEx 配齐样式与配色部件。
+    for n in 1..=6 {
+        let rels = out.part(&format!("xl/charts/_rels/chartEx{n}.xml.rels"));
+        assert!(rels.contains(&format!(r#"Type="http://schemas.microsoft.com/office/2011/relationships/chartStyle" Target="style{n}.xml""#)), "{rels}");
+        assert!(rels.contains(&format!(r#"Type="http://schemas.microsoft.com/office/2011/relationships/chartColorStyle" Target="colors{n}.xml""#)), "{rels}");
+        assert!(out.part(&format!("xl/charts/style{n}.xml")).contains("<cs:chartStyle"));
+        assert!(out.part("[Content_Types].xml").contains(&format!(r#"PartName="/xl/charts/style{n}.xml" ContentType="application/vnd.ms-office.chartstyle+xml""#)));
+    }
     assert!(drawing.contains("<mc:Fallback>"));
     assert!(out.part("xl/charts/chartEx1.xml").starts_with("<?xml"));
 }
@@ -81,7 +91,7 @@ fn exports_chartex_parts_with_content_type_relationship_and_alternate_content() 
 #[test]
 fn waterfall_writes_subtotal_indices_from_total_category_names() {
     let xml = common::export(&native(six())).part("xl/charts/chartEx1.xml");
-    assert!(xml.contains(r#"<cx:series layoutId="waterfall">"#), "{xml}");
+    assert!(xml.contains(r#"<cx:series layoutId="waterfall" uniqueId="{00000000-"#), "{xml}");
     assert!(xml.contains(r#"<cx:subtotals><cx:idx val="3"/><cx:idx val="5"/></cx:subtotals>"#), "{xml}");
     assert!(xml.contains(r#"<cx:strDim type="cat"><cx:f>Main!$A$2:$A$7</cx:f><cx:lvl ptCount="6"><cx:pt idx="0">Start</cx:pt>"#), "{xml}");
     assert!(xml.contains(r#"<cx:numDim type="val"><cx:f>Main!$B$2:$B$7</cx:f><cx:lvl ptCount="6" formatCode="General"><cx:pt idx="0">100</cx:pt><cx:pt idx="1">30</cx:pt><cx:pt idx="2">-20</cx:pt>"#), "{xml}");
@@ -89,14 +99,16 @@ fn waterfall_writes_subtotal_indices_from_total_category_names() {
     assert!(xml.contains(r#"<cx:title pos="t" align="ctr" overlay="0"><cx:tx><cx:txData><cx:v>Bridge</cx:v>"#), "{xml}");
     assert!(xml.contains(r#"<cx:legend pos="b""#) && xml.contains(r#"<cx:dataLabels pos="outEnd">"#), "{xml}");
     assert!(xml.contains(r#"<cx:valScaling max="200" min="-10"/>"#) && !xml.contains("majorGridlines"), "{xml}");
-    assert!(xml.contains("<cx:dataId val=\"0\"/><cx:layoutPr>") && xml.contains(r#"<cx:axisId val="1"/>"#), "{xml}");
+    // 同 Excel：系列里不写 axisId。
+    assert!(xml.contains("<cx:dataId val=\"0\"/><cx:layoutPr>") && !xml.contains("axisId"), "{xml}");
 }
 
 #[test]
 fn other_types_use_the_excel_layout_ids_and_options() {
     let out = common::export(&native(six()));
     let funnel = out.part("xl/charts/chartEx2.xml");
-    assert!(funnel.contains(r#"layoutId="funnel""#) && !funnel.contains("<cx:axis "), "{funnel}");
+    // 漏斗图只有一条类别轴（同 Excel 模板），缺了 Excel 画不出。
+    assert!(funnel.contains(r#"layoutId="funnel""#) && funnel.contains(r#"<cx:axis id="1"><cx:catScaling gapWidth="0.06"/>"#), "{funnel}");
     let hist = out.part("xl/charts/chartEx3.xml");
     assert!(hist.contains(r#"layoutId="clusteredColumn""#) && hist.contains(r#"<cx:binning intervalClosed="r"/>"#), "{hist}");
     assert!(!hist.contains("strDim") && hist.contains("<cx:f>Main!$L$2:$L$8</cx:f>"), "{hist}");

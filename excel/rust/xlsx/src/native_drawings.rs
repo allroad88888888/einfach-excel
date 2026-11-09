@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-/// 由图表插件解释的种类；其余种类（图片等）XLSX 暂不读写，统一计为「图片或绘图」。
+/// 由图表插件解释的种类；图片见 native_media.rs，其余种类 XLSX 不读写，统一计为「图片或绘图」。
 pub const CHART_KIND: &str = "chart";
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -24,6 +24,9 @@ pub struct NativeDrawing {
     pub refs: Vec<Option<NativeRange>>,
     #[serde(default = "empty_payload")]
     pub payload: serde_json::Value,
+    /// 引用的图片 id（`Persistence.media`）。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub media: Option<String>,
 }
 
 /// 左上角所在单元格 + 格内偏移 + 尺寸，都是 100% 缩放下的 CSS 像素。

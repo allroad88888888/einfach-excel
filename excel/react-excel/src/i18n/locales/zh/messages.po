@@ -5508,6 +5508,10 @@ msgstr "源区域：{0}"
 msgid "Space"
 msgstr "空格"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "sparklines"
+msgstr "迷你图"
+
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Spill details"
 msgstr "溢出详情"

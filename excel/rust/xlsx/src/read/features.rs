@@ -18,6 +18,9 @@ pub struct SheetFeatures {
     pub tables: Vec<Table>,
     /// 已转换的图表；锚点要等行高列宽读完才能换成像素。
     pub charts: Vec<RawChart>,
+    pub pictures: Vec<super::pictures::RawPicture>,
+    /// 迷你图组：id 待分配，数据表名仍是 XLSX 原始名。
+    pub sparklines: Vec<crate::native_drawings::NativeDrawing>,
 }
 
 /// 各工作表共用的解析上下文。
@@ -63,6 +66,8 @@ pub fn read_sheet(
         report.add("printSetup", 1);
     }
 
+    let (sparklines, skipped_sparklines) = super::sparklines::parse(&extras, raw_name);
+    report.add("sparklines", skipped_sparklines);
     let objects = drawings::read_sheet(archive, &relationships, raw_name, extras.each("drawing").next().is_some());
     report.add("charts", objects.skipped_charts);
     report.add("drawings", objects.others);
@@ -80,7 +85,7 @@ pub fn read_sheet(
         }
     }
 
-    let mut features = SheetFeatures { hyperlinks, validations, conditional, charts: objects.charts, ..Default::default() };
+    let mut features = SheetFeatures { hyperlinks, validations, conditional, charts: objects.charts, pictures: objects.pictures, sparklines, ..Default::default() };
     if let Some(comments) = relationships.iter().find(|rel| !rel.external && rel.kind.ends_with("/comments")) {
         if let Ok(Some(text)) = archive.read(&comments.target) {
             let (notes, placeholders) = notes::parse(&text, index);

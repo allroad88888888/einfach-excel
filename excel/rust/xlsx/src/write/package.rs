@@ -12,7 +12,21 @@ pub struct Part {
     pub body: String,
     /// None 表示靠扩展名的 Default 内容类型（如 `.vml`）。
     pub content_type: Option<&'static str>,
+    /// 二进制部件（图片）；有值时写它而不是 `body`，内容类型按扩展名的 Default。
+    pub bytes: Option<Vec<u8>>,
 }
+
+impl Part {
+    pub fn binary(path: String, bytes: Vec<u8>) -> Self {
+        Self { path, body: String::new(), content_type: None, bytes: Some(bytes) }
+    }
+}
+
+/// 图片扩展名 → Default 内容类型。
+const IMAGE_DEFAULTS: [(&str, &str); 5] = [
+    ("png", "image/png"), ("jpeg", "image/jpeg"), ("gif", "image/gif"),
+    ("webp", "image/webp"), ("bmp", "image/bmp"),
+];
 
 pub fn content_types(sheets: usize, parts: &[Part]) -> String {
     let mut overrides = String::new();
@@ -26,11 +40,17 @@ pub fn content_types(sheets: usize, parts: &[Part]) -> String {
     } else {
         ""
     };
+    let mut images = String::new();
+    for (ext, mime) in IMAGE_DEFAULTS {
+        if parts.iter().any(|p| p.bytes.is_some() && p.path.ends_with(&format!(".{ext}"))) {
+            images.push_str(&format!(r#"<Default Extension="{ext}" ContentType="{mime}"/>"#));
+        }
+    }
     for index in 1..=sheets {
         overrides.push_str(&format!(r#"<Override PartName="/xl/worksheets/sheet{index}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>"#));
     }
     format!(r#"{HEADER}
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>{vml}<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>{overrides}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>"#)
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>{vml}{images}<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>{overrides}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>"#)
 }
 
 pub fn root_rels() -> String {

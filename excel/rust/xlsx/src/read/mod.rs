@@ -11,7 +11,9 @@ mod dxf;
 mod features;
 mod hyperlinks;
 mod notes;
+mod pictures;
 mod placement;
+mod sparklines;
 mod rels;
 mod shared_strings;
 mod rich_text;
@@ -181,8 +183,10 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         workbook.hyperlinks.extend(extras.hyperlinks);
         workbook.notes.extend(extras.notes);
         workbook.tables.extend(extras.tables);
-        if !extras.charts.is_empty() {
-            pending_charts.push((index, extras.charts));
+        if !extras.charts.is_empty() || !extras.pictures.is_empty() || !extras.sparklines.is_empty() {
+            pending_charts.push((index, placement::SheetObjects {
+                charts: extras.charts, pictures: extras.pictures, sparklines: extras.sparklines,
+            }));
         }
         if !extras.validations.is_empty() {
             workbook.data_validations.push(SheetValidation { sheet: index, regions: extras.validations });

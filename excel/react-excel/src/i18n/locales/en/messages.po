@@ -5508,6 +5508,10 @@ msgstr "Source: {0}"
 msgid "Space"
 msgstr "Space"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "sparklines"
+msgstr "sparklines"
+
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Spill details"
 msgstr "Spill details"

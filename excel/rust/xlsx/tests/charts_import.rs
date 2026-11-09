@@ -22,7 +22,10 @@ fn every_supported_chart_becomes_a_chart_object_on_its_own_sheet() {
     assert!(main.contains(&"sales_col".to_string()), "{main:?}");
     assert_eq!(main.len(), 6);
     assert_eq!(main.iter().filter(|id| id.starts_with("chart-")).count(), 5);
-    assert_eq!(ids(SHAPES).len(), 7);
+    // 形状表上的 7 张图表 + 1 张图片（图片现在按图片对象读入）。
+    let kinds: Vec<_> = book.drawings(SHAPES).iter().map(|d| d["kind"].as_str().unwrap().to_string()).collect();
+    assert_eq!(kinds.iter().filter(|kind| *kind == "chart").count(), 7, "{kinds:?}");
+    assert_eq!(kinds.iter().filter(|kind| *kind == "image").count(), 1, "{kinds:?}");
     assert!(book.drawings(1).is_empty());
     // 雷达图现在可以导入；字面量数据和外部引用的图表仍然跳过。
     assert_eq!(ids(3).len(), 1);
@@ -32,7 +35,7 @@ fn every_supported_chart_becomes_a_chart_object_on_its_own_sheet() {
     unique.sort();
     unique.dedup();
     assert_eq!(unique.len(), all.len(), "ids are unique in the workbook: {all:?}");
-    assert!(book.drawings(MAIN).iter().chain(&book.drawings(SHAPES)).all(|d| d["kind"] == "chart"));
+    assert!(book.drawings(MAIN).iter().all(|d| d["kind"] == "chart"));
 }
 
 #[test]

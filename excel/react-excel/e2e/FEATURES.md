@@ -1210,6 +1210,7 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | IMAGE-002 | 从地址插入图片只存 http(s) 地址，其他协议报错 | `plugins/image.spec.ts` | inserting a picture by address stores only the address and rejects other schemes |
 | SPARK-001 | 「插入」组创建折线迷你图：数据区域预填选区，位置不匹配时报错；每行一条画在位置格里，随数据编辑与撤销更新 | `plugins/sparkline.spec.ts` | creating line sparklines draws one per row in the location cells and follows edits |
 | SPARK-002 | 选中迷你图所在格出现设计选项：改类型为盈亏、标出负点；清除整组可撤销 | `plugins/sparkline.spec.ts` | selecting a sparkline cell offers its design options and clearing removes the group |
+| XLSXOBJ-001 | 图片与迷你图下载为 Excel 后再打开仍在：图片写进 `xl/media`，迷你图写进工作表 `x14:sparklineGroups`，报告不列跳过项 | `plugins/xlsx-objects.spec.ts` | pictures and sparklines survive downloading as Excel and opening the file again |
 
 ## 宿主默认尺寸与字号
 

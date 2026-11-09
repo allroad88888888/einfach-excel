@@ -76,6 +76,9 @@ pub struct Persistence {
     /// 浮动对象（图表等）；与 `.einfach.json` 同形，见 native_drawings.rs。
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub drawings: Vec<crate::native_drawings::SheetDrawings>,
+    /// 对象引用的图片字节（Base64），见 native_media.rs。
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub media: Vec<crate::native_media::NativeMedia>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

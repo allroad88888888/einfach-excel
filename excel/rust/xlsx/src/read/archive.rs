@@ -54,6 +54,14 @@ impl Archive {
         Ok(Some(text))
     }
 
+    /// 二进制部件（图片）；超过 `limit` 字节或不存在返回 None。
+    pub fn read_bytes(&mut self, path: &str, limit: usize) -> Option<Vec<u8>> {
+        let file = self.zip.by_name(path.trim_start_matches('/')).ok()?;
+        let mut bytes = Vec::new();
+        file.take(limit as u64 + 1).read_to_end(&mut bytes).ok()?;
+        (bytes.len() <= limit).then_some(bytes)
+    }
+
     pub fn has_part(&mut self, path: &str) -> bool {
         self.zip.by_name(path.trim_start_matches('/')).is_ok()
     }

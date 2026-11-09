@@ -4,7 +4,7 @@
 use super::package::Part;
 use super::rels::Rels;
 use super::styles::StyleTable;
-use super::{charts, comments, conditional, drawings, hyperlinks, tables, validation, vml};
+use super::{charts, comments, conditional, drawings, hyperlinks, sparklines, tables, validation, vml};
 use crate::native::NativeFile;
 use crate::report::ReportBuilder;
 
@@ -16,6 +16,8 @@ pub struct Counters {
     pub tables: usize,
     pub drawings: usize,
     pub charts: usize,
+    /// 已写出的图片（工作簿内同一张图只写一份）。
+    pub media: super::pictures::MediaParts,
 }
 
 pub struct SheetOut {
@@ -57,12 +59,14 @@ pub fn sheet(
         counters.comments += 1;
         rels.add("comments", &format!("../comments{n}.xml"), false);
         let vml_id = rels.add("vmlDrawing", &format!("../drawings/vmlDrawing{n}.vml"), false);
-        parts.push(Part { path: format!("xl/comments{n}.xml"), body: comments::xml(&texts), content_type: Some(COMMENTS_CONTENT_TYPE) });
-        parts.push(Part { path: format!("xl/drawings/vmlDrawing{n}.vml"), body: vml::xml(&texts, index), content_type: None });
+        parts.push(Part { path: format!("xl/comments{n}.xml"), body: comments::xml(&texts), content_type: Some(COMMENTS_CONTENT_TYPE), bytes: None });
+        parts.push(Part { path: format!("xl/drawings/vmlDrawing{n}.vml"), body: vml::xml(&texts, index), content_type: None, bytes: None });
         tail.push_str(&format!(r#"<legacyDrawing r:id="{vml_id}"/>"#));
     }
     let (table_xml, skipped_tables) = tables::build(&sheet_tables, &mut counters.tables, &mut rels, parts);
     report.add("tables", skipped_tables);
     tail.push_str(&table_xml);
+    // extLst 必须是工作表最后一个元素。
+    tail.push_str(&sparklines::ext_list(file, index, report));
     SheetOut { tail, rels }
 }

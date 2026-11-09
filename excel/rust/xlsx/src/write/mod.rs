@@ -11,6 +11,8 @@ mod dxf;
 mod features;
 mod hyperlinks;
 mod package;
+mod pictures;
+mod sparklines;
 mod rels;
 mod styles;
 mod tables;
@@ -137,7 +139,7 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
             target.hidden_cols.extend(hidden.columns.iter().copied());
         }
     }
-    let mut counters = features::Counters { comments: 1, tables: 1, drawings: 1, charts: 1 };
+    let mut counters = features::Counters { comments: 1, tables: 1, drawings: 1, charts: 1, media: Default::default() };
     let mut parts = Vec::new();
     let mut sheet_rels = Vec::new();
     for (index, target) in sheets.iter_mut().enumerate() {
@@ -154,34 +156,35 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
 
     let mut zip = ZipWriter::new(Cursor::new(Vec::new()));
     let options = SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
-    let mut put = |path: &str, body: &str| -> Result<(), XlsxError> {
+    let mut put = |path: &str, body: &[u8]| -> Result<(), XlsxError> {
         zip.start_file(path, options).map_err(|e| XlsxError::new(e.to_string()))?;
-        zip.write_all(body.as_bytes()).map_err(|e| XlsxError::new(e.to_string()))
+        zip.write_all(body).map_err(|e| XlsxError::new(e.to_string()))
     };
-    put("[Content_Types].xml", &package::content_types(names.len(), &parts))?;
-    put("_rels/.rels", &package::root_rels())?;
+    put("[Content_Types].xml", package::content_types(names.len(), &parts).as_bytes())?;
+    put("_rels/.rels", package::root_rels().as_bytes())?;
     let manual_calculation = workbook.calculation_mode.as_deref() == Some("manual");
     put(
         "xl/workbook.xml",
-        &package::workbook(
+        package::workbook(
             &names,
             &defined_names_xml,
             manual_calculation,
             workbook.iterative_calculation.as_ref(),
-        ),
+        )
+        .as_bytes(),
     )?;
-    put("xl/_rels/workbook.xml.rels", &package::workbook_rels(names.len()))?;
+    put("xl/_rels/workbook.xml.rels", package::workbook_rels(names.len()).as_bytes())?;
     for (index, xml) in sheet_xml.iter().enumerate() {
-        put(&format!("xl/worksheets/sheet{}.xml", index + 1), xml)?;
+        put(&format!("xl/worksheets/sheet{}.xml", index + 1), xml.as_bytes())?;
     }
     for (index, rels) in sheet_rels.iter().enumerate().filter(|(_, rels)| !rels.is_empty()) {
-        put(&format!("xl/worksheets/_rels/sheet{}.xml.rels", index + 1), &rels.to_xml())?;
+        put(&format!("xl/worksheets/_rels/sheet{}.xml.rels", index + 1), rels.to_xml().as_bytes())?;
     }
     for part in &parts {
-        put(&part.path, &part.body)?;
+        put(&part.path, part.bytes.as_deref().unwrap_or(part.body.as_bytes()))?;
     }
-    put("xl/styles.xml", &styles.into_xml())?;
-    put("xl/sharedStrings.xml", &package::shared_strings(&strings.items))?;
+    put("xl/styles.xml", styles.into_xml().as_bytes())?;
+    put("xl/sharedStrings.xml", package::shared_strings(&strings.items).as_bytes())?;
     let cursor = zip.finish().map_err(|e| XlsxError::new(e.to_string()))?;
     Ok((cursor.into_inner(), report.finish_export()))
 }

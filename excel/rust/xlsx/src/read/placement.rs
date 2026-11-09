@@ -1,25 +1,35 @@
-//! 读完所有工作表之后把解析好的图表放进 `Persistence.drawings`：锚点换成像素（需要该表的行高列宽）、
-//! 区域里的原始表名换成引擎表名、分配对象 id。
+//! 读完所有工作表之后把解析好的图表和图片放进 `Persistence.drawings`：锚点换成像素（需要该表的行高列宽）、
+//! 区域里的原始表名换成引擎表名、分配对象 id；图片字节按内容去重放进 `Persistence.media`。
 
 use std::collections::HashSet;
 
 use super::drawings::{RawAnchor, RawChart};
+use super::pictures::RawPicture;
 use crate::drawing_geometry::{emu_to_px, SheetGeometry};
 use crate::native::Persistence;
 use crate::native_drawings::{NativeAnchor, NativeDrawing, NativeRange, SheetDrawings, CHART_KIND};
+use crate::native_media::{content_id, encode, sniff_image_type, NativeMedia, IMAGE_KIND};
 use crate::report::ReportBuilder;
+
+/// 一张表上待放置的对象。
+pub struct SheetObjects {
+    pub charts: Vec<RawChart>,
+    pub pictures: Vec<RawPicture>,
+    /// 已是原生形状，只差 id 与表名。
+    pub sparklines: Vec<NativeDrawing>,
+}
 
 /// `raw_names[i]` 是第 i 张表在 XLSX 里的原始名（与 `workbook.sheets` 同序）。
 /// 引用了不存在的表的图表被跳过并计入 `charts`。
 pub fn place_all(
     workbook: &mut Persistence,
-    pending: Vec<(usize, Vec<RawChart>)>,
+    pending: Vec<(usize, SheetObjects)>,
     raw_names: &[String],
     report: &mut ReportBuilder,
 ) {
     let native_names: Vec<String> = workbook.sheets.iter().map(|sheet| sheet.name.clone()).collect();
     let mut ids = IdAllocator::default();
-    for (sheet, charts) in pending {
+    for (sheet, SheetObjects { charts, pictures, sparklines }) in pending {
         let geometry = SheetGeometry::from_native(workbook, sheet);
         let mut drawings = Vec::new();
         for chart in charts {
@@ -41,7 +51,38 @@ pub fn place_all(
                 anchor: pixel_anchor(&geometry, &chart.anchor),
                 refs,
                 payload: chart.parsed.payload.to_value(),
+                media: None,
             });
+        }
+        for picture in pictures {
+            let id = content_id(&picture.bytes);
+            if !workbook.media.iter().any(|media| media.id == id) {
+                let mime = sniff_image_type(&picture.bytes).unwrap_or("image/png");
+                workbook.media.push(NativeMedia { id: id.clone(), mime: mime.into(), data: encode(&picture.bytes) });
+            }
+            let payload = match picture.alt {
+                Some(alt) => serde_json::json!({ "alt": alt }),
+                None => serde_json::json!({}),
+            };
+            drawings.push(NativeDrawing {
+                id: ids.allocate_as(picture.name.as_deref(), "image"),
+                kind: IMAGE_KIND.into(),
+                anchor: pixel_anchor(&geometry, &picture.anchor),
+                refs: Vec::new(),
+                payload,
+                media: Some(id),
+            });
+        }
+        for mut sparkline in sparklines {
+            let Some(refs) = sparkline.refs.into_iter()
+                .map(|range| range.and_then(|range| rename(range, raw_names, &native_names)).map(Some))
+                .collect::<Option<Vec<_>>>() else {
+                report.add("sparklines", 1);
+                continue;
+            };
+            sparkline.refs = refs;
+            sparkline.id = ids.allocate_as(None, "sparkline");
+            drawings.push(sparkline);
         }
         if !drawings.is_empty() {
             workbook.drawings.push(SheetDrawings { sheet, drawings });
@@ -98,6 +139,10 @@ struct IdAllocator {
 
 impl IdAllocator {
     fn allocate(&mut self, name: Option<&str>) -> String {
+        self.allocate_as(name, "chart")
+    }
+
+    fn allocate_as(&mut self, name: Option<&str>, prefix: &str) -> String {
         let valid = |id: &str| {
             !id.is_empty() && id.len() <= 64
                 && id.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.'))
@@ -108,7 +153,7 @@ impl IdAllocator {
         }
         loop {
             self.counter += 1;
-            let id = format!("chart-{}", self.counter);
+            let id = format!("{prefix}-{}", self.counter);
             if self.used.insert(id.clone()) {
                 return id;
             }

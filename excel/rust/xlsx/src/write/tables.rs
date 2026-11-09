@@ -68,7 +68,7 @@ pub fn build(tables: &[&Table], next_id: &mut usize, rels: &mut Rels, parts: &mu
         *next_id += 1;
         let path = format!("xl/tables/table{id}.xml");
         let rid = rels.add("table", &format!("../tables/table{id}.xml"), false);
-        parts.push(Part { path, body, content_type: Some(TABLE_CONTENT_TYPE) });
+        parts.push(Part { path, body, content_type: Some(TABLE_CONTENT_TYPE), bytes: None });
         refs.push_str(&format!(r#"<tablePart r:id="{rid}"/>"#));
     }
     let xml = if refs.is_empty() {

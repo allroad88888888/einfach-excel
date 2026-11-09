@@ -5,6 +5,7 @@ use super::archive::Archive;
 use super::charts::{self, tree, Parsed};
 use super::chartex;
 use super::dom::{self, Node};
+use super::pictures::{self, RawPicture};
 use super::rels::{self, Relationship};
 use crate::drawing_geometry::CellCorner;
 
@@ -29,7 +30,9 @@ pub struct SheetObjects {
     pub charts: Vec<RawChart>,
     /// 不支持的类型、字面量数据、外部引用。
     pub skipped_charts: usize,
-    /// 图片、形状等。
+    /// 引擎支持格式的图片。
+    pub pictures: Vec<RawPicture>,
+    /// 形状、不支持的图片等。
     pub others: usize,
 }
 
@@ -72,6 +75,13 @@ pub fn read_sheet(
 
 fn read_anchors(archive: &mut Archive, root: &Node, drawing_rels: &[Relationship], own_sheet: &str, objects: &mut SheetObjects) {
     for anchor in root.children.iter().filter(|n| matches!(n.name.as_str(), "twoCellAnchor" | "oneCellAnchor" | "absoluteAnchor")) {
+        if pictures::is_picture(anchor) {
+            match raw_anchor(anchor).and_then(|raw| pictures::read(archive, anchor, raw, drawing_rels)) {
+                Some(picture) => objects.pictures.push(picture),
+                None => objects.others += 1,
+            }
+            continue;
+        }
         match classify(anchor, drawing_rels) {
             Kind::Other => objects.others += 1,
             Kind::SkippedChart => objects.skipped_charts += 1,

@@ -74,14 +74,14 @@ fn a_literal_series_name_is_dropped_and_reported_but_the_chart_stays() {
 }
 
 #[test]
-fn literal_and_external_charts_are_skipped_and_counted_while_images_stay_drawings() {
+fn literal_and_external_charts_are_skipped_and_counted_while_images_are_read() {
     let book = import(FIXTURE);
     // 雷达图已能导入，Unsupported 表上只剩它一个对象。
     assert_eq!(book.drawings(3).len(), 1);
-    // numLit 数据、[1]Sheet1 外部引用各计一张；Shapes 上的图片照旧计入「图片或绘图」。
-    assert_eq!(book.report_items(), [("drawings", 1), ("charts", 2), ("chartSeriesNames", 1)]);
+    // numLit 数据、[1]Sheet1 外部引用各计一张；Shapes 上的 PNG 图片按图片对象读入，不再计入报告。
+    assert_eq!(book.report_items(), [("charts", 2), ("chartSeriesNames", 1)]);
     assert_eq!(
         book.report.summary,
-        "Opened Excel workbook. Skipped: images or drawings, charts, chart series names."
+        "Opened Excel workbook. Skipped: charts, chart series names."
     );
 }

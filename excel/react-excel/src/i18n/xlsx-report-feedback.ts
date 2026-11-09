@@ -8,6 +8,7 @@ export const xlsxReportFeedback: Readonly<Record<string, MessageDescriptor>> = {
   charts: msg`charts`,
   'chart series names': msg`chart series names`,
   'waterfall subtotals': msg`waterfall subtotals`,
+  sparklines: msg`sparklines`,
   'pivot tables': msg`pivot tables`,
   'threaded comments': msg`threaded comments`,
   'threaded comments exported as notes': msg`threaded comments exported as notes`,

@@ -1,7 +1,8 @@
-//! 一张工作表的浮动对象 → `xl/drawings/drawingN.xml` + 它的 rels + `xl/charts/chartN.xml`。
-//! 能写出的图表不计入报告；写不出的图表计 `charts`，其他对象计 `drawings`。
+//! 一张工作表的浮动对象 → `xl/drawings/drawingN.xml` + 它的 rels + `xl/charts/chartN.xml`
+//! 与 `xl/media/imageN.*`。能写出的不计入报告；写不出的图表计 `charts`，其他对象（含外链图片）计 `drawings`。
 
 use super::chartex;
+use super::pictures;
 use super::charts::{chart_xml, source};
 use super::features::Counters;
 use super::package::Part;
@@ -10,6 +11,8 @@ use super::xml::escape;
 use crate::drawing_geometry::{CellCorner, SheetGeometry};
 use crate::native::NativeFile;
 use crate::native_drawings::CHART_KIND;
+use crate::native_media::IMAGE_KIND;
+use crate::native_sparklines::SPARKLINE_KIND;
 use crate::report::ReportBuilder;
 
 const DRAWING_CONTENT_TYPE: &str = "application/vnd.openxmlformats-officedocument.drawing+xml";
@@ -44,8 +47,17 @@ pub fn sheet(
     let mut anchors = String::new();
     let (mut skipped_charts, mut other, mut shape_id) = (0, 0, 1);
     for object in book.drawings.iter().filter(|d| d.sheet == index).flat_map(|d| &d.drawings) {
-        if object.kind != CHART_KIND { other += 1; continue; }
+        // 迷你图不是 drawing 部件里的对象，由 sparklines.rs 写进工作表 extLst。
+        if object.kind == SPARKLINE_KIND { continue; }
         let (from, to) = geometry.to_corners(&object.anchor);
+        if object.kind == IMAGE_KIND {
+            match pictures::anchor(file, object, (from, to), shape_id + 1, &mut counters.media, &mut drawing_rels, parts) {
+                Some(xml) => { shape_id += 1; anchors.push_str(&xml); }
+                None => other += 1,
+            }
+            continue;
+        }
+        if object.kind != CHART_KIND { other += 1; continue; }
         // `payload.source`（表 / 命名区域）按现在的工作簿重新解析，比 refs 里存的快照新。
         let refs = source::effective_refs(&object.payload, &object.refs, book, index);
         let chart_no = counters.charts;
@@ -53,14 +65,14 @@ pub fn sheet(
             // Office 2016 新图表：chartEx 部件，drawing 里用 mc:AlternateContent 包住。
             let Some(built) = chartex::build(cells.get_or_insert_with(|| chartex::Cells::new(&file.workbook)), &object.payload, &refs, sheet_name) else { skipped_charts += 1; continue };
             counters.charts += 1;
-            parts.push(Part { path: format!("xl/charts/chartEx{chart_no}.xml"), body: built.xml, content_type: Some(chartex::CONTENT_TYPE) });
+            parts.push(Part { path: format!("xl/charts/chartEx{chart_no}.xml"), body: built.xml, content_type: Some(chartex::CONTENT_TYPE), bytes: None });
             // Excel 要求 chartEx 配齐样式与配色部件，否则判为损坏。
-            parts.push(Part { path: format!("xl/charts/style{chart_no}.xml"), body: chartex::style_xml(built.style_id), content_type: Some(chartex::STYLE_CONTENT_TYPE) });
-            parts.push(Part { path: format!("xl/charts/colors{chart_no}.xml"), body: chartex::colors_xml(), content_type: Some(chartex::COLORS_CONTENT_TYPE) });
+            parts.push(Part { path: format!("xl/charts/style{chart_no}.xml"), body: chartex::style_xml(built.style_id), content_type: Some(chartex::STYLE_CONTENT_TYPE), bytes: None });
+            parts.push(Part { path: format!("xl/charts/colors{chart_no}.xml"), body: chartex::colors_xml(), content_type: Some(chartex::COLORS_CONTENT_TYPE), bytes: None });
             let mut chart_rels = Rels::default();
             chart_rels.add_typed(chartex::STYLE_REL_TYPE, &format!("style{chart_no}.xml"));
             chart_rels.add_typed(chartex::COLORS_REL_TYPE, &format!("colors{chart_no}.xml"));
-            parts.push(Part { path: format!("xl/charts/_rels/chartEx{chart_no}.xml.rels"), body: chart_rels.to_xml(), content_type: None });
+            parts.push(Part { path: format!("xl/charts/_rels/chartEx{chart_no}.xml.rels"), body: chart_rels.to_xml(), content_type: None, bytes: None });
             let rel_id = drawing_rels.add_typed(chartex::REL_TYPE, &format!("../charts/chartEx{chart_no}.xml"));
             shape_id += 1;
             anchors.push_str(&chartex::anchor(shape_id, &object.id, from, to, &rel_id));
@@ -68,7 +80,7 @@ pub fn sheet(
         }
         let Some(xml) = chart_xml(&object.payload, &refs, sheet_name) else { skipped_charts += 1; continue };
         counters.charts += 1;
-        parts.push(Part { path: format!("xl/charts/chart{chart_no}.xml"), body: xml, content_type: Some(CHART_CONTENT_TYPE) });
+        parts.push(Part { path: format!("xl/charts/chart{chart_no}.xml"), body: xml, content_type: Some(CHART_CONTENT_TYPE), bytes: None });
         let rel_id = drawing_rels.add("chart", &format!("../charts/chart{chart_no}.xml"), false);
         shape_id += 1;
         anchors.push_str(&anchor(shape_id, &object.id, from, to, &rel_id));
@@ -78,8 +90,8 @@ pub fn sheet(
     if drawing_rels.is_empty() { return String::new(); }
     counters.drawings += 1;
     let body = format!("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<xdr:wsDr {NS}>{anchors}</xdr:wsDr>");
-    parts.push(Part { path: format!("xl/drawings/drawing{drawing_no}.xml"), body, content_type: Some(DRAWING_CONTENT_TYPE) });
-    parts.push(Part { path: format!("xl/drawings/_rels/drawing{drawing_no}.xml.rels"), body: drawing_rels.to_xml(), content_type: None });
+    parts.push(Part { path: format!("xl/drawings/drawing{drawing_no}.xml"), body, content_type: Some(DRAWING_CONTENT_TYPE), bytes: None });
+    parts.push(Part { path: format!("xl/drawings/_rels/drawing{drawing_no}.xml.rels"), body: drawing_rels.to_xml(), content_type: None, bytes: None });
     let rel_id = rels.add("drawing", &format!("../drawings/drawing{drawing_no}.xml"), false);
     format!(r#"<drawing r:id="{rel_id}"/>"#)
 }

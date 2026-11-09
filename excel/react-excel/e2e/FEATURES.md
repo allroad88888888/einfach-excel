@@ -1265,3 +1265,5 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CHART-019 | 设置栏给系列加趋势线（可显示公式）、给整图加误差线，图上出现对应系列，撤销逐项还原 | `charts/analysis.spec.ts` | a series trendline and chart error bars are drawn and undo |
 | CHART-020 | 设置栏套用快速布局（标题、图例、数据标签一起变）与更改颜色方案，撤销还原配色 | `charts/analysis.spec.ts` | a quick layout and a colour scheme restyle the chart |
 | CHART-021 | 设置栏「下载 SVG」在浏览器内离屏重画并下载矢量图，文字保持为文本 | `charts/analysis.spec.ts` | the chart downloads as an SVG drawn in the browser |
+| CHART-022 | 由表格选区插入的图表引用表名，表格下方输入新行后图表跟着扩；设置栏可填表格列范围或名称，不存在时报错 | `charts/data-source.spec.ts` | a chart made from a table follows the table as it grows and accepts names |
+| CHART-023 | 选中图表时按系列名 / 类别 / 数值标出数据源，点击柱子标出它的单元格，取消选中后撤掉 | `charts/data-source.spec.ts` | selecting a chart outlines its data and clicking a bar marks its cell |

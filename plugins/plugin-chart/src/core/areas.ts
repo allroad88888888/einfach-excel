@@ -25,8 +25,9 @@ export function areaLayout(areas: readonly DrawingRange[]): 'single' | 'columns'
   return null
 }
 
-export function combineAreaGrids(grids: readonly ChartGrid[], layout: 'single' | 'columns' | 'rows'):
-  ChartGrid {
+/** 泛型：数据格与坐标格（数据点 → 单元格）走同一套拼接。 */
+export function combineAreaGrids<T>(grids: readonly (readonly (readonly T[])[])[],
+  layout: 'single' | 'columns' | 'rows'): readonly (readonly T[])[] {
   if (layout === 'single' || grids.length === 1) return grids[0] ?? []
   if (layout === 'rows') return grids.flat()
   return grids[0]!.map((_, row) => grids.flatMap((grid) => grid[row] ?? []))

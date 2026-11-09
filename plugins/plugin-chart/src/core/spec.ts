@@ -49,6 +49,8 @@ export interface ChartSpec {
   /** 整张图共用一套误差线；null 不画。 */
   readonly errorBars: ErrorBars | null
   readonly palette: ChartPalette
+  /** 数据引用表格或已定义名称（如 `Table1`、`Table1[Sales]`、`Sales`）；空串表示用 `refs`。 */
+  readonly source: string
 }
 
 export interface ComboSeriesOption {
@@ -61,6 +63,7 @@ export const DEFAULT_CHART_SPEC: ChartSpec = {
   legend: 'right', stack: 'none', dataLabels: false, gridlines: true,
   xTitle: '', yTitle: '', yMin: null, yMax: null, fontSize: null, colors: [], combo: [],
   emptyCells: 'gap', showHidden: false, trendlines: [], errorBars: null, palette: 'office',
+  source: '',
 }
 
 export const MAX_CHART_TITLE_CHARS = 255
@@ -111,6 +114,7 @@ export function parseChartSpec(payload: unknown): ChartSpec {
     trendlines: parseTrendlines(source.trendlines),
     errorBars: parseErrorBars(source.errorBars),
     palette: parsePalette(source.palette),
+    source: text(source.source).trim(),
   }
 }
 

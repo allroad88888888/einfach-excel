@@ -53,7 +53,10 @@ export interface ChartPoint {
   readonly value: number | null | readonly [number | null, number | null]
   readonly label: string
   readonly name?: string
-  /** 饼图扇区对应的类别序号；空值与非正值被跳过后，按它取用户配色。 */
+  /**
+   * 跳过了空值的点（饼图扇区、散点）对应的类别序号：饼图按它取用户配色，
+   * 点击数据点时按它找回源单元格。
+   */
   readonly slot?: number
 }
 

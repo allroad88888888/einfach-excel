@@ -2,7 +2,7 @@
 //! 能写出的图表不计入报告；写不出的图表计 `charts`，其他对象计 `drawings`。
 
 use super::chartex;
-use super::charts::chart_xml;
+use super::charts::{chart_xml, source};
 use super::features::Counters;
 use super::package::Part;
 use super::rels::Rels;
@@ -46,10 +46,12 @@ pub fn sheet(
     for object in book.drawings.iter().filter(|d| d.sheet == index).flat_map(|d| &d.drawings) {
         if object.kind != CHART_KIND { other += 1; continue; }
         let (from, to) = geometry.to_corners(&object.anchor);
+        // `payload.source`（表 / 命名区域）按现在的工作簿重新解析，比 refs 里存的快照新。
+        let refs = source::effective_refs(&object.payload, &object.refs, book, index);
         let chart_no = counters.charts;
         if object.payload.get("type").and_then(|t| t.as_str()).is_some_and(chartex::is_chartex_type) {
             // Office 2016 新图表：chartEx 部件，drawing 里用 mc:AlternateContent 包住。
-            let Some(built) = chartex::build(cells.get_or_insert_with(|| chartex::Cells::new(&file.workbook)), &object.payload, &object.refs, sheet_name) else { skipped_charts += 1; continue };
+            let Some(built) = chartex::build(cells.get_or_insert_with(|| chartex::Cells::new(&file.workbook)), &object.payload, &refs, sheet_name) else { skipped_charts += 1; continue };
             counters.charts += 1;
             parts.push(Part { path: format!("xl/charts/chartEx{chart_no}.xml"), body: built.xml, content_type: Some(chartex::CONTENT_TYPE) });
             // Excel 要求 chartEx 配齐样式与配色部件，否则判为损坏。
@@ -64,7 +66,7 @@ pub fn sheet(
             anchors.push_str(&chartex::anchor(shape_id, &object.id, from, to, &rel_id));
             continue;
         }
-        let Some(xml) = chart_xml(&object.payload, &object.refs, sheet_name) else { skipped_charts += 1; continue };
+        let Some(xml) = chart_xml(&object.payload, &refs, sheet_name) else { skipped_charts += 1; continue };
         counters.charts += 1;
         parts.push(Part { path: format!("xl/charts/chart{chart_no}.xml"), body: xml, content_type: Some(CHART_CONTENT_TYPE) });
         let rel_id = drawing_rels.add("chart", &format!("../charts/chart{chart_no}.xml"), false);

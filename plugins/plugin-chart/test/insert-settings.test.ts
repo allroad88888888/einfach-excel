@@ -222,7 +222,8 @@ describe('chart settings', () => {
     store.setter(openChartSettingsAtom, 'chart-1')
     await store.setter(updateChartSettingsAtom, { type: 'rangeDraft', text: 'not a range' })
     expect(await store.setter(updateChartSettingsAtom, { type: 'applyRange' })).toBe(false)
-    expect(store.getter(chartSettingsAtom)).toMatchObject({ error: 'Enter a range such as B2:D10.' })
+    expect(store.getter(chartSettingsAtom))
+      .toMatchObject({ error: 'Enter a range such as B2:D10, a table or a defined name.' })
     // Typing again clears the message.
     await store.setter(updateChartSettingsAtom, { type: 'rangeDraft', text: 'A1' })
     expect(store.getter(chartSettingsAtom)).toMatchObject({ error: null })

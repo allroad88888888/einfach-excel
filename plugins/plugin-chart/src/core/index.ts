@@ -30,3 +30,10 @@ export { recommendChart } from './recommend'
 export { QUICK_LAYOUTS, quickLayoutParts, quickLayoutPatch, type LayoutWords,
   type QuickLayout } from './quick-layouts'
 export { chartHiddenFromSnapshot, visibleChartGrid, type ChartHidden } from './visible-grid'
+export { parseChartSource, resolveChartSource, SOURCE_MISSING, tableOfArea,
+  type ChartSourceRef, type SourceCatalog, type SourceResolution } from './data-source'
+export { chartAreas, chartSourceCatalogAtom } from './source-catalog'
+export { cellRanges, pointCell, sourceRoles, sourceTable, type SourceCell,
+  type SourceRoles } from './source-cells'
+export { chartPointAtom, chartSourceHighlightsAtom, selectChartPointAtom,
+  syncChartHighlightsAtom, type ChartPointSelection } from './source-highlights'

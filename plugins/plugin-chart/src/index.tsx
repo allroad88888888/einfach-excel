@@ -1,5 +1,6 @@
 import type { SpreadsheetPlugin } from '@einfach-excel/react-excel'
 import { ChartSettingsPanel } from './ChartSettingsPanel'
+import { ChartSourceHighlights } from './ChartSourceHighlights'
 import { ChartView } from './ChartView'
 import { CHART_KIND } from './core'
 import { InsertChartTools } from './InsertChartTools'
@@ -10,6 +11,6 @@ export const chartPlugin: SpreadsheetPlugin = {
   id: 'chart',
   ribbon: [{ id: 'chart.insert', tab: 'Insert', Group: InsertChartTools }],
   drawings: [{ kind: CHART_KIND, label: labels.chart, Renderer: ChartView }],
-  panels: [ChartSettingsPanel],
+  panels: [ChartSettingsPanel, ChartSourceHighlights],
   messages,
 }

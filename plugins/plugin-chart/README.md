@@ -42,6 +42,11 @@ ECharts 只在本包依赖，按需注册柱、线、饼、散点及标题、图
 移动平均，可显示公式与 R²，插件自己做最小二乘回归，类别图的 x 取 1、2、3…）；整图误差线（固定值、百分比、
 标准偏差（画在系列平均值处）、标准误差，正负 / 正 / 负）。
 插入：选中区域（可 Ctrl 多选）后在「插入」分组选类型或 ★ 推荐；按 Excel 规则猜表头与系列方向，放在选区右侧。
+数据源：区域栏也可填表格或已定义名称（`Sales`、`Data!Sales`、`Table1`、`Table1[Revenue]`、
+`Table1[[Month]:[West]]`），每次读数据按当前目录解析，表格扩行、名称改指向后图表跟着变；
+从正好是一个表格的选区插入时自动引用表名（同 Excel）。宿主 API 在 `spec.source` 里给名称即可。
+联动：选中图表时按 Excel 的配色标出数据源（系列名红、类别紫、数值蓝，走宿主高亮层，宿主自己的
+高亮保留）；点击柱子、扇区、散点等数据点再标出它的单元格，点空白处取消。
 对象：双击打开设置；拖动、缩放、Delete、右键菜单与 Ctrl/⌘+C/X/V、置于顶层/底层；设置栏可复制图片、下载 PNG 或 SVG（浏览器内离屏重画，不走网络）。
 
 ## 载荷字段
@@ -67,6 +72,7 @@ ECharts 只在本包依赖，按需注册柱、线、饼、散点及标题、图
 | `trendlines` | 按系列 `{ kind: linear \| exponential \| logarithmic \| polynomial \| power \| movingAverage, order: 2–6, period: 2–255, showEquation, showR2 }` 或 null | 空 |
 | `errorBars` | `{ kind: fixed \| percent \| stdDev \| stdErr, amount ≥ 0, direction: both \| plus \| minus }` 或 null | null |
 | `palette` | office、colorful、warm、cool、blue、orange、green、gray（色表与 `src/core/convert/theme.ts` 一致） | office |
+| `source` | 表格或已定义名称；空串表示用对象的 `refs`（引用名称时 `refs` 是上次解析的缓存，XLSX 导出按当前名称重新解析） | 空 |
 
 数据区域在对象的 `refs` 里：多块区域先拼成一张表（同高左右拼、同宽上下拼），再按 `seriesIn`、
 `headerRow`、`headerCol` 切出类别与系列。

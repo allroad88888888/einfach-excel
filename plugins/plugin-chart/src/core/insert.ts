@@ -7,6 +7,8 @@ import {
 import { areaLayout, combineAreaGrids, validateChartAreas } from './areas'
 import { buildChartDrawing, nextChartId } from './chart-drawing'
 import { chartGridFromSnapshot } from './data'
+import { tableOfArea } from './data-source'
+import { chartSourceCatalogAtom } from './source-catalog'
 import { toCellRange } from './range-text'
 import type { ChartType } from './spec'
 
@@ -48,7 +50,11 @@ export const insertChartAtom = atom(null,
     const grid = combineAreaGrids(reads.flatMap((read, index) => read.status === 'ok'
       ? [chartGridFromSnapshot(read.snapshot, areas[index]!)] : []), areaLayout(areas)!)
     const id = nextChartId(get(sheetDrawingsAtom))
-    const drawing = buildChartDrawing({ id, areas, grid, requested })
+    const built = buildChartDrawing({ id, areas, grid, requested })
+    // 选区正好是一个表格时引用表名，之后表格扩行图表跟着扩。
+    const table = areas.length === 1 ? tableOfArea(areas[0]!, get(chartSourceCatalogAtom)) : null
+    const drawing = table ? { ...built, payload: { ...built.payload as object, source: table } }
+      : built
     const changed = await set(changeSheetDrawingAtom, { type: 'set', drawing })
     if (changed) set(selectDrawingAtom, id)
     // 受保护的表等由 Rust 拒绝；把原因带回插入按钮旁。

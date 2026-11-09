@@ -12,7 +12,7 @@ export function scatterOption(input: ConvertInput): ChartOption {
     data: entry.values.flatMap((y, index): ChartPoint[] => {
       const x = xs[index]
       return x === null || x === undefined || y === null
-        ? [] : [{ value: [x, y], label: entry.labels[index] ?? '' }]
+        ? [] : [{ value: [x, y], label: entry.labels[index] ?? '', slot: index }]
     }),
   }))
   return {

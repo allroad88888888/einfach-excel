@@ -7,6 +7,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { areaLayout, combineAreaGrids, combineAreaHidden, MAX_CHART_CELLS } from './areas'
 import { rangeCellCount, toCellRange } from './range-text'
+import { chartAreas } from './source-catalog'
 import type { ChartCell, ChartGrid } from './series-layout'
 import { chartHiddenFromSnapshot, type ChartHidden } from './visible-grid'
 
@@ -76,15 +77,19 @@ export const loadChartGridAtom = atom(null,
   const result = get(projectionSnapshotAtom).result
   const revision = result?.kind === 'visible-window' ? result.revision : undefined
   if (!connection || !sheet || revision === undefined) return
-  const key = JSON.stringify(drawing.refs)
+  const resolved = chartAreas(get, drawing)
+  const refs = resolved.status === 'ok' ? resolved.areas
+    : resolved.status === 'refs' ? resolved.refs : []
+  const key = JSON.stringify(resolved.status === 'error' ? resolved : refs)
   const current = get(cacheAtom)[drawing.id]
   if (current?.connection === connection && current.sheetId === sheet.id &&
     current.revision === revision && current.range === key) return
   const base = { connection, sheetId: sheet.id, revision, range: key }
   const publish = (entry: ChartGridEntry) =>
     set(cacheAtom, { ...get(cacheAtom), [drawing.id]: { ...base, ...entry } })
-  const areas = drawing.refs.filter((range): range is DrawingRange => range !== null)
-  if (!areas.length || areas.length !== drawing.refs.length)
+  if (resolved.status === 'error') return publish({ status: 'error', error: resolved.error })
+  const areas = refs.filter((range): range is DrawingRange => range !== null)
+  if (!areas.length || areas.length !== refs.length)
     return publish({ status: 'error', error: 'The chart data range was deleted.' })
   // 跨表区域：那张表被删时显示 #REF!；撤销删表后修订变化会再读。
   const live = new Set(get(workbookDocumentAtom).sheets.map((entry) => entry.id))

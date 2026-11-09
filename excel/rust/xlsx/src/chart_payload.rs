@@ -46,6 +46,15 @@ pub struct ChartPayload {
     /// office / colorful / warm / cool / blue / orange / green / gray
     #[serde(deserialize_with = "tolerant_palette")]
     pub palette: String,
+    /// 非空时数据取自表 / 命名区域而不是 `refs`；导出时按当前工作簿重新解析（见 write/charts/source.rs）。
+    #[serde(deserialize_with = "tolerant_source")]
+    pub source: String,
+}
+
+/// 非字符串按空串（回落 `refs`）。
+fn tolerant_source<'de, D: serde::Deserializer<'de>>(de: D) -> Result<String, D::Error> {
+    let value = serde_json::Value::deserialize(de)?;
+    Ok(value.as_str().unwrap_or("").to_string())
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -82,6 +91,7 @@ impl Default for ChartPayload {
             trendlines: Vec::new(),
             error_bars: None,
             palette: "office".into(),
+            source: String::new(),
         }
     }
 }
@@ -112,5 +122,14 @@ mod tests {
         assert_eq!(json["type"], "line");
         assert_eq!(json["seriesIn"], "columns");
         assert_eq!(json["yMin"], serde_json::Value::Null);
+        assert_eq!(json["source"], "");
+    }
+
+    #[test]
+    fn source_is_tolerant() {
+        let read = |value| ChartPayload::from_value(&serde_json::json!({"source": value})).source;
+        assert_eq!(read(serde_json::json!("Sales[Q1]")), "Sales[Q1]");
+        assert_eq!(read(serde_json::json!(5)), "");
+        assert_eq!(read(serde_json::json!(null)), "");
     }
 }

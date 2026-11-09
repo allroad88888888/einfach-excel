@@ -101,6 +101,10 @@ const errors: Record<string, string> = {
   'Select the chart data first, including headers.': '请先选中图表数据（含标题行/列）。',
   'Choose at most 10,000 cells for a chart.': '图表数据最多 10,000 个单元格。',
   'Enter a range such as B2:D10.': '请输入区域，例如 B2:D10。',
+  'Enter a range such as B2:D10, a table or a defined name.':
+    '请输入区域（例如 B2:D10）、表格名或已定义名称。',
+  'The chart data table or name does not exist.': '图表引用的表格或名称不存在。',
+  'The chart data name must refer to a range.': '图表引用的名称必须指向一个区域。',
   'The chart data range was deleted.': '图表的数据区域已被删除。',
   'The chart data worksheet was deleted.': '图表数据所在的工作表已被删除。',
   'The object data worksheet does not exist.': '图表数据所在的工作表不存在。',

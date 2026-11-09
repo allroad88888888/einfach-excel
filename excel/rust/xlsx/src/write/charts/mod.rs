@@ -13,6 +13,7 @@ mod radar;
 mod scatter;
 pub(crate) mod series;
 mod series_xml;
+pub(crate) mod source;
 mod stock;
 
 pub use cache::add_caches;

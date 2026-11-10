@@ -1,5 +1,29 @@
 # @einfach-excel/react-excel
 
+## 1.0.0
+
+### Minor Changes
+
+- 88501e1: Add `createWorkbookApi(store)` for explicit worksheet/range operations, navigation, editing,
+  native history, before-change cancellation, and interaction subscriptions. Preserve native
+  commit outcomes, worksheet identities, navigation, and unrelated geometry during API updates.
+
+  Add stable ribbon item visibility controls, configurable row/column header dimensions,
+  and clipped Canvas cell painting hooks to the React spreadsheet.
+
+  Add host highlights, pixel visibility queries, formula dialog controls, and nested draw/calculation
+  suspension. Add native rich text runs with history and content movement, a segment editor,
+  DOM/Canvas rendering, and native-file/XLSX round trips.
+
+  Keep plain cell text on the direct rendering path and reserve a bounded six-screen
+  vertical projection buffer so coalesced wheel input does not outrun painted cells.
+
+### Patch Changes
+
+- Updated dependencies [88501e1]
+- Updated dependencies [c316273]
+  - @einfach-excel/spreadsheet-ui-core@0.3.0
+
 ## 0.1.0
 
 ### Minor Changes

@@ -208,12 +208,17 @@ Shift 行列头扩选分别验收，不能互相替代。`e2e` 命令会先检�
 CI 也运行此元数据门禁。历史细项仍在逐项回填，不凭 E2E 总数宣称所有交互已覆盖。
 真实执行后用 `pnpm check:e2e-features --results /path/to/playwright.json` 核对报告中的逐项结果。
 
-日常 E2E 本地默认 2 个 worker，CI 每个 runner 默认 1 个，通过 4 个 runner 并发；文件内保持顺序，
+E2E 分两个 Playwright 项目：`build` 先用 `vite.e2e.config.ts` 把 demo 和 `e2e/` 下的宿主页面打成
+生产包再 `vite preview`，验收用户实际拿到的摇树与 CSS 结果；`dev` 只跑直接请求 dev server 地址
+（`/@fs/…`、`?worker` 源码、预打包依赖）的用例，由 `playwright.dev-specs.ts` 扫描源码自动归类，
+不需要手工登记。改了源码后重跑 e2e 会重新构建；`REACT_EXCEL_E2E_REUSE_SERVER=1` 复用的是旧产物。
+
+日常 E2E 本地默认 2 个 worker，CI 每个 runner 默认 1 个，通过 8 个 runner 并发；文件内保持顺序，
 可用 `--workers=4` 覆盖，但应按机器内存实测，避免同时加载多份 WASM 后反而变慢。
 每个用例使用独立浏览器上下文，截图／下载写入各自的测试目录；
 同一运行的 worker 共用只读页面服务，不为每个 worker 重建消费者。
 不要同时启动两个使用默认端口和输出目录的本地 E2E 命令。
 
-CI 将全量按文件拆为 4 个独立 runner，分别准备真实包消费者，保留各分片的 blob 和失败证据。
+CI 将全量按文件拆为 8 个独立 runner，分别准备真实包消费者，保留各分片的 blob 和失败证据。
 全部分片结束后合并为一份 JSON，再运行上述功能结果门禁；缺少分片报告、任一分片失败，或已登记
 主用例失败／跳过／重试，都不能通过汇总门禁。串行专项保持独立，不把日常并发通过当作历史偶发卡顿已修复。

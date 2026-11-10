@@ -26,8 +26,10 @@
     "./e2e/**/*.ts",
     "./e2e/**/*.tsx",
     "./playwright.config.ts",
+    "./playwright.dev-specs.ts",
     "./lingui.config.ts",
     "./vite.config.ts",
+    "./vite.e2e.config.ts",
     "./vitest.config.ts"
   ]
 }

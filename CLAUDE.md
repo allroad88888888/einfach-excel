@@ -60,8 +60,9 @@ npm run build:wasm:full -w @einfach-excel/excel-wasm   # --features regex-formul
 
 pre-commit（husky）：改到 WASM 导出时先跑 `wasm_public_api_signatures_unchanged`，再依次跑
 check:docs、check:presentation、lint:check、typecheck:mainline、`vitest run --changed`。
-全量 build + Vitest、四分片浏览器回归和 Rust 测试在 CI（`.github/workflows/ci.yml`）；完整 e2e
-约 1.5 小时，大改动提交前自己跑一次全量 `npm test` 可以省一轮 CI 返工。
+全量 build + Vitest、八分片浏览器回归和 Rust 测试在 CI（`.github/workflows/ci.yml`）；e2e 默认跑
+生产包（`build` 项目），只有请求 dev server 地址的用例自动归到 `dev` 项目（`playwright.dev-specs.ts`）。
+完整 e2e 本地 2 worker 约半小时，大改动提交前自己跑一次全量 `npm test` 可以省一轮 CI 返工。
 
 ## Monorepo Structure (pnpm workspaces: `excel/*`, `packages/*`, `plugins/*`)
 

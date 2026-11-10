@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { listSpecFiles, planShards, toFileFilters } from './e2e-shard-plan.mjs'
-import { fileDurations } from './e2e-shard-timings.mjs'
+import { averageDurations, fileDurations } from './e2e-shard-timings.mjs'
 
 test('every file lands in exactly one shard and slow files are spread out', () => {
   const timings = { 'a.spec.ts': 100, 'b.spec.ts': 90, 'c.spec.ts': 10, 'd.spec.ts': 10, 'e.spec.ts': 10 }
@@ -42,4 +42,10 @@ test('timings keep only the first attempt of each test, summed per file', () => 
     { file: 'a.spec.ts', tests: [{ results: [{ duration: 500 }] }] },
   ], suites: [{ specs: [{ file: 'b.spec.ts', tests: [{ results: [{ duration: 250 }] }] }] }] }] }
   assert.deepEqual(fileDurations(report), { 'a.spec.ts': 2, 'b.spec.ts': 0.3 })
+})
+
+test('several reports average per file, counting only the runs that contain it', () => {
+  const run = (file, ms) => ({ suites: [{ specs: [{ file, tests: [{ results: [{ duration: ms }] }] }] }] })
+  const both = { suites: [...run('a.spec.ts', 4000).suites, ...run('b.spec.ts', 3000).suites] }
+  assert.deepEqual(averageDurations([both, run('a.spec.ts', 2000)]), { 'a.spec.ts': 3, 'b.spec.ts': 3 })
 })

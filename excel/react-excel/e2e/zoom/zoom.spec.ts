@@ -61,6 +61,9 @@ test('ctrl wheel over the grid zooms the sheet without zooming the page', async 
 
 test('pointer selection, fill drag and column resize hit the cells under the pointer at 150 percent',
   async ({ page }) => {
+    // 720px 高时 150% 下 F10 落在可视区底边以下，拖选会触发边缘自动滚动，
+    // 输入稍慢就多滚一行成 F11；1000px 高让拖拽终点留在可视区且避开 48px 边缘区。
+    await page.setViewportSize({ width: 1280, height: 1000 })
     await zoomGroup(page).getByRole('slider', { name: 'Zoom level' }).fill('150')
     await expect(scroll(page)).toHaveAttribute('data-zoom', '150')
 

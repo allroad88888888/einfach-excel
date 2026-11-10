@@ -213,7 +213,7 @@ E2E 分两个 Playwright 项目：`build` 先用 `vite.e2e.config.ts` 把 demo �
 （`/@fs/…`、`?worker` 源码、预打包依赖）的用例，由 `playwright.dev-specs.ts` 扫描源码自动归类，
 不需要手工登记。改了源码后重跑 e2e 会重新构建；`REACT_EXCEL_E2E_REUSE_SERVER=1` 复用的是旧产物。
 
-日常 E2E 本地默认 2 个 worker，CI 每个 runner 默认 1 个，通过 8 个 runner 并发；文件内保持顺序，
+日常 E2E 本地和 CI 都默认 2 个 worker，CI 再通过 8 个 runner 并发；文件内保持顺序，
 可用 `--workers=4` 覆盖，但应按机器内存实测，避免同时加载多份 WASM 后反而变慢。
 每个用例使用独立浏览器上下文，截图／下载写入各自的测试目录；
 同一运行的 worker 共用只读页面服务，不为每个 worker 重建消费者。

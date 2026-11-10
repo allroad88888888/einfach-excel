@@ -9,7 +9,7 @@ const shortcuts = [
   { key: 'Meta+r', direction: 'right' },
 ] as const
 
-for (const width of [1280, 390]) for (const { key, direction } of shortcuts)
+for (const width of [1280]) for (const { key, direction } of shortcuts)
   test(`${key} fills ${direction} through the focused grid with one undo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

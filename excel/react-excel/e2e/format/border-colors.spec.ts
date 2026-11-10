@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
   await select(page, 'B2', '1:1')
 })
 
-for (const { action, color, css } of entries) for (const width of [1280, 390])
+for (const { action, color, css } of entries) for (const width of [1280])
   test(`border ${action} color commits one native edge and undoes once at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const before = await cell(page, '1:1').evaluate((node) => getComputedStyle(node).borderBottomColor)

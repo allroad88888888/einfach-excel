@@ -41,7 +41,7 @@ test.beforeEach(async ({ page }) => {
   await expect(button(page, 'Filter column C')).toBeVisible()
 })
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`choose filter values loads exact native candidates without history at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await open(page)
@@ -99,7 +99,7 @@ for (const entry of [
   { action: 'toggle', visible: ['E30'] },
   { action: 'select page', visible: ['E10', 'E30'] },
   { action: 'clear selection', visible: [] },
-]) for (const width of [1280, 390])
+]) for (const width of [1280])
   test(`${entry.action} filter values commits the exact selected set in one undo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await open(page)

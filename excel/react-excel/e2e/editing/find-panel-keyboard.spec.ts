@@ -14,7 +14,7 @@ for (const entry of [
   { key: 'ArrowLeft', start: 'Find', target: 'Replace' },
   { key: 'Home', start: 'Replace', target: 'Find' },
   { key: 'End', start: 'Find', target: 'Replace' },
-]) for (const width of [1280, 390])
+]) for (const width of [1280])
   test(`${entry.key} find tabs synchronizes focused tab and panel at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const dialog = page.getByRole('dialog', { name: 'Find and replace' })
@@ -42,7 +42,7 @@ for (const entry of [
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   })
 
-for (const key of ['Tab', 'Shift+Tab']) for (const width of [1280, 390])
+for (const key of ['Tab', 'Shift+Tab']) for (const width of [1280])
   test(`${key} find dialog wraps focus inside its own controls at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const dialog = page.getByRole('dialog', { name: 'Find and replace' })

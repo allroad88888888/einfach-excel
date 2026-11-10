@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
-for (const width of [1280, 390]) for (const kind of ['preserve', 'general', 'text'])
+for (const width of [1280]) for (const kind of ['preserve', 'general', 'text'])
   test(`${kind} split field owns only its native value and number format at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

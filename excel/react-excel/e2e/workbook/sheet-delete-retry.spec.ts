@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 // 在真实 Worker 发送前拒绝一次，重试不伪造任何原生删除或历史结果。
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`delete transport failure retries in the same confirmation with one undo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

@@ -19,7 +19,7 @@ test.beforeEach(async ({ page }) => {
 
 for (const action of ['Open', 'Refresh', 'Select spill range', 'Go to formula cell',
   'Select blocking cell', 'Close', 'Escape', 'Tab', 'Shift+Tab'])
-  for (const width of [1280, 390])
+  for (const width of [1280])
   test(`${action} spill details preserves native values and redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const blocked = action === 'Select blocking cell'

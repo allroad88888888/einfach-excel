@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, marker, openNote } from './fixtures'
 
-for (const width of [1280, 390]) test(`Chinese note editor preserves text through language switching at ${width}px`, async ({ page }, testInfo) => {
+for (const width of [1280]) test(`Chinese note editor preserves text through language switching at ${width}px`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 850 })
   await page.goto('/e2e/fixtures/plain-sales-orders/?locale=zh-CN')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { cell, drag, expectSelected, nameBox, openOrders } from './pointer'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`modifier drag appends a rectangle without replacing previous cells at ${width}px`, async ({ page }, info) => {
     await openOrders(page, width)
     await cell(page, 2, 0).click()

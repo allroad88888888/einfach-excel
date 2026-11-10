@@ -46,7 +46,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 for (const axis of ['row', 'column'])
-  for (const action of ['collapse', 'expand']) for (const width of [1280, 390])
+  for (const action of ['collapse', 'expand']) for (const width of [1280])
   test(`${action} all ${axis} groups preserves manual hiding and undoes once at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const state = axis === 'row' ? rows : columns

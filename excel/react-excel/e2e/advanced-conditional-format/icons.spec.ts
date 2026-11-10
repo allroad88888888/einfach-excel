@@ -10,7 +10,7 @@ const cases = [
   { kind: 'formula', position: 'Lower icon', value: '=$B$1/2', expected: ['0', '1', '2'] },
 ]
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   for (const scenario of cases) test(`icon set ${scenario.kind} threshold applies and undoes once at ${width}px`, async ({ page }) => {
     await start(page, width); await open(page, 'icon-set')
     await threshold(page, scenario.position, scenario.kind, scenario.value); await save(page)

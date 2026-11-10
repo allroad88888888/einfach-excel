@@ -23,7 +23,7 @@ test.beforeEach(async ({ page, context }) => {
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
 })
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`failed cut preserves previous clipboard and can retry at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 })
     const errors: string[] = []

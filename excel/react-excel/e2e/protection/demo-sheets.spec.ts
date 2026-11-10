@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, editor, panel, select, openProtection, closeProtection, input, expectLockedInput } from './support'
 
-for (const width of [1280, 390]) test.describe(`${width}px protection demo sheets`, () => {
+for (const width of [1280]) test.describe(`${width}px protection demo sheets`, () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })

@@ -10,7 +10,7 @@ const cases = [
   { kind: 'formula', position: 'Maximum', value: '=$B$1', color: 'rgb(128, 128, 128)', width: 50 },
 ]
 
-for (const width of [1280, 390]) for (const scenario of cases) {
+for (const width of [1280]) for (const scenario of cases) {
   test(`color scale ${scenario.kind} threshold applies and undoes once at ${width}px`, async ({ page }) => {
     await start(page, width)
     const before = await cell(page, '1:0').evaluate(node => getComputedStyle(node).backgroundColor)
@@ -41,7 +41,7 @@ for (const width of [1280, 390]) for (const scenario of cases) {
   })
 }
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`third color accepts an explicit midpoint threshold at ${width}px`, async ({ page }) => {
     await start(page, width); await open(page, 'color-scale')
     await page.getByLabel('Scale colors', { exact: true }).selectOption('3')

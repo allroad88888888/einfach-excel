@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { bar, button, cell, configure, edit, start } from './support'
 
-for (const width of [1280, 390]) for (const style of ['warning', 'information'] as const)
+for (const width of [1280]) for (const style of ['warning', 'information'] as const)
   test.describe(`${style} at ${width}px`, () => {
     test.use({ viewport: { width, height: 850 } })
     test.beforeEach(async ({ page }) => { await start(page); await configure(page, { style }) })

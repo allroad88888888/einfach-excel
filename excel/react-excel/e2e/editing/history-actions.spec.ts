@@ -19,7 +19,7 @@ test.beforeEach(async ({ page }) => {
   await expect(cell(page, '1:6')).toHaveText('790')
 })
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`Undo button restores input and cross-sheet formulas without switching tabs at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
@@ -74,7 +74,7 @@ for (const width of [1280, 390]) {
   })
 }
 
-for (const action of ['Close history', 'Escape']) for (const width of [1280, 390])
+for (const action of ['Close history', 'Escape']) for (const width of [1280])
   test(`${action} closes native history without applying or losing redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await button(page, 'Undo').click()

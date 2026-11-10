@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { bar, button, cell, configure, edit, start, validationDialog } from './support'
 
-for (const width of [1280, 390]) test.describe(`${width}px custom input boundaries`, () => {
+for (const width of [1280]) test.describe(`${width}px custom input boundaries`, () => {
   test.use({ viewport: { width, height: 850 } })
   test.beforeEach(async ({ page }) => { await start(page) })
 

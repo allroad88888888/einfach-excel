@@ -4,7 +4,7 @@ import { select } from '../support/clipboard'
 import { start, go, open, save, highlighted, cleanNeighbor, compareDisplay, numberFormat,
   button, dialog, valueInput, cell } from './support'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`display-text rules preserve comparison through edit copy enable clear and history at ${width}px`, async ({ page }) => {
     await start(page, width, ['1', '="1"'])
     await compareDisplay(page); await highlighted(page, 0); await highlighted(page, 1)

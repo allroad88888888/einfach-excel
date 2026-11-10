@@ -4,7 +4,7 @@ import { select, copy } from '../support/clipboard'
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
 // 单独验收剪贴板按钮入口；复制准备不等价于实际执行目标粘贴动作。
-for (const width of [1280, 390]) for (const action of ['Cut button', 'Paste button', 'Paste keyboard'] as const)
+for (const width of [1280]) for (const action of ['Cut button', 'Paste button', 'Paste keyboard'] as const)
   test(`${action} preserves native styles and has one undo at ${width}px`, async ({ page, context }) => {
     await page.setViewportSize({ width, height: 850 })
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])

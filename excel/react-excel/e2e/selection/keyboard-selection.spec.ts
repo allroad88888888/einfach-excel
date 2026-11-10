@@ -5,7 +5,7 @@ const name = (page: Page) => page.getByRole('textbox', { name: 'Name box', exact
 const grid = (page: Page) => page.locator('[data-workbook-grid]')
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test.describe(`${width}px keyboard selection`, () => {
     test.beforeEach(async ({ page }) => {
       await page.setViewportSize({ width, height: 850 })

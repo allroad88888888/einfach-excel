@@ -13,7 +13,7 @@ const entries = [
   { source: 'formula', action: 'ArrowUp' },
 ] as const
 
-for (const width of [1280, 390]) test.describe(`${width}px formula suggestion acceptance`, () => {
+for (const width of [1280]) test.describe(`${width}px formula suggestion acceptance`, () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

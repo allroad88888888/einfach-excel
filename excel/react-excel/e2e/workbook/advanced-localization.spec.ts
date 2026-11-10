@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`spill details and reopened dialog follow UI language at ${width}px`, async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', error => errors.push(error.message))

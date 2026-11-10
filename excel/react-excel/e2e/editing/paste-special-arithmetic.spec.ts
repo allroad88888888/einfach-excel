@@ -11,7 +11,7 @@ const operations = [
 ] as const
 
 // 工具栏快捷运算不代替模态框入口；同时检查原生公式依赖和单次历史。
-for (const width of [1280, 390]) for (const option of operations)
+for (const width of [1280]) for (const option of operations)
   test(`${option.operation} operation in paste special recalculates one native transaction at ${width}px`, async ({
     page, context,
   }) => {

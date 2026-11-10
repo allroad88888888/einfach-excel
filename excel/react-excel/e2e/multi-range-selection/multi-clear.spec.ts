@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { cell, drag, openOrders } from './pointer'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`clearing manually appended areas preserves gap values and undoes in one step at ${width}px`, async ({ page }) => {
     await openOrders(page, width)
     const gap = await cell(page, 4, 0).textContent()

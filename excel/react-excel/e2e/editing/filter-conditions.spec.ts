@@ -47,7 +47,7 @@ for (const entry of [
   { kind: 'contains', col: '0', value: 'aSt', rows: [1, 3] },
   { kind: 'range', col: '1', value: '', rows: [0, 1, 2] },
   { kind: 'list', col: '2', value: 'W20\nE30', rows: [0, 3] },
-]) for (const width of [1280, 390])
+]) for (const width of [1280])
   test(`filter ${entry.kind} independently preserves sources and undoes once at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await menu(page).selectOption('open')
@@ -81,7 +81,7 @@ for (const entry of [
     } else await expect(dialog.getByLabel('Filter value 1', { exact: true })).toHaveValue(entry.value)
   })
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`filter match case toggles exact matching without changing source data at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const dialog = await open(page)

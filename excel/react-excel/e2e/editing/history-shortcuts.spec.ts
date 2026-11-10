@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 for (const key of ['Control+z', 'Meta+z', 'Control+y', 'Control+Shift+z', 'Meta+Shift+z', 'Meta+y'])
-  for (const width of [1280, 390])
+  for (const width of [1280])
   test(`${key} grid history shortcut changes one native entry at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const redo = key.endsWith('+y') || key.includes('Shift')

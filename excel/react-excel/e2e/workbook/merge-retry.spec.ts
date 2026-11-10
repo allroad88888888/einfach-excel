@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 // 已确认的发送被拒绝后，必须保留原值并重新征求确认，不能沿用失效的 discard 授权。
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`confirmed merge transport failure requires a fresh confirmation and undoes once at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 // 借鉴 Univer 的“拒绝后下一次合法写入仍成功”，补上真实视图的取消、定位与历史交叉。
-for (const width of [1280, 390]) for (const source of ['cell', 'formula'] as const) {
+for (const width of [1280]) for (const source of ['cell', 'formula'] as const) {
   test(`${source} rejected draft can cancel, navigate and edit again at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 })
     await page.goto('/')

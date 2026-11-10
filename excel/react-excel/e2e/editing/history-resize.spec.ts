@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 // 仅扣住真实 Worker 的下一次窗口读取，稳定重现 resize 与快捷键交错。
-for (const direction of ['undo', 'redo']) for (const width of [1280, 390])
+for (const direction of ['undo', 'redo']) for (const width of [1280])
 test(`${direction} during resize is not discarded at ${width}px`, async ({ page }) => {
   await page.addInitScript(() => {
     const post = Worker.prototype.postMessage

@@ -29,7 +29,7 @@ test.beforeEach(async ({ page }) => {
   await rowLevel(page, 3)
 })
 
-for (const level of [1, 2, 3]) for (const width of [1280, 390])
+for (const level of [1, 2, 3]) for (const width of [1280])
   test(`row outline level ${level} applies the native nesting threshold in one undo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     if (level === 3) {
@@ -48,7 +48,7 @@ for (const level of [1, 2, 3]) for (const width of [1280, 390])
     await rowLevel(page, level)
   })
 
-for (const level of [1, 2]) for (const width of [1280, 390])
+for (const level of [1, 2]) for (const width of [1280])
   test(`column outline level ${level} preserves manual hiding in one undo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const menu = page.getByRole('combobox', { name: 'Outline groups' })

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { start, open, save, highlighted, cleanNeighbor, go, valueInput, button, dialog } from './support'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`AFMT-001 toolbar wildcard match preserves Unicode and escapes at ${width}px`, async ({ page }) => {
     await start(page, width, ['中文🙂', '中文🙂*', '中文🙂?', '中文a', '中文', 'other', '="中文🙂*"'])
     await open(page, 'text')

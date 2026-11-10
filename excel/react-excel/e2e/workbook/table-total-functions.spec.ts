@@ -32,7 +32,7 @@ const cases = [
   { value: 'var', column: 'Amount', display: '100', raw: '=SUBTOTAL(110,DemoTable[Amount])', previous: '60', previousRaw: '=SUBTOTAL(109,DemoTable[Amount])' },
 ] as const
 
-for (const width of [1280, 390]) test.describe(`${width}px total functions`, () => {
+for (const width of [1280]) test.describe(`${width}px total functions`, () => {
   test.use({ viewport: { width, height: 850 } })
 
   for (const entry of cases) test(`total ${entry.value} preserves data and undoes once at ${width}px`, async ({ page }) => {

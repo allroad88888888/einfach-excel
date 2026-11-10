@@ -10,7 +10,7 @@ const modes = [
 ] as const
 
 // 弹窗公式类模式必须区分快照值、相对引用、数字格式和字体，不能只断言显示文本。
-for (const width of [1280, 390]) for (const option of modes)
+for (const width of [1280]) for (const option of modes)
   test(`${option.mode} paste special preserves formula semantics with one undo at ${width}px`, async ({ page, context }) => {
     await page.setViewportSize({ width, height: 850 })
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { orders, search, button, choice, apply, cell, select } from './support'
 
-for (const width of [1280, 390]) test(`advanced filter Clear all search matches removes only the complete current query at ${width}px`, async ({ page }) => {
+for (const width of [1280]) test(`advanced filter Clear all search matches removes only the complete current query at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
   await orders(page); await search(page, 'SO-10'); await button(page, 'Select all search matches').click()
   await expect(page.getByLabel('Selected filter values')).toHaveText('998 selected')

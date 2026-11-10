@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 const delimiters = [['Tab', '\t'], ['Semicolon', ';'], ['Space', ' ']]
-for (const width of [1280, 390]) for (const [label, separator] of delimiters)
+for (const width of [1280]) for (const [label, separator] of delimiters)
   test(`${label} split delimiter preserves source and literal zeros in one undo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

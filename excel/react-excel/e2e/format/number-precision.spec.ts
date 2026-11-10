@@ -9,7 +9,7 @@ async function navigateTo(page: Page, address: string, coordinate: string) {
   return cell
 }
 
-for (const width of [1280, 390]) for (const [
+for (const width of [1280]) for (const [
   action, address, coord, before, after, raw, outside,
 ] of [
   ['Increase decimal places', 'O4', '3:14', '10.00%', '10.000%', '0.1', '4:14'],

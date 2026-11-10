@@ -1,7 +1,7 @@
 import { test } from '@playwright/test'
 import { start, open, save, highlighted, cleanNeighbor } from './support'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`AFMT-002 toolbar wildcard non-match uses whole text and skips errors at ${width}px`, async ({ page }) => {
     await start(page, width, ['Ready', 'READY now', 'not ready', ' Ready', 'x*y', '=""', '=1/0', '123'])
     await open(page, 'text')

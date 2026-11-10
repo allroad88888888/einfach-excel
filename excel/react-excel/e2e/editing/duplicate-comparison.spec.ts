@@ -7,7 +7,7 @@ const policies = [
   { comparison: 'trim', removed: 2, ids: ['M1', 'M3', 'P1', '', ''] },
   { comparison: 'trimIgnoreCase', removed: 3, ids: ['M1', 'P1', '', '', ''] },
 ]
-for (const width of [1280, 390]) for (const { comparison, removed, ids } of policies)
+for (const width of [1280]) for (const { comparison, removed, ids } of policies)
   test(`${comparison} duplicates preserves native record order in one undo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

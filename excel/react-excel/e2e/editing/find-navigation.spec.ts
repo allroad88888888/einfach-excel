@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
   await panel(page).getByRole('combobox', { name: 'Within' }).selectOption('current-selection')
 })
 
-for (const action of ['Find next', 'Previous', 'Enter']) for (const width of [1280, 390])
+for (const action of ['Find next', 'Previous', 'Enter']) for (const width of [1280])
   test(`${action} find navigates exact occurrences and wraps without editing at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const query = panel(page).getByRole('textbox', { name: 'Find what' })

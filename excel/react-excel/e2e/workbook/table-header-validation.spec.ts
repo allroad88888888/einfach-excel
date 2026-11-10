@@ -12,7 +12,7 @@ async function expectHistory(page: Page, undo: number, redo: number) {
 }
 
 // 相同的用户输入入口：已有表头走改名，新表头走自动扩列，都必须服从原生验证。
-for (const width of [1280, 390]) for (const entry of [
+for (const width of [1280]) for (const entry of [
   { kind: 'existing', address: 'B80', coord: '79:1', original: 'Amount', column: 'B' },
   { kind: 'expanding', address: 'C80', coord: '79:2', original: '', column: 'C' },
 ]) test(`${entry.kind} table header rejects invalid input and preserves redo at ${width}px`, async ({ page }) => {

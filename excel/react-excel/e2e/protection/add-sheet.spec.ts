@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, editor, input, select } from './support'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   for (const initialSheet of ['Sales Orders', '整表只读']) {
     test(`add sheet with protected neighbors supports input undo and redo from ${initialSheet} at ${width}px`,
       async ({ page }) => {

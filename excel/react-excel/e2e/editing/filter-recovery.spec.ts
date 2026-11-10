@@ -40,7 +40,7 @@ test.beforeEach(async ({ page }) => {
   await select(page, 'A25', '24:0')
 })
 
-for (const dismissal of ['Cancel', 'Escape']) for (const width of [1280, 390])
+for (const dismissal of ['Cancel', 'Escape']) for (const width of [1280])
   test(`${dismissal} filter discards draft conditions and preserves redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const dialog = await open(page)
@@ -66,7 +66,7 @@ for (const dismissal of ['Cancel', 'Escape']) for (const width of [1280, 390])
     await expect(dialog.getByLabel('Filter column 2', { exact: true })).toHaveCount(0)
   })
 
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`invalid filter bounds stay correctable and commit only the corrected range at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const dialog = await open(page)

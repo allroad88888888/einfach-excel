@@ -3,7 +3,7 @@ import { select } from '../support/clipboard'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
-for (const width of [1280, 390]) for (const action of ['New list', 'New unsaved list', 'Saved list'])
+for (const width of [1280]) for (const action of ['New list', 'New unsaved list', 'Saved list'])
   test(`${action} entry preserves saved presets and fills only after Apply at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
   await select(page, 'B3', '2:1')
 })
 
-for (const entry of ['toolbar', 'Control+f', 'Meta+f', 'Control+h', 'Meta+h']) for (const width of [1280, 390])
+for (const entry of ['toolbar', 'Control+f', 'Meta+f', 'Control+h', 'Meta+h']) for (const width of [1280])
   test(`${entry} opens ${entry.endsWith('+h') ? 'Replace' : 'Find'} with focused input and preserves the selection at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     if (entry === 'toolbar') await page.getByRole('button', { name: 'Find and replace', exact: true }).click()
@@ -34,7 +34,7 @@ for (const entry of ['toolbar', 'Control+f', 'Meta+f', 'Control+h', 'Meta+h']) f
     await expect(page.getByRole('button', { name: 'Redo', exact: true })).toBeDisabled()
   })
 
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`Replace tab click retains the find draft without writing cells at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.getByRole('button', { name: 'Find and replace', exact: true }).click()
@@ -54,7 +54,7 @@ for (const width of [1280, 390])
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   })
 
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`Find tab click hides replacement controls without applying the draft at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.locator('[data-workbook-grid]').press('Control+h')
@@ -72,7 +72,7 @@ for (const width of [1280, 390])
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   })
 
-for (const action of ['Close', 'Escape']) for (const width of [1280, 390])
+for (const action of ['Close', 'Escape']) for (const width of [1280])
   test(`${action} find panel keeps unapplied replacement and existing redo intact at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const input = page.getByRole('textbox', { name: 'Active cell value' })

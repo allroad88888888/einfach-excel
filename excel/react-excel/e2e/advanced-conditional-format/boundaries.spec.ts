@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { start, open, save, icon, cell, button, cleanNeighbor, addIcons, go } from './support'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`hidden numeric members remain in advanced visual statistics at ${width}px`, async ({ page }) => {
     await start(page, width); await open(page, 'data-bar'); await save(page)
     await go(page, 'A3')

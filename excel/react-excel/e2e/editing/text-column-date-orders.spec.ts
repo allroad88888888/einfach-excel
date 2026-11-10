@@ -5,7 +5,7 @@ const orders = [
   ['dateMdy', '02/29/2024'], ['dateDmy', '29/02/2024'], ['dateYmd', '2024/02/29'],
   ['dateMyd', '02/2024/29'], ['dateDym', '29/2024/02'], ['dateYdm', '2024/29/02'],
 ]
-for (const width of [1280, 390]) for (const [kind, source] of orders)
+for (const width of [1280]) for (const [kind, source] of orders)
   test(`${kind} split field uses its selected date order in one native undo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

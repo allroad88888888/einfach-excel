@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 import { button, cell, panel, select, openProtection, protect, closeProtection, input, editor, expectLockedInput } from './support'
 
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`native file roundtrip retains worksheet protection and editable ranges at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

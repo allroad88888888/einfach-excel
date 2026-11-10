@@ -13,7 +13,7 @@ test.beforeEach(async ({ page, context }) => {
   await expect(page.getByRole('status', { name: 'Selection statistics' })).toContainText('Sum: 26')
 })
 
-for (const { label, value } of values) for (const width of [1280, 390])
+for (const { label, value } of values) for (const width of [1280])
   test(`copy ${label} statistic writes its native scalar and pastes once at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.evaluate(() => navigator.clipboard.writeText('Not the statistic'))

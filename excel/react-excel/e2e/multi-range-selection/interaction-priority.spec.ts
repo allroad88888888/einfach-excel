@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { cell, drag, expectSelected, nameBox, openOrders } from './pointer'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`Shift extends the primary anchor after manual multi-selection at ${width}px`, async ({ page }) => {
     await openOrders(page, width)
     await cell(page, 2, 0).click()

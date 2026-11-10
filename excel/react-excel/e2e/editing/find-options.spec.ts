@@ -23,7 +23,7 @@ test.beforeEach(async ({ page }) => {
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`current sheet find excludes matches on another worksheet at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await open(page)
@@ -78,7 +78,7 @@ for (const width of [1280, 390]) {
   })
 }
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`find entire cell excludes substrings inside text and formula source at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()

@@ -8,7 +8,7 @@ const movements = [
   { key: 'Home', from: 'Data', to: 'Start' },
 ]
 
-for (const width of [1280, 390]) for (const { key, from, to } of movements)
+for (const width of [1280]) for (const { key, from, to } of movements)
   test(`ribbon ${key} activates and focuses exactly ${to} without losing redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

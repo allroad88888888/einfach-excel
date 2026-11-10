@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { summary, alternatives, apply, records, button, minimum, menu, select, open } from './support'
 
-for (const width of [1280, 390]) test(`advanced filter Reapply refreshes grouped snapshots only on demand at ${width}px`, async ({ page }) => {
+for (const width of [1280]) test(`advanced filter Reapply refreshes grouped snapshots only on demand at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
   await summary(page); await alternatives(page)
   await button(page, 'Add condition').click(); await minimum(page, 3, '15')

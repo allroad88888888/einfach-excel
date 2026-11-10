@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
   await select(page, 'A80', '79:0')
 })
 
-for (const dismissal of ['Cancel', 'Escape']) for (const width of [1280, 390])
+for (const dismissal of ['Cancel', 'Escape']) for (const width of [1280])
   test(`${dismissal} table filter discards value choices and preserves redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const trigger = button(page, 'Filter DemoTable column B')

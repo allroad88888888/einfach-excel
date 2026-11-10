@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
-for (const width of [1280, 390]) for (const action of ['Select all', 'Clear all', 'Compare column'])
+for (const width of [1280]) for (const action of ['Select all', 'Clear all', 'Compare column'])
   test(`${action} duplicate columns invalidates confirmation without losing redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

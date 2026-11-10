@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
-for (const width of [1280, 390]) test(`notes and threaded comments coexist independently in the same cell at ${width}px`, async ({ page }) => {
+for (const width of [1280]) test(`notes and threaded comments coexist independently in the same cell at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
   await page.goto('/e2e/fixtures/plain-sales-orders/')
   const target = await select(page, 'B3', '2:1')

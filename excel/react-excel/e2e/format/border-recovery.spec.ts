@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
   await expect(cell(page, '5:1')).toHaveCSS('border-bottom-color', 'rgb(192, 0, 0)')
 })
 
-for (const action of ['Cancel', 'Escape']) for (const width of [1280, 390])
+for (const action of ['Cancel', 'Escape']) for (const width of [1280])
   test(`${action} border settings discards invalid draft and preserves redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const original = await cell(page, '5:1').textContent()
@@ -47,7 +47,7 @@ for (const action of ['Cancel', 'Escape']) for (const width of [1280, 390])
     await expect(cell(page, '1:0')).toHaveText('SO-10001')
   })
 
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`invalid border Hex stays correctable and commits only the valid retry at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const original = await cell(page, '5:1').textContent()

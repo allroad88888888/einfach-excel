@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
 })
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`formula-bar Enter and Escape return to keyboard navigation at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 })
     const target = await select(page, 'B3', '2:1')

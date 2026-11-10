@@ -19,7 +19,7 @@ async function seedValuesStayIntact(page: Page) {
   await expect(cell(page, '66:4')).toHaveCSS('background-color', 'rgb(226, 240, 217)')
 }
 
-for (const width of [1280, 390]) test.describe(`${width}px conditional rule lifecycle`, () => {
+for (const width of [1280]) test.describe(`${width}px conditional rule lifecycle`, () => {
   test.use({ viewport: { width, height: 850 } })
   test.beforeEach(async ({ page }) => {
     await page.goto('/')

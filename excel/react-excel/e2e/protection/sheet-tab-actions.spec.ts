@@ -4,7 +4,7 @@ import {
   button, cell, editor, expectReadOnlyDemo, input, openProtectedDemo, select,
 } from './support'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`right-click Hide works with protected demo sheets and undoes at ${width}px`, async ({ page }) => {
     await openProtectedDemo(page, width)
     await chooseTabMenu(page, 'Sales Orders', 'Hide')

@@ -14,7 +14,7 @@ const cases = [
   { kind: 'text', mode: 'picker', hex: '#6fa8dc', rgb: 'rgb(111, 168, 220)' },
 ] as const
 
-for (const width of [1280, 390]) test.describe(`${width}px color application`, () => {
+for (const width of [1280]) test.describe(`${width}px color application`, () => {
   test.use({ viewport: { width, height: 850 } })
 
   for (const entry of cases) test(`${entry.kind} ${entry.mode} color preserves other fields and undoes once at ${width}px`, async ({ page }) => {

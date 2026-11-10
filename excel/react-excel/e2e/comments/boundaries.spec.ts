@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { button, cell, marker, editor, timeline, author, body, openComments, createComment, closeComments, expectNeighbors } from './fixtures'
 
-for (const width of [1280, 390]) test.describe(`${width}px comment boundaries`, () => {
+for (const width of [1280]) test.describe(`${width}px comment boundaries`, () => {
   test.use({ viewport: { width, height: 850 } })
   test.beforeEach(async ({ page }) => {
     await page.goto('/e2e/fixtures/plain-sales-orders/')

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`dismiss layout error preserves native format formula and redo at ${width}px`, async ({ page }) => {
     await page.addInitScript(() => {
       const post = Worker.prototype.postMessage

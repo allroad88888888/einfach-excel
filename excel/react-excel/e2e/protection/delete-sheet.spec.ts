@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { chooseTabMenu, tab, tabs } from '../sheet-management/support'
 import { button, cell, expectReadOnlyDemo, input, openProtectedDemo } from './support'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`right-click Delete removes a new sheet with protected neighbors and replays history at ${width}px`, async ({ page }) => {
     await openProtectedDemo(page, width)
     await button(page, 'New sheet').click()

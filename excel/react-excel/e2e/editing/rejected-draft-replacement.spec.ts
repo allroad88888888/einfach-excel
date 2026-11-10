@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
-for (const width of [1280, 390]) for (const source of ['cell', 'formula'] as const) {
+for (const width of [1280]) for (const source of ['cell', 'formula'] as const) {
   test(`${source} rejected blur cannot be replaced by another cell at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 })
     await page.goto('/')

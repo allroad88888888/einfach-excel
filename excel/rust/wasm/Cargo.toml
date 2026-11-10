@@ -62,6 +62,9 @@ wasm-bindgen-futures = "0.4"
 [profile.release]
 opt-level = "s"
 lto = true
+# 单个代码生成单元：LTO 在整张 crate 图上做内联与去重，产物更小；只多花 release 构建时间，
+# 不改运行时行为。opt-level 仍保持 "s"，"z" 更小但要先量计算性能。
+codegen-units = 1
 
 # wasm-pack metadata: skip the wasm-opt post-processing step. wasm-opt
 # requires a binaryen binary that wasm-pack tries to download from GitHub

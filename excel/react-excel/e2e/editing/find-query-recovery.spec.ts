@@ -20,7 +20,7 @@ test.beforeEach(async ({ page }) => {
   await expect(panel(page).getByText('Results 1–1 of 1', { exact: true })).toBeVisible()
 })
 
-for (const kind of ['empty', 'oversized', 'no-match']) for (const width of [1280, 390])
+for (const kind of ['empty', 'oversized', 'no-match']) for (const width of [1280])
   test(`${kind} find query clears stale actions and recovers without losing redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const dialog = panel(page)

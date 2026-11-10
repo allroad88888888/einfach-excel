@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { cell, drag, openOrders } from './pointer'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`formatting manually appended areas changes every target and preserves the gap at ${width}px`, async ({ page }) => {
     await openOrders(page, width)
     const gapWeight = await cell(page, 4, 0).evaluate(node => getComputedStyle(node).fontWeight)

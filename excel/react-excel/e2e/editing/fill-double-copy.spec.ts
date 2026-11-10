@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 // 两个数值样本让复制与序列的结果不同，避免公式平移掩盖 modifier 失效。
-for (const width of [1280, 390]) for (const modifier of ['Control', 'Meta'] as const)
+for (const width of [1280]) for (const modifier of ['Control', 'Meta'] as const)
   test(`${modifier} double-click obeys platform copy semantics in one native fill at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

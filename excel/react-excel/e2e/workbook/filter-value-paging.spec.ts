@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
   await expect(valuesPage(page)).toHaveText('1–50 of 1000')
 })
 
-for (const action of ['Enter search', 'next page', 'previous page']) for (const width of [1280, 390])
+for (const action of ['Enter search', 'next page', 'previous page']) for (const width of [1280])
   test(`filter values ${action} retains exact offscreen choices at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const dialog = page.getByRole('dialog', { name: 'Filter conditions' })

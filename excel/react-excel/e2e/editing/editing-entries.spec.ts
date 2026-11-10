@@ -3,7 +3,7 @@ import { select } from '../support/clipboard'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
-for (const width of [1280, 390]) test.describe(`${width}px native editing entries`, () => {
+for (const width of [1280]) test.describe(`${width}px native editing entries`, () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

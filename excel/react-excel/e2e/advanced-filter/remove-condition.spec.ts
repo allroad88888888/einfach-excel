@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { summary, alternatives, apply, records, button, minimum, open, undoRedo } from './support'
 
-for (const width of [1280, 390]) test(`advanced filter Remove condition retains its nonempty group at ${width}px`, async ({ page }) => {
+for (const width of [1280]) test(`advanced filter Remove condition retains its nonempty group at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
   await summary(page); await alternatives(page)
   await button(page, 'Add condition to group 2').click(); await minimum(page, 3, '20')

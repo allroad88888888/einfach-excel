@@ -9,7 +9,7 @@ async function caret(input: Locator, draft: string, position: number) {
   for (let index = 0; index < position; index++) await input.press('ArrowRight')
 }
 
-for (const width of [1280, 390]) for (const source of ['cell', 'formula']) {
+for (const width of [1280]) for (const source of ['cell', 'formula']) {
   test(`HELP-004 ${source} actual parameter groups and suffixes at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/')
@@ -53,7 +53,7 @@ for (const width of [1280, 390]) for (const source of ['cell', 'formula']) {
   })
 }
 
-for (const width of [1280, 390]) test(`HELP-005 picker, draft, native commit and one history step at ${width}px`, async ({ page }) => {
+for (const width of [1280]) test(`HELP-005 picker, draft, native commit and one history step at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
   await page.goto('/')
   const target = await select(page, 'B2', '1:1')

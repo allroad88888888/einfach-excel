@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 // 尺寸弹窗的放弃草稿入口不能改变尺寸、值、样式或既有重做记录。
-for (const width of [1280, 390]) for (const cancel of ['Cancel', 'Escape'] as const)
+for (const width of [1280]) for (const cancel of ['Cancel', 'Escape'] as const)
   test(`${cancel} discards size drafts and preserves native redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

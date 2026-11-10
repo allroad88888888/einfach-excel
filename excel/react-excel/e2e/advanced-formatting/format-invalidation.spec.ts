@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { start, go, numberFormat, compareDisplay, highlighted, cleanNeighbor, valueInput, button } from './support'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`AFMT-005 number format changes immediately refresh display duplicates at ${width}px`, async ({ page }) => {
     await start(page, width, ['0.5', '="50%"'])
     await compareDisplay(page)

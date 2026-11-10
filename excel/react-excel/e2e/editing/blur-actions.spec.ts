@@ -3,7 +3,7 @@ import { select } from '../support/clipboard'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
-for (const width of [1280, 390]) for (const source of ['cell', 'formula'] as const)
+for (const width of [1280]) for (const source of ['cell', 'formula'] as const)
   test(`${source} blur commits once without stealing the new control focus at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

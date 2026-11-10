@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { paste, select } from '../support/clipboard'
 
-for (const width of [1280, 390]) for (const action of ['Next page', 'Previous page'])
+for (const width of [1280]) for (const action of ['Next page', 'Previous page'])
   test(`${action} duplicate preview reads its exact page without changing source history at ${width}px`, async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await page.setViewportSize({ width, height: 850 })

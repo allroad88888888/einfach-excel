@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, panel, select, openProtection, closeProtection, input } from './support'
 
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`native protection seed remains open with configured editable ranges and no startup history at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/')

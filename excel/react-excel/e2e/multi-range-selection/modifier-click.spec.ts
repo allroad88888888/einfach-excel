@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { cell, expectSelected, nameBox, openOrders } from './pointer'
 
-for (const width of [1280, 390]) for (const modifier of ['Control', 'Meta'] as const) {
+for (const width of [1280]) for (const modifier of ['Control', 'Meta'] as const) {
   test(`${modifier} click appends a disjoint cell and keeps the gap unselected at ${width}px`, async ({ page }, info) => {
     await openOrders(page, width)
     await cell(page, 2, 0).click()

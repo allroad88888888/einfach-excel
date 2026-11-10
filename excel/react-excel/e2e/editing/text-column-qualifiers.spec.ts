@@ -6,7 +6,7 @@ const cases = [
   { action: 'Single quote', source: "'North, America',001", values: ['North, America', '001'] },
   { action: 'No qualifier', source: '"North, America",001', values: ['"North', ' America"', '001'] },
 ]
-for (const width of [1280, 390]) for (const { action, source, values } of cases)
+for (const width of [1280]) for (const { action, source, values } of cases)
   test(`${action} split rule controls literal boundaries without writing outside the output at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

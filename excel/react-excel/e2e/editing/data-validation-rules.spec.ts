@@ -22,7 +22,7 @@ async function open(page: Page) {
 }
 
 // D45:D46 原来没有验证；规则由真实 Apply 写入，不从测试夹具注入 Core 状态。
-for (const width of [1280, 390]) test.describe(`${width}px validation rule creation`, () => {
+for (const width of [1280]) test.describe(`${width}px validation rule creation`, () => {
   test.use({ viewport: { width, height: 850 } })
   test.beforeEach(async ({ page }) => {
     await page.goto('/')

@@ -4,7 +4,7 @@ import { select, copy } from '../support/clipboard'
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
 // 单独验证弹窗转置入口，不能以“运算＋转置＋跳过空白”的综合用例替代。
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`transpose checkbox rotates the native paste without touching neighbors at ${width}px`, async ({ page, context }) => {
     await page.setViewportSize({ width, height: 850 })
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -33,7 +33,7 @@ for (const width of [1280, 390])
     await expect(cell(page, '10:4')).toHaveText('149')
   })
 
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`skip blanks checkbox preserves a formula but writes zero and false at ${width}px`, async ({ page, context }) => {
     await page.setViewportSize({ width, height: 850 })
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])

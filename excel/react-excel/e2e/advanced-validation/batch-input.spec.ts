@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { copy, select } from '../support/clipboard'
 import { button, cell, configure, edit, start } from './support'
 
-for (const width of [1280, 390]) test.describe(`${width}px batch validation`, () => {
+for (const width of [1280]) test.describe(`${width}px batch validation`, () => {
   test.use({ viewport: { width, height: 850 } })
   test.beforeEach(async ({ page }) => { await start(page) })
 

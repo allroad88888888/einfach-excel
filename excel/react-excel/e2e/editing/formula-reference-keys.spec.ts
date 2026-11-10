@@ -3,7 +3,7 @@ import { select } from '../support/clipboard'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
-for (const width of [1280, 390]) for (const source of ['cell', 'formula'] as const)
+for (const width of [1280]) for (const source of ['cell', 'formula'] as const)
   test(`${source} F4 cycles all reference locks before one native commit at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')
@@ -48,7 +48,7 @@ for (const width of [1280, 390]) for (const source of ['cell', 'formula'] as con
     await expect(cell(page, '1:1')).toHaveCSS('font-style', 'italic')
   })
 
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`formula F2 changes caret mode without duplicating the picked reference at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

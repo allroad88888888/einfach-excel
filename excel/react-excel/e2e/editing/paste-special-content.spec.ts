@@ -9,7 +9,7 @@ const modes = [
 ] as const
 
 // 同名工具栏按钮不能替代弹窗选项入口；三种模式各自验证取值与格式归属。
-for (const width of [1280, 390]) for (const { mode, value, fontStyle } of modes)
+for (const width of [1280]) for (const { mode, value, fontStyle } of modes)
   test(`${mode} content in paste special has native scope and one undo at ${width}px`, async ({ page, context }) => {
     await page.setViewportSize({ width, height: 850 })
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])

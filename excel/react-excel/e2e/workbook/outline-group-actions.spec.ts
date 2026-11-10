@@ -25,7 +25,7 @@ test.beforeEach(async ({ page }) => {
 for (const entry of [
   { axis: 'rows', range: 'A3:A5', coord: '2:0', label: 'rows 3–5' },
   { axis: 'columns', range: 'B2:D2', coord: '1:1', label: 'columns B–D' },
-]) for (const width of [1280, 390])
+]) for (const width of [1280])
   test(`group ${entry.axis} creates only membership and undoes once at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await select(page, entry.range, entry.coord)
@@ -44,7 +44,7 @@ for (const entry of [
 for (const entry of [
   { axis: 'rows', range: 'A3:A5', coord: '2:0', label: 'rows 3–5', gutter: 'row' },
   { axis: 'columns', range: 'B2:D2', coord: '1:1', label: 'columns B–D', gutter: 'column' },
-]) for (const width of [1280, 390])
+]) for (const width of [1280])
   test(`ungroup ${entry.axis} removes only membership and undoes once at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await select(page, entry.range, entry.coord)

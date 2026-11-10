@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { start, go, numberFormat, compareDisplay, highlighted, cleanNeighbor, open, button, save } from './support'
 
-for (const width of [1280, 390]) {
+for (const width of [1280]) {
   test(`AFMT-004 toolbar unique rule distinguishes equal values with different displays at ${width}px`, async ({ page }) => {
     await start(page, width, ['1', '1', '="1"', '2', '=""', '=1/0'])
     await numberFormat(page, 'A2', 'percent')

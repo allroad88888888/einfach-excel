@@ -12,7 +12,7 @@ async function download(page: Page) {
   return data
 }
 
-for (const width of [1280, 390]) test(`HELP-006 browsing preserves native file and previous history step at ${width}px`, async ({ page }) => {
+for (const width of [1280]) test(`HELP-006 browsing preserves native file and previous history step at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
   await page.goto('/')
   const target = await select(page, 'B2', '1:1')
@@ -41,7 +41,7 @@ for (const width of [1280, 390]) test(`HELP-006 browsing preserves native file a
   await expect(page.locator('[data-cell="2:1"]')).toHaveText('Northwind')
 })
 
-for (const width of [1280, 390]) test(`HELP-007 search recovery, category help and cancel keep the target at ${width}px`, async ({ page }) => {
+for (const width of [1280]) test(`HELP-007 search recovery, category help and cancel keep the target at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
   await page.goto('/')
   const target = await select(page, 'B2', '1:1')

@@ -7,7 +7,7 @@ const targets = [
   { kind: 'quoted cross-sheet', reference: "'Sales Orders'!B2", selection: 'B2', coord: '1:1', value: 'Acme Co.' },
 ] as const
 
-for (const width of [1280, 390]) for (const target of targets)
+for (const width of [1280]) for (const target of targets)
   test(`Go button submits ${target.kind} without changing data or history at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')

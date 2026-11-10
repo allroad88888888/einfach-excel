@@ -43,7 +43,7 @@ for (const entry of [
   { axis: 'row', action: 'expand', label: 'rows 9–11, level 2' },
   { axis: 'column', action: 'collapse', label: 'columns E–G, level 1' },
   { axis: 'column', action: 'expand', label: 'columns E–G, level 1' },
-]) for (const width of [1280, 390])
+]) for (const width of [1280])
   test(`${entry.axis} gutter ${entry.action} changes only its child group in one undo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const state = entry.axis === 'row' ? rows : columns

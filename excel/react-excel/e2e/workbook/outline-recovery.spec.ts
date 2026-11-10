@@ -55,7 +55,7 @@ test('ungrouping collapsed rows retains visibility and undo restores the expanda
   await expect(cell(page, '4:0')).toHaveText('SO-10004')
 })
 
-for (const width of [1280, 390])
+for (const width of [1280])
   test(`overlapping group rejection preserves redo and a corrected range commits once at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()

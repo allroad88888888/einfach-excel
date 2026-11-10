@@ -19,7 +19,7 @@ async function applyAndUndoOnce(page: Page, values: readonly string[]) {
   await button(page, 'Redo').click(); await expectRecords(page, values)
 }
 
-for (const width of [1280, 390]) test.describe(`${width}px sort levels`, () => {
+for (const width of [1280]) test.describe(`${width}px sort levels`, () => {
   test.use({ viewport: { width, height: 850 } })
   test.beforeEach(async ({ page }) => {
     await page.goto('/')

@@ -34,7 +34,8 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   // 文件之间并行；文件内仍顺序执行，保留现有模块级 fixture 的语义。
-  workers: process.env.CI ? 1 : 2,
+  // CI runner 有 4 核；实验：每片 2 个 worker（本地一直是 2 个）。
+  workers: 2,
   reporter: 'list',
   use: {
     ...devices['Desktop Chrome'],

@@ -1,5 +1,17 @@
 # @einfach-excel/excel-site
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [88501e1]
+- Updated dependencies [c316273]
+  - @einfach-excel/spreadsheet-ui-core@0.3.0
+  - @einfach-excel/solid-excel@0.1.2
+  - @einfach-excel/vue-excel@0.0.2
+  - @einfach-excel/spreadsheet-ui-styles@0.3.0
+  - @einfach-excel/excel-core-ts@0.3.0
+
 ## 0.1.1
 
 ### Patch Changes

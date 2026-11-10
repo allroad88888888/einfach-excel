@@ -15,25 +15,30 @@ test.beforeEach(async ({ page }) => {
   )
 })
 
-test('double-click fits a column to styled offscreen content, with one undo and redo', async ({
-  page,
-}) => {
-  const handle = page.getByRole('separator', { name: 'Resize column E', exact: true })
-  await expect(page.locator('[data-cell="89:4"]')).toHaveCount(0)
-  await handle.dblclick()
-  await expect
-    .poll(async () => Number(await handle.getAttribute('aria-valuenow')))
-    .toBeGreaterThan(250)
-  const fitted = await handle.getAttribute('aria-valuenow')
-  await select(page, 'E90', '89:4')
-  const text = page.locator('td[data-cell="89:4"] .cell-content')
-  await expect(text).toHaveText('Offscreen customer — Northwind International')
-  expect(await text.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
-  await page.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect(handle).toHaveAttribute('aria-valuenow', '120')
-  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
-  await page.getByRole('button', { name: 'Redo', exact: true }).click()
-  await expect(handle).toHaveAttribute('aria-valuenow', fitted!)
+test.describe(() => {
+  // 投影窗口有六屏高；视口要够矮，第 90 行才真正未投影。
+  test.use({ viewport: { width: 1280, height: 600 } })
+
+  test('double-click fits a column to styled offscreen content, with one undo and redo', async ({
+    page,
+  }) => {
+    const handle = page.getByRole('separator', { name: 'Resize column E', exact: true })
+    await expect(page.locator('[data-cell="89:4"]')).toHaveCount(0)
+    await handle.dblclick()
+    await expect
+      .poll(async () => Number(await handle.getAttribute('aria-valuenow')))
+      .toBeGreaterThan(250)
+    const fitted = await handle.getAttribute('aria-valuenow')
+    await select(page, 'E90', '89:4')
+    const text = page.locator('td[data-cell="89:4"] .cell-content')
+    await expect(text).toHaveText('Offscreen customer — Northwind International')
+    expect(await text.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(handle).toHaveAttribute('aria-valuenow', '120')
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+    await page.getByRole('button', { name: 'Redo', exact: true }).click()
+    await expect(handle).toHaveAttribute('aria-valuenow', fitted!)
+  })
 })
 
 test('Enter fits a row to multiline Chinese content and restores grid focus', async ({ page }) => {

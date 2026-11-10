@@ -4,7 +4,8 @@ import { select } from '../support/clipboard'
 // 只验收列宽自动适应的键盘入口，内容测量仍由真实 DOM 与 Rust 尺寸命令协作完成。
 for (const width of [1280, 390])
   test(`Enter fits a column to styled offscreen content with one undo at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 850 })
+    // 投影窗口有六屏高；视口要够矮，第 90 行才真正未投影。
+    await page.setViewportSize({ width, height: 600 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')
     await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()

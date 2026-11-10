@@ -77,8 +77,9 @@ jobs:
     strategy:
       # 每个 runner 拥有自己的端口、候选产物和报告；失败不取消其他分片证据。
       fail-fast: false
+      # 分片数改动时同步 --shard 分母与下方 browser 作业的报告数检查。
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       # package:prepare 在临时克隆里跑 changeset version；浅克隆时 changesets 会无限
       # `git fetch --deepen` 找添加 changeset 的提交（源头本身也浅，永远补不到），必须完整历史。
@@ -108,7 +109,7 @@ jobs:
       - name: Full React and packed consumer browser acceptance
         env:
           PLAYWRIGHT_BLOB_OUTPUT_DIR: ${{ github.workspace }}/blob-report
-        run: pnpm --filter @einfach-excel/react-excel e2e --shard=${{ matrix.shard }}/4 --reporter=list,blob
+        run: pnpm --filter @einfach-excel/react-excel e2e --shard=${{ matrix.shard }}/8 --reporter=list,blob
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -145,8 +146,8 @@ jobs:
           path: all-blob-reports
           pattern: react-browser-blob-*
           merge-multiple: true
-      - name: Require all four shard reports
-        run: test "$(find all-blob-reports -maxdepth 1 -name '*.zip' | wc -l)" -eq 4
+      - name: Require all eight shard reports
+        run: test "$(find all-blob-reports -maxdepth 1 -name '*.zip' | wc -l)" -eq 8
       - name: Merge browser results
         env:
           PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.codex-artifacts/react-e2e-merged/playwright.json

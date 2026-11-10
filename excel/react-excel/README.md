@@ -220,5 +220,9 @@ E2E 分两个 Playwright 项目：`build` 先用 `vite.e2e.config.ts` 把 demo �
 不要同时启动两个使用默认端口和输出目录的本地 E2E 命令。
 
 CI 将全量按文件拆为 8 个独立 runner，分别准备真实包消费者，保留各分片的 blob 和失败证据。
+分片不用 Playwright 的 `--shard`（按用例条数连续切分），而由 `scripts/e2e-shard-plan.mjs` 按
+`e2e/shard-timings.json` 的历史耗时分配文件；表里没有的新文件按中位数估算。用例结构大改后，
+下载 CI 的 `react-browser-results` 产物，用 `node scripts/e2e-shard-timings.mjs <playwright.json>`
+刷新耗时表。
 全部分片结束后合并为一份 JSON，再运行上述功能结果门禁；缺少分片报告、任一分片失败，或已登记
 主用例失败／跳过／重试，都不能通过汇总门禁。串行专项保持独立，不把日常并发通过当作历史偶发卡顿已修复。

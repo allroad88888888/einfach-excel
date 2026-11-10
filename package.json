@@ -22,7 +22,7 @@
     "typecheck:mainline": "tsc -build excel/spreadsheet-ui-core && pnpm --filter @einfach-excel/react-excel typecheck && pnpm --filter \"./plugins/*\" typecheck",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:scripts": "node --test scripts/generate-ad509-benchmark-fixtures.test.mjs scripts/generate-ad806-filled-tsv.test.mjs scripts/measure-ad512-size-composition.test.mjs scripts/check-react-e2e-features.test.mjs scripts/check-presentation-boundary.test.mjs",
+    "test:scripts": "node --test scripts/generate-ad509-benchmark-fixtures.test.mjs scripts/generate-ad806-filled-tsv.test.mjs scripts/measure-ad512-size-composition.test.mjs scripts/check-react-e2e-features.test.mjs scripts/check-presentation-boundary.test.mjs scripts/e2e-shard-plan.test.mjs",
     "clearTypes": "node clean.js",
     "ensureWasm": "(test -f excel/excel-wasm/lite/einfach_wasm.js || npm run build:wasm -w @einfach-excel/excel-wasm) && (test -f excel/xlsx-wasm/dist/einfach_xlsx.js || npm run build:wasm -w @einfach-excel/xlsx)",
     "build": "npm run clearTypes&&npm run ensureWasm&&npm run check:presentation&&tsc -build excel/spreadsheet-ui-core excel/excel-core-ts&&pnpm --filter @einfach-excel/react-excel typecheck&&npx rollup -c ./rollup.config.mjs&&pnpm --filter @einfach-excel/react-excel build",

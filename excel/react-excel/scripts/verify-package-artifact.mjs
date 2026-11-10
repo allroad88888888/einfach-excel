@@ -65,6 +65,10 @@ for (const file of files) {
     externalImports.add(specifier)
   }
 }
+// 私有渲染包的样式只经它们的 JS 模块导入；被摇树跳过时 dev 正常、产物却缺整张表格的布局。
+if (!(await readFile(path.join(dist, 'style.css'), 'utf8')).includes('.spreadsheet-grid')) {
+  fail('style.css lost the bundled react-cells grid styles')
+}
 if (!embeddedWasmAssets.length && !files.some((file) => file.endsWith('.wasm'))) {
   fail('Missing precompiled WASM in Worker assets')
 }

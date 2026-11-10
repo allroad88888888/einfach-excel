@@ -16,6 +16,8 @@ import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { centerAcrossSpanWidth, centerAcrossStyles } from './center-across-style'
 import { createGridBorderStyles } from './grid-border-style'
 import { DEFAULT_CELL_ROW_HEIGHT } from './grid-defaults'
+// 样式随真正渲染表格的模块导入：纯转出的 index.ts 会被生产构建跳过，连同它的 CSS 一起丢失。
+import './cells.css'
 
 /** Inputs for the controlled, read-only spreadsheet grid projection. */
 export interface SpreadsheetGridProps {

@@ -36,6 +36,15 @@ const copy = async (relative, destination = path.join(stage, relative)) => {
 }
 // 独立只读对象副本提供既有 main/HEAD 基线；不创建提交、不触碰用户分支。
 await run('git', ['clone', '--shared', '--no-checkout', root, stage], root, 'release-checkout')
+// clone 只带走本地分支；PR 的 checkout 是 detached 合并提交、没有本地 main，`changeset status`
+// 找不到比较基线。对象经 --shared 共享，直接补一个指向源仓库 main（或 origin/main）的 ref。
+const commitOf = (ref, cwd) => spawnSync('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`],
+  { cwd, encoding: 'utf8' }).stdout.trim()
+if (!commitOf('refs/heads/main', stage)) {
+  const base = commitOf('refs/heads/main', root) || commitOf('refs/remotes/origin/main', root)
+  if (!base) throw new Error('release-checkout: neither main nor origin/main exists to compare changesets against')
+  await run('git', ['update-ref', 'refs/heads/main', base], stage, 'release-base')
+}
 for (const relative of ['package.json', 'pnpm-workspace.yaml', 'pnpm-lock.yaml', 'LICENSE', '.changeset']) await copy(relative)
 // 只在 mktemp 副本消费现有 Changesets；工作区 pending 计划与版本保持原样。
 for (const parent of ['excel', 'packages', 'plugins']) {

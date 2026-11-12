@@ -3,7 +3,7 @@ import { editingSessionAtom } from '../editing/session-atoms'
 import { selectionSnapshotAtom } from '../selection'
 import { rangeEquals } from '../shared'
 import { directionalFillFeedbackAtom, fillSelectionAtom } from './directional-command'
-import { minimumFillSamples } from './series-options'
+import { minimumFillSamples, isExplicitDateSeries, hasExplicitFillStep } from './series-options'
 import { fillSeriesStateAtom as stateAtom, INITIAL_FILL_SERIES_STATE as initial,
   type SeriesKind } from './series-state'
 
@@ -44,7 +44,10 @@ export const configureFillSeriesAtom = atom(null, async (
   }
   if (typeof action === 'object') {
     set(stateAtom, { ...state, [action.field]: action.value, error: '', notice: '',
-      ...(action.field === 'kind' ? { sourceCount: String(minimumFillSamples(action.value)) } : {}),
+      ...(action.field === 'kind' ? { sourceCount: String(minimumFillSamples(action.value)),
+        ...(hasExplicitFillStep(action.value)
+          ? { step: action.value === 'geometric' ? '2' : '1' } : {}),
+      } : {}),
     })
     return true
   }
@@ -81,7 +84,8 @@ export const configureFillSeriesAtom = atom(null, async (
   if (sheetId !== selection.selection.sheetId || !rangeEquals(range, selection.range))
     return fail('The selection changed. Close and reopen Series.')
   const geometric = state.kind === 'geometric'
-  const sourceCount = geometric ? 1 : Number(state.sourceCount)
+  const calendar = isExplicitDateSeries(state.kind)
+  const sourceCount = hasExplicitFillStep(state.kind) ? 1 : Number(state.sourceCount)
   const step = Number(state.step)
   const stop = state.stop.trim() === '' ? undefined : Number(state.stop)
   if (geometric && (!state.step.trim() || !Number.isFinite(step)))
@@ -90,6 +94,8 @@ export const configureFillSeriesAtom = atom(null, async (
     return fail('Enter a finite stop value or leave it blank.')
   if (geometric && stop !== undefined && (step <= 0 || step === 1))
     return fail('Stop requires a non-zero start and a positive step other than 1.')
+  if (calendar && (!state.step.trim() || !Number.isSafeInteger(step) || step === 0))
+    return fail('Enter a non-zero safe whole-number step.')
   const rows = range.rowEnd - range.rowStart + 1
   const cols = range.colEnd - range.colStart + 1
   if ((state.direction === 'down' ? cols : rows) !== 1 || !Number.isSafeInteger(sourceCount) ||
@@ -102,7 +108,8 @@ export const configureFillSeriesAtom = atom(null, async (
     ? state.listText.trim().split(/\r?\n/).map((value) => value.trim()) : undefined
   const completed = await set(fillSelectionAtom, {
     direction: state.direction, series: { kind: state.kind, sourceCount,
-      ...(geometric ? { step, ...(stop !== undefined ? { stop } : {}) } : {}),
+      ...(geometric ? { step, ...(stop !== undefined ? { stop } : {}) }
+        : calendar ? { step } : {}),
       ...(customValues ? { customValues } : {}) },
   })
   // 替换工作簿会清空此状态；旧请求不能把旧面板或列表带回新会话。

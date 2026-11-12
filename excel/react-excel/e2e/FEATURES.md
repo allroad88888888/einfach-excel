@@ -355,6 +355,8 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | FILL-055 | 合并目标拒绝后拆分重试 | `editing/fill-double-click.spec.ts` | merged destination rejects atomically and succeeds after unmerge |
 | FILL-056 | 双击使用右邻数据且在首个空隙停止 | `editing/fill-double-click.spec.ts` | right-neighbor fallback extends a numeric source only to the first gap |
 | FILL-057 | 显式等比序列和包含终点的有限填充 | `editing/fill-geometric-series.spec.ts` | geometric series multiplies the native start by a decimal step and stops without changing neighbors |
+| FILL-058 | 显式工作日日期序列 | `editing/fill-calendar-series.spec.ts` | weekday date series skips weekends and preserves time and formatting with one undo |
+| FILL-059 | 显式按年日期序列 | `editing/fill-calendar-series.spec.ts` | yearly date series clamps leap day and restores it in a later leap year with one undo |
 | FONT-001 | 粗体 | `format/text-style.spec.ts` | Bold toggles the selected Rust cell style |
 | FONT-002 | 斜体 | `format/text-style.spec.ts` | Italic toggles the selected Rust cell style |
 | FONT-003 | 下划线 | `format/text-style.spec.ts` | Underline toggles the selected Rust cell style |

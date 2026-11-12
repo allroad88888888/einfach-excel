@@ -209,3 +209,32 @@ test('native zero-write report does not advance revision or read destination siz
   expect(sizes).toHaveBeenCalledTimes(1)
   expect(sizes).toHaveBeenCalledWith(0, 0, 0, 9, 4)
 })
+
+test.each(['date-weekday', 'date-year'] as const)('%s transports explicit negative step and one native start', async kind => {
+  const { call, fill, begin } = await runtime()
+  const reply = await call('range.fill', { ...input, request: { ...input.request,
+    range: { ...range, colEnd: 1 }, series: { kind, sourceCount: 1, step: -2 },
+  } })
+  expect(reply.ok).toBe(true)
+  expect(fill).toHaveBeenCalledWith({ sheet: 0, direction: 'down', series: kind,
+    infer: false, step: -2,
+    sourceRange: { startRow: 50, endRow: 50, startCol: 1, endCol: 1 },
+    targetRange: { startRow: 50, endRow: 53, startCol: 1, endCol: 1 },
+  })
+  expect(begin).toHaveBeenCalledWith(0, 51, 1, 53, 1, `Fill ${kind} series`, true)
+})
+
+test('explicit date units reject unsafe parameters before any native history or fill', async () => {
+  const { call, begin, fill } = await runtime()
+  for (const series of [
+    { kind: 'date-weekday', sourceCount: 1, step: 0 },
+    { kind: 'date-year', sourceCount: 1, step: 0.5 },
+    { kind: 'date-year', sourceCount: 1, step: Number.MAX_SAFE_INTEGER + 1 },
+    { kind: 'date-weekday', sourceCount: 2, step: 1 },
+    { kind: 'date-year', sourceCount: 1, step: 1, stop: 10 },
+  ]) expect((await call('range.fill', { ...input, request: { ...input.request,
+    range: { ...range, colEnd: 1 }, series },
+  })).ok).toBe(false)
+  expect(begin).not.toHaveBeenCalled()
+  expect(fill).not.toHaveBeenCalled()
+})

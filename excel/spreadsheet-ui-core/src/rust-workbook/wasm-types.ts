@@ -173,6 +173,8 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
       | 'month-name'
       | 'custom-list'
       | 'date-day'
+      | 'date-weekday'
+      | 'date-year'
     readonly step?: number
     readonly stop?: number
     readonly infer?: boolean

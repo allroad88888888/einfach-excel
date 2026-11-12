@@ -304,6 +304,14 @@ msgstr "Add worksheet"
 msgid "Adds all the numbers in a range of cells."
 msgstr "Adds all the numbers in a range of cells."
 
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Advance from the original date by whole years. Leap days clamp to February 28 and return in a later leap year."
+msgstr "Advance from the original date by whole years. Leap days clamp to February 28 and return in a later leap year."
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Advance Monday to Friday, skipping weekends. Use a non-zero whole-number step; the first date and its time stay unchanged."
+msgstr "Advance Monday to Friday, skipping weekends. Use a non-zero whole-number step; the first date and its time stay unchanged."
+
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Advanced number parsing"
 msgstr "Advanced number parsing"
@@ -2143,6 +2151,10 @@ msgid "Enter a non-empty column name or press Escape."
 msgstr "Enter a non-empty column name or press Escape."
 
 #: src/i18n/feedback-messages.ts
+msgid "Enter a non-zero safe whole-number step."
+msgstr "Enter a non-zero safe whole-number step."
+
+#: src/i18n/feedback-messages.ts
 msgid "Enter a range inside the selected worksheet, for example A1:A100."
 msgstr "Enter a range inside the selected worksheet, for example A1:A100."
 
@@ -2361,6 +2373,14 @@ msgstr "Fill custom-list series"
 #: src/i18n/feedback-messages.ts
 msgid "Fill date series"
 msgstr "Fill date series"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill date-weekday series"
+msgstr "Fill date-weekday series"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill date-year series"
+msgstr "Fill date-year series"
 
 #: src/i18n/feedback-messages.ts
 msgid "Fill down"
@@ -5240,6 +5260,10 @@ msgstr "Select one rectangular range to allow editing."
 msgid "Select one row or column with enough samples and at least one destination."
 msgstr "Select one row or column with enough samples and at least one destination."
 
+#: src/i18n/feedback-messages.ts
+msgid "Select one valid numeric starting date."
+msgstr "Select one valid numeric starting date."
+
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Select page"
 msgstr "Select page"
@@ -5921,6 +5945,10 @@ msgstr "The first row becomes the header. Blank or duplicate headers receive uni
 #: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 msgid "The formula bar opens next. Press Enter to save or Escape to cancel."
 msgstr "The formula bar opens next. Press Enter to save or Escape to cancel."
+
+#: src/i18n/feedback-messages.ts
+msgid "The generated date is outside the supported range."
+msgstr "The generated date is outside the supported range."
 
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "The header keeps its original formatting; banding starts on the next row."
@@ -6948,6 +6976,10 @@ msgid "waterfall subtotals"
 msgstr "waterfall subtotals"
 
 #: src/i18n/feedback-messages.ts
+msgid "Weekday date sequence"
+msgstr "Weekday date sequence"
+
+#: src/i18n/feedback-messages.ts
 msgid "Weekday names"
 msgstr "Weekday names"
 
@@ -7054,6 +7086,10 @@ msgstr "Worksheet tables"
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Wrap text"
 msgstr "Wrap text"
+
+#: src/i18n/feedback-messages.ts
+msgid "Yearly date sequence"
+msgstr "Yearly date sequence"
 
 #: src/workbook/sheet-management/tab-colors.ts
 msgid "Yellow"

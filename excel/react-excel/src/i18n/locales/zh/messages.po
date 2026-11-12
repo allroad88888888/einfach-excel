@@ -304,6 +304,14 @@ msgstr "添加工作表"
 msgid "Adds all the numbers in a range of cells."
 msgstr "计算单元格区域内所有数字之和。"
 
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Advance from the original date by whole years. Leap days clamp to February 28 and return in a later leap year."
+msgstr "从原始日期按整年推进。闰日截到2月28日，并在后续闰年恢复为2月29日。"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Advance Monday to Friday, skipping weekends. Use a non-zero whole-number step; the first date and its time stay unchanged."
+msgstr "按周一至周五推进，跳过周末。步长须为非零整数，首个日期及其时间保持不变。"
+
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Advanced number parsing"
 msgstr "高级数字解析"
@@ -2143,6 +2151,10 @@ msgid "Enter a non-empty column name or press Escape."
 msgstr "请输入非空列名，或按 Escape 取消。"
 
 #: src/i18n/feedback-messages.ts
+msgid "Enter a non-zero safe whole-number step."
+msgstr "请输入非零安全整数步长。"
+
+#: src/i18n/feedback-messages.ts
 msgid "Enter a range inside the selected worksheet, for example A1:A100."
 msgstr "请输入所选工作表内的区域，例如 A1:A100。"
 
@@ -2361,6 +2373,14 @@ msgstr "填充自定义列表"
 #: src/i18n/feedback-messages.ts
 msgid "Fill date series"
 msgstr "填充日期序列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill date-weekday series"
+msgstr "填充工作日日期序列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill date-year series"
+msgstr "填充按年日期序列"
 
 #: src/i18n/feedback-messages.ts
 msgid "Fill down"
@@ -5240,6 +5260,10 @@ msgstr "请选择一个矩形区域以允许编辑。"
 msgid "Select one row or column with enough samples and at least one destination."
 msgstr "请选择同一行或列，包含足够的样本和至少一个目标单元格。"
 
+#: src/i18n/feedback-messages.ts
+msgid "Select one valid numeric starting date."
+msgstr "请选择一个有效的数值日期作为起点。"
+
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Select page"
 msgstr "选择当前页"
@@ -5921,6 +5945,10 @@ msgstr "首行作为表头。空白或重复的表头会自动分配唯一名称
 #: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 msgid "The formula bar opens next. Press Enter to save or Escape to cancel."
 msgstr "接下来会打开公式栏。按 Enter 保存，或按 Escape 取消。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The generated date is outside the supported range."
+msgstr "生成的日期超出支持范围。"
 
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "The header keeps its original formatting; banding starts on the next row."
@@ -6948,6 +6976,10 @@ msgid "waterfall subtotals"
 msgstr "瀑布图汇总柱"
 
 #: src/i18n/feedback-messages.ts
+msgid "Weekday date sequence"
+msgstr "工作日日期序列"
+
+#: src/i18n/feedback-messages.ts
 msgid "Weekday names"
 msgstr "星期名称"
 
@@ -7054,6 +7086,10 @@ msgstr "工作表表格"
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Wrap text"
 msgstr "自动换行"
+
+#: src/i18n/feedback-messages.ts
+msgid "Yearly date sequence"
+msgstr "按年日期序列"
 
 #: src/workbook/sheet-management/tab-colors.ts
 msgid "Yellow"

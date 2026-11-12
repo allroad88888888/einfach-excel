@@ -10,6 +10,7 @@ import {
   fillSeriesPanelAtom,
   FILL_SERIES_OPTIONS,
   minimumFillSamples,
+  hasExplicitFillStep,
 } from '@einfach-excel/spreadsheet-ui-core'
 import './selection-size.css'
 import './fill-series.css'
@@ -120,7 +121,7 @@ export function FillSeriesTools() {
                 <Trans>Right</Trans>
               </option>
             </select>
-            {state.kind === 'geometric' ? (
+            {hasExplicitFillStep(state.kind) ? (
               <SeriesStepFields />
             ) : (
               <>
@@ -145,17 +146,21 @@ export function FillSeriesTools() {
             <p className="size-hint">
               {state.kind === 'geometric'
                 ? t`Keep the first numeric cell and multiply each next value by the step. Stop is inclusive and requires a non-zero start and a positive step other than 1.`
-                : state.kind === 'date'
-                  ? t`One date advances by a day. Two or more dates infer day, week or month steps; month ends stay at month end.`
-                  : minimumFillSamples(state.kind) === 1
-                    ? state.kind === 'custom-list'
-                      ? t`One item per line (2–512 unique items). One source sample follows the list; more samples infer a cyclic step.`
-                      : t`English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step.`
-                    : state.kind === 'linear-trend'
-                      ? t`At least 3 numeric samples. Rust fits a least-squares line using all samples.`
-                      : state.kind === 'text-number'
-                        ? t`At least 2 numbered labels, such as Item001, Item003. Matching padding is preserved.`
-                        : t`At least 2 numbers with a constant non-zero difference, including decimals.`}
+                : state.kind === 'date-weekday'
+                  ? t`Advance Monday to Friday, skipping weekends. Use a non-zero whole-number step; the first date and its time stay unchanged.`
+                  : state.kind === 'date-year'
+                    ? t`Advance from the original date by whole years. Leap days clamp to February 28 and return in a later leap year.`
+                    : state.kind === 'date'
+                      ? t`One date advances by a day. Two or more dates infer day, week or month steps; month ends stay at month end.`
+                      : minimumFillSamples(state.kind) === 1
+                        ? state.kind === 'custom-list'
+                          ? t`One item per line (2–512 unique items). One source sample follows the list; more samples infer a cyclic step.`
+                          : t`English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step.`
+                        : state.kind === 'linear-trend'
+                          ? t`At least 3 numeric samples. Rust fits a least-squares line using all samples.`
+                          : state.kind === 'text-number'
+                            ? t`At least 2 numbered labels, such as Item001, Item003. Matching padding is preserved.`
+                            : t`At least 2 numbers with a constant non-zero difference, including decimals.`}
             </p>
             {state.error && (
               <p role="alert" className="size-error">

@@ -32,6 +32,8 @@ test.each([
   ['Copied Sum.', '已复制求和。'],
   ['Workbook recalculated (12 formulas).', '已重新计算工作簿（12 个公式）。'],
   ['Worksheet recalculated (2 formulas).', '已重新计算工作表（2 个公式）。'],
+  ['Fill date-weekday series', '填充工作日日期序列'],
+  ['Fill date-year series', '填充按年日期序列'],
   ['Fill geometric series', '填充等比序列'],
   ['Filled right.', '已向右填充。'],
   ['Filling down…', '正在向下填充…'],

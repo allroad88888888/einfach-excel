@@ -19,7 +19,8 @@ impl Workbook {
             request.list = None;
         }
         match request.series {
-            AutoFillSeries::Geometric { .. } => return Err(AutoFillError::UnsupportedSeries),
+            AutoFillSeries::Geometric { .. } | AutoFillSeries::DateWeekday
+            | AutoFillSeries::DateYear => return Err(AutoFillError::UnsupportedSeries),
             AutoFillSeries::Copy => {
                 // 日期格式的原生数字优先走日历规律，不能被普通等差序列抢走。
                 if let Ok((addresses, _)) = source_numbers(sheet, &request, 1) {

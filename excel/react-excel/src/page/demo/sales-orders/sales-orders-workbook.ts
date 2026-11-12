@@ -3,6 +3,7 @@ import { applySalesOrderMerge, SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUN
   SALES_ORDER_EXTRA_MERGE_CELLS } from './data/merge-seed'
 import { createSalesOrderImportChunks, SALES_ORDER_NUMBER_FORMAT_EXAMPLES, SALES_ORDER_SPECIAL_FORMAT_EXAMPLES } from './data/import-seed'
 import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from './data/alternating-colors-seed'
+import { SUMMARY_CALENDAR_CELLS } from './data/calendar-seed'
 import { SUMMARY_FILL_CELLS } from './data/fill-seed'
 import { SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
 import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from './data/validation-seed'
@@ -87,6 +88,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       SUMMARY_TABLE_CELLS,
       SUMMARY_CONDITIONAL_TEXT_CELLS,
       SUMMARY_FILL_CELLS,
+      SUMMARY_CALENDAR_CELLS,
       SUMMARY_BANDING_CELLS,
       [
         { sheet: 1, row: 81, col: 7, kind: 'text', value: 'ORDER_NET', format: { bold: true } },

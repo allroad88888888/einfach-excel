@@ -7,6 +7,8 @@ export const FILL_SERIES_OPTIONS = [
   { kind: 'weekday-name', label: 'Weekday names', samples: 1 },
   { kind: 'month-name', label: 'Month names', samples: 1 },
   { kind: 'custom-list', label: 'Custom list', samples: 1 },
+  { kind: 'date-weekday', label: 'Weekday date sequence', samples: 1 },
+  { kind: 'date-year', label: 'Yearly date sequence', samples: 1 },
   { kind: 'date', label: 'Date sequence', samples: 1 },
 ] as const
 
@@ -15,4 +17,12 @@ export type FillSeriesKind = typeof FILL_SERIES_OPTIONS[number]['kind']
 /** 未知选项不能通过最少样本数校验。 */
 export function minimumFillSamples(kind: string): number {
   return FILL_SERIES_OPTIONS.find((option) => option.kind === kind)?.samples ?? Infinity
+}
+
+export function isExplicitDateSeries(kind: string): kind is 'date-weekday' | 'date-year' {
+  return kind === 'date-weekday' || kind === 'date-year'
+}
+
+export function hasExplicitFillStep(kind: string): boolean {
+  return kind === 'geometric' || isExplicitDateSeries(kind)
 }

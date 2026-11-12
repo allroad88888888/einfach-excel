@@ -235,3 +235,21 @@ fn apply_auto_fill_engine_call_rejects_a_request_over_the_cell_budget() {
 // What is unit-testable natively is the wire mapping this crate owns:
 // `TableJSON::from_entry` (range → A1 string, columns, flags, sheet
 // index passthrough).
+
+#[test]
+fn explicit_calendar_wire_preserves_step_and_disables_sample_inference() {
+    for (name, series) in [("date-weekday", AutoFillSeries::DateWeekday),
+        ("date-year", AutoFillSeries::DateYear)] {
+        let payload = format!(r#"{{
+            "sheet":0,"sourceRange":{{"startRow":0,"startCol":0,"endRow":0,"endCol":0}},
+            "targetRange":{{"startRow":0,"startCol":0,"endRow":2,"endCol":0}},
+            "direction":"down","series":"{name}","infer":false,"step":-2
+        }}"#);
+        let wire: AutoFillRequestJSON = serde_json::from_str(&payload).unwrap();
+        assert!(!wire.infer);
+        let core: AutoFillRequest = wire.into();
+        assert_eq!(core.series, series);
+        assert_eq!(core.step, Some(-2.0));
+        assert_eq!(core.source_range.cell_count(), 1);
+    }
+}

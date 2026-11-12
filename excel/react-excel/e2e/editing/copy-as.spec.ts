@@ -1,11 +1,14 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 async function copyAs(page: Page, format: string) {
+  await showRibbonItem(page, 'clipboard.copy-as')
   const menu = page.getByRole('combobox', { name: 'Copy as' })
   await menu.scrollIntoViewIfNeeded()
   await menu.selectOption(format)
   await expect(page.getByLabel('Clipboard status')).toContainText(`as ${format}.`)
+  await showRibbonItem(page, 'clipboard.copy-as')
   await expect(menu).toHaveValue('')
   return page.evaluate(() => navigator.clipboard.readText())
 }
@@ -144,6 +147,7 @@ test('Copy As is usable on desktop and narrow viewports with readable failure fe
   await copyAs(page, 'html')
   await page.screenshot({ path: info.outputPath('copy-as-desktop.png') })
   await page.setViewportSize({ width: 390, height: 844 })
+  await showRibbonItem(page, 'clipboard.copy-as')
   const menu = page.getByRole('combobox', { name: 'Copy as' })
   await menu.scrollIntoViewIfNeeded()
   await copyAs(page, 'markdown')

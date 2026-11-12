@@ -1,10 +1,12 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, copy, edit, formula, paste, select, sheet, start } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 test('named range overlap rejects the cross-sheet cut and the same snapshot retries after name repair', async ({ page, context }, info) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await start(page)
   await select(page, 'A1', '0:0')
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click()
   await page.getByLabel('Name', { exact: true }).fill('CutSales')
   await page.getByLabel('Worksheet', { exact: true }).selectOption('source')
@@ -27,6 +29,7 @@ test('named range overlap rejects the cross-sheet cut and the same snapshot retr
   await copy(page, 'Cut')
   await sheet(page, "Target O'Brien")
   await select(page, 'C4', '3:2')
+  await showRibbonItem(page, 'clipboard.paste')
   await button(page, 'Paste').click()
   await expect(page.getByLabel('Clipboard status')).toContainText('overlap a named range')
   await expect(page.getByLabel('Clipboard status')).toContainText('Name manager')
@@ -44,6 +47,7 @@ test('named range overlap rejects the cross-sheet cut and the same snapshot retr
   await expect(cell(page, '0:0')).toHaveText('23')
 
   // Change only the name definition through the product UI; do not capture another cut.
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click()
   await button(page, 'Edit CutSales').click()
   await expect(page.getByLabel('Worksheet', { exact: true })).toHaveValue('source')

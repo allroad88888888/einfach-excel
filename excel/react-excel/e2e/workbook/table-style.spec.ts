@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function open(page: Page) {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click(); await button(page, 'Edit table DemoTable').click()
   return page.getByRole('dialog', { name: 'Tables', exact: true })
 }
@@ -141,6 +143,7 @@ for (const width of [1280, 390]) test(`style controls fit ${width}px with keyboa
   await page.getByLabel('Style preset').scrollIntoViewIfNeeded()
   await page.screenshot({ path: info.outputPath(`table-style-${width}.png`) })
   await page.keyboard.press('Escape'); await expect(dialog).toHaveCount(0)
+  await showRibbonItem(page, 'insert.tables')
   await expect(button(page, 'Tables')).toBeFocused()
   await page.screenshot({ path: info.outputPath(`table-style-grid-${width}.png`) })
   expect(errors).toEqual([])

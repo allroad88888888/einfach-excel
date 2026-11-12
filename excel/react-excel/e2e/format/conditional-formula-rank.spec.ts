@@ -1,5 +1,6 @@
 import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -10,6 +11,7 @@ const blue = 'rgb(217, 234, 247)'
 const green = 'rgb(226, 240, 217)'
 const yellow = 'rgb(255, 242, 204)'
 async function go(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()
@@ -17,6 +19,7 @@ async function go(page: Page, reference: string) {
   await expect(bar(page)).toBeEnabled()
 }
 async function open(page: Page) {
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await expect(dialog(page)).toBeVisible()
 }
@@ -148,6 +151,7 @@ test('formula errors are nonmatches; invalid syntax and rank keep a correctable 
 
 test('formula references and applies-to range follow inserted rows and undo together', async ({ page }) => {
   await go(page, 'C65')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' }).selectOption('insert-rows')
   await expect(cell(page, '66:3')).toHaveCSS('background-color', blue)
   await open(page); await button(page, 'Edit rule 3').click()
@@ -205,6 +209,7 @@ for (const width of [1280, 390]) test(`formula and rank forms fit at ${width}px`
   expect(await dialog(page).evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
   await page.screenshot({ path: info.outputPath(`conditional-rank-${width}.png`), fullPage: true })
   await page.getByLabel('Percentage', { exact: true }).press('Escape')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await expect(button(page, 'Conditional formatting')).toBeFocused()
   expect(errors).toEqual([])
 })

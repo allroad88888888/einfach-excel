@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, paste, pasteOption } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const formula = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
@@ -27,6 +28,7 @@ for (const [operation, result] of [
     await pasteOption(page, operation)
     await expect(cell(page, '9:4')).toHaveText(result)
     await expect(formula(page)).toHaveValue(result)
+    await showRibbonItem(page, 'clipboard.more-paste-options')
     await expect(page.getByRole('combobox', { name: 'More paste options' })).toHaveValue('')
     await button(page, 'Undo').click()
     await expect(cell(page, '9:4')).toHaveText('9')
@@ -107,6 +109,7 @@ test('rejected cut arithmetic leaves both sides intact and a normal move still w
   await select(page, 'E4', '3:4')
   await copy(page, 'Cut')
   await select(page, 'E10', '9:4')
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   await page.getByRole('combobox', { name: 'More paste options' }).selectOption('multiply')
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toHaveText(
     'Paste special requires Copy, not Cut. The cut cells are unchanged.',
@@ -157,6 +160,7 @@ test('desktop and narrow screens expose arithmetic actions and the history label
     await expect(cell(page, '1:0')).toHaveText('SO-10001')
     await page.evaluate(() => navigator.clipboard.writeText('2'))
     await select(page, 'E4', '3:4')
+    await showRibbonItem(page, 'clipboard.more-paste-options')
     const menu = page.getByRole('combobox', { name: 'More paste options' })
     await menu.scrollIntoViewIfNeeded()
     for (const label of ['Paste and add', 'Paste and subtract', 'Paste and multiply'])

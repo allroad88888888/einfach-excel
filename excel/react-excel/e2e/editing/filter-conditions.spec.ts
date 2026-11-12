@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, row: number, col = 2) => page.locator(`td[data-cell="${row}:${col}"]`)
 const menu = (page: Page) => page.getByRole('combobox', { name: 'Worksheet filter' })
@@ -13,6 +14,7 @@ async function visibleRecords(page: Page, rows: number[]) {
   await expect(cell(page, 0, 1)).toHaveText('79')
 }
 async function open(page: Page) {
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('open')
   return page.getByRole('dialog', { name: 'Filter conditions' })
 }
@@ -39,6 +41,7 @@ test.beforeEach(async ({ page }) => {
   await name.fill('A25:C29')
   await name.press('Enter')
   await expect(name).toHaveValue('A25:C29')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('selection')
   await expect(button(page, 'Filter column A')).toHaveAttribute('data-filtered', 'false')
 })
@@ -50,6 +53,7 @@ for (const entry of [
 ]) for (const width of [1280])
   test(`filter ${entry.kind} independently preserves sources and undoes once at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
+    await showRibbonItem(page, 'data.worksheet-filter')
     await menu(page).selectOption('open')
     const dialog = page.getByRole('dialog', { name: 'Filter conditions' })
     await dialog.getByLabel('Filter column 1', { exact: true }).selectOption(entry.col)
@@ -72,6 +76,7 @@ for (const entry of [
     await button(page, 'Close history').click()
     await button(page, 'Redo').click()
     await visibleRecords(page, entry.rows)
+    await showRibbonItem(page, 'data.worksheet-filter')
     await menu(page).selectOption('open')
     await expect(dialog.getByLabel('Filter column 1', { exact: true })).toHaveValue(entry.col)
     await expect(dialog.getByLabel('Filter condition 1', { exact: true })).toHaveValue(entry.kind)

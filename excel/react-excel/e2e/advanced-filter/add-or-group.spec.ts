@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { summary, alternatives, apply, records, button, menu, open } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) test(`advanced filter Add OR group includes either alternative in one apply at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
@@ -13,6 +14,7 @@ for (const width of [1280]) test(`advanced filter Add OR group includes either a
   await expect(button(page, 'Filter column A')).toHaveAttribute('data-filtered', 'false')
   await button(page, 'Redo').click()
   await expect(button(page, 'Filter column A')).toHaveAttribute('data-filtered', 'true')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await expect(menu(page)).toBeEnabled()
   await open(page)
   await expect(page.getByLabel('Filter value 2', { exact: true })).toHaveValue('East')

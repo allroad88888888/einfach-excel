@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const fixture = path.join(path.dirname(fileURLToPath(import.meta.url)), 'basic.xlsx')
 const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -71,6 +72,7 @@ test('an xlsx file keeps hyperlinks, hidden rows and tables when opened', async 
   await expect(page.getByRole('status', { name: 'Workbook file status' })).toContainText(
     'Opened Excel workbook. Skipped: unsupported hyperlinks.',
   )
+  await showRibbonItem(page, 'formula.name-manager')
   await page.getByRole('button', { name: 'Name manager', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Edit Computed', exact: true }))
     .toContainText('Workbook · =SUM(Data!$B$2:$B$3)')
@@ -98,6 +100,7 @@ test('opening a 1904 xlsx file with unsupported parts converts dates and reports
 test('downloading a workbook with non-exported features as Excel reports what was omitted', async ({ page }) => {
   await openXlsx(page, 'basic.xlsx', await readFile(fixture))
   await expectOrders(page)
+  await showRibbonItem(page, 'format.text-rotation')
   await page.getByRole('combobox', { name: 'Text rotation', exact: true }).selectOption({ label: '45°' })
   await page.getByRole('button', { name: 'File', exact: true }).click()
   const download = page.waitForEvent('download')

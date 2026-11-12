@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, row: number, col: number) => page.locator(`td[data-cell="${row}:${col}"]`)
 const name = (page: Page) => page.getByRole('textbox', { name: 'Name box', exact: true })
@@ -55,6 +56,7 @@ for (const width of [1280, 390]) {
     const original = await outside.evaluate(node => getComputedStyle(node).fontWeight)
     await cell(page, 2, 0).click()
     await cell(page, 5, 1).click({ modifiers: ['Shift'] })
+    await showRibbonItem(page, 'format.bold')
     await page.getByRole('button', { name: 'Bold', exact: true }).click()
     for (let row = 2; row <= 5; row++) for (let col = 0; col <= 1; col++)
       await expect(cell(page, row, col)).toHaveCSS('font-weight', '700')

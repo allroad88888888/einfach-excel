@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const panel = (page: Page) => page.getByRole('dialog', { name: 'Find and replace' })
@@ -12,6 +13,7 @@ test.beforeEach(async ({ page }) => {
 for (const entry of ['toolbar', 'Control+f', 'Meta+f', 'Control+h', 'Meta+h']) for (const width of [1280])
   test(`${entry} opens ${entry.endsWith('+h') ? 'Replace' : 'Find'} with focused input and preserves the selection at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
+    await showRibbonItem(page, 'view.find-and-replace')
     if (entry === 'toolbar') await page.getByRole('button', { name: 'Find and replace', exact: true }).click()
     else await page.locator('[data-workbook-grid]').press(entry)
     const dialog = panel(page)
@@ -37,6 +39,7 @@ for (const entry of ['toolbar', 'Control+f', 'Meta+f', 'Control+h', 'Meta+h']) f
 for (const width of [1280])
   test(`Replace tab click retains the find draft without writing cells at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
+    await showRibbonItem(page, 'view.find-and-replace')
     await page.getByRole('button', { name: 'Find and replace', exact: true }).click()
     const dialog = panel(page)
     await dialog.getByRole('textbox', { name: 'Find what' }).fill('Northwind')

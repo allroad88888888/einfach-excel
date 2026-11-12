@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, marker, openNote } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) test(`Chinese note editor preserves text through language switching at ${width}px`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 850 })
@@ -7,11 +8,13 @@ for (const width of [1280]) test(`Chinese note editor preserves text through lan
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   const name = page.getByRole('textbox', { name: '名称框' })
   await name.fill('A2'); await name.press('Enter')
+  await showRibbonItem(page, 'insert.note')
   await button(page, '备注').click()
   const dialog = page.getByRole('dialog', { name: '新增备注' })
   await expect(dialog).toBeVisible()
   await page.getByLabel('备注内容', { exact: true }).fill('第一行\nEnglish 🙂')
   await button(page, '新增备注').click(); await expect(marker(page, '1:0')).toHaveCount(1)
+  await showRibbonItem(page, 'insert.note')
   await button(page, '备注').click()
   await expect(page.getByRole('dialog', { name: '编辑备注' })).toBeVisible()
   await expect(page.getByLabel('备注内容', { exact: true })).toHaveValue('第一行\nEnglish 🙂')

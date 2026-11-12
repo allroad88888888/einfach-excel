@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, paste, copy } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const examples = [
   { input: '13:30', display: '13:30', raw: '0.5625', doubled: '1.125' },
@@ -25,6 +26,7 @@ for (const source of ['cell', 'formula'] as const) {
   for (const sample of examples) {
     test(`${source}: ${sample.input} becomes a native number, re-edits and calculates`, async ({ page }) => {
       const cell = await select(page, 'B10', '9:1')
+      await showRibbonItem(page, 'format.bold')
       await page.getByRole('button', { name: 'Bold', exact: true }).click()
       await expect(cell).toHaveCSS('font-weight', '700')
       if (source === 'cell') await cell.dblclick()

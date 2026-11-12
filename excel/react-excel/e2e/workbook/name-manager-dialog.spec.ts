@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab', 'Cancel', 'Escape'])
   test(`${action} name manager preserves native definitions formulas and redo at ${width}px`, async ({ page }, info) => {
@@ -15,6 +16,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     await expect(cell('1:6')).toHaveText('158')
     await button('Undo').click()
     await select(page, 'G2', '1:6')
+    await showRibbonItem(page, 'formula.name-manager')
     await button('Name manager').click()
     const dialog = page.getByRole('dialog', { name: 'Name manager', exact: true })
     const name = dialog.getByRole('textbox', { name: 'Name', exact: true })
@@ -41,6 +43,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     if (action === 'Escape') await page.keyboard.press('Escape')
     else await button('Cancel').click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'formula.name-manager')
     await expect(button('Name manager')).toBeFocused()
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('G2')
     await expect(bar).toHaveValue('=E2*F2')
@@ -50,6 +53,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     await expect(button('Undo')).toBeDisabled()
     await button('Redo').click()
     await expect(cell('1:6')).toHaveText('158')
+    await showRibbonItem(page, 'formula.name-manager')
     await button('Name manager').click()
     await expect(first).toBeVisible()
     await expect(name).toHaveValue('')

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 async function selectCell(page: Page, address: string, coord: string) {
   const name = page.getByRole('textbox', { name: 'Name box' })
@@ -15,9 +16,11 @@ test('clear contents keeps formatting and Delete recalculates dependent formulas
   await page.goto('/')
   const styled = await selectCell(page, 'P3', '2:15')
   await expect(styled).toHaveText('$125')
+  await showRibbonItem(page, 'clear.contents')
   await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
   await expect(styled).toHaveText('')
   await expect(styled).toHaveCSS('font-weight', '700')
+  await showRibbonItem(page, 'format.currency-format')
   await expect(page.getByRole('button', { name: 'Currency format' })).toHaveAttribute(
     'aria-pressed',
     'true',
@@ -34,11 +37,13 @@ test('clear contents keeps formatting and Delete recalculates dependent formulas
 test('clear formatting preserves values and formulas', async ({ page }) => {
   await page.goto('/')
   const money = await selectCell(page, 'P3', '2:15')
+  await showRibbonItem(page, 'clear.formats')
   await page.getByRole('button', { name: 'Clear formatting', exact: true }).click()
   await expect(money).toHaveText('125.02')
   await expect(money).toHaveCSS('font-weight', '400')
   const total = await selectCell(page, 'G9', '8:6')
   await expect(total).toHaveText('2,632.00')
+  await showRibbonItem(page, 'clear.formats')
   await page.getByRole('button', { name: 'Clear formatting', exact: true }).click()
   await expect(total).toHaveText('2632')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('=E9*F9')
@@ -48,13 +53,16 @@ test('clear formatting overrides inherited row styles only inside the target', a
   await page.goto('/')
   await expect(page.locator('td[data-cell="2:0"]')).toBeVisible()
   await page.getByRole('button', { name: 'Select row 3', exact: true }).click()
+  await showRibbonItem(page, 'format.bold')
   await page.getByRole('button', { name: 'Bold', exact: true }).click()
   const cell = await selectCell(page, 'B3', '2:1')
   await expect(cell).toHaveCSS('font-weight', '700')
+  await showRibbonItem(page, 'clear.formats')
   await page.getByRole('button', { name: 'Clear formatting', exact: true }).click()
   await expect(cell).toHaveCSS('font-weight', '400')
   await expect(page.locator('td[data-cell="2:0"]')).toHaveCSS('font-weight', '700')
   await page.getByRole('columnheader', { name: 'Select column B', exact: true }).click()
+  await showRibbonItem(page, 'format.bold')
   await page.getByRole('button', { name: 'Bold', exact: true }).click()
   await expect(cell).toHaveCSS('font-weight', '700')
 })
@@ -65,12 +73,14 @@ test('clear all erases a selected row including offscreen cells without touching
   await page.goto('/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveCSS('font-weight', '700')
   await page.getByRole('button', { name: 'Select row 2', exact: true }).click()
+  await showRibbonItem(page, 'clear.all')
   await page.getByRole('button', { name: 'Clear all', exact: true }).click()
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveCSS('font-weight', '400')
   await expect(page.locator('td[data-cell="2:0"]')).toHaveText('SO-10002')
   const farCell = await selectCell(page, 'P2', '1:15')
   await expect(farCell).toHaveText('')
+  await showRibbonItem(page, 'format.currency-format')
   await expect(page.getByRole('button', { name: 'Currency format' })).toHaveAttribute(
     'aria-pressed',
     'false',

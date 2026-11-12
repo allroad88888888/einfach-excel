@@ -1,10 +1,12 @@
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function rename(page: Page, old: string, next: string) {
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click()
   await button(page, `Edit ${old}`).click()
   await page.getByLabel('Name', { exact: true }).fill(next)
@@ -28,10 +30,12 @@ test('legal address-shaped and dotted names calculate and survive structural edi
     previous = name
   }
   await select(page, 'C65', '64:2')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' })
     .selectOption('insert-rows')
   await select(page, 'B4', '3:1')
   await expect(cell(page, '3:1')).toHaveText('12')
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click(); await button(page, 'Edit 销售额').click()
   await expect(page.getByLabel('Refers to', { exact: true })).toHaveValue('C66:C68')
   await button(page, 'Cancel').click()
@@ -42,6 +46,7 @@ test('legal address-shaped and dotted names calculate and survive structural edi
 test('conditional formulas follow a rename and undo restores their original text', async ({ page }) => {
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'B4', '3:1')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await page.getByLabel('Rule type').selectOption('formula')
   await page.getByLabel('Formula', { exact: true }).fill('=SUM(SampleAmounts)>10')
@@ -50,9 +55,11 @@ test('conditional formulas follow a rename and undo restores their original text
   await expect(cell(page, '3:1')).toHaveCSS('background-color', 'rgb(255, 199, 206)')
   await rename(page, 'SampleAmounts', 'Revenue')
   await expect(cell(page, '3:1')).toHaveCSS('background-color', 'rgb(255, 199, 206)')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click(); await button(page, 'Edit rule 1').click()
   await expect(page.getByLabel('Formula', { exact: true })).toHaveValue(/SUM\(Revenue\)/)
   await button(page, 'Cancel').click(); await button(page, 'Undo').click()
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click(); await button(page, 'Edit rule 1').click()
   await expect(page.getByLabel('Formula', { exact: true })).toHaveValue('=SUM(SampleAmounts)>10')
   await button(page, 'Cancel').click()

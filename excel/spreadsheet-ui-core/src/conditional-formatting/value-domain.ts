@@ -58,6 +58,8 @@ export function copyRule(rule: ConditionalFormatRule): ConditionalFormatRule {
     case 'top-bottom':
     case 'text':
     case 'duplicate-values':
+    case 'time-period':
+    case 'above-average':
       return { ...rule, format: copyFormat(rule.format) }
     case 'data-bar':
     case 'color-scale':
@@ -167,6 +169,10 @@ export function freezeLedger(
 
 export function defaultRuleForKind(kind: ConditionalFormatRuleKind): ConditionalFormatRule {
   switch (kind) {
+    case 'above-average':
+      return { kind, direction: 'above', equalAverage: false, format: { bgColor: '#fef3c7' } }
+    case 'time-period':
+      return { kind, period: 'today', format: { bgColor: '#fef3c7' } }
     case 'text':
       return { kind, condition: 'contains', text: '', format: { bgColor: '#fef3c7' } }
     case 'duplicate-values':

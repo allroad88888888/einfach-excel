@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { select } from './clipboard'
+import { showRibbonItem } from './ribbon'
 
 export const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -12,6 +13,7 @@ export async function start(page: Page) {
 }
 export async function open(page: Page) {
   await select(page, 'D55:D58', '54:3')
+  await showRibbonItem(page, 'data.fill-series')
   await button(page, 'Fill series').click()
   await panel(page).getByLabel('Sequence type').selectOption('custom-list')
 }

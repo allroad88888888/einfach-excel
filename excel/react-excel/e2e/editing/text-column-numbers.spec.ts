@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -15,6 +16,7 @@ async function refresh(page: Page) {
 }
 async function open(page: Page, source = 'E96', coord = '95:4', destination = 'B100') {
   await select(page, source, coord)
+  await showRibbonItem(page, 'data.text-to-columns')
   await button(page, 'Text to columns').click()
   await expect(page.getByRole('dialog')).toBeVisible()
   await page.getByLabel('Destination cell', { exact: true }).fill(destination)

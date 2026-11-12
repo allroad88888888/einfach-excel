@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonControl } from '../support/ribbon'
 
 // 2×1 红色 PNG：浏览器能解码出尺寸，Rust 按文件头识别类型。
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGP4z8DAwMAAAA0BAf8MNHMXAAAAAElFTkSuQmCC', 'base64')
@@ -47,6 +48,7 @@ test('inserting a picture by address stores only the address and rejects other s
   await page.route('https://pictures.test/**', (route) =>
     route.fulfill({ contentType: 'image/png', body: PNG }))
   await open(page)
+  await showRibbonControl(page, 'Insert picture from address')
   await button(page, 'Insert picture from address').click()
   const address = page.getByLabel('Picture address', { exact: true })
   await address.fill('javascript:alert(1)')

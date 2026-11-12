@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function openGoTo(page: Page, name: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(name)
 }
@@ -40,6 +42,7 @@ for (const width of [1280, 390]) test(`Go To uses the native name seed across sh
 })
 
 test('Go To follows the current renamed target and refuses deleted names', async ({ page }) => {
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click(); await button(page, 'Edit SampleAmounts').click()
   await page.getByLabel('Name', { exact: true }).fill('Revenue')
   await page.getByLabel('Refers to', { exact: true }).fill('C66:C67')
@@ -49,6 +52,7 @@ test('Go To follows the current renamed target and refuses deleted names', async
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(cell(page, '65:2')).toHaveAttribute('data-selected', 'true')
   await expect(cell(page, '65:2')).toHaveText('4')
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click(); await button(page, 'Edit Revenue').click()
   await button(page, 'Delete name').click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
@@ -61,11 +65,13 @@ test('Go To follows the current renamed target and refuses deleted names', async
 test('Go To reports a broken named range without creating a replacement name', async ({ page }) => {
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'C65:C67', '64:2')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' }).selectOption('delete-rows')
   await expect(button(page, 'Undo')).toBeEnabled()
   await openGoTo(page, 'SampleAmounts'); await button(page, 'Go').click()
   await expect(page.getByRole('alert')).toContainText('named range')
   await button(page, 'Cancel').click()
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click(); await button(page, 'Edit SampleAmounts').click()
   await expect(page.getByLabel('Refers to', { exact: true })).toHaveValue('#REF!')
 })
@@ -105,6 +111,7 @@ test('name box creates a native range usable by formulas, manager, Go To and und
   await name.fill('QuickUnits'); await name.press('Enter')
   await expect(name).toHaveValue('QuickUnits')
   await expect(page.locator('[data-workbook-grid]')).toBeFocused()
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click(); await button(page, 'Edit QuickUnits').click()
   await expect(page.getByLabel('Refers to', { exact: true })).toHaveValue('E2:E4')
   await button(page, 'Cancel').click()
@@ -114,6 +121,7 @@ test('name box creates a native range usable by formulas, manager, Go To and und
   await expect(cell(page, '1:11')).toHaveText('6')
   await button(page, 'Undo').click()
   await button(page, 'Undo').click()
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click()
   await expect(button(page, 'Edit QuickUnits')).toHaveCount(0)
   await button(page, 'Cancel').click()

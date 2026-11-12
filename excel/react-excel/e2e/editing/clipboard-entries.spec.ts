@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
@@ -19,6 +20,7 @@ for (const width of [1280]) for (const action of ['Cut button', 'Paste button', 
     await expect(undo).toBeDisabled()
     await select(page, 'B3', '2:1')
     await expect(cell(page, '2:1')).toHaveText('Northwind')
+    await showRibbonItem(page, 'clipboard.paste')
     if (action === 'Paste keyboard') {
       await expect(page.locator('[data-workbook-grid]')).toBeFocused()
       await page.keyboard.press('ControlOrMeta+v')

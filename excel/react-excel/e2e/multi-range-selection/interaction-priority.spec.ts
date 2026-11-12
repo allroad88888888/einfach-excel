@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { cell, drag, expectSelected, nameBox, openOrders } from './pointer'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) {
   test(`Shift extends the primary anchor after manual multi-selection at ${width}px`, async ({ page }) => {
@@ -34,6 +35,7 @@ for (const width of [1280]) {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await openOrders(page, width)
     await cell(page, 1, 0).click()
+    await showRibbonItem(page, 'format.format-painter')
     const brush = page.getByRole('button', { name: 'Format painter', exact: true })
     await brush.click()
     await expect(brush).toHaveAttribute('data-painter-mode', 'armed')

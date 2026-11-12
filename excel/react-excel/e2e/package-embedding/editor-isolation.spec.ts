@@ -77,8 +77,9 @@ for (const width of [1280, 390]) {
     const scroll = await scrollPositions(page)
     const viewport = await page.evaluate(() => [window.innerWidth, window.innerHeight])
     // 只变宿主布局；不发送 window resize，也不改草稿来触发 React 重绘。
-    await first.evaluate(node => { (node as HTMLElement).style.height = '400px' })
-    await expect(first.locator('.workbook')).toHaveCSS('height', '400px')
+    // 功能区为分类行加两行工具；460px 仍给表格留出编辑行，不让编辑器自身滚入视野干扰判定。
+    await first.evaluate(node => { (node as HTMLElement).style.height = '460px' })
+    await expect(first.locator('.workbook')).toHaveCSS('height', '460px')
     await expectPopupInside(first)
     await expect(editor).toHaveValue('=SU')
     await expect(editor).toBeFocused()

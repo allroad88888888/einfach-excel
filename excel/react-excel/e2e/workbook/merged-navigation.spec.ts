@@ -1,11 +1,13 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const mergeCell = (page: Page, coord: string) =>
   page.locator(`[data-merged-cell][data-cell="${coord}"]`)
 const nameBox = (page: Page) => page.getByRole('textbox', { name: 'Name box' })
 async function merge(page: Page, address: string, coord: string) {
   await select(page, address, coord)
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await page
     .getByRole('alertdialog')

@@ -1,5 +1,6 @@
 import { expect, test, type Locator } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 async function caret(input: Locator, draft: string, position: number) {
   await input.fill(draft)
@@ -57,6 +58,7 @@ for (const width of [1280]) test(`HELP-005 picker, draft, native commit and one 
   await page.setViewportSize({ width, height: 850 })
   await page.goto('/')
   const target = await select(page, 'B2', '1:1')
+  await showRibbonItem(page, 'formula.insert-function')
   await page.getByRole('button', { name: 'Insert function', exact: true }).click()
   await page.getByRole('searchbox', { name: 'Search functions' }).fill('LET')
   await page.getByRole('listbox', { name: 'Function', exact: true }).selectOption('LET')

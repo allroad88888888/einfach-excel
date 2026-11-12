@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { button, cell, frame, frames, insertChart, openWorkbook, selectBy, settings,
   trackECharts } from './chart-support'
+import { showRibbonItem } from '../support/ribbon'
 
 test.use({ viewport: { width: 1440, height: 1200 } })
 
@@ -9,6 +10,7 @@ const highlightIds = (page: Page) => highlights(page).evaluateAll((items) =>
   items.map((item) => item.getAttribute('data-host-highlight')))
 
 async function createTable(page: Page, name: string) {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   const dialog = page.getByRole('dialog', { name: 'Tables', exact: true })
   await dialog.getByLabel('Table name', { exact: true }).fill(name)

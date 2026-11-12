@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const formula = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
 async function open(page: Page) {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await button(page, 'Edit table DemoTable').click()
   return page.getByRole('dialog', { name: 'Tables', exact: true })
@@ -47,6 +49,7 @@ for (const width of [1280, 390]) test.describe(`${width}px totals visibility`, (
   test.use({ viewport: { width, height: 850 } })
 
   test(`show totals uses the seeded table without totals and undoes once at ${width}px`, async ({ page }) => {
+    await showRibbonItem(page, 'insert.tables')
     await button(page, 'Tables').click(); await button(page, 'Edit table CalculatedOrders').click()
     await button(page, 'Show totals row').click()
     await expect(page.getByLabel('Table range', { exact: true })).toHaveValue('A46:C50')
@@ -103,6 +106,7 @@ test('totals stay live after edits and exclude manually hidden rows', async ({ p
   await input(page, 'B81', '80:1', '40', '40')
   await select(page, 'B84', '83:1'); await expect(cell(page, '83:1')).toHaveText('30')
   await select(page, 'B82', '81:1')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
   await select(page, 'B84', '83:1'); await expect(cell(page, '83:1')).toHaveText('35')
   await button(page, 'Undo').click(); await expect(cell(page, '83:1')).toHaveText('30')
@@ -155,10 +159,12 @@ test('occupied totals row rejects without overwrite or extra history and can be 
 
 test('totals cannot extend beyond the demo worksheet canvas', async ({ page }) => {
   await select(page, 'A100:B100', '99:0')
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await page.getByLabel('Table name', { exact: true }).fill('LastRowTable')
   await button(page, 'Create table').click()
   await expect(page.getByRole('dialog', { name: 'Tables', exact: true })).toHaveCount(0)
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click(); await button(page, 'Edit table LastRowTable').click()
   await button(page, 'Show totals row').click()
   await expect(page.getByRole('alert')).toContainText('outside this worksheet')
@@ -181,6 +187,7 @@ for (const width of [1280, 390]) test(`totals controls fit ${width}px and keep k
   await page.screenshot({ path: info.outputPath(`table-totals-${width}.png`) })
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
+  await showRibbonItem(page, 'insert.tables')
   await expect(button(page, 'Tables')).toBeFocused()
   expect(errors).toEqual([])
 })

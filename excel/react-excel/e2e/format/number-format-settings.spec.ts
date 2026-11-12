@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const opener = (page: Page) => page.getByRole('button', { name: 'Number format settings', exact: true })
 async function open(page: Page, category?: string, digits?: string) {
+  await showRibbonItem(page, 'format.number-format-settings')
   await opener(page).click()
   if (category) await page.getByLabel('Number format category').selectOption(category)
   if (digits !== undefined) await page.getByRole('spinbutton', { name: 'Decimal places', exact: true }).fill(digits)
@@ -62,6 +64,7 @@ test('percent settings change display only, retain raw number and integrate with
   await apply(page)
   await expect(cell(page, '3:14')).toHaveText('10.000%')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('0.1')
+  await showRibbonItem(page, 'format.increase-decimal-places')
   await page.getByRole('button', { name: 'Increase decimal places' }).click()
   await expect(cell(page, '3:14')).toHaveText('10.0000%')
   await select(page, 'A900', '899:0')
@@ -70,6 +73,7 @@ test('percent settings change display only, retain raw number and integrate with
   await expect(page.getByLabel('Number format category')).toHaveValue('percent')
   await expect(page.getByRole('spinbutton', { name: 'Decimal places', exact: true })).toHaveValue('4')
   await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await showRibbonItem(page, 'format.general-format')
   await page.getByRole('button', { name: 'General format', exact: true }).click()
   await expect(cell(page, '3:14')).toHaveText('0.1')
 })
@@ -121,12 +125,15 @@ test('format settings keep text and boolean types and both editing inputs block 
   await cell(page, '2:1').dblclick()
   const editor = page.getByRole('textbox', { name: 'Cell editor', exact: true })
   await editor.fill('Unsaved')
+  await showRibbonItem(page, 'format.number-format-settings')
   await expect(opener(page)).toBeDisabled()
   await editor.press('Escape')
   const formula = page.getByRole('textbox', { name: 'Active cell value' })
   await formula.fill('Another draft')
+  await showRibbonItem(page, 'format.number-format-settings')
   await expect(opener(page)).toBeDisabled()
   await formula.press('Escape')
+  await showRibbonItem(page, 'format.number-format-settings')
   await expect(opener(page)).toBeEnabled()
   await expect(cell(page, '2:1')).toHaveText('Northwind')
 })
@@ -150,8 +157,10 @@ test('invalid precision and cancellation create no native history', async ({ pag
 
 test('currency reaches every frozen merged fragment and undo preserves the merge', async ({ page }) => {
   await select(page, 'F3', '2:5')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await select(page, 'E2:G4', '1:4')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await page.getByRole('alertdialog').getByRole('button', { name: 'Merge cells', exact: true }).click()
   const fragments = page.locator('[data-merged-cell="true"]')
@@ -203,6 +212,7 @@ test('errors keep their native tokens and empty cells retain a format for later 
   await apply(page)
   await expect(cell(page, '2:5')).toHaveText('#DIV/0!')
   await expect(formula).toHaveValue('=1/0')
+  await showRibbonItem(page, 'clear.contents')
   await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
   await expect(cell(page, '2:5')).toHaveText('')
   await open(page, 'currency', '3')
@@ -219,6 +229,7 @@ for (const width of [1280, 390]) {
     page.on('pageerror', (error) => errors.push(error.message))
     await page.setViewportSize({ width, height: 800 })
     await select(page, 'F3', '2:5')
+    await showRibbonItem(page, 'format.number-format-settings')
     await opener(page).focus()
     await page.keyboard.press('Enter')
     const category = page.getByLabel('Number format category')
@@ -236,6 +247,7 @@ for (const width of [1280, 390]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.keyboard.press('Enter')
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'format.number-format-settings')
     await expect(opener(page)).toBeFocused()
     await expect(cell(page, '2:5')).toHaveText('329.000')
     expect(errors).toEqual([])

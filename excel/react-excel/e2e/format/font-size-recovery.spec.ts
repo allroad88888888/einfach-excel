@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -21,16 +22,20 @@ for (const action of ['Cancel', 'Escape']) for (const width of [1280, 390])
   test(`${action} custom font size discards draft and preserves redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const height = (await cell(page, '2:1').boundingBox())!.height
+    await showRibbonItem(page, 'format.font-size')
     await control(page).selectOption('custom')
     await page.getByRole('spinbutton', { name: 'Custom font size' }).fill('513')
     if (action === 'Escape') await page.keyboard.press('Escape')
     else await button(page, 'Cancel').click()
     await expect(dialog(page)).toHaveCount(0)
+    await showRibbonItem(page, 'format.font-size')
     await expect(control(page)).toBeFocused()
+    await showRibbonItem(page, 'format.font-size')
     await expect(control(page)).toHaveValue('12')
     await expect(cell(page, '2:1')).toHaveText('Northwind')
     await expect(cell(page, '2:1')).toHaveCSS('font-size', '12px')
     expect((await cell(page, '2:1').boundingBox())!.height).toBe(height)
+    await showRibbonItem(page, 'format.font-size')
     await control(page).selectOption('custom')
     await expect(page.getByRole('spinbutton', { name: 'Custom font size' })).toHaveValue('12')
     await expect(dialog(page).getByRole('alert')).toHaveCount(0)
@@ -46,6 +51,7 @@ for (const width of [1280, 390])
     await page.setViewportSize({ width, height: 850 })
     const height = (await cell(page, '2:1').boundingBox())!.height
     const neighborHeight = (await cell(page, '3:1').boundingBox())!.height
+    await showRibbonItem(page, 'format.font-size')
     await control(page).selectOption('custom')
     const input = page.getByRole('spinbutton', { name: 'Custom font size' })
     for (const value of ['', '0', '-1', '12.5', '513']) {
@@ -62,6 +68,7 @@ for (const width of [1280, 390])
     await input.fill('37')
     await button(page, 'Apply font size').click()
     await expect(dialog(page)).toHaveCount(0)
+    await showRibbonItem(page, 'format.font-size')
     await expect(control(page)).toBeFocused()
     await expect(cell(page, '2:1')).toHaveCSS('font-size', '37px')
     await expect(cell(page, '2:1')).toHaveText('Northwind')
@@ -80,6 +87,7 @@ for (const action of ['Open', 'Tab', 'Shift+Tab']) for (const width of [1280, 39
   test(`${action} custom font dialog keeps focus and does not write at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const height = (await cell(page, '2:1').boundingBox())!.height
+    await showRibbonItem(page, 'format.font-size')
     await control(page).selectOption('custom')
     const input = page.getByRole('spinbutton', { name: 'Custom font size' })
     await expect(input).toBeFocused()
@@ -100,6 +108,7 @@ for (const action of ['Open', 'Tab', 'Shift+Tab']) for (const width of [1280, 39
     await expect(cell(page, '2:1')).toHaveText('Northwind')
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('B3')
     await button(page, 'Cancel').click()
+    await showRibbonItem(page, 'format.font-size')
     await expect(control(page)).toBeFocused()
     await expect(button(page, 'Undo')).toBeDisabled()
     await button(page, 'Redo').click()

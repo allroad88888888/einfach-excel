@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { cell, drag, openOrders } from './pointer'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) {
   test(`formatting manually appended areas changes every target and preserves the gap at ${width}px`, async ({ page }) => {
@@ -8,6 +9,7 @@ for (const width of [1280]) {
     const outsideWeight = await cell(page, 8, 1).evaluate(node => getComputedStyle(node).fontWeight)
     await cell(page, 2, 0).click()
     await drag(page, [5, 0], [6, 1], 'Meta')
+    await showRibbonItem(page, 'format.bold')
     await page.getByRole('button', { name: 'Bold', exact: true }).click()
     await expect(cell(page, 2, 0)).toHaveCSS('font-weight', '700')
     for (let row = 5; row <= 6; row++) for (let col = 0; col <= 1; col++)

@@ -1,9 +1,11 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem, showRibbonControl } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const panel = (page: Page) => page.getByRole('dialog', { name: 'Export selection as image' })
 async function select(page: Page, range: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(range)
   await button(page, 'Go').click()
@@ -16,6 +18,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('download selection as PNG preserves displayed conditional fills without changing history', async ({ page }) => {
+  await showRibbonControl(page, 'Export selection as image')
   await button(page, 'Export selection as image').click()
   await expect(button(page, 'Download PNG')).toBeEnabled()
   const pending = page.waitForEvent('download')
@@ -50,6 +53,7 @@ test('download selection as PNG preserves displayed conditional fills without ch
 
 test('copy PNG writes an image clipboard item', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await showRibbonControl(page, 'Export selection as image')
   await button(page, 'Export selection as image').click()
   await expect(button(page, 'Copy PNG')).toBeEnabled()
   await button(page, 'Copy PNG').click()
@@ -73,6 +77,7 @@ test('context menu opens image export for the selected cell', async ({ page }) =
 test('oversized image stays correctable and never triggers a download', async ({ page }) => {
   await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
   await select(page, 'R1:Z200')
+  await showRibbonControl(page, 'Export selection as image')
   await button(page, 'Export selection as image').click()
   await expect(button(page, 'Download PNG')).toBeEnabled()
   await page.getByLabel('Image scale').selectOption('2')
@@ -90,6 +95,7 @@ test('oversized image stays correctable and never triggers a download', async ({
 
 for (const width of [1280, 390]) test(`image export dialog fits ${width}px`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 800 })
+  await showRibbonControl(page, 'Export selection as image')
   await button(page, 'Export selection as image').click()
   await expect(button(page, 'Download PNG')).toBeEnabled()
   await expect(button(page, 'Copy PNG')).toBeInViewport()

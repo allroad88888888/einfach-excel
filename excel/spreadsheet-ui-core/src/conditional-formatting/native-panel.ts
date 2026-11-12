@@ -2,6 +2,8 @@ import { atom } from '@einfach/core'
 import type { CellValueRule, FormulaRule, TopBottomRule, ColorScaleRule, DataBarRule, NativeConditionalFormatRule } from './types'
 import type { TextMatchRule, DuplicateValuesRule } from './types'
 import type { IconSetRule } from './advanced/types'
+import type { TimePeriodRule } from './time-period-types'
+import type { AverageRule } from './types'
 import { copyAdvancedVisualRule } from './advanced/snapshot'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { rangeToA1 } from '../name-box/address'
@@ -44,9 +46,10 @@ export const nativeConditionalFormatsAtom = atom((get) => {
 type Action = 'open' | 'close' | 'new' | 'save'
   | { type: 'preset'; ruleId: string; range: string; rule: NativeConditionalFormatRule }
   | { type: 'kind'; kind: NativeConditionalFormatRule['kind'] }
+  | { type: 'average-direction'; direction: AverageRule['direction'] }
   | { type: 'edit'; id: string }
   | { type: 'remove' | 'duplicate' | 'enable' | 'disable' | 'move-up' | 'move-down'; id: string }
-  | { type: 'draft'; range?: string; rule?: Partial<Omit<CellValueRule, 'kind'> & Omit<FormulaRule, 'kind'> & Omit<TopBottomRule, 'kind'> & Omit<ColorScaleRule, 'kind'> & Omit<DataBarRule, 'kind'> & Omit<TextMatchRule, 'kind'> & Omit<DuplicateValuesRule, 'kind'> & Omit<IconSetRule, 'kind'>> }
+  | { type: 'draft'; range?: string; rule?: Partial<Omit<CellValueRule, 'kind'> & Omit<FormulaRule, 'kind'> & Omit<TopBottomRule, 'kind'> & Omit<ColorScaleRule, 'kind'> & Omit<DataBarRule, 'kind'> & Omit<TextMatchRule, 'kind'> & Omit<DuplicateValuesRule, 'kind'> & Omit<IconSetRule, 'kind'> & Omit<TimePeriodRule, 'kind'> & Omit<AverageRule, 'kind' | 'direction'>> }
 
 /** 一个入口负责草稿与提交；规则判断不进入 TS，复用现有可见投影发布。 */
 export const runNativeConditionalFormatAtom = atom(null, async (
@@ -89,6 +92,8 @@ export const runNativeConditionalFormatAtom = atom(null, async (
   if (state.sheetId !== sheet.id || state.connection !== connection)
     return fail('The workbook or worksheet changed. Close and reopen Conditional formatting.')
   if (typeof action === 'object' && action.type === 'kind') {
+    if (!['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar', 'text', 'duplicate-values', 'icon-set', 'time-period', 'above-average'].includes(action.kind))
+      return fail('This rule type cannot be edited here yet.')
     const enabled = state.rule.enabled === undefined ? {} : { enabled: state.rule.enabled }
     const common = { ...enabled,
       ...('stopIfTrue' in state.rule ? { stopIfTrue: state.rule.stopIfTrue } : {}),
@@ -107,22 +112,34 @@ export const runNativeConditionalFormatAtom = atom(null, async (
         ? { ...common, kind: 'duplicate-values', mode: 'duplicate' }
       : action.kind === 'formula'
       ? { ...common, kind: 'formula', formula: '' }
+      : action.kind === 'time-period'
+        ? { ...common, kind: 'time-period', period: 'today' }
+      : action.kind === 'above-average'
+        ? { ...common, kind: 'above-average', direction: 'above', equalAverage: false }
       : action.kind === 'top-bottom'
         ? { ...common, kind: 'top-bottom', direction: 'top', count: 10, percent: false }
         : { ...common, kind: 'cell-value', operator: 'gt', value: '' }
     set(nativeConditionalFormatPanelAtom, { ...state, rule, error: '' })
     return true
   }
+  if (typeof action === 'object' && action.type === 'average-direction') {
+    if (state.rule.kind !== 'above-average') return fail('This rule type cannot be edited here yet.')
+    set(nativeConditionalFormatPanelAtom, { ...state, error: '',
+      rule: { ...state.rule, direction: action.direction } })
+    return true
+  }
   if (typeof action === 'object' && action.type === 'draft') {
     set(nativeConditionalFormatPanelAtom, { ...state, error: '',
       ...(action.range === undefined ? {} : { range: action.range }),
-      rule: { ...state.rule, ...action.rule },
+      rule: state.rule.kind === 'above-average'
+        ? { ...state.rule, ...action.rule, direction: state.rule.direction }
+        : { ...state.rule, ...action.rule },
     })
     return true
   }
   if (typeof action === 'object' && action.type === 'edit') {
     const entry = config.rules.find((rule) => rule.id === action.id)
-    if (!entry || !['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar', 'text', 'duplicate-values', 'icon-set'].includes(entry.rule.kind))
+    if (!entry || !['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar', 'text', 'duplicate-values', 'icon-set', 'time-period', 'above-average'].includes(entry.rule.kind))
       return fail('This rule type cannot be edited here yet.')
     set(nativeConditionalFormatPanelAtom, { ...state, error: '', ruleId: entry.id,
       rule: 'format' in entry.rule ? { ...entry.rule, format: { ...entry.rule.format } } : copyAdvancedVisualRule(entry.rule), priority: entry.priority,

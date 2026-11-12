@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
@@ -29,6 +30,7 @@ for (const [address, coord, display, input] of [
     await select(page, 'A800', '799:0')
     await select(page, address!, coord!)
     await expect(formula).toHaveValue(input!)
+    await showRibbonItem(page, 'clear.formats')
     await page.getByRole('button', { name: 'Clear formatting', exact: true }).click()
     await expect(cell).toHaveText(input!)
   })

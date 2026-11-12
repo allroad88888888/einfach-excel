@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) for (const action of ['Merge consecutive', 'Keep empty field', 'Double quote'])
   test(`${action} split preserves target formatting through one overwrite and undo at ${width}px`, async ({ page }) => {
@@ -16,6 +17,7 @@ for (const width of [1280]) for (const action of ['Merge consecutive', 'Keep emp
     await bar.press('Enter')
     await expect(cell('91:4')).toHaveText(source)
     await select(page, 'E92', '91:4')
+    await showRibbonItem(page, 'data.text-to-columns')
     await button('Text to columns').click()
     const dialog = page.getByRole('dialog', { name: 'Text to columns', exact: true })
     await dialog.getByRole('textbox', { name: 'Destination cell', exact: true }).fill('B98')

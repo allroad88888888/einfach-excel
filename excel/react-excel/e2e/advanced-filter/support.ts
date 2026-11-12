@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 export { select }
 
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -14,10 +15,12 @@ export async function summary(page: Page) {
   await expect(cell(page, 1, 0)).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'A25:C29', '24:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('selection')
   await open(page)
 }
 export async function open(page: Page) {
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('open')
   await expect(dialog(page)).toBeVisible()
 }
@@ -55,6 +58,7 @@ export async function orders(page: Page) {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, 1, 0)).toHaveText('SO-10001')
   await select(page, 'A1:H1001', '0:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('selection')
   await button(page, 'Filter column A').click()
   await button(page, 'Choose values for condition 1').click()

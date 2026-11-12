@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function paint(page: Page, address: string, coord: string,
   preset: string, style = 'thin', color = '#123abc') {
   await select(page, address, coord)
+  await showRibbonItem(page, 'format.border-settings')
   await page.getByRole('button', { name: 'Border settings', exact: true }).click()
   await page.getByLabel('Position', { exact: true }).selectOption(preset)
   if (preset !== 'none') {
@@ -63,6 +65,7 @@ test('clear middle cell removes all four shared lines and one undo restores neig
 test('quick Borders uses the same native shared edge transaction', async ({ page }) => {
   await paint(page, 'C10', '9:2', 'right', 'thick', '#c00000')
   await select(page, 'D10', '9:3')
+  await showRibbonItem(page, 'format.borders')
   const quick = page.getByRole('button', { name: 'Borders', exact: true })
   await quick.click()
   await expect(quick).toHaveAttribute('aria-pressed', 'true')
@@ -87,6 +90,7 @@ for (const width of [1280, 390]) {
     await paint(page, 'A2:B2', '1:0', 'bottom', 'thin')
     await paint(page, 'B1:B3', '0:1', 'right', 'thin')
     await select(page, 'C3', '2:2')
+    await showRibbonItem(page, 'view.freeze-panes')
     await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
     await select(page, 'A1', '0:0')
     // 选中冻结格不会复位滚动；显式回到原点才能验证两侧相邻的接缝。

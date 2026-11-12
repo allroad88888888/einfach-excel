@@ -1,11 +1,13 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'view.find-and-replace')
   await page.getByRole('button', { name: 'Find and replace', exact: true }).click()
 })
 

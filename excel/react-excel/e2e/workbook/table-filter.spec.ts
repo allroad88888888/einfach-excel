@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const menu = (page: Page) => page.getByRole('combobox', { name: 'Worksheet filter' })
@@ -62,6 +63,7 @@ for (const width of [1280, 390])
 
 test('a table filter coexists with another table and an ordinary region; clear affects only its target', async ({ page }) => {
   await select(page, 'A25:C29', '24:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('selection')
   await button(page, 'Filter column A').click()
   await page.getByLabel('Filter value 1', { exact: true }).fill('West')
@@ -71,6 +73,7 @@ test('a table filter coexists with another table and an ordinary region; clear a
   await expect(cell(page, '80:0')).toHaveCount(0)
   await expect(cell(page, '83:1')).toHaveText('50')
   await expect(cell(page, '84:1')).toHaveText('ALPHA')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('clear')
   await expect(cell(page, '80:1')).toHaveText('10')
   await expect(cell(page, '83:1')).toHaveText('60')
@@ -102,6 +105,7 @@ test('editing keeps the snapshot until reapply, and undo restores that snapshot 
   await input.fill('-5'); await input.press('Enter')
   await expect(cell(page, '81:1')).toHaveText('-5')
   await expect(cell(page, '83:1')).toHaveText('25')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('reapply')
   await expect(cell(page, '81:1')).toHaveCount(0)
   await expect(cell(page, '83:1')).toHaveText('30')
@@ -152,13 +156,16 @@ test('clearing one table column preserves the other condition and header buttons
 
 test('filtering every data row keeps selection inside the table so toolbar clear is still available', async ({ page }) => {
   await select(page, 'A49', '48:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('open')
   await page.getByLabel('Minimum 1', { exact: true }).fill('100')
   await button(page, 'Apply filter').click()
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A46')
   await expect(cell(page, '46:0')).toHaveCount(0)
   await expect(cell(page, '48:0')).toHaveCount(0)
+  await showRibbonItem(page, 'data.worksheet-filter')
   await expect(menu(page).getByRole('option', { name: 'Clear CalculatedOrders filter', exact: true })).toBeEnabled()
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('clear')
   await expect(cell(page, '46:0')).toHaveText('1')
   await expect(cell(page, '48:0')).toHaveText('3')
@@ -167,6 +174,7 @@ test('filtering every data row keeps selection inside the table so toolbar clear
 test('row insertion moves table filter snapshots and undo returns them to the original records', async ({ page }) => {
   await amount(page)
   await select(page, 'A80', '79:0')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' }).selectOption('insert-rows')
   await expect(cell(page, '80:0')).toHaveText('Product')
   await expect(cell(page, '81:0')).toHaveCount(0)

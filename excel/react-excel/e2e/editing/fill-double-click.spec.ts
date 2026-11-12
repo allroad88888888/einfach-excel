@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const name = (page: Page) => page.getByRole('textbox', { name: 'Name box' })
@@ -71,6 +72,7 @@ test('right-neighbor fallback extends a numeric source only to the first gap', a
 })
 
 test('merged destination rejects atomically and succeeds after unmerge', async ({ page }) => {
+  await showRibbonItem(page, 'data.merge-cells')
   const merge = page.getByRole('combobox', { name: 'Merge cells', exact: true })
   await select(page, 'B72:C72', '71:1')
   await merge.selectOption('merge')

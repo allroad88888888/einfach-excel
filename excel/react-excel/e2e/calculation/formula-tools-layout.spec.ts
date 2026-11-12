@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonControl, showRibbonItem } from '../support/ribbon'
 
 async function write(page: Page, address: string, coord: string, value: string) {
   await select(page, address, coord)
@@ -41,6 +42,7 @@ for (const width of [1280, 390]) for (const locale of ['en', 'zh'] as const) {
     await language.selectOption(locale)
     const text = labels[locale]
     await page.getByRole('tab', { name: text.tab, exact: true }).click()
+    await showRibbonItem(page, 'formula.trace-precedents')
 
     const toolbar = page.locator('[data-formula-auditing-toolbar]')
     await expect(toolbar.getByRole('button')).toHaveCount(5)
@@ -85,6 +87,7 @@ for (const width of [1280, 390]) for (const locale of ['en', 'zh'] as const) {
     await page.screenshot({ path: info.outputPath('watch.png') })
     await watch.getByRole('button', { name: text.close, exact: true }).click()
 
+    await showRibbonControl(page, text.name)
     await page.getByRole('button', { name: text.name, exact: true }).click()
     const names = page.getByRole('dialog', { name: text.name, exact: true })
     await expect(names).toBeVisible()

@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { bar, button, cell, configure, edit, start, validationDialog } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 async function expectReadableFeedback(message: Locator) {
   await expect(message).toBeVisible()
@@ -41,7 +42,7 @@ for (const width of [1280, 390]) test.describe(`${width}px advanced validation`,
     await configure(page)
     await edit(page, 'D45', '44:3', '2'); await expect(cell(page, '44:3')).toHaveText('2')
     await edit(page, 'D46', '45:3', '3'); await expect(cell(page, '45:3')).toHaveText('3')
-    await select(page, 'D46', '45:3'); await button(page, 'Data validation').click()
+    await select(page, 'D46', '45:3'); await showRibbonItem(page, 'data.data-validation'); await showRibbonItem(page, 'data.data-validation'); await button(page, 'Data validation').click()
     await expect(page.getByLabel('Validation formula')).toHaveValue('=D45>0')
     await button(page, 'Cancel').click()
     await expect(cell(page, '44:4')).toHaveText('')
@@ -91,11 +92,14 @@ for (const width of [1280, 390]) test.describe(`${width}px advanced validation`,
 
   test(`cancel custom validation changes preserves the prior native rule and focus at ${width}px`, async ({ page }) => {
     await configure(page)
+    await showRibbonItem(page, 'data.data-validation')
     await button(page, 'Data validation').click()
     await page.getByLabel('Validation formula').fill('=FALSE')
     await page.getByLabel('Error alert', { exact: true }).selectOption('information')
     await button(page, 'Cancel').click()
+    await showRibbonItem(page, 'data.data-validation')
     await expect(button(page, 'Data validation')).toBeFocused()
+    await showRibbonItem(page, 'data.data-validation')
     await button(page, 'Data validation').click()
     await expect(page.getByLabel('Validation formula')).toHaveValue('=D45>0')
     await expect(page.getByLabel('Error alert', { exact: true })).toHaveValue('stop')
@@ -105,11 +109,13 @@ for (const width of [1280, 390]) test.describe(`${width}px advanced validation`,
 
   test(`clear advanced validation and undo restores its formula and messages at ${width}px`, async ({ page }) => {
     await configure(page, { prompt: true, style: 'warning' })
+    await showRibbonItem(page, 'data.data-validation')
     await button(page, 'Data validation').click(); await button(page, 'Clear validation').click()
     await expect(validationDialog(page)).toHaveCount(0)
     await expect(page.getByLabel('Validation input message')).toHaveCount(0)
     await button(page, 'Undo').click()
     await expect(page.getByLabel('Validation input message')).toContainText('Quantity')
+    await showRibbonItem(page, 'data.data-validation')
     await button(page, 'Data validation').click()
     await expect(page.getByLabel('Validation formula')).toHaveValue('=D45>0')
     await expect(page.getByLabel('Error alert', { exact: true })).toHaveValue('warning')

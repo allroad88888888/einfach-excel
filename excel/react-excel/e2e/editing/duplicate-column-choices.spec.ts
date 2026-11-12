@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) for (const action of ['Select all', 'Clear all', 'Compare column'])
   test(`${action} duplicate columns invalidates confirmation without losing redo at ${width}px`, async ({ page }) => {
@@ -16,6 +17,7 @@ for (const width of [1280]) for (const action of ['Select all', 'Clear all', 'Co
     await button('Undo').click()
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
     await select(page, 'D32:F37', '31:3')
+    await showRibbonItem(page, 'data.remove-duplicates')
     await button('Remove duplicates').click()
     const dialog = page.getByRole('dialog', { name: 'Remove duplicates', exact: true })
     const status = dialog.getByRole('status')
@@ -42,6 +44,7 @@ for (const width of [1280]) for (const action of ['Select all', 'Clear all', 'Co
     await expect(status).toContainText('0 duplicate records;')
     await expect(button('Remove records')).toBeDisabled()
     await button('Cancel').click()
+    await showRibbonItem(page, 'data.remove-duplicates')
     await expect(button('Remove duplicates')).toBeFocused()
     await expect(await select(page, 'F33', '32:5')).toHaveCSS('font-style', 'italic')
     await expect(await select(page, 'F37', '36:5')).toHaveText('P1')

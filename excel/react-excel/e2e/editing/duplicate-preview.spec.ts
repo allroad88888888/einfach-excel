@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280])
   test(`Update duplicate preview requires a fresh confirmation before one native removal at ${width}px`, async ({ page }) => {
@@ -10,6 +11,7 @@ for (const width of [1280])
     await expect(cell('1:0')).toHaveText('SO-10001')
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
     await select(page, 'D32:F37', '31:3')
+    await showRibbonItem(page, 'data.remove-duplicates')
     await button('Remove duplicates').click()
     const dialog = page.getByRole('dialog', { name: 'Remove duplicates', exact: true })
     await expect(dialog.getByRole('status')).toContainText('0 duplicate records;')

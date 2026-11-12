@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function open(page: Page, name = 'DemoTable') {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await button(page, `Edit table ${name}`).click()
 }
@@ -78,6 +80,7 @@ for (const width of [1280, 390]) test(`append control fits ${width}px and retain
       element.scrollWidth <= element.clientWidth)).toBe(true)
     await page.screenshot({ path: `/tmp/excel-table-append-${width}.png`, fullPage: true })
     await close(page)
+    await showRibbonItem(page, 'insert.tables')
     await expect(button(page, 'Tables')).toBeFocused()
   })
 

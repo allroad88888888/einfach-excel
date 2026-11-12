@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem, showRibbonControl } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -13,6 +14,7 @@ async function summary(page: Page) {
   await expect(cell(page, '1:0')).toHaveText('Customer')
 }
 async function go(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()
@@ -55,6 +57,7 @@ test('host default font size is inherited until explicit formatting and restored
   await summary(page)
   await expect(cell(page, '1:0')).toHaveCSS('font-size', '18px')
   await cell(page, '1:0').click()
+  await showRibbonItem(page, 'format.font-size')
   const size = page.getByRole('combobox', { name: 'Font size', exact: true })
   await expect(size).toHaveValue('18')
   await size.selectOption('24')
@@ -101,6 +104,7 @@ test('canvas renderer and PNG export use the same configured dimensions', async 
   const canvas = page.locator('[data-workbook-grid] canvas')
   await expect(canvas).toHaveAttribute('data-painted-cells', /[1-9]\d*/)
   await go(page, 'R10:S11')
+  await showRibbonControl(page, 'Export selection as image')
   await button(page, 'Export selection as image').click()
   await expect(button(page, 'Download PNG')).toBeEnabled()
   const pending = page.waitForEvent('download')

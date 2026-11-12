@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Conditional formatting', exact: true })
@@ -9,6 +10,7 @@ const blue = 'rgb(217, 234, 247)'
 const green = 'rgb(0, 255, 0)'
 
 async function open(page: Page) {
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await expect(dialog(page)).toBeVisible()
 }
@@ -25,6 +27,7 @@ for (const width of [1280]) test.describe(`${width}px conditional rule lifecycle
     await page.goto('/')
     await expect(cell(page, '1:0')).toHaveText('SO-10001')
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+    await showRibbonItem(page, 'view.go-to')
     await button(page, 'Go to').click()
     await page.getByLabel('Reference', { exact: true }).fill('C65:D67')
     await button(page, 'Go').click()
@@ -77,6 +80,7 @@ for (const width of [1280]) test.describe(`${width}px conditional rule lifecycle
     await page.getByLabel('Highlight fill', { exact: true }).fill('#00ff00')
     await button(page, 'Cancel').click()
     await expect(dialog(page)).toHaveCount(0)
+    await showRibbonItem(page, 'format.conditional-formatting')
     await expect(button(page, 'Conditional formatting')).toBeFocused()
     await expect(button(page, 'Undo')).toBeDisabled()
     await expect(cell(page, '65:2')).toHaveCSS('background-color', red)

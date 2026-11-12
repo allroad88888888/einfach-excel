@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem, showRibbonControl } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -7,9 +8,11 @@ async function go(page: Page, range: string) {
   await name.fill(range)
   await name.press('Enter')
   await expect(name).toHaveValue(range)
+  await showRibbonItem(page, 'view.go-to-special')
   await expect(button(page, 'Go to special')).toBeEnabled()
 }
 async function locate(page: Page, kind: string) {
+  await showRibbonItem(page, 'view.go-to-special')
   await button(page, 'Go to special').click()
   await button(page, kind).click()
   await expect(page.getByRole('dialog', { name: 'Go to special' })).toBeHidden()
@@ -30,6 +33,7 @@ for (const mode of ['Clear contents', 'Clear formatting', 'Clear all']) {
     await locate(page, 'Constants')
     await expect(page.getByRole('status', { name: 'Multi-area selection' }))
       .toContainText('Clear and formatting apply to all areas')
+    await showRibbonControl(page, mode)
     await button(page, mode).click()
     const contents = mode !== 'Clear formatting'
     const formats = mode !== 'Clear contents'
@@ -81,6 +85,7 @@ for (const width of [1280, 390]) test(`native spill rejection is visible and ret
   await page.setViewportSize({ width, height: 850 })
   await go(page, 'F58:H59')
   await locate(page, 'Formulas')
+  await showRibbonItem(page, 'clear.all')
   await button(page, 'Clear all').click()
   const error = page.getByRole('alert', { name: 'Selection change error' })
   await expect(error).toContainText('Include its formula cell')
@@ -95,6 +100,7 @@ for (const width of [1280, 390]) test(`native spill rejection is visible and ret
   await page.screenshot({ path: `/tmp/excel-multi-clear-error-${width}.png` })
   await go(page, 'F57:H59')
   await locate(page, 'Formulas')
+  await showRibbonItem(page, 'clear.contents')
   await button(page, 'Clear contents').click()
   await expect(error).toBeHidden()
   await expect(cell(page, '56:5')).toHaveText('')
@@ -104,6 +110,7 @@ for (const width of [1280, 390]) test(`native spill rejection is visible and ret
   await expect(button(page, 'Undo')).toBeDisabled()
   await go(page, 'A93:F94')
   await locate(page, 'Constants')
+  await showRibbonItem(page, 'clear.formats')
   await button(page, 'Clear formatting').focus()
   await page.keyboard.press('Enter')
   await expect(cell(page, '92:0')).toHaveCSS('font-style', 'normal')

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -22,6 +23,7 @@ for (const action of ['Cancel', 'Escape']) for (const width of [1280])
   test(`${action} border settings discards invalid draft and preserves redo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const original = await cell(page, '5:1').textContent()
+    await showRibbonItem(page, 'format.border-settings')
     await button(page, 'Border settings').click()
     await page.getByLabel('Position', { exact: true }).selectOption('all')
     await page.getByLabel('Line style', { exact: true }).selectOption('thick')
@@ -30,10 +32,12 @@ for (const action of ['Cancel', 'Escape']) for (const width of [1280])
     if (action === 'Escape') await page.keyboard.press('Escape')
     else await button(page, 'Cancel').click()
     await expect(dialog(page)).toHaveCount(0)
+    await showRibbonItem(page, 'format.border-settings')
     await expect(button(page, 'Border settings')).toBeFocused()
     await expect(cell(page, '5:1')).toHaveCSS('border-bottom-style', 'double')
     await expect(cell(page, '5:1')).toHaveCSS('border-bottom-color', 'rgb(192, 0, 0)')
     await expect(cell(page, '5:1')).toHaveText(original!)
+    await showRibbonItem(page, 'format.border-settings')
     await button(page, 'Border settings').click()
     await expect(page.getByLabel('Position', { exact: true })).toHaveValue('outside')
     await expect(page.getByLabel('Line style', { exact: true })).toHaveValue('double')
@@ -51,6 +55,7 @@ for (const width of [1280])
   test(`invalid border Hex stays correctable and commits only the valid retry at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const original = await cell(page, '5:1').textContent()
+    await showRibbonItem(page, 'format.border-settings')
     await button(page, 'Border settings').click()
     await page.getByLabel('Position', { exact: true }).selectOption('bottom')
     await page.getByLabel('Line style', { exact: true }).selectOption('thin')

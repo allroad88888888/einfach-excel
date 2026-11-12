@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { paste, select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 export const cell = (page: Page, coordinate: string) => page.locator(`td[data-cell="${coordinate}"]`)
@@ -8,6 +9,7 @@ export const dialog = (page: Page) => page.getByRole('dialog', { name: 'Conditio
 export const input = (page: Page) => page.getByRole('textbox', { name: 'Active cell value', exact: true })
 
 export async function go(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()
@@ -43,6 +45,7 @@ export async function start(page: Page, width: number) {
 }
 
 export async function open(page: Page, kind?: 'color-scale' | 'data-bar' | 'icon-set') {
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await expect(dialog(page)).toBeVisible()
   if (kind) await page.getByLabel('Rule type', { exact: true }).selectOption(kind)

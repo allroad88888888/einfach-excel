@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280])
   test(`dismiss layout error preserves native format formula and redo at ${width}px`, async ({ page }) => {
@@ -32,6 +33,7 @@ for (const width of [1280])
     await button('Undo').click()
     await select(page, 'G2', '1:6')
     const before = await cell('1:6').evaluate(node => getComputedStyle(node).textAlign)
+    await showRibbonItem(page, 'format.horizontal-alignment')
     const alignment = page.getByRole('combobox', { name: 'Horizontal alignment', exact: true })
     await alignment.selectOption('center')
     const error = page.locator('.text-layout-error')
@@ -47,6 +49,7 @@ for (const width of [1280])
     await expect(cell('1:5')).toHaveText('79')
     await button('Redo').click()
     await expect(cell('1:6')).toHaveText('158')
+    await showRibbonItem(page, 'format.horizontal-alignment')
     await alignment.selectOption('center')
     await expect(cell('1:6')).toHaveCSS('text-align', 'center')
     await button('Undo').click()

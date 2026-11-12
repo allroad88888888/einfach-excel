@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -25,7 +26,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('native pages include all 1000 seed IDs and retain choices across paging and offscreen search', async ({ page }) => {
-  await select(page, 'A1:H1001', '0:0'); await menu(page).selectOption('selection')
+  await select(page, 'A1:H1001', '0:0'); await showRibbonItem(page, 'data.worksheet-filter'); await showRibbonItem(page, 'data.worksheet-filter'); await menu(page).selectOption('selection')
   await open(page)
   await expect(page.getByLabel('Filter values page', { exact: true })).toHaveText('1–50 of 1000')
   await checkbox(page, 'SO-10001').check()
@@ -49,7 +50,7 @@ test('native pages include all 1000 seed IDs and retain choices across paging an
 })
 
 test('other column conditions narrow native candidates, while the current column can still choose another value', async ({ page }) => {
-  await select(page, 'A1:H1001', '0:0'); await menu(page).selectOption('selection')
+  await select(page, 'A1:H1001', '0:0'); await showRibbonItem(page, 'data.worksheet-filter'); await showRibbonItem(page, 'data.worksheet-filter'); await menu(page).selectOption('selection')
   await open(page, 'C'); await checkbox(page, 'West').check(); await apply(page)
   await open(page)
   await expect(page.getByLabel('Filter values page', { exact: true })).toHaveText('1–50 of 250')
@@ -92,7 +93,7 @@ test('blank and multiline values stay exact through selection, re-open and nativ
     const input = page.getByRole('textbox', { name: 'Active cell value' })
     await input.fill(value); await input.press('Enter')
   }
-  await select(page, 'A1:A4', '0:0'); await menu(page).selectOption('selection')
+  await select(page, 'A1:A4', '0:0'); await showRibbonItem(page, 'data.worksheet-filter'); await showRibbonItem(page, 'data.worksheet-filter'); await menu(page).selectOption('selection')
   await open(page)
   await checkbox(page, '(Blanks)').check()
   await page.getByRole('checkbox', { name: /Select value two\s+lines/ }).check()
@@ -112,7 +113,7 @@ for (const width of [1280, 390]) test(`values picker supports keyboard search an
     await page.setViewportSize({ width, height: 800 })
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
-    await select(page, 'A1:H1001', '0:0'); await menu(page).selectOption('selection')
+    await select(page, 'A1:H1001', '0:0'); await showRibbonItem(page, 'data.worksheet-filter'); await showRibbonItem(page, 'data.worksheet-filter'); await menu(page).selectOption('selection')
     await open(page)
     await search(page, 'SO-11000')
     const target = checkbox(page, 'SO-11000')

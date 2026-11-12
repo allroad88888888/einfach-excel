@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, address: string) => page.locator(`td[data-cell="${address}"]`)
@@ -6,6 +7,7 @@ async function start(page: Page, query = '?plugins=date-picker') {
   await page.goto(`/${query}`)
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill('A20')
   await button(page, 'Go').click()

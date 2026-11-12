@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape', 'Tab', 'Shift+Tab'])
   test(`${action} text columns resets its draft without overwriting source or redo at ${width}px`, async ({ page }, info) => {
@@ -16,6 +17,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     await expect(cell('93:7')).toHaveText('split redo')
     await button('Undo').click()
     await select(page, 'E97:E98', '96:4')
+    await showRibbonItem(page, 'data.text-to-columns')
     await button('Text to columns').click()
     const dialog = page.getByRole('dialog', { name: 'Text to columns', exact: true })
     const mode = dialog.getByRole('combobox', { name: 'Split mode', exact: true })
@@ -44,9 +46,11 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     if (action === 'Escape') await page.keyboard.press('Escape')
     else await button('Cancel').click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'data.text-to-columns')
     await expect(button('Text to columns')).toBeFocused()
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('E97:E98')
     await expect(button('Undo')).toBeDisabled()
+    await showRibbonItem(page, 'data.text-to-columns')
     await button('Text to columns').click()
     await expect(mode).toHaveValue('delimited')
     await expect(destination).toHaveValue('E97')

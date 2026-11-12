@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const merged = (page: Page, coord: string) =>
@@ -13,6 +14,7 @@ async function input(page: Page, address: string, coord: string, value: string) 
   await expect(formula).toBeEnabled()
 }
 async function headers(page: Page, enabled: boolean) {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await button(page, 'Edit table Orders').click()
   await page.getByLabel('Header row', { exact: true }).click()
@@ -33,6 +35,7 @@ test('local header insertion moves a merged formula and undo restores its comple
     ['B1', '0:1', 'Qty'], ['C1', '0:2', 'Tax'], ['B2', '1:1', '2'], ['B3', '2:1', '3'],
   ]) await input(page, address, coord, value)
   await select(page, 'B1:C3', '0:1')
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await page.getByLabel('Table name', { exact: true }).fill('Orders')
   await button(page, 'Create table').click()
@@ -40,10 +43,12 @@ test('local header insertion moves a merged formula and undo restores its comple
   await headers(page, false)
   // 空合并格也占用原表头位置，不能只根据 value 是否为空决定复用。
   await select(page, 'A1:D1', '0:0')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await expect(merged(page, '0:0')).toBeVisible()
   await input(page, 'B6', '5:1', '=B2+B3')
   await select(page, 'B6:C7', '5:1')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await expect(merged(page, '5:1')).toHaveText('5')
   await headers(page, true)

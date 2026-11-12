@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const panel = (page: Page) => page.getByRole('dialog', { name: 'Fill series', exact: true })
@@ -29,6 +30,7 @@ async function raw(page: Page, addresses: string[]) {
 }
 async function open(page: Page, range: string, kind: 'date-weekday' | 'date-year', step = '1') {
   await select(page, range)
+  await showRibbonItem(page, 'data.fill-series')
   await button(page, 'Fill series').click()
   await panel(page).getByLabel('Sequence type').selectOption(kind)
   await expect(panel(page).getByLabel('Step value')).toHaveValue('1')
@@ -221,6 +223,7 @@ test('calendar options, step correction and native history labels are translated
   ] as const) {
     await name.fill(kind === 'date-weekday' ? 'F20:F23' : 'H20:H24')
     await name.press('Enter')
+    await showRibbonItem(page, 'data.fill-series')
     await page.getByRole('button', { name: '填充序列', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: '填充序列', exact: true })
     await dialog.getByLabel('序列类型').selectOption(kind)
@@ -235,6 +238,7 @@ test('calendar options, step correction and native history labels are translated
     await dialog.getByRole('button', { name: '填充序列', exact: true }).click()
     await expect(dialog).toHaveCount(0)
   }
+  await showRibbonItem(page, 'history.recent-operations')
   await page.getByRole('button', { name: '最近操作', exact: true }).click()
   const history = page.getByRole('dialog', { name: '最近操作', exact: true })
   await expect(history).toContainText('填充工作日日期序列')

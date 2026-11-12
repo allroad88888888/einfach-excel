@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const menu = (page: Page) => page.getByRole('combobox', { name: 'Sort selected range' })
@@ -18,6 +19,7 @@ async function write(page: Page, address: string, value: string) {
   await expect(input(page)).toHaveValue(value)
 }
 async function sort(page: Page, direction: 'asc' | 'desc') {
+  await showRibbonItem(page, 'data.sort-selected-range')
   await menu(page).selectOption(direction)
   await expect(page.getByLabel('Sort status')).toHaveText(/Sorted \d+ rows\.|Already in order\./)
 }
@@ -64,6 +66,7 @@ test('descending numeric sort is stable and a repeated sort creates no history s
 })
 
 test('custom sort keeps the header and uses ordered, mixed-direction keys', async ({ page }) => {
+  await showRibbonItem(page, 'data.sort-selected-range')
   await menu(page).selectOption('custom')
   const dialog = page.getByRole('dialog', { name: 'Custom sort' })
   await dialog.getByLabel('First row is a header').check()
@@ -71,6 +74,7 @@ test('custom sort keeps the header and uses ordered, mixed-direction keys', asyn
   await dialog.getByLabel('Sort order 2').selectOption('desc')
   await dialog.getByRole('button', { name: 'Apply sort' }).click()
   await expect(dialog).not.toBeVisible()
+  await showRibbonItem(page, 'data.sort-selected-range')
   await expect(menu(page)).toBeFocused()
   await expect(cell(page, '24:0')).toHaveText('Team')
   await expect(cell(page, '24:1')).toHaveText('Score')
@@ -102,23 +106,27 @@ test('blank cells stay last in both directions and formulas remain formulas', as
 
 test('hidden rows are included without moving the hidden-row setting', async ({ page }) => {
   await select(page, 'A27')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
   await select(page, 'A26:C29')
   await sort(page, 'asc')
   await expect(cell(page, '25:2')).toHaveText('E10')
   await expect(cell(page, '26:2')).toHaveCount(0)
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await records(page, ['E10', 'E30', 'W20', 'W10'])
 })
 
 test('merged ranges and live array spills reject without a sort history entry', async ({ page }) => {
   await select(page, 'A15:D18')
+  await showRibbonItem(page, 'data.sort-selected-range')
   await menu(page).selectOption('asc')
   await expect(page.getByRole('alert', { name: 'Sort status' })).toContainText('Unmerge')
   await expect(cell(page, '14:0')).toHaveText('Merged heading')
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   await write(page, 'E25', '=SEQUENCE(3)')
   await select(page, 'E25:E28')
+  await showRibbonItem(page, 'data.sort-selected-range')
   await menu(page).selectOption('asc')
   await expect(page.getByRole('alert', { name: 'Sort status' })).toContainText('array spill')
   await expect(cell(page, '25:4')).toHaveText('2')
@@ -128,15 +136,18 @@ test('merged ranges and live array spills reject without a sort history entry', 
 
 test('single-cell rejection and dialog cancellation leave data untouched', async ({ page }) => {
   await select(page, 'A26')
+  await showRibbonItem(page, 'data.sort-selected-range')
   await menu(page).selectOption('asc')
   await expect(page.getByRole('alert', { name: 'Sort status' })).toContainText('at least two')
   await select(page, 'A25:C29')
+  await showRibbonItem(page, 'data.sort-selected-range')
   await menu(page).selectOption('custom')
   await page.getByRole('button', { name: 'Add level' }).click()
   await page.getByLabel('Remove sort level 2').click()
   await expect(page.getByLabel('Sort column 2')).toHaveCount(0)
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
+  await showRibbonItem(page, 'data.sort-selected-range')
   await expect(menu(page)).toBeFocused()
   await records(page, ['W20', 'E10', 'W10', 'E30'])
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
@@ -163,19 +174,23 @@ test('1,000 records sort through Rust; cross-sheet dependents update and undo re
 test('sorting preserves copy snapshots but rejects a stale cut source', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await select(page, 'C26')
+  await showRibbonItem(page, 'clipboard.copy')
   await page.getByRole('button', { name: 'Copy', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Copied')
   await select(page, 'A26:C29')
   await sort(page, 'asc')
   await select(page, 'E30')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(cell(page, '29:4')).toHaveText('W20')
   await select(page, 'A26')
+  await showRibbonItem(page, 'clipboard.cut')
   await page.getByRole('button', { name: 'Cut', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('ready to move')
   await select(page, 'A26:C29')
   await sort(page, 'desc')
   await select(page, 'E31')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('Copy or cut again')
   await expect(cell(page, '30:4')).toHaveText('')
@@ -188,6 +203,7 @@ for (const width of [1280, 390]) {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
     await page.setViewportSize({ width, height: 800 })
+    await showRibbonItem(page, 'data.sort-selected-range')
     await menu(page).selectOption('custom')
     const dialog = page.getByRole('dialog', { name: 'Custom sort' })
     await dialog.getByLabel('First row is a header').check()

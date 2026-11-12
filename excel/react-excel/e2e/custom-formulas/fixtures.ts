@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { expect, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 export const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -14,6 +15,7 @@ export async function expectOrderQuantitySource(page: Page) {
 }
 
 export async function openEditor(page: Page) {
+  await showRibbonItem(page, 'formula.custom-formulas')
   await button(page, 'Custom formulas').click()
   await expect(editor(page)).toBeVisible()
   await expect(page.getByLabel('Function name', { exact: true })).toBeEnabled()

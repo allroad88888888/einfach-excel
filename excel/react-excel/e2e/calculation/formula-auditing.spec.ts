@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 async function setCell(page: Page, address: string, coord: string, input: string) {
   await select(page, address, coord)
@@ -10,12 +11,14 @@ async function setCell(page: Page, address: string, coord: string, input: string
 
 async function evaluateF1(page: Page) {
   await select(page, 'F1', '0:5')
+  await showRibbonItem(page, 'formula.evaluate-formula')
   await page.getByRole('button', { name: 'Evaluate Formula', exact: true }).click()
   return page.getByRole('dialog', { name: 'Evaluate Formula' })
 }
 
 async function watchF1(page: Page) {
   await select(page, 'F1', '0:5')
+  await showRibbonItem(page, 'formula.watch-window')
   await page.getByRole('button', { name: 'Watch Window', exact: true }).click()
   await page.getByRole('button', { name: 'Add Watch', exact: true }).click()
   return page.locator('[data-watch-row]').first()
@@ -42,6 +45,7 @@ test.afterEach(async ({ page }) => {
 
 test('trace precedents draws the referenced cell arrow without changing values', async ({ page }) => {
   await select(page, 'E1', '0:4')
+  await showRibbonItem(page, 'formula.trace-precedents')
   await page.getByRole('button', { name: 'Trace Precedents', exact: true }).click()
   await expect(page.locator('[data-auditing-arrow]')).toHaveCount(1)
   await expect(page.locator('[data-auditing-arrow] line')).toHaveAttribute('x1', /^\d/)
@@ -50,6 +54,7 @@ test('trace precedents draws the referenced cell arrow without changing values',
 
 test('trace dependents draws the dependent cell arrow without changing values', async ({ page }) => {
   await select(page, 'E1', '0:4')
+  await showRibbonItem(page, 'formula.trace-dependents')
   await page.getByRole('button', { name: 'Trace Dependents', exact: true }).click()
   await expect(page.locator('[data-auditing-arrow]')).toHaveCount(1)
   await expect(page.locator('td[data-cell="0:5"]')).toHaveText('25')
@@ -57,9 +62,12 @@ test('trace dependents draws the dependent cell arrow without changing values', 
 
 test('remove arrows clears existing precedent and dependent traces', async ({ page }) => {
   await select(page, 'E1', '0:4')
+  await showRibbonItem(page, 'formula.trace-precedents')
   await page.getByRole('button', { name: 'Trace Precedents', exact: true }).click()
+  await showRibbonItem(page, 'formula.trace-dependents')
   await page.getByRole('button', { name: 'Trace Dependents', exact: true }).click()
   await expect(page.locator('[data-auditing-arrow]')).toHaveCount(2)
+  await showRibbonItem(page, 'formula.remove-arrows')
   await page.getByRole('button', { name: 'Remove Arrows', exact: true }).click()
   await expect(page.locator('[data-auditing-overlay="true"]')).toHaveCount(0)
 })
@@ -114,6 +122,7 @@ test('Escape closes formula evaluation and restores its toolbar trigger', async 
   await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
+  await showRibbonItem(page, 'formula.evaluate-formula')
   await expect(page.getByRole('button', { name: 'Evaluate Formula', exact: true })).toBeFocused()
   await expect(page.locator('td[data-cell="0:5"]')).toHaveText('25')
 })
@@ -162,11 +171,13 @@ test('trace precedents includes sheets in a three dimensional formula', async ({
   await setCell(page, 'H1', '0:7', '=SUM(Sheet3:Sheet4!D1)')
   await expect(page.locator('td[data-cell="0:7"]')).toHaveText('15')
   await select(page, 'H1', '0:7')
+  await showRibbonItem(page, 'formula.trace-precedents')
   await page.getByRole('button', { name: 'Trace Precedents', exact: true }).click()
   await expect(page.locator('[data-auditing-arrow]')).toHaveCount(2)
 })
 
 test('trace precedents follows a sheet qualified named formula', async ({ page }) => {
+  await showRibbonItem(page, 'formula.name-manager')
   await page.getByRole('button', { name: 'Name manager', exact: true }).click()
   await page.getByLabel('Name', { exact: true }).fill('Total')
   await page.getByLabel('Scope', { exact: true }).selectOption({ label: 'Sheet3' })
@@ -176,6 +187,7 @@ test('trace precedents follows a sheet qualified named formula', async ({ page }
   await setCell(page, 'H1', '0:7', '=sheet3!Total')
   await expect(page.locator('td[data-cell="0:7"]')).toHaveText('20')
   await select(page, 'H1', '0:7')
+  await showRibbonItem(page, 'formula.trace-precedents')
   await page.getByRole('button', { name: 'Trace Precedents', exact: true }).click()
   await expect(page.locator('[data-auditing-arrow]')).toHaveCount(1)
 })

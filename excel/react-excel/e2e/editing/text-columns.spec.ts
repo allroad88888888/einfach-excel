@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 async function open(page: Page, source = 'E97:E98', coord = '96:4') {
   await select(page, source, coord)
+  await showRibbonItem(page, 'data.text-to-columns')
   await button(page, 'Text to columns').click()
   await expect(page.getByRole('table', { name: 'Split preview' })).toBeVisible()
 }
@@ -83,6 +85,7 @@ test('Cancel and Escape leave data and history untouched; invalid destination ca
   await expect(button(page, 'Apply split')).toBeDisabled()
   await destination(page, 'B97')
   await button(page, 'Cancel').click()
+  await showRibbonItem(page, 'data.text-to-columns')
   await expect(button(page, 'Text to columns')).toBeFocused()
   await expect(button(page, 'Undo')).toBeDisabled()
   await open(page)
@@ -142,6 +145,7 @@ test('overlapping destination reads the second source before overwriting it', as
 
 test('merged source and destination are rejected without a mutation or a misleading preview', async ({ page }) => {
   await select(page, 'A15', '14:0')
+  await showRibbonItem(page, 'data.text-to-columns')
   await button(page, 'Text to columns').click()
   // 名称框按合并几何展开为 A15:D15，因此源区先被单列校验拒绝。
   await expect(page.getByRole('alert')).toContainText('one continuous column')

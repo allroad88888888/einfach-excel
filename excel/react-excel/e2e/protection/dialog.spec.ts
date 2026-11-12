@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, panel, select, openProtection, closeProtection, input } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) {
   test(`open worksheet protection reads native settings and fits the viewport at ${width}px`, async ({ page }, info) => {
@@ -47,6 +48,7 @@ for (const width of [1280, 390]) {
       if (action === 'Escape') await page.keyboard.press('Escape')
       else await closeProtection(page)
       await expect(panel(page)).toHaveCount(0)
+      await showRibbonItem(page, 'data.worksheet-protection')
       await expect(button(page, 'Worksheet protection')).toBeFocused()
       await expect(cell(page, '1:4')).toHaveText('1')
       await expect(cell(page, '1:5')).toHaveText('79')
@@ -64,6 +66,7 @@ for (const width of [1280, 390]) {
     await button(page, 'Allow editing in selection E2').click()
     await closeProtection(page)
     await page.getByRole('combobox', { name: 'Interface language' }).selectOption('zh')
+    await showRibbonItem(page, 'data.worksheet-protection')
     await button(page, '工作表保护').click()
     const chinese = page.getByRole('dialog', { name: '工作表保护', exact: true })
     await expect(chinese).toBeVisible()

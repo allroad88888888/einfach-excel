@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { select } from './clipboard'
+import { showRibbonItem } from './ribbon'
 
 export const specialCell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 export const specialButton = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -23,6 +24,7 @@ export async function setSpecialInput(page: Page, address: string, coord: string
 export async function openSpecial(page: Page, address: string, coord: string,
   preset = 'zip-code', locale = 'en-US') {
   await select(page, address, coord)
+  await showRibbonItem(page, 'format.number-format-settings')
   await specialButton(page, 'Number format settings').click()
   await page.getByLabel('Number format category').selectOption('special')
   await page.getByLabel('Locale (location)', { exact: true }).selectOption(locale)
@@ -35,6 +37,7 @@ export async function applySpecial(page: Page) {
 }
 
 export async function expectSpecialSettings(page: Page, preset: string, locale = 'en-US') {
+  await showRibbonItem(page, 'format.number-format-settings')
   await specialButton(page, 'Number format settings').click()
   await expect(page.getByLabel('Number format category')).toHaveValue('special')
   await expect(page.getByLabel('Locale (location)', { exact: true })).toHaveValue(locale)

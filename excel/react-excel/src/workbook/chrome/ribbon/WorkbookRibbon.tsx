@@ -1,116 +1,61 @@
-import { CellFormatTools } from './CellFormatTools'
 import {
+  workbookRibbonOverflowAtom,
   workbookRibbonTabAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
-import { ClipboardTools } from './ClipboardTools'
-import { FormatPainterTools } from './FormatPainterTools'
-import { SelectionSizeTools } from './SelectionSizeTools'
-import { HistoryTools } from './HistoryTools'
-import { VisibilityTools } from './VisibilityTools'
-import { OutlineTools } from './OutlineTools'
-import { FillTools } from './FillTools'
-import { FillSeriesTools } from './FillSeriesTools'
-import { SortTools } from './SortTools'
-import { FilterTools } from './FilterTools'
-import { TextColumnsTools } from './TextColumnsTools'
-import { RemoveDuplicatesTools } from './RemoveDuplicatesTools'
-import { StructureTools } from './StructureTools'
-import { FreezeTools } from './FreezeTools'
-import { ViewOptionsTools } from './ViewOptionsTools'
-import { FindReplaceTools } from './FindReplaceTools'
-import { GoToTools } from './GoToTools'
-import { GoToSpecialTools } from './GoToSpecialTools'
-import { QuickFormulaTools } from './QuickFormulaTools'
-import { InsertFunctionTools } from './InsertFunctionTools'
-import { CalculationTools } from './CalculationTools'
-import { SpillTools } from './SpillTools'
-import { NamedRangeTools } from './NamedRangeTools'
-import { TableTools } from './TableTools'
-import { DataValidationTools } from './DataValidationTools'
-import { HyperlinkTools } from '../../hyperlink/HyperlinkTools'
-import { NoteTools } from '../../notes/NoteTools'
-import { CommentTools } from '../../comments/CommentTools'
-import { ProtectionTools } from '../../protection/ProtectionTools'
-import { CustomFormulaTools } from '../../custom-formulas/CustomFormulaTools'
-import { FormulaAuditingToolbar } from '../../../components/formula-auditing'
-import { PluginRibbonGroups } from '../../../plugin/PluginMounts'
 import { useAtomValue } from '@einfach/react'
-import { useId, useLayoutEffect, useRef } from 'react'
-import { RibbonTabs, ribbonTabLabels } from './RibbonTabs'
 import { useLingui } from '@lingui/react/macro'
+import { useId, useRef } from 'react'
+import { usePluginRibbonGroups } from '../../../plugin/PluginMounts'
+import { HistoryTools } from './HistoryTools'
+import { RibbonGroup } from './RibbonGroup'
+import { RibbonMore } from './RibbonMore'
+import { RibbonTabs, ribbonTabLabels } from './RibbonTabs'
+import { BUILT_IN_RIBBON_GROUPS } from './ribbon-groups'
+import { useRibbonMorePanel } from './use-ribbon-more-panel'
+import { useRibbonOverflow } from './use-ribbon-overflow'
 import './ribbon.css'
+import './ribbon-groups.css'
+import './ribbon-overflow.css'
 
-/** Renders a Univer-inspired collapsed spreadsheet toolbar. */
+/**
+ * 与 Univer 相同的布局：分类标签独占一行，下面是按组排列的两行工具栏。
+ * 历史组常驻最前；当前分类放不下时从末尾按整组收进“更多”。
+ */
 export function WorkbookRibbon() {
   const { i18n, t } = useLingui()
   const tab = useAtomValue(workbookRibbonTabAtom)
+  const { collapsed, expanded } = useAtomValue(workbookRibbonOverflowAtom)
+  const pluginGroups = usePluginRibbonGroups()
+  const groups = [...BUILT_IN_RIBBON_GROUPS, ...pluginGroups]
+  const active = groups.filter((group) => group.tab === tab)
+  const folded = collapsed > 0 ? active.slice(Math.max(0, active.length - collapsed)) : []
   const tabLabel = i18n._(ribbonTabLabels[tab])
   const id = useId()
-  const all = tab === 'Start'
+  const panelRef = useRef<HTMLDivElement>(null)
   const toolsRef = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    if (toolsRef.current) toolsRef.current.scrollLeft = 0
-  }, [tab])
+  useRibbonOverflow(toolsRef, active.map((group) => group.id))
+  useRibbonMorePanel(panelRef)
 
   return (
-    <div className="ribbon-shell">
+    <div className="ribbon-shell" data-expanded={expanded}>
       <RibbonTabs id={id} />
-      <span className="toolbar-divider" aria-hidden="true" />
       <div
+        ref={panelRef}
         className="ribbon-panel"
         id={`${id}-panel`}
         role="tabpanel"
         aria-labelledby={`${id}-${tab}`}
       >
         <div ref={toolsRef} className="ribbon-tools" role="toolbar" aria-label={t`${tabLabel} tools`}>
-          <div className="ribbon-tool-group" data-inactive={!all}>
-            <ClipboardTools />
-            <FormatPainterTools />
+          <div className="ribbon-tool-group" data-ribbon-group="history" data-layout="stack">
+            <HistoryTools />
           </div>
-          <HistoryTools />
-          <div className="ribbon-tool-group" data-inactive={!all && tab !== 'Data'}>
-            <FillTools />
-            <FillSeriesTools />
-            <SortTools />
-            <FilterTools />
-            <TextColumnsTools />
-            <RemoveDuplicatesTools />
-            <DataValidationTools />
-            <ProtectionTools />
-          </div>
-          <div className="ribbon-tool-group" data-inactive={!all && tab !== 'View'}>
-            <VisibilityTools />
-            <OutlineTools />
-            <FreezeTools />
-            <SelectionSizeTools />
-            <ViewOptionsTools />
-          </div>
-          <div className="ribbon-tool-group" data-inactive={!all && tab !== 'Insert'}>
-            <StructureTools />
-            <TableTools />
-            <HyperlinkTools />
-            <NoteTools />
-            <CommentTools />
-          </div>
-          <div className="ribbon-tool-group" data-inactive={!all}>
-            <CellFormatTools />
-          </div>
-          <div className="ribbon-tool-group" data-inactive={!all && tab !== 'Formulas'}>
-            <QuickFormulaTools />
-            <InsertFunctionTools />
-            <CustomFormulaTools />
-            <CalculationTools />
-            <SpillTools />
-            <FormulaAuditingToolbar />
-            <NamedRangeTools />
-          </div>
-          <PluginRibbonGroups tab={tab} />
-          <div className="toolbar-spacer" />
-          <div className="ribbon-tool-group" data-inactive={!all && tab !== 'View'}>
-            <FindReplaceTools />
-            <GoToTools />
-            <GoToSpecialTools />
-          </div>
+          {groups
+            .filter((group) => !folded.includes(group))
+            .map((group) => (
+              <RibbonGroup key={group.id} group={group} inactive={group.tab !== tab} />
+            ))}
+          <RibbonMore groups={folded} />
         </div>
       </div>
     </div>

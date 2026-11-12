@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { argumentsPanel, cell, field } from './fixtures'
+import { showRibbonControl } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const locale of ['en', 'zh'] as const)
   test(`argument form focus, errors and controls fit ${locale} at ${width}px`, async ({ page }, testInfo) => {
@@ -10,6 +11,7 @@ for (const width of [1280, 390]) for (const locale of ['en', 'zh'] as const)
     if (locale === 'zh') await page.getByRole('combobox', { name: 'Interface language' }).selectOption('zh')
     const chinese = locale === 'zh'
     const opener = page.getByRole('button', { name: chinese ? '插入函数' : 'Insert function', exact: true })
+    await showRibbonControl(page, chinese ? '插入函数' : 'Insert function')
     await opener.click()
     await page.getByRole('listbox').selectOption('LET')
     await page.getByRole('button', { name: chinese ? '填写参数' : 'Fill arguments', exact: true }).click()

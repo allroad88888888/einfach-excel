@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 import { select } from './clipboard'
+import { showRibbonItem } from './ribbon'
 
 export const accountingCell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 export const accountingButton = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -22,6 +23,7 @@ export async function setAccountingInput(page: Page, address: string, coord: str
 
 export async function openAccounting(page: Page, address: string, coord: string, symbol = '$', digits = '2') {
   await select(page, address, coord)
+  await showRibbonItem(page, 'format.number-format-settings')
   await accountingButton(page, 'Number format settings').click()
   await page.getByLabel('Number format category').selectOption('accounting')
   await page.getByLabel('Currency symbol').fill(symbol)
@@ -39,6 +41,7 @@ export async function expectAccounting(target: Locator, symbol: string, number: 
 }
 
 export async function expectAccountingSettings(page: Page, symbol: string, digits: string) {
+  await showRibbonItem(page, 'format.number-format-settings')
   await accountingButton(page, 'Number format settings').click()
   await expect(page.getByLabel('Number format category')).toHaveValue('accounting')
   await expect(page.getByLabel('Currency symbol')).toHaveValue(symbol)

@@ -185,7 +185,7 @@ fn reads_hand_written_feature_parts_and_skips_what_native_cannot_hold() {
     let sheet = r#"<worksheet xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><cols><col min="2" max="3" width="9" hidden="1"/></cols><sheetData>
         <row r="1" hidden="1" ht="30" customHeight="1"><c r="A1"><v>1</v></c></row></sheetData>
         <conditionalFormatting sqref="A1:A3 C1"><cfRule type="iconSet" priority="1"><iconSet iconSet="3Arrows"><cfvo type="percent" val="0"/></iconSet></cfRule>
-          <cfRule type="aboveAverage" dxfId="0" priority="2"/><cfRule type="expression" dxfId="0" priority="3"><formula>MOD(ROW(),2)=0</formula></cfRule></conditionalFormatting>
+          <cfRule type="aboveAverage" stdDev="1" dxfId="0" priority="2"/><cfRule type="expression" dxfId="0" priority="3"><formula>MOD(ROW(),2)=0</formula></cfRule></conditionalFormatting>
         <dataValidations count="2"><dataValidation type="list" sqref="B1"><formula1>$D$1:$D$3</formula1></dataValidation>
           <dataValidation type="whole" operator="between" sqref="B2"><formula1>9</formula1><formula2>1</formula2></dataValidation></dataValidations>
         <hyperlinks><hyperlink ref="A1" r:id="rId1"/><hyperlink ref="A2" r:id="rId2"/><hyperlink ref="A3" location="Sheet1!A1"/></hyperlinks>
@@ -205,7 +205,7 @@ body</t></r><rPh><t>skip</t></rPh></text></comment><comment ref="C3" authorId="0
     assert_eq!(book["hidden"][0]["rows"], serde_json::json!([0]));
     assert!(book["sizes"].is_null(), "hidden row/column sizes are not kept");
     let rules = book["conditionalFormats"][0]["rules"].as_array().unwrap();
-    assert_eq!(rules.len(), 1, "icon sets and above-average rules are skipped");
+    assert_eq!(rules.len(), 1, "icon sets and standard-deviation rules are skipped");
     assert_eq!(rules[0]["rule"]["formula"], "=MOD(ROW(),2)=0");
     assert_eq!(rules[0]["scope"]["additionalRanges"][0]["colStart"], 2);
     assert!(book["dataValidations"].is_null(), "range lists and inverted bounds are skipped");

@@ -14,6 +14,7 @@ import './history.css'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { cycleDialogFocus } from './dialog-focus'
 import { RepeatButton } from '../../repeat/RepeatButton'
+import { RecentOperationsIcon, RedoIcon, UndoIcon } from './history-icons'
 
 /** 历史列表只展示 Rust 的操作目录，不能在 React 回放工作簿数据。 */
 export function HistoryTools() {
@@ -49,7 +50,7 @@ export function HistoryTools() {
           disabled={editing || panel.busy || state.undoCount === 0}
           onClick={() => void run('undo')}
         >
-          ↶
+          <UndoIcon />
         </button>
       </RibbonItem>
       <RibbonItem id="history.redo">
@@ -62,7 +63,7 @@ export function HistoryTools() {
           disabled={editing || panel.busy || state.redoCount === 0}
           onClick={() => void run('redo')}
         >
-          ↷
+          <RedoIcon />
         </button>
       </RibbonItem>
       <RepeatButton />
@@ -76,7 +77,7 @@ export function HistoryTools() {
           title={t`Recent operations`}
           onClick={() => void run('open')}
         >
-          ◷
+          <RecentOperationsIcon />
         </button>
       </RibbonItem>
       {panel.error && !panel.open && (

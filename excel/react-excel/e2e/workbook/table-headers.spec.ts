@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 async function open(page: Page) {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await button(page, 'Edit table CalculatedOrders').click()
   return page.getByRole('dialog', { name: 'Tables', exact: true })
@@ -115,6 +117,7 @@ test('cross-sheet header arrays become zero and recover through native history',
 for (const scope of ['range', 'table']) test(`hiding headers clears its ${scope} filter and resizes dependent arrays`,
   async ({ page }) => {
   const header = button(page, 'Filter CalculatedOrders column B')
+  await showRibbonItem(page, 'data.worksheet-filter')
   const menu = page.getByRole('combobox', { name: 'Worksheet filter' })
   const filter = page.getByRole('dialog', {
     name: scope === 'table' ? 'CalculatedOrders filter conditions' : 'Filter conditions', exact: true,
@@ -124,6 +127,7 @@ for (const scope of ['range', 'table']) test(`hiding headers clears its ${scope}
     else {
       // 重合表头现在显示 Table 按钮；普通区域条件仍从表外活动格的工具栏进入。
       await select(page, 'D46', '45:3')
+      await showRibbonItem(page, 'data.worksheet-filter')
       await menu.selectOption('open')
       await filter.getByLabel('Filter column 1', { exact: true }).selectOption('1')
     }
@@ -185,6 +189,7 @@ for (const width of [1280, 390]) test(`header toggle supports keyboard and fits 
   await page.screenshot({ path: info.outputPath(`table-headers-${width}.png`) })
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
+  await showRibbonItem(page, 'insert.tables')
   await expect(button(page, 'Tables')).toBeFocused()
   expect(errors).toEqual([])
 })

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const sources = [['dateDmy', '15 Mar 2024'], ['dateMdy', 'March 15 2024'], ['dateYmd', '2024/3月/15']]
 
@@ -16,6 +17,7 @@ test('date fields accept month names in their selected order', async ({ page }) 
     await bar.fill(`${source},keep`)
     await bar.press('Enter')
     await select(page, `E${row}`, `${row - 1}:4`)
+    await showRibbonItem(page, 'data.text-to-columns')
     await button('Text to columns').click()
     const dialog = page.getByRole('dialog', { name: 'Text to columns', exact: true })
     await dialog.getByRole('textbox', { name: 'Destination cell', exact: true }).fill(`A${row}`)

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { summary, alternatives, apply, records, button, minimum, menu, select, open } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) test(`advanced filter Reapply refreshes grouped snapshots only on demand at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
@@ -10,6 +11,7 @@ for (const width of [1280]) test(`advanced filter Reapply refreshes grouped snap
   const input = page.getByRole('textbox', { name: 'Active cell value' })
   await input.fill('5'); await input.press('Enter')
   await expect(cellAt(page, '25:2')).toHaveText('W20')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('reapply'); await records(page, ['E10', 'E30'])
   await button(page, 'Undo').click(); await records(page, ['W20', 'E10', 'E30'])
   await button(page, 'Redo').click(); await records(page, ['E10', 'E30'])

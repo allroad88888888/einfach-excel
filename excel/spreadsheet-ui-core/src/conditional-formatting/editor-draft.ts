@@ -78,6 +78,8 @@ export function conditionalFormatEditorDraftError(
     case 'color-scale':
     case 'icon-set':
     case 'duplicate-values':
+    case 'time-period':
+    case 'above-average':
       return null
   }
 }

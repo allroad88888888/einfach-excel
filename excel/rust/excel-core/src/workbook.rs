@@ -52,6 +52,10 @@ pub use conditional_format_projection::DisplayFormatRangeSnapshot;
 mod conditional_format_rank;
 #[path = "workbook_conditional_format_text.rs"]
 mod conditional_format_text;
+#[path = "workbook_conditional_format_time_period.rs"]
+mod conditional_format_time_period;
+#[path = "workbook_conditional_format_average.rs"]
+mod conditional_format_average;
 #[path = "workbook_conditional_format_duplicates.rs"]
 pub(crate) mod conditional_format_duplicates;
 #[path = "workbook_conditional_format_rule.rs"]

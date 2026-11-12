@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
@@ -9,6 +10,7 @@ test.beforeEach(async ({ page }) => {
 
 test('function search handles no match and correction without writing', async ({ page }) => {
   await select(page, 'B2', '1:1')
+  await showRibbonItem(page, 'formula.insert-function')
   await page.getByRole('button', { name: 'Insert function', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Insert function' })
   await expect(dialog).toContainText('500 functions available')
@@ -25,6 +27,7 @@ test('function search handles no match and correction without writing', async ({
   await expect(dialog).toContainText('does not translate between languages')
   await search.press('Escape')
   await expect(dialog).toHaveCount(0)
+  await showRibbonItem(page, 'formula.insert-function')
   await expect(page.getByRole('button', { name: 'Insert function', exact: true })).toBeFocused()
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   await expect(page.locator('[data-cell="1:1"]')).toHaveText('Acme Co.')
@@ -33,6 +36,7 @@ test('function search handles no match and correction without writing', async ({
 
 test('function category filters the native list without writing', async ({ page }) => {
   await select(page, 'B2', '1:1')
+  await showRibbonItem(page, 'formula.insert-function')
   await page.getByRole('button', { name: 'Insert function', exact: true }).click()
   const category = page.getByLabel('Category', { exact: true })
   const functions = page.getByRole('listbox', { name: 'Function', exact: true })
@@ -51,6 +55,7 @@ test('function category filters the native list without writing', async ({ page 
 
 test('function list choice determines the draft without writing', async ({ page }) => {
   const target = await select(page, 'B2', '1:1')
+  await showRibbonItem(page, 'formula.insert-function')
   await page.getByRole('button', { name: 'Insert function', exact: true }).click()
   await page.getByRole('searchbox', { name: 'Search functions' }).fill('COUNT')
   await page.getByRole('listbox', { name: 'Function', exact: true }).selectOption('COUNTA')
@@ -67,6 +72,7 @@ test('function list choice determines the draft without writing', async ({ page 
 
 test('insert creates a draft, confirms via Rust and has one undo/redo step', async ({ page }) => {
   const cell = await select(page, 'B2', '1:1')
+  await showRibbonItem(page, 'formula.insert-function')
   await page.getByRole('button', { name: 'Insert function', exact: true }).click()
   await page.getByRole('searchbox', { name: 'Search functions' }).fill('XLOOKUP')
   await page.getByRole('button', { name: 'Insert draft' }).click()
@@ -91,6 +97,7 @@ test('insert creates a draft, confirms via Rust and has one undo/redo step', asy
 for (const width of [1280, 390]) for (const closing of ['cancel', 'escape']) test(`${closing} function picker keeps its target without history at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
   const target = await select(page, 'B2', '1:1')
+  await showRibbonItem(page, 'formula.insert-function')
   const opener = page.getByRole('button', { name: 'Insert function', exact: true })
   await opener.click()
   await page.getByRole('searchbox', { name: 'Search functions' }).fill('not-a-native-function')
@@ -174,6 +181,7 @@ for (const width of [1280, 390]) test(`function picker is keyboard accessible at
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.setViewportSize({ width, height: 850 })
+  await showRibbonItem(page, 'formula.insert-function')
   await page.getByRole('button', { name: 'Insert function', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Insert function' })
   const search = page.getByRole('searchbox', { name: 'Search functions' })

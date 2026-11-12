@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { openProtection, protect, closeProtection, button } from '../protection/support'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Fill series', exact: true })
@@ -23,6 +24,7 @@ async function write(page: Page, address: string, value: string) {
 }
 async function open(page: Page, address: string, step = '2', stop = '') {
   await select(page, address)
+  await showRibbonItem(page, 'data.fill-series')
   await button(page, 'Fill series').click()
   await dialog(page).getByLabel('Sequence type').selectOption('geometric')
   await expect(dialog(page).getByLabel('Source sample count')).toHaveCount(0)
@@ -225,6 +227,7 @@ test('geometric fields, validation and native history label are translated into 
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   const name = page.getByRole('textbox', { name: '名称框' })
   await name.fill('F40:F46'); await name.press('Enter')
+  await showRibbonItem(page, 'data.fill-series')
   await page.getByRole('button', { name: '填充序列', exact: true }).click()
   const panel = page.getByRole('dialog', { name: '填充序列', exact: true })
   await panel.getByLabel('序列类型').selectOption('geometric')

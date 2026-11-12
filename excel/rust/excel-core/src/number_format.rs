@@ -121,4 +121,3 @@ fn insert_commas(s: &str) -> String {
     }
     String::from_utf8(out).unwrap()
 }
-

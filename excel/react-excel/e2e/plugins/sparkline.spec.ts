@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonControl } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -27,6 +28,7 @@ async function seed(page: Page) {
 
 test('creating line sparklines draws one per row in the location cells and follows edits', async ({ page }) => {
   await seed(page)
+  await showRibbonControl(page, 'Create sparklines: Line')
   await button(page, 'Create sparklines: Line').click()
   const dialog = page.getByRole('dialog', { name: /Create sparklines/ })
   await expect(dialog.getByLabel('Data range')).toHaveValue('A1:D2')
@@ -57,12 +59,14 @@ test('creating line sparklines draws one per row in the location cells and follo
 
 test('selecting a sparkline cell offers its design options and clearing removes the group', async ({ page }) => {
   await seed(page)
+  await showRibbonControl(page, 'Create sparklines: Column')
   await button(page, 'Create sparklines: Column').click()
   await page.getByLabel('Location range').fill('F1:F2')
   await button(page, 'OK').click()
   await expect(sparklines(page).locator('rect')).not.toHaveCount(0)
   await expect(page.getByLabel('Sparkline type', { exact: true })).toHaveCount(0)
   await cell(page, '1:5').click()
+  await showRibbonControl(page, 'Sparkline type')
   await page.getByLabel('Sparkline type', { exact: true }).selectOption('winLoss')
   await expect(sparklines(page).locator('svg')).toHaveAttribute('data-sparkline-type', 'winLoss')
   // 第二行 4, -2, 1, 0：零不画，三根柱。

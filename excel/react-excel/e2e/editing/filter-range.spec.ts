@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const menu = (page: Page) => page.getByRole('combobox', { name: 'Worksheet filter' })
@@ -12,6 +13,7 @@ async function select(page: Page, address: string) {
 }
 async function enable(page: Page, address = 'A25:C29') {
   await select(page, address)
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('selection')
   await expect(page.getByLabel('Filter status')).toHaveText('0 rows filtered out.')
 }
@@ -48,6 +50,7 @@ for (const width of [1280, 390])
     await page.getByRole('button', { name: 'Redo', exact: true }).click()
     for (const col of ['A', 'B', 'C']) await expect(header(page, col)).toHaveAttribute('data-filtered', 'false')
     await expect(cell(page, '26:2')).toHaveText('E10')
+    await showRibbonItem(page, 'data.worksheet-filter')
     await menu(page).selectOption('open')
     await expect(page.getByRole('dialog')).toContainText('Range A25:C29')
   })
@@ -137,6 +140,7 @@ test('clear removes an empty filter region and undo restores the same header row
   // 连续切换提示文字，覆盖曾因工具栏高度变化触发投影竞争的路径。
   for (let attempt = 0; attempt < 5; attempt++) {
     await enable(page)
+    await showRibbonItem(page, 'data.worksheet-filter')
     await menu(page).selectOption('clear')
     await expect(header(page, 'A')).toHaveCount(0)
     await expect(page.getByLabel('Filter status')).toContainText('Filter cleared.')
@@ -152,6 +156,7 @@ test('frozen header buttons still filter after scrolling without starting an edi
   await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
   await enable(page, 'A1:D1001')
   await select(page, 'B2')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   const fixed = page.locator('[data-frozen-pane="top"]').getByRole('button', { name: 'Filter column C', exact: true })
   await expect(fixed).toBeVisible()
@@ -178,6 +183,7 @@ test('row insertion shifts the filter header and conditions; deletion and undo r
   await enable(page)
   await west(page)
   await select(page, 'A25')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   const structure = page.getByRole('combobox', { name: 'Insert or delete rows and columns' })
   await structure.selectOption('insert-rows')
   await expect(cell(page, '25:0').getByRole('button')).toBeVisible()
@@ -195,6 +201,7 @@ test('row insertion shifts the filter header and conditions; deletion and undo r
 test('single-cell range is rejected without replacing the old filter or creating history', async ({ page }) => {
   await enable(page)
   await select(page, 'A25')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('selection')
   await expect(page.getByRole('alert', { name: 'Filter status' })).toContainText('header and at least one data row')
   await expect(header(page, 'A')).toBeVisible()
@@ -209,14 +216,16 @@ for (const width of [1280, 390]) {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
     const ribbon = page.locator('.ribbon-shell')
-    // 窄屏分类、工具分两行（68px）；筛选反馈不能再撑高，而非强制退回旧单行布局。
-    const height = width === 390 ? 68 : 46
-    await expect.poll(async () => (await ribbon.boundingBox())!.height).toBe(height)
+    // 分类一行、工具两行，高度固定；筛选反馈不能再撑高功能区。
+    const height = (await ribbon.boundingBox())!.height
     await enable(page)
     await expect.poll(async () => (await ribbon.boundingBox())!.height).toBe(height)
     for (const tab of await page.getByRole('tablist', { name: 'Workbook commands' })
       .getByRole('tab').all()) await expect(tab).toBeInViewport()
+    await showRibbonItem(page, 'data.worksheet-filter')
     await expect.poll(async () => (await page.getByLabel('Filter status').boundingBox())!.height).toBe(16)
+    const more = page.locator('[data-ribbon-more][aria-expanded="true"]')
+    if (await more.count()) await more.press('Escape')
     await header(page, 'A').focus()
     await page.screenshot({ path: info.outputPath(`filter-header-${width}.png`) })
     await header(page, 'A').press('Enter')
@@ -232,6 +241,7 @@ for (const width of [1280, 390]) {
     await page.keyboard.press('Escape')
     await expect(dialog).not.toBeVisible()
     await expect(header(page, 'A')).toBeFocused()
+    await showRibbonItem(page, 'data.worksheet-filter')
     await menu(page).selectOption('clear')
     await expect(header(page, 'A')).toHaveCount(0)
     await expect.poll(async () => (await ribbon.boundingBox())!.height).toBe(height)

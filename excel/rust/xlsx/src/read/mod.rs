@@ -4,6 +4,7 @@ mod archive;
 pub(crate) mod charts;
 mod chartex;
 mod conditional;
+mod conditional_average;
 mod defined_names;
 mod dom;
 mod drawings;

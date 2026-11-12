@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 import { select } from '../support/clipboard'
 import {
   begin,
@@ -156,6 +157,7 @@ test('Chinese Save and Delete immediately control actual fill-handle inference',
   }
   const openChinese = async () => {
     await go('D55:D58')
+    await showRibbonItem(page, 'data.fill-series')
     await page.getByRole('button', { name: '填充序列', exact: true }).click()
     await dialog.getByLabel('序列类型').selectOption('custom-list')
   }

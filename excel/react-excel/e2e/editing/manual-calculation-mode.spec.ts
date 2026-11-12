@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const bar = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
@@ -24,12 +25,15 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('manual calculation mode keeps dependent formulas cached when inputs change until recalculate or automatic', async ({ page }) => {
+  await showRibbonItem(page, 'calculation.calculation-mode')
   await expect(calculationMode(page)).toHaveValue('automatic')
   await write(page, 'B2', '10')
   await write(page, 'C2', '=B2*2')
   await expect(cell(page, '1:2')).toHaveText('20')
 
+  await showRibbonItem(page, 'calculation.calculation-mode')
   await calculationMode(page).selectOption('manual')
+  await showRibbonItem(page, 'calculation.calculation-mode')
   await expect(calculationMode(page)).toHaveValue('manual')
   await expect(page.getByRole('status').filter({ hasText: 'Calculation mode set to Manual.' })).toBeVisible()
 
@@ -41,6 +45,7 @@ test('manual calculation mode keeps dependent formulas cached when inputs change
   await expect(cell(page, '1:3')).toHaveText('30')
   await expect(cell(page, '1:2')).toHaveText('20')
 
+  await showRibbonItem(page, 'calculation.recalculate')
   await calculate(page).selectOption('sheet')
   await expect(cell(page, '1:2')).toHaveText('50')
 
@@ -49,7 +54,9 @@ test('manual calculation mode keeps dependent formulas cached when inputs change
   await expect(cell(page, '1:2')).toHaveText('50')
   await expect(cell(page, '1:3')).toHaveText('30')
 
+  await showRibbonItem(page, 'calculation.calculation-mode')
   await calculationMode(page).selectOption('automatic')
+  await showRibbonItem(page, 'calculation.calculation-mode')
   await expect(calculationMode(page)).toHaveValue('automatic')
   await expect(page.getByRole('status').filter({ hasText: 'Calculation mode set to Automatic.' })).toBeVisible()
   await expect(cell(page, '1:2')).toHaveText('80')
@@ -69,7 +76,9 @@ test('pressing F9 recalculates the workbook and Shift+F9 recalculates the curren
   await write(page, 'E4', '=D4*10')
   await expect(cell(page, '3:4')).toHaveText('50')
 
+  await showRibbonItem(page, 'calculation.calculation-mode')
   await calculationMode(page).selectOption('manual')
+  await showRibbonItem(page, 'calculation.calculation-mode')
   await expect(calculationMode(page)).toHaveValue('manual')
 
   await write(page, 'D4', '7')

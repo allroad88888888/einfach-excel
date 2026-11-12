@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, row: number, col = 2) => page.locator(`td[data-cell="${row}:${col}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -37,6 +38,7 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'A25:C29', '24:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await page.getByRole('combobox', { name: 'Worksheet filter' }).selectOption('selection')
   await expect(button(page, 'Filter column C')).toBeVisible()
 })

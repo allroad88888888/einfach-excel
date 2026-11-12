@@ -1,9 +1,11 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { copy, paste, select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
 async function chooseCenterAcross(page: Page) {
+  await showRibbonItem(page, 'format.horizontal-alignment')
   const control = page.getByRole('combobox', { name: 'Horizontal alignment', exact: true })
   await control.selectOption('centerAcross')
   await expect(control).toBeEnabled()

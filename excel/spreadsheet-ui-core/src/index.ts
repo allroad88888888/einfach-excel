@@ -97,6 +97,13 @@ export * from './zoom'
 export * from './drag-move'
 export { WORKBOOK_RIBBON_TABS, workbookRibbonTabAtom, selectWorkbookRibbonTabAtom } from './toolbar/ribbon-tab'
 export type { WorkbookRibbonTab } from './toolbar/ribbon-tab'
+export {
+  workbookRibbonOverflowAtom,
+  reportWorkbookRibbonOverflowAtom,
+  setWorkbookRibbonExpandedAtom,
+  resetWorkbookRibbonOverflowAtom,
+} from './toolbar/ribbon-overflow'
+export type { WorkbookRibbonOverflow } from './toolbar/ribbon-overflow'
 export * from './toolbar/selection-format-command'
 export { colorPaletteAtom, runColorPaletteAtom } from './toolbar/color-palette'
 export { borderPanelAtom, runBorderPanelAtom, BORDER_PRESETS, BORDER_STYLES } from './toolbar/border-panel'

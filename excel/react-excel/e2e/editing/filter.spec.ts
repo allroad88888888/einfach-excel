@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const menu = (page: Page) => page.getByRole('combobox', { name: 'Worksheet filter' })
@@ -10,6 +11,7 @@ async function select(page: Page, address: string) {
   await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
 }
 async function open(page: Page) {
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('open')
   return page.getByRole('dialog', { name: 'Filter conditions' })
 }
@@ -42,14 +44,17 @@ test('filter 1,000 rows through Rust, preserve header and source row numbers, un
   const dialog = await open(page)
   await expect(dialog.getByLabel('Filter value 1', { exact: true })).toHaveValue('West')
   await dialog.getByRole('button', { name: 'Cancel' }).click()
+  await showRibbonItem(page, 'data.worksheet-filter')
   await expect(menu(page)).toBeFocused()
 })
 
 test('clear filter preserves manually hidden rows and can be undone', async ({ page }) => {
   await select(page, 'A5')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
   await applyWest(page)
   await expect(cell(page, '4:0')).toHaveCount(0)
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('clear')
   await expect(page.getByLabel('Filter status')).toContainText('Manually hidden rows are unchanged')
   await select(page, 'A2')
@@ -67,6 +72,7 @@ test('edit does not live-filter; reapply hides the changed row and undo restores
   await input.fill('East')
   await input.press('Enter')
   await expect(cell(page, '4:2')).toHaveText('East')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('reapply')
   await expect(page.getByLabel('Filter status')).toHaveText('751 rows filtered out.')
   await expect(cell(page, '4:2')).toHaveCount(0)
@@ -103,6 +109,7 @@ test('cross-sheet subtotal follows filtering, sheet switch retains rules and cro
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'B3')
   await expect(cell(page, '2:1')).toHaveText('250')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await expect(menu(page).locator('option[value="clear"]')).toBeDisabled()
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(cell(page, '2:1')).toHaveText('1000')
@@ -122,7 +129,9 @@ test('invalid numeric bounds and cancel preserve data; no-op reapply adds no his
   await expect(dialog).not.toBeVisible()
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   await applyWest(page)
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('reapply')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await expect(menu(page)).toBeEnabled()
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
@@ -142,6 +151,7 @@ test('contains is case insensitive by default; match-case can hide every data ro
   await expect(page.getByLabel('Filter status')).toHaveText('1000 rows filtered out.')
   await expect(cell(page, '0:0')).toHaveText('Order')
   await expect(page.locator('td[data-cell]:not([data-cell^="0:"])')).toHaveCount(0)
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('clear')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
@@ -153,6 +163,7 @@ test('value list keeps both groups; unhide-all does not remove a filter', async 
   await dialog.getByLabel('Filter value 1', { exact: true }).fill('North\nWest')
   await dialog.getByRole('button', { name: 'Apply filter', exact: true }).click()
   await expect(page.getByLabel('Filter status')).toHaveText('500 rows filtered out.')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await expect(cell(page, '1:2')).toHaveText('North')
   await expect(cell(page, '2:2')).toHaveCount(0)
@@ -175,6 +186,7 @@ for (const width of [1280, 390]) {
     await page.screenshot({ path: info.outputPath(`filter-${width}.png`) })
     await dialog.getByLabel('Filter value 1', { exact: true }).press('Enter')
     await expect(dialog).not.toBeVisible()
+    await showRibbonItem(page, 'data.worksheet-filter')
     await expect(menu(page)).toBeFocused()
     await expect(cell(page, '4:0')).toHaveText('SO-10004')
     expect(errors).toEqual([])

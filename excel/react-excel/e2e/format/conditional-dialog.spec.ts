@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab'])
   test(`${action} conditional dialog preserves native rules colors and redo at ${width}px`, async ({ page }, info) => {
@@ -17,6 +18,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     await button('Undo').click()
     await select(page, 'C75', '74:2')
     const background = await cell('74:2').evaluate(node => getComputedStyle(node).backgroundColor)
+    await showRibbonItem(page, 'format.conditional-formatting')
     await button('Conditional formatting').click()
     const dialog = page.getByRole('dialog', { name: 'Conditional formatting', exact: true })
     const range = dialog.getByRole('textbox', { name: 'Applies to', exact: true })
@@ -39,6 +41,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     }
     await button('Cancel').click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'format.conditional-formatting')
     await expect(button('Conditional formatting')).toBeFocused()
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('C75')
     await expect(cell('74:2')).toHaveText('-10')
@@ -47,6 +50,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     await button('Redo').click()
     await select(page, 'H94', '93:7')
     await expect(cell('93:7')).toHaveText('conditional redo')
+    await showRibbonItem(page, 'format.conditional-formatting')
     await button('Conditional formatting').click()
     await expect(dialog.getByRole('listitem')).toHaveCount(count)
     await button('Cancel').click()

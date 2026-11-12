@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const actions = ['Blur address', 'Escape', 'Blur name', 'Focus replace', 'Blank blur', 'Invalid correction']
 for (const width of [1280, 390]) for (const action of actions)
@@ -76,17 +77,20 @@ for (const width of [1280, 390]) for (const action of actions)
     }
     if (action === 'Blur name') {
       await expect(button('Redo')).toBeDisabled()
+      await showRibbonItem(page, 'formula.name-manager')
       await button('Name manager').click()
       await button('Edit BlurRevenue').click()
       await expect(page.getByRole('textbox', { name: 'Refers to', exact: true })).toHaveValue('G2')
       await button('Cancel').click()
       await button('Undo').click()
       await expect(button('Undo')).toBeDisabled()
+      await showRibbonItem(page, 'formula.name-manager')
       await button('Name manager').click()
       await expect(button('Edit BlurRevenue')).toHaveCount(0)
       await expect(button('Edit SampleAmounts')).toBeVisible()
       await button('Cancel').click()
       await button('Redo').click()
+      await showRibbonItem(page, 'formula.name-manager')
       await button('Name manager').click()
       await expect(button('Edit BlurRevenue')).toBeVisible()
       await button('Cancel').click()

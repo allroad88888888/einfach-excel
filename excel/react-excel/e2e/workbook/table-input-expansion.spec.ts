@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const formula = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
 async function open(page: Page) {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click(); await button(page, 'Edit table DemoTable').click()
 }
 async function close(page: Page) {

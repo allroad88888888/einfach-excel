@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
@@ -90,6 +91,7 @@ test('a frozen column resize updates the separator, header and edited cell toget
   page,
 }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await page.getByTestId('sheet-scroll').evaluate((node) => {
     node.scrollLeft = 400

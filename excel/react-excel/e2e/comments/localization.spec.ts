@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, marker, timeline, openComments, closeComments, expectNeighbors } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) test(`Chinese comments retain authored text when switching to English at ${width}px`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 850 })
@@ -7,6 +8,7 @@ for (const width of [1280, 390]) test(`Chinese comments retain authored text whe
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   const name = page.getByRole('textbox', { name: '名称框' })
   await name.fill('A2'); await name.press('Enter')
+  await showRibbonItem(page, 'insert.comments')
   await button(page, '批注').click()
   const dialog = page.getByRole('dialog', { name: '单元格批注', exact: true })
   await expect(dialog).toBeVisible()

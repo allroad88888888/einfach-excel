@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select, copy, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ context, page }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -11,6 +12,7 @@ test('system copy freezes value and format and permits repeated pastes', async (
   await select(page, 'A2', '1:0')
   await copy(page)
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('SO-10001')
+  await showRibbonItem(page, 'clear.all')
   await page.getByRole('button', { name: 'Clear all', exact: true }).click()
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('')
   const target = await select(page, 'A3', '2:0')
@@ -72,6 +74,7 @@ test('paste beyond sheet bounds reports an error without erasing the cut source'
   await select(page, 'A2:B2', '1:0')
   await copy(page, 'Cut')
   await select(page, 'P1001', '1000:15')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText(
     'beyond the sheet',
@@ -98,6 +101,7 @@ test('clipboard rejection feedback remains readable on desktop and narrow screen
   await select(page, 'A2:B2', '1:0')
   await copy(page, 'Cut')
   await select(page, 'P1001', '1000:15')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   const feedback = page.getByRole('alert', { name: 'Clipboard status' })
   await expect(feedback).toContainText('beyond the sheet')

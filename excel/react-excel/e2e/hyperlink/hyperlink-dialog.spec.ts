@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab'])
   test(`${action} hyperlink dialog preserves native formulas fonts and redo at ${width}px`, async ({ page }, info) => {
@@ -15,6 +16,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     await expect(cell('1:6')).toHaveText('158')
     await button('Undo').click()
     await select(page, 'G2', '1:6')
+    await showRibbonItem(page, 'insert.hyperlink')
     await button('Hyperlink').click()
     const dialog = page.getByRole('dialog', { name: 'Insert hyperlink', exact: true })
     const first = dialog.getByRole('textbox', { name: 'Link address', exact: true })
@@ -40,6 +42,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     }
     await button('Cancel').click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'insert.hyperlink')
     await expect(button('Hyperlink')).toBeFocused()
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('G2')
     await expect(bar).toHaveValue('=E2*F2')
@@ -47,6 +50,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     await expect(cell('1:6')).toHaveCSS('font-family', 'Georgia')
     await expect(cell('1:5')).toHaveText('79')
     await expect(button('Undo')).toBeDisabled()
+    await showRibbonItem(page, 'insert.hyperlink')
     await button('Hyperlink').click()
     await expect(first).toHaveValue('')
     await button('Cancel').click()

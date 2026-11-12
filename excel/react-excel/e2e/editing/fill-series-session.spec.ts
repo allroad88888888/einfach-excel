@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -18,6 +19,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     await button(page, 'Undo').click()
     await expect(cell(page, '93:7')).toHaveText('')
     await select(page, 'A40:A44', '39:0')
+    await showRibbonItem(page, 'data.fill-series')
     await button(page, 'Fill series').click()
     const dialog = page.getByRole('dialog', { name: 'Fill series', exact: true })
     const kind = dialog.getByRole('combobox', { name: 'Sequence type', exact: true })
@@ -43,12 +45,14 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     if (action === 'Escape') await dialog.getByRole('spinbutton', { name: 'Source sample count' }).press('Escape')
     else await dialog.getByRole('button', { name: 'Cancel', exact: true }).click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'data.fill-series')
     await expect(button(page, 'Fill series')).toBeFocused()
     for (const [coord, value] of [['39:0', '1'], ['40:0', '3'], ['41:0', ''], ['43:0', '']] as const)
       await expect(cell(page, coord)).toHaveText(value)
     await expect(cell(page, '39:2')).toHaveText('Item001')
     await expect(cell(page, '39:2')).toHaveCSS('font-style', 'italic')
     await expect(button(page, 'Undo')).toBeDisabled()
+    await showRibbonItem(page, 'data.fill-series')
     await button(page, 'Fill series').click()
     await expect(kind).toHaveValue('number')
     await expect(dialog.getByRole('combobox', { name: 'Direction', exact: true })).toHaveValue('down')

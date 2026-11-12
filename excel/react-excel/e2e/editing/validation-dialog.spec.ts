@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab'])
   test(`${action} validation dialog preserves native rules values and redo at ${width}px`, async ({ page }, info) => {
@@ -16,6 +17,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     await button('Undo').click()
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
     await select(page, 'H47', '46:7')
+    await showRibbonItem(page, 'data.data-validation')
     await button('Data validation').click()
     const dialog = page.getByRole('dialog', { name: 'Data validation', exact: true })
     const first = dialog.getByRole('textbox', { name: 'Applies to', exact: true })
@@ -38,12 +40,14 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     }
     await button('Cancel').click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'data.data-validation')
     await expect(button('Data validation')).toBeFocused()
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('H47')
     await expect(cell('46:7')).toHaveText('Ready')
     await expect(cell('45:7')).toHaveText('0.5')
     await expect(page.getByRole('combobox', { name: 'Choose cell value' })).toBeVisible()
     await expect(button('Undo')).toBeDisabled()
+    await showRibbonItem(page, 'data.data-validation')
     await button('Data validation').click()
     await expect(items).toHaveValue('Ready\nOn hold\n001\n=1+2')
     await button('Cancel').click()

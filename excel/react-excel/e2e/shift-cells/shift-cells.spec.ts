@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 // 插入/删除单元格走真实 Worker/WASM：四个位移方向、引用跟随、#REF!、合并拒绝与撤销重做。
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -9,6 +10,7 @@ const undo = (page: Page) => page.getByRole('button', { name: 'Undo', exact: tru
 const redo = (page: Page) => page.getByRole('button', { name: 'Redo', exact: true })
 
 async function openFromRibbon(page: Page, mode: 'insert' | 'delete') {
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await structureMenu(page).selectOption(`${mode}-cells`)
   const dialog = page.getByRole('dialog', { name: mode === 'insert' ? 'Insert' : 'Delete' })
   await expect(dialog).toBeVisible()
@@ -110,8 +112,10 @@ test('deleting a referenced cell shows #REF! in the dependent sheet and undo res
 
 test('shifting through part of a merged cell is rejected without changing the sheet', async ({ page }) => {
   await select(page, 'C3:D4', '2:2')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   const merge = page.getByRole('alertdialog', { name: 'Merge these cells?', exact: true })
+  await showRibbonItem(merge, 'data.merge-cells')
   await merge.getByRole('button', { name: 'Merge cells', exact: true }).click()
   await expect(page.locator('[data-merged-cell][data-cell="2:2"]')).toHaveCount(1)
   // 只位移第 3 行会切开跨 3–4 行的合并格。

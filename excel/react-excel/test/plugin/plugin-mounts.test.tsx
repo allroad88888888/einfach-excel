@@ -43,11 +43,11 @@ function renderWith(plugins: readonly SpreadsheetPlugin[], locale: 'en' | 'zh' =
 }
 
 describe('spreadsheet plugins', () => {
-  it('mounts ribbon groups that follow the built-in tab visibility', async () => {
+  it('mounts ribbon groups only on their own tab, like the built-in groups', async () => {
     const store = renderWith([plugin])
     const group = screen.getByRole('button', { name: 'Bump group' }).closest('.ribbon-tool-group')!
     expect(group).toHaveAttribute('data-plugin', 'fake')
-    expect(group).toHaveAttribute('data-inactive', 'false')
+    expect(group).toHaveAttribute('data-inactive', 'true')
     await act(async () => { store.setter(selectWorkbookRibbonTabAtom, 'Formulas') })
     expect(group).toHaveAttribute('data-inactive', 'true')
     await act(async () => { store.setter(selectWorkbookRibbonTabAtom, 'Data') })

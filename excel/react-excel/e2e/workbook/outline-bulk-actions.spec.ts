@@ -1,8 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 async function outline(page: Page, action: string) {
+  await showRibbonItem(page, 'view.outline-groups')
   const menu = page.getByRole('combobox', { name: 'Outline groups' })
   await menu.selectOption(action)
   await expect(menu).toBeEnabled()

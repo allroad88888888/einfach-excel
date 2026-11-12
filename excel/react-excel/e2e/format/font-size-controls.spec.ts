@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem, showRibbonControl } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const sizeControl = (page: Page) => page.getByRole('combobox', { name: 'Font size', exact: true })
@@ -23,10 +24,12 @@ async function rejectNextFontWrite(page: Page) {
   await page.reload()
 }
 async function custom(page: Page, value: string) {
+  await showRibbonItem(page, 'format.font-size')
   await sizeControl(page).selectOption('custom')
   await page.getByRole('spinbutton', { name: 'Custom font size' }).fill(value)
   await page.getByRole('button', { name: 'Apply font size', exact: true }).click()
   await expect(page.getByRole('dialog', { name: 'Custom font size' })).toHaveCount(0)
+  await showRibbonItem(page, 'format.font-size')
   await expect(sizeControl(page)).toHaveValue(value)
 }
 test.beforeEach(async ({ page }) => {
@@ -36,13 +39,17 @@ test.beforeEach(async ({ page }) => {
 
 test('native custom seed and default size match the grid and the two adjacent steps', async ({ page }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.font-size')
   await expect(sizeControl(page)).toHaveValue('12')
   await expect(cell(page, '2:1')).toHaveCSS('font-size', '12px')
   await select(page, 'H4', '3:7')
+  await showRibbonItem(page, 'format.font-size')
   await expect(sizeControl(page)).toHaveValue('13')
   await expect(cell(page, '3:7')).toHaveCSS('font-size', '13px')
+  await showRibbonItem(page, 'format.increase-font-size')
   await page.getByRole('button', { name: 'Increase font size' }).click()
   await expect(cell(page, '3:7')).toHaveCSS('font-size', '14px')
+  await showRibbonItem(page, 'format.decrease-font-size')
   await page.getByRole('button', { name: 'Decrease font size' }).click()
   await expect(cell(page, '3:7')).toHaveCSS('font-size', '12px')
 })
@@ -70,9 +77,11 @@ test('custom size grows only its row, preserves other styles and undoes with the
 test('increase and decrease step around a custom size and never shrink a row implicitly', async ({ page }) => {
   await select(page, 'B3:C3', '2:1')
   await custom(page, '37')
+  await showRibbonItem(page, 'format.increase-font-size')
   await page.getByRole('button', { name: 'Increase font size' }).click()
   await expect(cell(page, '2:2')).toHaveCSS('font-size', '48px')
   const grown = (await cell(page, '2:1').boundingBox())!.height
+  await showRibbonItem(page, 'format.decrease-font-size')
   await page.getByRole('button', { name: 'Decrease font size' }).click()
   await expect(cell(page, '2:1')).toHaveCSS('font-size', '36px')
   expect((await cell(page, '2:1').boundingBox())!.height).toBe(grown)
@@ -83,6 +92,7 @@ test('increase and decrease step around a custom size and never shrink a row imp
 
 test('invalid custom sizes can be corrected and cancel has no native history', async ({ page }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.font-size')
   await sizeControl(page).selectOption('custom')
   const input = page.getByRole('spinbutton', { name: 'Custom font size' })
   for (const value of ['', '0', '12.5', '513']) {
@@ -116,19 +126,24 @@ test('row then column font sizes use native last-write rules and reach offscreen
 test('size boundaries and both editing inputs disable the corresponding tools', async ({ page }) => {
   await select(page, 'B3', '2:1')
   await custom(page, '1')
+  await showRibbonItem(page, 'format.decrease-font-size')
   await expect(page.getByRole('button', { name: 'Decrease font size' })).toBeDisabled()
   await custom(page, '512')
   await expect(cell(page, '2:1')).toHaveCSS('height', '622px')
+  await showRibbonItem(page, 'format.increase-font-size')
   await expect(page.getByRole('button', { name: 'Increase font size' })).toBeDisabled()
   await custom(page, '12')
   await cell(page, '2:1').dblclick()
   const editor = page.getByRole('textbox', { name: 'Cell editor', exact: true })
   await editor.fill('Unsaved')
+  await showRibbonItem(page, 'format.font-size')
   await expect(sizeControl(page)).toBeDisabled()
+  await showRibbonItem(page, 'format.increase-font-size')
   await expect(page.getByRole('button', { name: 'Increase font size' })).toBeDisabled()
   await editor.press('Escape')
   const formula = page.getByRole('textbox', { name: 'Active cell value' })
   await formula.fill('Another draft')
+  await showRibbonItem(page, 'format.decrease-font-size')
   await expect(page.getByRole('button', { name: 'Decrease font size' })).toBeDisabled()
   await formula.press('Escape')
   await expect(cell(page, '2:1')).toHaveText('Northwind')
@@ -137,6 +152,7 @@ test('size boundaries and both editing inputs disable the corresponding tools', 
 test('native rejection retains the custom draft and retry produces one history entry', async ({ page }) => {
   await rejectNextFontWrite(page)
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.font-size')
   await sizeControl(page).selectOption('custom')
   const input = page.getByRole('spinbutton', { name: 'Custom font size' })
   await input.fill('23')
@@ -169,6 +185,7 @@ test('pending custom size disables editing and cancellation until the native res
   })
   await page.reload()
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.font-size')
   await sizeControl(page).selectOption('custom')
   const input = page.getByRole('spinbutton', { name: 'Custom font size' })
   await input.fill('23')
@@ -181,6 +198,7 @@ test('pending custom size disables editing and cancellation until the native res
   await expect(page.getByRole('dialog')).toBeVisible()
   await page.evaluate(() => Reflect.get(window, 'releaseFontWrite')())
   await expect(page.getByRole('dialog')).toHaveCount(0)
+  await showRibbonItem(page, 'format.font-size')
   await expect(sizeControl(page)).toBeFocused()
   await expect(cell(page, '2:1')).toHaveCSS('font-size', '23px')
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
@@ -190,8 +208,10 @@ test('pending custom size disables editing and cancellation until the native res
 
 test('custom font size reaches all frozen merged fragments without changing text or italic', async ({ page }) => {
   await select(page, 'C3', '2:2')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await select(page, 'B2:D4', '1:1')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await page.getByRole('alertdialog').getByRole('button', { name: 'Merge cells', exact: true }).click()
   const fragments = page.locator('[data-merged-cell="true"]')
@@ -209,6 +229,7 @@ for (const [action, expected] of [['Increase', '14'], ['Decrease', '11']]) {
     await page.setViewportSize({ width: 390, height: 800 })
     await rejectNextFontWrite(page)
     await select(page, 'B3', '2:1')
+    await showRibbonControl(page, `${action} font size`)
     await page.getByRole('button', { name: `${action} font size` }).click()
     await expect(page.getByRole('dialog', { name: 'Custom font size' })).toBeVisible()
     await expect(page.getByRole('alert')).toContainText('Check the cell before retrying')
@@ -230,6 +251,7 @@ for (const width of [1280, 390]) {
   test(`custom size dialog fits ${width}px and keyboard cancellation restores focus`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 800 })
     await select(page, 'B3', '2:1')
+    await showRibbonItem(page, 'format.font-size')
     await sizeControl(page).selectOption('custom')
     const input = page.getByRole('spinbutton', { name: 'Custom font size' })
     await expect(input).toBeFocused()
@@ -243,13 +265,17 @@ for (const width of [1280, 390]) {
     await page.screenshot({ path: info.outputPath(`font-size-${width}.png`) })
     await input.press('Escape')
     await expect(page.getByRole('dialog')).toHaveCount(0)
+    await showRibbonItem(page, 'format.font-size')
     await expect(sizeControl(page)).toBeFocused()
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+    await showRibbonItem(page, 'format.increase-font-size')
     const increase = page.getByRole('button', { name: 'Increase font size' })
     await increase.focus()
     await increase.press('Enter')
+    await showRibbonItem(page, 'format.font-size')
     await expect(sizeControl(page)).toHaveValue('14')
-    await expect(increase).toBeFocused()
+    if (width === 390) await expect(page.locator('[data-ribbon-more]')).toBeFocused()
+    else await expect(increase).toBeFocused()
   })
 }
 
@@ -259,7 +285,9 @@ for (const width of [1280, 390]) for (const [action, size] of [['Increase', 14],
     await select(page, 'B2', '1:1')
     const target = cell(page, '1:1')
     const height = (await target.boundingBox())!.height
+    await showRibbonControl(page, `${action} font size`)
     await page.getByRole('button', { name: `${action} font size`, exact: true }).click()
+    await showRibbonItem(page, 'format.font-size')
     await expect(sizeControl(page)).toHaveValue(String(size))
     await expect(target).toHaveCSS('font-size', `${size}px`)
     await expect(target).toHaveCSS('font-style', 'italic')

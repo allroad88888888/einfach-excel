@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -14,6 +15,7 @@ async function close(page: Page) {
   await expect(page.getByRole('dialog')).toHaveCount(0)
 }
 async function toggle(page: Page, enabled: boolean, range: string) {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await button(page, 'Edit table LocalOrders').click()
   const option = page.getByLabel('Header row', { exact: true })
@@ -33,6 +35,7 @@ test.beforeEach(async ({ page }) => {
     ['B2', '1:1', '=A2*2'], ['A3', '2:0', '3'], ['B3', '2:1', '=A3*2'],
   ]) await input(page, address, coord, value)
   await select(page, 'A1:B3', '0:0')
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await page.getByLabel('Table name', { exact: true }).fill('LocalOrders')
   await button(page, 'Create table').click()
@@ -44,6 +47,7 @@ test('occupied former headers insert locally and named arrays follow through und
   await input(page, 'A1', '0:0', 'Keep outside')
   await input(page, 'D2', '1:3', '99')
   await select(page, 'A2:A3', '1:0')
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click()
   await page.getByLabel('Name', { exact: true }).fill('LocalBody')
   await button(page, 'Create name').click()
@@ -57,6 +61,7 @@ test('occupied former headers insert locally and named arrays follow through und
   await expect(cell(page, '3:1')).toHaveText('6')
   await expect(cell(page, '1:3')).toHaveText('99')
   await expect(cell(page, '1:5')).toHaveText('3')
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click()
   await expect(button(page, 'Edit LocalBody')).toContainText('Sheet3!A3:A4')
   await close(page)
@@ -65,6 +70,7 @@ test('occupied former headers insert locally and named arrays follow through und
   await expect(cell(page, '2:1')).toHaveText('6')
   await expect(cell(page, '3:1')).toHaveText('')
   await expect(cell(page, '1:5')).toHaveText('3')
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click()
   await expect(button(page, 'Edit LocalBody')).toContainText('Sheet3!A2:A3')
   await close(page)
@@ -78,6 +84,7 @@ test('occupied former headers insert locally and named arrays follow through und
 
 test('a headerless table on the first row gains headers without moving adjacent cells', async ({ page }) => {
   await select(page, 'A1', '0:0')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   const structure = page.getByRole('combobox', { name: 'Insert or delete rows and columns' })
   await structure.selectOption('delete-rows')
   await expect(structure).toHaveValue('')
@@ -100,6 +107,7 @@ test('a headerless table on the first row gains headers without moving adjacent 
 test('the next table moves with its headers and formulas in the same native history entry', async ({ page }) => {
   // 先创建相邻表再填值；直接在上表下一行输入会合法触发自动扩表。
   await select(page, 'A4:B6', '3:0')
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await page.getByLabel('Table name', { exact: true }).fill('LowerOrders')
   await button(page, 'Create table').click()
@@ -114,6 +122,7 @@ test('the next table moves with its headers and formulas in the same native hist
   await expect(cell(page, '4:0')).toHaveText('Qty')
   await expect(cell(page, '6:1')).toHaveText('12')
   await expect(cell(page, '1:3')).toHaveText('12')
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await expect(button(page, 'Edit table LowerOrders')).toContainText('A5:B7')
   await close(page)
@@ -135,6 +144,7 @@ test('a lower filter moves its hidden rows while manual hiding stays at the same
     ['B6', '5:1', '10'], ['B7', '6:1', '20'], ['B8', '7:1', '30'],
   ]) await input(page, address, coord, value)
   await select(page, 'A5:B8', '4:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await page.getByRole('combobox', { name: 'Worksheet filter' }).selectOption('selection')
   await button(page, 'Filter column B').click()
   const filter = page.getByRole('dialog', { name: 'Filter conditions' })
@@ -144,6 +154,7 @@ test('a lower filter moves its hidden rows while manual hiding stays at the same
   await expect(filter).not.toBeVisible()
   await expect(cell(page, '5:1')).toHaveCount(0)
   await select(page, 'A8', '7:0')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
   await input(page, 'F1', '0:5', '=IF(SUBTOTAL(109,B6:B8)>25,SEQUENCE(2),SEQUENCE(1))')
   await expect(cell(page, '1:5')).toHaveText('')
@@ -169,6 +180,7 @@ test('a lower filter moves its hidden rows while manual hiding stays at the same
 test('validation follows the moved columns, preserves adjacent rules and restores with history', async ({ page }) => {
   await input(page, 'A1', '0:0', 'Keep outside')
   await select(page, 'A2:C3', '1:0')
+  await showRibbonItem(page, 'data.data-validation')
   await button(page, 'Data validation').click()
   await page.getByLabel('Allow').selectOption('list')
   await page.getByLabel('Items, one per line').fill('Ready\nOn hold')
@@ -205,6 +217,7 @@ test('conditional formula and color scale keep their scope and display through l
   await input(page, 'A1', '0:0', 'Keep outside')
   await input(page, 'A99', '98:0', '100')
   await select(page, 'A2:A99', '1:0')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await page.getByLabel('Rule type').selectOption('color-scale')
   await page.getByLabel('Minimum color').fill('#000000')
@@ -213,6 +226,7 @@ test('conditional formula and color scale keep their scope and display through l
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(cell(page, '2:0')).toHaveCSS('background-color', 'rgb(3, 3, 3)')
   await select(page, 'B2:B3', '1:1')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await page.getByLabel('Rule type').selectOption('formula')
   await page.getByLabel('Formula', { exact: true }).fill('=$A2>2')
@@ -223,6 +237,7 @@ test('conditional formula and color scale keep their scope and display through l
   await toggle(page, true, 'A2:B4')
   await expect(cell(page, '3:1')).toHaveCSS('background-color', red)
   await expect(cell(page, '3:0')).toHaveCSS('background-color', 'rgb(3, 3, 3)')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await button(page, 'Edit rule 1').click()
   await expect(page.getByLabel('Applies to', { exact: true })).toHaveValue('B3:B4')

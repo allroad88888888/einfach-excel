@@ -529,6 +529,10 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | CF-037 | 打开条件格式管理面板 | `format/conditional-dialog.spec.ts` | Open conditional dialog preserves native rules colors and redo at 1280px |
 | CF-038 | 条件格式面板 Tab 循环 | `format/conditional-dialog.spec.ts` | Tab conditional dialog preserves native rules colors and redo at 1280px |
 | CF-039 | 条件格式面板 Shift+Tab 循环 | `format/conditional-dialog.spec.ts` | Shift+Tab conditional dialog preserves native rules colors and redo at 1280px |
+| CF-040 | 发生日期规则 | `format/conditional-time-period.spec.ts` | date occurring today highlights native dates with times and undoes once at 1280px |
+| CF-041 | 高于平均值条件格式 | `format/conditional-average.spec.ts` | above average highlights the complete numeric domain and undoes once |
+| CF-042 | 低于平均值条件格式 | `format/conditional-average.spec.ts` | below average highlights the complete numeric domain and undoes once |
+| CF-047 | 条件格式包含等于平均值 | `format/conditional-average.spec.ts` | include equal average updates the same rule and preserves strict neighbors |
 | PAINT-001 | 单击格式刷后点击目标 | `format/format-painter.spec.ts` | single paint copies seeded bold, retains target content, exits and undoes once |
 | PAINT-002 | 格式刷拖拽平铺异构格式 | `format/format-painter.spec.ts` | drag paints a tiled heterogeneous source range without replacing values |
 | PAINT-003 | 双击开启连续格式刷 | `format/format-painter.spec.ts` | double click paints multiple targets from one snapshot; Escape stops subsequent clicks |
@@ -952,6 +956,18 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | VIEW-010 | 斜向滚动保持旧格真实坐标 | `workbook/scroll-stability.spec.ts` | diagonal scroll reuses buffered cells at their actual sheet coordinates |
 | VIEW-011 | 定位多行内容后公式栏与视口稳定 | `workbook/name-box-scroll.spec.ts` | multiline target keeps its formula bar and viewport stable at 1280px |
 | VIEW-012 | 连续滚轮输入时双向滚动保持视口覆盖 | `workbook/wheel-scroll-coverage.spec.ts` | rapid wheel scrolling keeps the populated viewport covered in both directions |
+| VIEW-013 | 放不下的组整组收进更多 | `workbook/ribbon-overflow.spec.ts` | trailing groups fold into More and a folded tool applies at 760px |
+| VIEW-014 | Escape 收起更多工具 | `workbook/ribbon-overflow.spec.ts` | Escape collapses More and returns focus to it at 760px |
+| VIEW-015 | 点击表格收起更多工具 | `workbook/ribbon-overflow.spec.ts` | clicking the grid collapses More and selects the cell at 760px |
+| VIEW-016 | 宽屏开始分类不出现更多 | `workbook/ribbon-overflow.spec.ts` | Start fits every group without More at 1280px |
+| VIEW-017 | 更多中的命令菜单执行后收起 | `workbook/ribbon-overflow.spec.ts` | a folded filter command closes More and leaves the header reachable at 390px |
+| VIEW-018 | 更多中的设置支持连续键盘调整 | `workbook/ribbon-overflow.spec.ts` | a folded setting supports consecutive keyboard adjustments at 390px |
+| VIEW-019 | 延迟确认框保留更多中的入口与焦点 | `workbook/ribbon-overflow.spec.ts` | a delayed merge confirmation keeps its folded opener available at 390px |
+| VIEW-020 | 窄屏更多面板换行后调整计算设置 | `workbook/ribbon-more-navigation.spec.ts` | folded calculation settings wrap and stay usable at 390px in en |
+| VIEW-021 | 向下键进入更多并用键盘选择设置 | `workbook/ribbon-more-navigation.spec.ts` | ArrowDown enters More at the first setting and applies a keyboard selection |
+| VIEW-022 | 向上键进入更多末项并打开对话框 | `workbook/ribbon-more-navigation.spec.ts` | ArrowUp enters More at the last command and a dialog returns to its opener |
+| VIEW-023 | Tab 离开更多后收起并继续定位单元格 | `workbook/ribbon-more-navigation.spec.ts` | Tab out of More closes it and leaves the next field ready for input |
+| VIEW-024 | Shift+Tab 离开更多后收起并操作行内按钮 | `workbook/ribbon-more-navigation.spec.ts` | Shift+Tab leaves More for an inline command without losing focus |
 | FILE-001 | 下载原生工作簿 | `workbook/workbook-files.spec.ts` | download preserves workbook data and history at 1280px |
 | FILE-002 | 无效文件不破坏当前工作簿 | `workbook/workbook-files.spec.ts` | invalid native content leaves values, selection, history and current file usable |
 | FILE-003 | 新建空白工作簿 | `workbook/workbook-files.spec.ts` | new workbook cancellation keeps data before confirmed replacement at 1280px |

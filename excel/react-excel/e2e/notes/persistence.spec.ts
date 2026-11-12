@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { button, cell, marker, editor, openNote, createNote } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 async function download(page: Page) {
   await button(page, 'File').click()
@@ -60,6 +61,7 @@ test('native row and column edits move notes and restore them through undo', asy
   expect(seedText).not.toBe('First line\n第二行')
   await button(page, 'Cancel').click()
   await createNote(page)
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   const structure = page.getByRole('combobox', { name: 'Insert or delete rows and columns' })
   await structure.selectOption('insert-rows')
   await expect(marker(page, '1:0')).toHaveCount(0)

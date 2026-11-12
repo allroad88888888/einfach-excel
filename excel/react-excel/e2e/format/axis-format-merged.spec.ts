@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 // 整行／整列穿过合并格时，仍只修改这一条轴；不能扩选到另一行／列。
 const cases = [
@@ -40,6 +41,7 @@ for (const width of [1280, 390]) for (const scenario of cases) {
     }
     const originals = await inspect()
     await page.getByRole(scenario.role, { name: scenario.name, exact: true }).click()
+    await showRibbonItem(page, 'format.fill-color')
     await page.getByRole('button', { name: 'Fill color', exact: true }).click()
     const yellow = 'rgb(255, 242, 204)'
     const formatted = originals.map((entry, index) => ({ ...entry,

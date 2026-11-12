@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { select } from './clipboard'
+import { showRibbonItem } from './ribbon'
 
 /** 使用当前订单种子；先通过 UI 取消压力演示合并，再测试千行连续范围填充。 */
 export async function unmergeSalesFillRange(page: Page) {
@@ -8,6 +9,7 @@ export async function unmergeSalesFillRange(page: Page) {
   const name = page.getByRole('textbox', { name: 'Name box' })
   // 与演示合并区相交时，选择扩展是正确行为，不应改业务逻辑来迁就旧测试。
   await expect(name).toHaveValue('A2:DX1001')
+  await showRibbonItem(page, 'data.merge-cells')
   const merge = page.getByRole('combobox', { name: 'Merge cells', exact: true })
   await merge.selectOption('unmerge')
   await expect(merge).toBeEnabled()

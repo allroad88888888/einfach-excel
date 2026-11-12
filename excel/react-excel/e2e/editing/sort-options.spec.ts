@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -15,12 +16,14 @@ async function recordsWithHeader(page: Page, values: readonly string[]) {
   await expect(cell(page, '24:3')).toHaveText('')
 }
 async function open(page: Page) {
+  await showRibbonItem(page, 'data.sort-selected-range')
   await menu(page).selectOption('custom')
   await page.getByLabel('First row is a header').check()
 }
 async function apply(page: Page) {
   await button(page, 'Apply sort').click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
+  await showRibbonItem(page, 'data.sort-selected-range')
   await expect(menu(page)).toBeFocused()
 }
 test.beforeEach(async ({ page }) => {
@@ -83,8 +86,10 @@ test('moving a mixed-direction level changes priority and keeps keyboard focus o
 
 test('empty-first respects filtered slots, includes manual hidden rows and keeps native history', async ({ page }) => {
   await select(page, 'D33', '32:3')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
   await select(page, 'D32:F39', '31:3')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await page.getByRole('combobox', { name: 'Worksheet filter' }).selectOption('selection')
   await button(page, 'Filter column F').click()
   await page.getByLabel('Filter condition 1').selectOption('list')
@@ -98,6 +103,7 @@ test('empty-first respects filtered slots, includes manual hidden rows and keeps
   await expect(cell(page, '33:5')).toHaveCount(0)
   await button(page, 'Undo').click(); await expect(cell(page, '37:5')).toHaveText('empty-a')
   await button(page, 'Redo').click(); await expect(cell(page, '37:5')).toHaveText('M1')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await expect(cell(page, '32:5')).toHaveText('empty-a')
   await expect(cell(page, '33:5')).toHaveCount(0)
@@ -148,8 +154,10 @@ for (const width of [1280, 390])
     await page.getByLabel('Empty cell position').selectOption('first')
     await button(page, 'Cancel').click()
     await expect(page.getByRole('dialog')).toHaveCount(0)
+    await showRibbonItem(page, 'data.sort-selected-range')
     await expect(menu(page)).toBeFocused(); await expect(button(page, 'Undo')).toBeDisabled()
     await records(page, original); await expect(cell(page, '31:3')).toHaveText('Key')
+    await showRibbonItem(page, 'data.sort-selected-range')
     await menu(page).selectOption('custom')
     await expect(page.getByLabel('Sort column 1')).toHaveValue('3')
     await expect(page.getByLabel('Sort column 2')).toHaveCount(0)
@@ -172,10 +180,12 @@ for (const width of [1280, 390]) test(`sort options and priority controls fit ${
     await page.screenshot({ path: `/tmp/excel-sort-options-${width}.png`, fullPage: true })
     await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'data.sort-selected-range')
     await expect(menu(page)).toBeFocused()
     await expect(button(page, 'Undo')).toBeDisabled()
     await records(page, original)
     await expect(cell(page, '31:3')).toHaveText('Key')
+    await showRibbonItem(page, 'data.sort-selected-range')
     await menu(page).selectOption('custom')
     await expect(page.getByLabel('Case sensitive', { exact: true })).not.toBeChecked()
     await expect(page.getByLabel('Empty cell position')).toHaveValue('last')

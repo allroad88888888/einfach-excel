@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 export const cell = (page: Page, coordinate: string) => page.locator(`td[data-cell="${coordinate}"]`)
@@ -17,6 +18,7 @@ export async function start(page: Page) {
 export async function configure(page: Page, options: {
   formula?: string; style?: 'stop' | 'warning' | 'information'; prompt?: boolean; range?: string
 } = {}) {
+  await showRibbonItem(page, 'data.data-validation')
   await button(page, 'Data validation').click()
   await expect(page.getByLabel('Allow', { exact: true })).toBeEnabled()
   if (options.range) await page.getByLabel('Applies to', { exact: true }).fill(options.range)

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const targets = [
   { kind: 'absolute A1', reference: '$B$3:$D$5', selection: 'B3:D5', coord: '2:1', value: 'Northwind' },
@@ -17,6 +18,7 @@ for (const width of [1280]) for (const target of targets)
     if (target.kind === 'quoted cross-sheet')
       await page.getByRole('tab', { name: 'Summary', exact: true }).click()
     await select(page, 'D4', '3:3')
+    await showRibbonItem(page, 'view.go-to')
     await button('Go to').click()
     await page.getByRole('textbox', { name: 'Reference', exact: true }).fill(target.reference)
     await button('Go').click()
@@ -29,6 +31,7 @@ for (const width of [1280]) for (const target of targets)
       .toHaveAttribute('aria-selected', 'true')
     await expect(button('Undo')).toBeDisabled()
     await expect(button('Redo')).toBeDisabled()
+    await showRibbonItem(page, 'view.go-to')
     await button('Go to').click()
     await expect(page.getByRole('region', { name: 'Recent locations' }).getByRole('button'))
       .toHaveText(`'Sales Orders'!${target.selection}`)

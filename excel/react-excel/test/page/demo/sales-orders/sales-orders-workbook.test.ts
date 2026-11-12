@@ -5,6 +5,8 @@ import { SALES_ORDER_NUMBER_FORMAT_EXAMPLES, SALES_ORDER_SPECIAL_FORMAT_EXAMPLES
 import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from '../../../../src/page/demo/sales-orders/data/alternating-colors-seed'
 import { SUMMARY_CALENDAR_CELLS } from '../../../../src/page/demo/sales-orders/data/calendar-seed'
 import { SUMMARY_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/fill-seed'
+import { SUMMARY_CONDITIONAL_DATE_CELLS, SUMMARY_CONDITIONAL_DATE_RULE } from '../../../../src/page/demo/sales-orders/data/conditional-date-seed'
+import { SUMMARY_CONDITIONAL_AVERAGE_CELLS, SUMMARY_CONDITIONAL_AVERAGE_RULE } from '../../../../src/page/demo/sales-orders/data/conditional-average-seed'
 import { SUMMARY_CONDITIONAL_TEXT_CELLS, SUMMARY_CONDITIONAL_TEXT_RULES } from '../../../../src/page/demo/sales-orders/data/conditional-text-seed'
 import {
   SALES_ORDER_SHEET_ROW_COUNT,
@@ -64,9 +66,10 @@ describe('Sales Orders workbook definition', () => {
           rule: { kind: 'icon-set', iconSet: 'three-arrows',
             lowerThreshold: { type: 'percentile', value: '33' },
             upperThreshold: { type: 'percentile', value: '67' }, showValue: true },
-        }, SUMMARY_BANDING_RULE],
+        }, SUMMARY_BANDING_RULE, SUMMARY_CONDITIONAL_DATE_RULE, SUMMARY_CONDITIONAL_AVERAGE_RULE],
         editableRanges: [{ rowStart: 70, rowEnd: 72, colStart: 0, colEnd: 0 }],
-        comments: [{ row: 83, col: 7, author: 'Workbook example', body: 'Review this workbook cell.' }],
+        comments: [{ row: 83, col: 7, author: 'Workbook example',
+          body: 'Review this workbook cell.' }],
         dataValidations: SUMMARY_VALIDATIONS,
         outline: SUMMARY_OUTLINE,
         namedRanges: SUMMARY_NAMED_RANGES,
@@ -92,10 +95,12 @@ describe('Sales Orders workbook definition', () => {
       SUMMARY_CALENDAR_CELLS,
       SUMMARY_CUSTOM_LIST_DRAG_CELLS,
       SUMMARY_BANDING_CELLS,
+      SUMMARY_CONDITIONAL_DATE_CELLS,
+      SUMMARY_CONDITIONAL_AVERAGE_CELLS,
       [{ sheet: 1, row: 81, col: 7, kind: 'text', value: 'ORDER_NET', format: { bold: true } },
         { sheet: 1, row: 82, col: 7, kind: 'formula', value: '=ORDER_NET(3,25)' }],
     ]
-    expect([...chunks].slice(-expectedSummaryChunks.length)).toEqual(expectedSummaryChunks)
+    expect(chunks.slice(-expectedSummaryChunks.length)).toEqual(expectedSummaryChunks)
     expect(SALES_ORDER_SUMMARY_CELLS).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -16,6 +17,7 @@ async function input(page: Page, address: string, coord: string, value: string) 
 }
 async function openCustom(page: Page, address: string, coord: string, value: string) {
   await select(page, address, coord)
+  await showRibbonItem(page, 'format.number-format-settings')
   await button(page, 'Number format settings').click()
   await page.getByLabel('Number format category').selectOption('custom')
   await code(page).fill(value)
@@ -46,6 +48,7 @@ test('custom code sections color negatives, keep the raw value and undo as one s
   await expect(cell(page, '40:4')).toHaveText('1234.5')
   await expect(cell(page, '40:4')).not.toHaveCSS('color', 'rgb(255, 0, 0)')
 
+  await showRibbonItem(page, 'format.number-format-settings')
   await button(page, 'Number format settings').click()
   await expect(page.getByLabel('Number format category')).toHaveValue('custom')
   await expect(code(page)).toHaveValue('#,##0.00;[Red](#,##0.00)')

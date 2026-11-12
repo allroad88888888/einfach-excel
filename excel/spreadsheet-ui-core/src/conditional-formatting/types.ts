@@ -1,6 +1,8 @@
 import type { CellRange, SheetRef } from '../shared'
 import type { ProjectionRequestId, ProjectionRevision, SpreadsheetCellFormat } from '../contracts'
 import type { ConditionalFormatThreshold, IconSetRule } from './advanced/types'
+import type { TimePeriodRule } from './time-period-types'
+export { CONDITIONAL_TIME_PERIODS, type TimePeriodRule } from './time-period-types'
 export type { ConditionalFormatThreshold, IconSetRule, AdvancedVisualRule } from './advanced/types'
 
 export type ConditionalFormatRuleId = string
@@ -14,6 +16,8 @@ export type ConditionalFormatRuleKind =
   | 'text'
   | 'duplicate-values'
   | 'icon-set'
+  | 'time-period'
+  | 'above-average'
 
 interface HighlightOptions {
   enabled?: boolean
@@ -88,8 +92,17 @@ export interface DuplicateValuesRule extends HighlightOptions {
   format: SpreadsheetCellFormat
 }
 
+export interface AverageRule extends HighlightOptions {
+  kind: 'above-average'
+  direction: 'above' | 'below'
+  equalAverage?: boolean
+  format: SpreadsheetCellFormat
+}
+
 /** 已接入 Rust 求值、管理及历史的规则；其余类型只保留旧持久化数据。 */
 export type NativeConditionalFormatRule =
+  | AverageRule
+  | TimePeriodRule
   | TextMatchRule
   | DuplicateValuesRule
   | CellValueRule
@@ -100,6 +113,8 @@ export type NativeConditionalFormatRule =
   | IconSetRule
 
 export type ConditionalFormatRule =
+  | AverageRule
+  | TimePeriodRule
   | TextMatchRule
   | DuplicateValuesRule
   | CellValueRule

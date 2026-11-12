@@ -31,6 +31,7 @@ impl Workbook {
         let target = self.sheet(sheet).ok_or("The worksheet no longer exists.")?;
         let mut snapshot = target.snapshot_format_range(range);
         self.project_table_styles(sheet, &mut snapshot);
+        let today = super::conditional_format_time_period::local_today_serial();
         let mut rules: Vec<_> = self.conditional_formats[sheet]
             .rules
             .iter()
@@ -47,7 +48,7 @@ impl Workbook {
                                 self.conditional_range_statistics(sheet, entry, statistic)
                             })
                             .unwrap_or(Value::Null);
-                        rule.resolve(self, sheet, entry, &statistic).then_some((entry, rule, statistic))
+                        rule.resolve(self, sheet, entry, &statistic, today).then_some((entry, rule, statistic))
                     })
             })
             .collect();
@@ -89,6 +90,11 @@ impl Workbook {
                     let matched = match &rule.kind {
                         NativeRuleKind::Numeric(rule) => matches!(scalar,
                             Some(Value::Number(number)) if rule.matches(*number)),
+                        NativeRuleKind::TimePeriod(rule) => matches!(scalar,
+                            Some(Value::Number(number)) if rule.matches(*number)),
+                        NativeRuleKind::Average(rule) => matches!(scalar,
+                            Some(Value::Number(number)) if rule.matches(*number,
+                                if let Value::Number(mean) = statistic { Some(*mean) } else { None })),
                         NativeRuleKind::Rank(rule) => matches!(scalar,
                             Some(Value::Number(number)) if rule.matches(*number,
                                 if let Value::Number(threshold) = statistic { Some(*threshold) } else { None })),

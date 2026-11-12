@@ -1,0 +1,87 @@
+/* 放不下的组按整组收进末尾“更多”（对应 Univer 的 More），面板按组分段、带组标题。 */
+:where(.einfach-spreadsheet) .ribbon-more {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin-inline-start: auto;
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+}
+
+:where(.einfach-spreadsheet) .ribbon-more [data-ribbon-more][aria-expanded='true'] {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+:where(.einfach-spreadsheet) .ribbon-shell[data-expanded='true'] {
+  position: relative;
+  z-index: 30;
+  overflow: visible;
+}
+
+/* 面板关闭时分段不占位，组仍挂载（data-inactive 只藏入口）。 */
+:where(.einfach-spreadsheet) .ribbon-more[data-expanded='false'] :is(.ribbon-more-panel, .ribbon-more-section) {
+  display: contents;
+}
+
+:where(.einfach-spreadsheet) .ribbon-more[data-expanded='false'] .ribbon-more-section > h3 {
+  display: none;
+}
+
+:where(.einfach-spreadsheet) .ribbon-more[data-expanded='true'] .ribbon-more-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 1;
+  display: flex;
+  max-width: calc(100% - 8px);
+  max-height: 70vh;
+  flex-direction: column;
+  overflow: auto;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgb(20 25 45 / 16%);
+}
+
+:where(.einfach-spreadsheet) .ribbon-more-section {
+  min-width: 0;
+  padding: 8px 0;
+}
+
+:where(.einfach-spreadsheet) .ribbon-more-section + .ribbon-more-section {
+  border-top: 1px solid var(--border);
+}
+
+:where(.einfach-spreadsheet) .ribbon-more-section > h3 {
+  margin: 0 0 6px;
+  color: #626777;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+:where(.einfach-spreadsheet) .ribbon-more-section > .ribbon-tool-group {
+  width: max-content;
+  padding: 0;
+  border-left: 0;
+}
+
+/* 窄宿主里的面板只纵向滚动；自然宽度测量时暂时恢复两行排布。 */
+@container einfach-spreadsheet (max-width: 480px) {
+  :where(.einfach-spreadsheet) .ribbon-more-section > .ribbon-tool-group:not([data-ribbon-measuring]) {
+    display: flex;
+    max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+  }
+
+  :where(.einfach-spreadsheet) .ribbon-more-section > .ribbon-tool-group:not([data-ribbon-measuring]) .ribbon-row {
+    height: auto;
+    min-height: 28px;
+    max-width: 100%;
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+}

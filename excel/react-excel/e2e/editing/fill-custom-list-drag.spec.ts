@@ -5,9 +5,15 @@ import { button, cell, close, drag, open, panel, save, start } from '../support/
 test.beforeEach(async ({ page }) => start(page))
 
 async function verifyPartialCycle(page: import('@playwright/test').Page) {
+  // Keep the intended destination away from the grid's 48px autoscroll edge zone.
+  await select(page, 'D63', '62:3')
   await select(page, 'D55', '54:3')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('Medium')
+  const target = (await cell(page, '57:3').boundingBox())!
+  const viewport = (await page.getByTestId('sheet-scroll').boundingBox())!
+  expect(target.y + target.height / 2).toBeLessThan(viewport.y + viewport.height - 48)
   await drag(page, 'D55:D56', '57:3')
+  await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('D55:D58')
   await expect(cell(page, '54:3')).toHaveText('Medium')
   await expect(cell(page, '55:3')).toHaveText('High')
   await expect(cell(page, '56:3')).toHaveText('Low')

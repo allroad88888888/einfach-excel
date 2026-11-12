@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const orders = [
   ['dateMdy', '02/29/2024'], ['dateDmy', '29/02/2024'], ['dateYmd', '2024/02/29'],
@@ -19,6 +20,7 @@ for (const width of [1280]) for (const [kind, source] of orders)
     await bar.press('Enter')
     await expect(cell('91:4')).toHaveText(`${source},keep`)
     await select(page, 'E92', '91:4')
+    await showRibbonItem(page, 'data.text-to-columns')
     await button('Text to columns').click()
     const dialog = page.getByRole('dialog', { name: 'Text to columns', exact: true })
     await dialog.getByRole('textbox', { name: 'Destination cell', exact: true }).fill('A92')

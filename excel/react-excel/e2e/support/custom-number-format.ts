@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { select } from './clipboard'
+import { showRibbonItem } from './ribbon'
 
 export const customCell = (page: Page, coord = '0:0') => page.locator(`td[data-cell="${coord}"]`)
 export const customButton = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -22,6 +23,7 @@ export async function setCustomInput(page: Page, value: string, address = 'A1', 
 
 export async function openCustomFormat(page: Page, pattern: string) {
   await select(page, 'A1', '0:0')
+  await showRibbonItem(page, 'format.number-format-settings')
   await customButton(page, 'Number format settings').click()
   await page.getByLabel('Number format category').selectOption('custom')
   await page.getByRole('textbox', { name: 'Format code', exact: true }).fill(pattern)

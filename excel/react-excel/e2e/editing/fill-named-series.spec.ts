@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { unmergeSalesFillRange } from '../support/fill-range'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Fill series', exact: true })
@@ -12,6 +13,7 @@ async function select(page: Page, address: string) {
 }
 async function open(page: Page, address: string, kind: string) {
   await select(page, address)
+  await showRibbonItem(page, 'data.fill-series')
   await page.getByRole('button', { name: 'Fill series', exact: true }).click()
   await dialog(page).getByLabel('Sequence type').selectOption(kind)
   await expect(dialog(page).getByLabel('Source sample count')).toHaveValue('1')
@@ -83,6 +85,7 @@ test('custom priority list cycles, preserves underline and keeps its draft for r
   await open(page, 'E55:E58', 'custom-list')
   await expect(dialog(page).getByLabel('Custom list items')).toHaveValue('Low\nMedium\nHigh')
   await page.keyboard.press('Escape')
+  await showRibbonItem(page, 'data.fill-series')
   await expect(page.getByRole('button', { name: 'Fill series', exact: true })).toBeFocused()
 })
 
@@ -148,15 +151,18 @@ test('mismatched list and formula samples retain targets and show native errors'
 test('hidden rows participate and named fill does not replace the clipboard snapshot', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await select(page, 'A55')
+  await showRibbonItem(page, 'clipboard.copy')
   await page.getByRole('button', { name: 'Copy', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Copied')
   await write(page, 'H8', 'Jan')
   await open(page, 'H8:H12', 'month-name')
   await apply(page)
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await select(page, 'H10')
   await expect(cell(page, '9:7')).toHaveText('Mar')
   await select(page, 'H14')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(cell(page, '13:7')).toHaveText('Friday')
 })

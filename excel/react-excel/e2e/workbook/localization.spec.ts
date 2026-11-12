@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) {
   test(`live language switching preserves Rust data and editing at ${width}px`, async ({ page }) => {
@@ -9,9 +10,13 @@ for (const width of [1280, 390]) {
     const cell = page.locator('td[data-cell="1:0"]')
     await expect(cell).toHaveText('SO-10001')
     await expect(page.getByRole('tab', { name: '开始', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await showRibbonItem(page, 'format.bold')
     await expect(page.getByRole('button', { name: '粗体', exact: true })).toBeVisible()
     const language = page.getByRole('combobox', { name: '界面语言' })
     await expect(language).toBeInViewport()
+    if (await page.locator('[data-ribbon-more][aria-expanded="true"]').count()) {
+      await page.locator('[data-ribbon-more]').click()
+    }
     await cell.dblclick()
     const editor = page.getByRole('textbox', { name: '单元格编辑器', exact: true })
     await editor.fill('中文订单 — Order')
@@ -19,6 +24,7 @@ for (const width of [1280, 390]) {
     await expect(cell).toHaveText('中文订单 — Order')
     await language.selectOption('en')
     await expect(page.getByRole('combobox', { name: 'Interface language' })).toHaveValue('en')
+    await showRibbonItem(page, 'format.bold')
     await expect(page.getByRole('button', { name: 'Bold', exact: true })).toBeVisible()
     await expect(cell).toHaveText('中文订单 — Order')
     // 切换语言不能重建 Rust 工作簿，也不能增加或清空撤销记录。
@@ -26,9 +32,11 @@ for (const width of [1280, 390]) {
     await expect(cell).toHaveText('SO-10001')
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
     await page.getByRole('tab', { name: 'Formulas', exact: true }).click()
+    await showRibbonItem(page, 'formula.quick-formula')
     await expect(page.getByRole('combobox', { name: 'Quick formula' })).toBeVisible()
     await page.getByRole('combobox', { name: 'Interface language' }).selectOption('zh')
     await expect(page.getByRole('toolbar', { name: '公式工具' })).toBeVisible()
+    await showRibbonItem(page, 'formula.quick-formula')
     await expect(page.getByRole('combobox', { name: '快捷公式' })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
     await page.screenshot({ path: test.info().outputPath(`localized-${width}.png`) })

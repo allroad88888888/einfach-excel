@@ -11,6 +11,7 @@ import {
   contains,
   noNewEvents,
 } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const bundler of ['vite', 'rspack']) {
   test(`installed ${bundler} host typed batch writes literal strings and formulas in one transaction`, async ({
@@ -87,6 +88,7 @@ for (const bundler of ['vite', 'rspack']) {
     expect(result.noop).toMatchObject({ status: 'ok', changed: false })
     expect(result.failure.status).toBe('error')
     await noNewEvents(page, initial)
+    await showRibbonItem(book(page), 'calculation.recalculate')
     await book(page)
       .getByRole('combobox', { name: 'Recalculate', exact: true })
       .selectOption('workbook')

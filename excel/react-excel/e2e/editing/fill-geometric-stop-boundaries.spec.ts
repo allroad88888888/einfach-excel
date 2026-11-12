@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const panel = (page: Page) => page.getByRole('dialog', { name: 'Fill series', exact: true })
@@ -29,6 +30,7 @@ async function raw(page: Page, addresses: string[]) {
 }
 async function fill(page: Page, address: string, step: string, stop: string) {
   await select(page, address)
+  await showRibbonItem(page, 'data.fill-series')
   await button(page, 'Fill series').click()
   await panel(page).getByLabel('Sequence type').selectOption('geometric')
   await panel(page).getByLabel('Step value').fill(step)

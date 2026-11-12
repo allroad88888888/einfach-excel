@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const frame = (page: Page) => page.locator('.sheet-grid-frame').first()
@@ -14,12 +15,15 @@ test('hiding gridlines clears the cell grid but keeps it per sheet', async ({ pa
   await open(page)
   const before = await cell(page, '2:1').evaluate(el => getComputedStyle(el).borderRightColor)
   expect(before).not.toBe('rgba(0, 0, 0, 0)')
+  await showRibbonItem(page, 'view.gridlines')
   await tool(page, 'Gridlines').click()
+  await showRibbonItem(page, 'view.gridlines')
   await expect(tool(page, 'Gridlines')).toHaveAttribute('aria-pressed', 'false')
   await expect(frame(page)).toHaveAttribute('data-gridlines', 'hidden')
   await expect.poll(() => cell(page, '2:1').evaluate(el => getComputedStyle(el).borderRightColor))
     .toBe('rgba(0, 0, 0, 0)')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await showRibbonItem(page, 'view.gridlines')
   await expect(tool(page, 'Gridlines')).toHaveAttribute('aria-pressed', 'true')
   await expect(frame(page)).not.toHaveAttribute('data-gridlines', 'hidden')
   await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
@@ -29,7 +33,9 @@ test('hiding gridlines clears the cell grid but keeps it per sheet', async ({ pa
 test('hiding headings removes row and column headers and keeps clicks on the right cell', async ({ page }) => {
   await open(page)
   await expect(page.getByRole('columnheader', { name: 'Select column B', exact: true })).toBeVisible()
+  await showRibbonItem(page, 'view.headings')
   await tool(page, 'Headings').click()
+  await showRibbonItem(page, 'view.headings')
   await expect(tool(page, 'Headings')).toHaveAttribute('aria-pressed', 'false')
   await expect(page.getByRole('columnheader', { name: 'Select column B', exact: true })).toHaveCount(0)
   await expect(frame(page)).toHaveAttribute('data-gutter', '0')
@@ -42,6 +48,7 @@ test('hiding headings removes row and column headers and keeps clicks on the rig
   expect(Math.abs(editorBox!.x - cellBox!.x)).toBeLessThan(3)
   expect(Math.abs(editorBox!.y - cellBox!.y)).toBeLessThan(3)
   await page.keyboard.press('Escape')
+  await showRibbonItem(page, 'view.headings')
   await tool(page, 'Headings').click()
   await expect(page.getByRole('columnheader', { name: 'Select column B', exact: true })).toBeVisible()
 })
@@ -49,8 +56,10 @@ test('hiding headings removes row and column headers and keeps clicks on the rig
 test('the formula bar can be hidden and shown again', async ({ page }) => {
   await open(page)
   await expect(nameBox(page)).toBeVisible()
+  await showRibbonItem(page, 'view.formula-bar')
   await tool(page, 'Formula bar').click()
   await expect(nameBox(page)).toHaveCount(0)
+  await showRibbonItem(page, 'view.formula-bar')
   await tool(page, 'Formula bar').click()
   await expect(nameBox(page)).toBeVisible()
 })
@@ -59,6 +68,7 @@ test('hidden gridlines repaint the canvas renderer without losing cells', async 
   await page.goto('/?renderer=canvas')
   const canvas = page.getByRole('img', { name: 'Canvas worksheet cells' }).first()
   await expect(canvas).toBeVisible()
+  await showRibbonItem(page, 'view.gridlines')
   await tool(page, 'Gridlines').click()
   await expect(frame(page)).toHaveAttribute('data-gridlines', 'hidden')
   await expect(canvas).toBeVisible()

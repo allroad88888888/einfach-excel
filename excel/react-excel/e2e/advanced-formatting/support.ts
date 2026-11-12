@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { paste, select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 export const cell = (page: Page, coordinate: string) => page.locator(`td[data-cell="${coordinate}"]`)
@@ -7,6 +8,7 @@ export const dialog = (page: Page) => page.getByRole('dialog', { name: 'Conditio
 export const valueInput = (page: Page) => page.getByRole('textbox', { name: 'Active cell value', exact: true })
 
 export async function go(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()
@@ -34,6 +36,7 @@ export async function start(page: Page, width: number, values: readonly string[]
 }
 
 export async function open(page: Page, kind?: 'text' | 'duplicate-values') {
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await expect(dialog(page)).toBeVisible()
   if (kind) await page.getByLabel('Rule type', { exact: true }).selectOption(kind)
@@ -57,7 +60,7 @@ export async function compareDisplay(page: Page, mode: 'duplicate' | 'unique' = 
   await save(page)
 }
 export async function numberFormat(page: Page, reference: string, category: 'number' | 'percent' | 'date', digits = '0') {
-  await go(page, reference); await button(page, 'Number format settings').click()
+  await go(page, reference); await showRibbonItem(page, 'format.number-format-settings'); await showRibbonItem(page, 'format.number-format-settings'); await button(page, 'Number format settings').click()
   await page.getByLabel('Number format category', { exact: true }).selectOption(category)
   if (category === 'date') await page.getByLabel('Date style', { exact: true }).selectOption('yyyy-mm-dd')
   else await page.getByLabel('Decimal places', { exact: true }).fill(digits)

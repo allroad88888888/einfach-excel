@@ -76,6 +76,14 @@ test('empty strings and errors count as content, but clearing a minimum removes 
 
 test('an entire column includes offscreen formulas and scrolling keeps the same statistics', async ({ page }) => {
   await summary(page)
+  await select(page, 'D13')
+  const dateText = await page.locator('td[data-cell="12:3"]').textContent()
+  expect(dateText).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  const dateSerial = Date.parse(`${dateText}T00:00:00Z`) / 86_400_000 + 25_569
+  await select(page, 'D14')
+  await expect(page.locator('td[data-cell="13:3"]')).toHaveText('20')
+  await select(page, 'D23')
+  await expect(page.locator('td[data-cell="22:3"]')).toHaveText('012-34-5678')
   await select(page, 'D30:D31')
   await expect(page.locator('td[data-cell="29:3"]')).toHaveText('3')
   await expect(page.locator('td[data-cell="30:3"]')).toHaveText('20')
@@ -89,14 +97,16 @@ test('an entire column includes offscreen formulas and scrolling keeps the same 
   }
   await page.getByRole('columnheader', { name: 'Select column D', exact: true }).click()
   // 原五个数值合计 36；D75:D79 的色阶样例另有五个、合计 25。
-  // D30:D31 的横向填充样本再加 2 个、合计 23；D62 RAND 也参与且滚动不能重算。
-  await expect(status(page)).toContainText('Numerical count: 13')
+  // D30:D31 合计 23；D62 RAND、D13 日期、D14 均值样本、D23 特殊格式原值也参与。
+  const expectedSum = 84 + randomValue + dateSerial + 20 + 12_345_678
+  await expect(status(page)).toContainText('Numerical count: 16')
   await expect(status(page)).not.toContainText('Calculating selection')
-  for (const [name, expected] of [['Sum', 84 + randomValue], ['Average', (84 + randomValue) / 13]] as const) {
-    const text = await status(page).getByRole('button', { name: `Copy ${name}`, exact: true }).textContent()
-    expect(Number(text!.slice(name.length + 2))).toBeCloseTo(expected, 8)
+  for (const [name, expected] of [['Sum', expectedSum], ['Average', expectedSum / 16]] as const) {
+    // The visible number uses 12 significant digits; its tooltip retains the native scalar.
+    const raw = await status(page).getByRole('button', { name: `Copy ${name}`, exact: true }).getAttribute('title')
+    expect(Number(raw)).toBeCloseTo(expected, 8)
   }
-  await extrema(page, 22, '-10', '20')
+  await extrema(page, 25, '-10', '12,345,678')
   const before = await status(page).textContent()
   await page.getByTestId('sheet-scroll').evaluate((element) => { element.scrollTop = element.scrollHeight })
   await expect(page.locator('td[data-cell="92:3"]')).toBeVisible()

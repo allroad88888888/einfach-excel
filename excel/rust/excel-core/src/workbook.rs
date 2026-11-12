@@ -56,6 +56,8 @@ mod conditional_format_text;
 mod conditional_format_time_period;
 #[path = "workbook_conditional_format_average.rs"]
 mod conditional_format_average;
+#[path = "workbook_conditional_format_cell_state.rs"]
+mod conditional_format_cell_state;
 #[path = "workbook_conditional_format_duplicates.rs"]
 pub(crate) mod conditional_format_duplicates;
 #[path = "workbook_conditional_format_rule.rs"]

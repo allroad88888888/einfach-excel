@@ -59,6 +59,7 @@ export function copyRule(rule: ConditionalFormatRule): ConditionalFormatRule {
     case 'text':
     case 'duplicate-values':
     case 'time-period':
+    case 'cell-state':
     case 'above-average':
       return { ...rule, format: copyFormat(rule.format) }
     case 'data-bar':
@@ -169,6 +170,8 @@ export function freezeLedger(
 
 export function defaultRuleForKind(kind: ConditionalFormatRuleKind): ConditionalFormatRule {
   switch (kind) {
+    case 'cell-state':
+      return { kind, condition: 'blank', format: { bgColor: '#fef3c7' } }
     case 'above-average':
       return { kind, direction: 'above', equalAverage: false, format: { bgColor: '#fef3c7' } }
     case 'time-period':

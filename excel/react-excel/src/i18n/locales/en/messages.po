@@ -608,6 +608,18 @@ msgstr "Below average"
 msgid "Between"
 msgstr "Between"
 
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Blank / error cells"
+msgstr "Blank / error cells"
+
+#: src/workbook/chrome/ribbon/conditional-cell-state-labels.ts
+msgid "Blank cells"
+msgstr "Blank cells"
+
+#: src/workbook/chrome/ribbon/ConditionalCellStateFields.tsx
+msgid "Blank includes empty results and ordinary spaces. Errors match neither blank nor non-blank."
+msgstr "Blank includes empty results and ordinary spaces. Errors match neither blank nor non-blank."
+
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
 msgid "Blanks"
 msgstr "Blanks"
@@ -787,6 +799,10 @@ msgstr "Cell actions"
 msgid "Cell comments"
 msgstr "Cell comments"
 
+#: src/workbook/chrome/ribbon/ConditionalCellStateFields.tsx
+msgid "Cell condition"
+msgstr "Cell condition"
+
 #: src/workbook/grid/editor/CellEditor.tsx
 msgid "Cell editor"
 msgstr "Cell editor"
@@ -887,6 +903,10 @@ msgstr "Choose a source field number from 1 to 16384."
 #: src/i18n/feedback-messages.ts
 msgid "Choose a supported average comparison and highlight."
 msgstr "Choose a supported average comparison and highlight."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a supported blank or error condition and highlight."
+msgstr "Choose a supported blank or error condition and highlight."
 
 #: src/i18n/feedback-messages.ts
 msgid "Choose a supported border position and line style."
@@ -2329,6 +2349,10 @@ msgstr "Equals"
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Error alert"
 msgstr "Error alert"
+
+#: src/workbook/chrome/ribbon/conditional-cell-state-labels.ts
+msgid "Error cells"
+msgstr "Error cells"
 
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Error message"
@@ -4004,6 +4028,14 @@ msgstr "No visible cells in the selection."
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 msgid "No watched cells yet. Select a cell and click Add Watch."
 msgstr "No watched cells yet. Select a cell and click Add Watch."
+
+#: src/workbook/chrome/ribbon/conditional-cell-state-labels.ts
+msgid "Non-blank cells"
+msgstr "Non-blank cells"
+
+#: src/workbook/chrome/ribbon/conditional-cell-state-labels.ts
+msgid "Non-error cells"
+msgstr "Non-error cells"
 
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Nonbreaking space"

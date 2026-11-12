@@ -79,6 +79,7 @@ export function conditionalFormatEditorDraftError(
     case 'icon-set':
     case 'duplicate-values':
     case 'time-period':
+    case 'cell-state':
     case 'above-average':
       return null
   }

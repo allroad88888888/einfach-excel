@@ -19,6 +19,7 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   ...richTextFeedback,
   'Choose a supported date period and highlight.': msg`Choose a supported date period and highlight.`,
   'Choose a supported average comparison and highlight.': msg`Choose a supported average comparison and highlight.`,
+  'Choose a supported blank or error condition and highlight.': msg`Choose a supported blank or error condition and highlight.`,
   HOST_READ_ONLY: msg`This workbook is read-only.`,
   HOST_BUSY: msg`The workbook is busy. Try again when it is ready.`,
   HOST_STRUCTURE_DISABLED: msg`Worksheet structure changes are disabled.`,

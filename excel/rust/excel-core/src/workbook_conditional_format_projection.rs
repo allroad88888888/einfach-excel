@@ -88,6 +88,7 @@ impl Workbook {
                         continue;
                     }
                     let matched = match &rule.kind {
+                        NativeRuleKind::CellState(rule) => rule.matches(scalar),
                         NativeRuleKind::Numeric(rule) => matches!(scalar,
                             Some(Value::Number(number)) if rule.matches(*number)),
                         NativeRuleKind::TimePeriod(rule) => matches!(scalar,

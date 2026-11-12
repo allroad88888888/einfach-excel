@@ -6,9 +6,9 @@ const coreUrl = `/@fs${fileURLToPath(new URL('../../../spreadsheet-ui-core/src/'
 // 此文件只验证真实 Worker/WASM；数字格式弹窗仍需独立 UI 验收。
 test('native format preview reads actual values without changing projection or history', async ({ page }) => {
   await page.goto('/')
-  const result = await page.evaluate(async (coreUrl) => {
-    const { createRustWorkbookConnection } = await import(`${coreUrl}rust-workbook/commands.ts`)
-    const { default: RuntimeWorker } = await import(`${coreUrl}rust-runtime.ts?worker`)
+  const result = await page.evaluate(async (moduleRoot) => {
+    const { createRustWorkbookConnection } = await import(`${moduleRoot}rust-workbook/commands.ts`)
+    const { default: RuntimeWorker } = await import(`${moduleRoot}rust-runtime.ts?worker`)
     const connection = createRustWorkbookConnection(() => new RuntimeWorker())
     try {
       await connection.request('workbook.initialize', { sheets: [{ id: 's', name: 'Sheet' }] })
@@ -32,13 +32,16 @@ test('native format preview reads actual values without changing projection or h
       ]) values.push(await connection.request('format.preview', { sheetId: 's', addr, numberFormat }))
       const errors = []
       for (const addr of ['A0', 'XFE1', 'A1048577']) {
-        try { await connection.request('format.preview', { sheetId: 's', addr, numberFormat: { kind: 'text' } }) }
-        catch (error) { errors.push((error as Error).message) }
+        try {
+          await connection.request('format.preview', { sheetId: 's', addr, numberFormat: { kind: 'text' } })
+        } catch (error) { errors.push((error as Error).message) }
       }
       return { before, after: await connection.request('projection.readVisible', { request }), values, errors }
     } finally { connection.dispose() }
   }, coreUrl)
-  expect(result.values).toEqual(['02-Jan-00', '60:00:00', '2.500', '€2.50', '2.5', '00123', 'TRUE', '#DIV/0!', ''])
+  expect(result.values).toEqual(
+    ['02-Jan-00', '60:00:00', '2.500', '€2.50', '2.5', '00123', 'TRUE', '#DIV/0!', ''].map(text => ({ text })),
+  )
   expect(result.after).toEqual(result.before)
   expect(result.after.history.undoCount).toBe(0)
   expect(result.errors).toEqual(['INVALID_ADDRESS', 'INVALID_ADDRESS', 'INVALID_ADDRESS'])
@@ -46,9 +49,9 @@ test('native format preview reads actual values without changing projection or h
 
 test('text column preserves edits and external paste with one native undo', async ({ page }) => {
   await page.goto('/')
-  const result = await page.evaluate(async (coreUrl) => {
-    const { createRustWorkbookConnection } = await import(`${coreUrl}rust-workbook/commands.ts`)
-    const { default: RuntimeWorker } = await import(`${coreUrl}rust-runtime.ts?worker`)
+  const result = await page.evaluate(async (moduleRoot) => {
+    const { createRustWorkbookConnection } = await import(`${moduleRoot}rust-workbook/commands.ts`)
+    const { default: RuntimeWorker } = await import(`${moduleRoot}rust-runtime.ts?worker`)
     const connection = createRustWorkbookConnection(() => new RuntimeWorker())
     const range = { rowStart: 0, rowEnd: 2, colStart: 0, colEnd: 1 }
     const projection = { kind: 'visible-window', sheetId: 's', requestId: 1, window: range }
@@ -78,8 +81,11 @@ test('text column preserves edits and external paste with one native undo', asyn
   for (const [row, col, displayValue, valueKind] of [
     [1, 0, '12345678901234567890', 'string'], [1, 1, '123', 'number'],
     [2, 0, '=SUM(', 'string'], [2, 1, '5', 'number'],
-  ]) expect(result.pasted.projection.cells).toContainEqual(expect.objectContaining({ row, col, displayValue, valueKind }))
-  expect(result.pasted.projection.history.undoCount).toBe(result.edited.projection.history.undoCount + 1)
+  ]) expect(result.pasted.projection.cells).toContainEqual(
+    expect.objectContaining({ row, col, displayValue, valueKind }),
+  )
+  expect(result.pasted.projection.history.undoCount)
+    .toBe(result.edited.projection.history.undoCount + 1)
   expect(result.undo.projection.cells).not.toContainEqual(expect.objectContaining({ displayValue: '12345678901234567890' }))
   expect(result.undo.projection.cells).toContainEqual(expect.objectContaining({ row: 0, col: 0, displayValue: '00123' }))
   expect(result.redo.projection.cells).toEqual(result.pasted.projection.cells)

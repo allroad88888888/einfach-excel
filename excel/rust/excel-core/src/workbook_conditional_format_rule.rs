@@ -8,6 +8,7 @@ use super::conditional_format_rank::RankRule;
 use super::conditional_format_text::TextRule;
 use super::conditional_format_time_period::TimePeriodRule;
 use super::conditional_format_average::AverageRule;
+use super::conditional_format_cell_state::CellStateRule;
 use crate::cell_style::CellStyle;
 use crate::sheet::ConditionalStatistic;
 use super::advanced_conditional_format::{IconSetRule, NumericDomain};
@@ -24,6 +25,7 @@ pub(crate) enum NativeRuleKind {
     Text(TextRule),
     TimePeriod(TimePeriodRule),
     Average(AverageRule),
+    CellState(CellStateRule),
     Duplicates(DuplicateRule),
     IconSet(IconSetRule),
 }
@@ -55,6 +57,7 @@ impl NativeRule {
             Some("text") => TextRule::parse(&json).map(NativeRuleKind::Text),
             Some("time-period") => TimePeriodRule::parse(&json).map(NativeRuleKind::TimePeriod),
             Some("above-average") => AverageRule::parse(&json).map(NativeRuleKind::Average),
+            Some("cell-state") => CellStateRule::parse(&json).map(NativeRuleKind::CellState),
             Some("duplicate-values") => DuplicateRule::parse(&json).map(NativeRuleKind::Duplicates),
             Some("icon-set") => IconSetRule::parse(&json).map(NativeRuleKind::IconSet),
             _ => Err("This conditional-format kind is not supported yet."),
@@ -80,6 +83,7 @@ impl NativeRule {
             NativeRuleKind::Text(rule) => rule.enabled,
             NativeRuleKind::TimePeriod(rule) => rule.enabled,
             NativeRuleKind::Average(rule) => rule.enabled,
+            NativeRuleKind::CellState(rule) => rule.enabled,
             NativeRuleKind::Duplicates(rule) => rule.enabled,
             NativeRuleKind::IconSet(rule) => rule.enabled,
         }
@@ -93,6 +97,7 @@ impl NativeRule {
             NativeRuleKind::Text(rule) => Some(&rule.style),
             NativeRuleKind::TimePeriod(rule) => Some(&rule.style),
             NativeRuleKind::Average(rule) => Some(&rule.style),
+            NativeRuleKind::CellState(rule) => Some(&rule.style),
             NativeRuleKind::Duplicates(rule) => Some(&rule.style),
             NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_) | NativeRuleKind::IconSet(_) => None,
         }

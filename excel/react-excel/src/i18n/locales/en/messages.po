@@ -235,6 +235,15 @@ msgstr "A worksheet can hold at most 1000 objects."
 msgid "A worksheet supports at most 256 editable ranges."
 msgstr "A worksheet supports at most 256 editable ranges."
 
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Above / below average"
+msgstr "Above / below average"
+
+#: src/workbook/chrome/ribbon/ConditionalAverageFields.tsx
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Above average"
+msgstr "Above average"
+
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Accounting"
 msgstr "Accounting"
@@ -332,6 +341,10 @@ msgstr "All conditions in a group must match. Any group can show a row."
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "All contents and formatting"
 msgstr "All contents and formatting"
+
+#: src/workbook/chrome/ribbon/ConditionalAverageFields.tsx
+msgid "All finite numbers in the applied ranges count, including hidden cells. Text, blanks and errors are ignored."
+msgstr "All finite numbers in the applied ranges count, including hidden cells. Text, blanks and errors are ignored."
 
 #: src/workbook/grid/viewport/WorkbookGrid.tsx
 msgid "All rows are hidden. Use Hide / Unhide to restore them."
@@ -506,6 +519,14 @@ msgstr "At least 3 numeric samples. Rust fits a least-squares line using all sam
 msgid "At most"
 msgstr "At most"
 
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "At or above average"
+msgstr "At or above average"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "At or below average"
+msgstr "At or below average"
+
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Auto"
 msgstr "Auto"
@@ -552,6 +573,10 @@ msgstr "Average"
 msgid "AVERAGE — Mean"
 msgstr "AVERAGE — Mean"
 
+#: src/workbook/chrome/ribbon/ConditionalAverageFields.tsx
+msgid "Average comparison"
+msgstr "Average comparison"
+
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "Band color"
 msgstr "Band color"
@@ -572,6 +597,11 @@ msgstr "Base display text"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Begins with"
 msgstr "Begins with"
+
+#: src/workbook/chrome/ribbon/ConditionalAverageFields.tsx
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Below average"
+msgstr "Below average"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
@@ -853,6 +883,10 @@ msgstr "Choose a non-empty workbook file no larger than 64 MiB."
 #: src/i18n/feedback-messages.ts
 msgid "Choose a source field number from 1 to 16384."
 msgstr "Choose a source field number from 1 to 16384."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a supported average comparison and highlight."
+msgstr "Choose a supported average comparison and highlight."
 
 #: src/i18n/feedback-messages.ts
 msgid "Choose a supported border position and line style."
@@ -3101,6 +3135,10 @@ msgstr "In the last 7 days"
 #: src/i18n/feedback-messages.ts
 msgid "Include a source row or column and at least one destination."
 msgstr "Include a source row or column and at least one destination."
+
+#: src/workbook/chrome/ribbon/ConditionalAverageFields.tsx
+msgid "Include equal average"
+msgstr "Include equal average"
 
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
 msgid "Includes hidden cells. Merged cells are selected as a whole."

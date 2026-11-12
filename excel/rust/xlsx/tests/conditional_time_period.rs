@@ -66,7 +66,7 @@ fn missing_formulas_are_valid_but_unknown_periods_are_reported() {
         <cfRule type="timePeriod" timePeriod="today" dxfId="0" priority="1"/>
         <cfRule type="timePeriod" timePeriod="nextYear" dxfId="0" priority="2"/>
         <cfRule type="timePeriod" dxfId="0" priority="3"/>
-        <cfRule type="aboveAverage" dxfId="0" priority="4"/>
+        <cfRule type="aboveAverage" stdDev="1" dxfId="0" priority="4"/>
         </conditionalFormatting>"#;
     let (native, report) = read(external(rules, false));
     assert_eq!(native["workbook"]["conditionalFormats"][0]["rules"].as_array().unwrap().len(), 1);

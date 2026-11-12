@@ -5,6 +5,7 @@ import { createSalesOrderImportChunks, SALES_ORDER_NUMBER_FORMAT_EXAMPLES, SALES
 import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from './data/alternating-colors-seed'
 import { SUMMARY_FILL_CELLS } from './data/fill-seed'
 import { SUMMARY_CONDITIONAL_DATE_CELLS, SUMMARY_CONDITIONAL_DATE_RULE } from './data/conditional-date-seed'
+import { SUMMARY_CONDITIONAL_AVERAGE_CELLS, SUMMARY_CONDITIONAL_AVERAGE_RULE } from './data/conditional-average-seed'
 import { SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
 import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from './data/validation-seed'
 import { SUMMARY_OUTLINE, SUMMARY_OUTLINE_CELLS } from './data/outline-seed'
@@ -70,6 +71,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
           },
           SUMMARY_BANDING_RULE,
           SUMMARY_CONDITIONAL_DATE_RULE,
+          SUMMARY_CONDITIONAL_AVERAGE_RULE,
         ],
         dataValidations: SUMMARY_VALIDATIONS,
         outline: SUMMARY_OUTLINE,
@@ -91,6 +93,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       SUMMARY_FILL_CELLS,
       SUMMARY_BANDING_CELLS,
       SUMMARY_CONDITIONAL_DATE_CELLS,
+      SUMMARY_CONDITIONAL_AVERAGE_CELLS,
       [
         { sheet: 1, row: 81, col: 7, kind: 'text', value: 'ORDER_NET', format: { bold: true } },
         { sheet: 1, row: 82, col: 7, kind: 'formula', value: '=ORDER_NET(3,25)' },

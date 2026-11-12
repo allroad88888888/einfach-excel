@@ -19,7 +19,7 @@ test('date occurring today highlights native dates with times and undoes once at
       [1, 2].includes(col) ? 'rgb(0, 255, 0)' : before[col].color)
     await expect(cell(page, `12:${col}`)).toHaveText(before[col].text ?? '')
   }
-  await expect(cell(page, '13:1')).toBeEmpty()
+  await expect(cell(page, '13:1')).toHaveText('10')
   await button(page, 'Undo').click()
   for (const col of [0, 1, 2, 3, 4, 5])
     await expect(cell(page, `12:${col}`)).toHaveCSS('background-color', before[col].color)

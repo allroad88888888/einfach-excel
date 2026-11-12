@@ -114,6 +114,15 @@ fn rule_xml(entry: &ConditionalEntry, priority: usize, styles: &mut StyleTable) 
     let stop = if rule["stopIfTrue"].as_bool() == Some(true) { r#" stopIfTrue="1""# } else { "" };
     let cell = cell_name(entry.scope.range.row_start, entry.scope.range.col_start);
     match rule["kind"].as_str()? {
+        "above-average" => {
+            let above = match rule["direction"].as_str()? {
+                "above" => 1, "below" => 0, _ => return None,
+            };
+            let equal = match rule.get("equalAverage") {
+                None => false, Some(value) => value.as_bool()?,
+            } as u8;
+            Some(format!(r#"{}{} aboveAverage="{above}" equalAverage="{equal}"{stop}/>"#, head("aboveAverage"), dxf(styles)?))
+        }
         "time-period" => {
             let period = rule["period"].as_str()?;
             let body = escape(&crate::conditional_time_period::formula(period, &cell)?);

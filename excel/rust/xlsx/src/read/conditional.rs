@@ -90,6 +90,7 @@ fn data_bar(node: &Node, theme: &[String]) -> Option<Value> {
 fn highlight_rule(node: &Node, formulas: &[String], format: Value) -> Option<Value> {
     let kind = node.attr("type")?;
     let mut rule = match kind {
+        "aboveAverage" => super::conditional_average::rule(node)?,
         "timePeriod" => {
             let period = node.attr("timePeriod").filter(|period| crate::conditional_time_period::supported(period))?;
             json!({"kind": "time-period", "period": period})

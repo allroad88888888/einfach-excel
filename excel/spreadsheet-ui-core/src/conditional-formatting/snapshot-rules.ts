@@ -25,6 +25,15 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
       ...(value.stopIfTrue === undefined ? {} : { stopIfTrue: value.stopIfTrue as boolean }),
     }
     switch (value.kind) {
+      case 'above-average': {
+        const format = snapshotFormat(value.format)
+        if (format === null || !isOneOf(value.direction, ['above', 'below'] as const) ||
+          (value.equalAverage !== undefined && typeof value.equalAverage !== 'boolean') ||
+          Object.keys(value).some((key) => !['kind', 'direction', 'equalAverage', 'enabled', 'stopIfTrue', 'format'].includes(key)))
+          return null
+        return { ...options, kind: value.kind, direction: value.direction, format,
+          ...(value.equalAverage === undefined ? {} : { equalAverage: value.equalAverage }) }
+      }
       case 'time-period': {
         const format = snapshotFormat(value.format)
         if (format === null || !isOneOf(value.period, CONDITIONAL_TIME_PERIODS) ||

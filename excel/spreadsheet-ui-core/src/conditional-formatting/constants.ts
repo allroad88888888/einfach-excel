@@ -25,6 +25,7 @@ export const RULE_KINDS = [
   'text',
   'duplicate-values',
   'time-period',
+  'above-average',
 ] as const satisfies readonly ConditionalFormatRuleKind[]
 
 export const BORDER_SIDES = [

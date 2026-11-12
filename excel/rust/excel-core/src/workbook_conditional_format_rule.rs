@@ -7,6 +7,7 @@ use super::conditional_format_numeric::NumericRule;
 use super::conditional_format_rank::RankRule;
 use super::conditional_format_text::TextRule;
 use super::conditional_format_time_period::TimePeriodRule;
+use super::conditional_format_average::AverageRule;
 use crate::cell_style::CellStyle;
 use crate::sheet::ConditionalStatistic;
 use super::advanced_conditional_format::{IconSetRule, NumericDomain};
@@ -22,6 +23,7 @@ pub(crate) enum NativeRuleKind {
     DataBar(DataBarRule),
     Text(TextRule),
     TimePeriod(TimePeriodRule),
+    Average(AverageRule),
     Duplicates(DuplicateRule),
     IconSet(IconSetRule),
 }
@@ -52,6 +54,7 @@ impl NativeRule {
             Some("data-bar") => DataBarRule::parse(&json).map(NativeRuleKind::DataBar),
             Some("text") => TextRule::parse(&json).map(NativeRuleKind::Text),
             Some("time-period") => TimePeriodRule::parse(&json).map(NativeRuleKind::TimePeriod),
+            Some("above-average") => AverageRule::parse(&json).map(NativeRuleKind::Average),
             Some("duplicate-values") => DuplicateRule::parse(&json).map(NativeRuleKind::Duplicates),
             Some("icon-set") => IconSetRule::parse(&json).map(NativeRuleKind::IconSet),
             _ => Err("This conditional-format kind is not supported yet."),
@@ -76,6 +79,7 @@ impl NativeRule {
             NativeRuleKind::DataBar(rule) => rule.enabled,
             NativeRuleKind::Text(rule) => rule.enabled,
             NativeRuleKind::TimePeriod(rule) => rule.enabled,
+            NativeRuleKind::Average(rule) => rule.enabled,
             NativeRuleKind::Duplicates(rule) => rule.enabled,
             NativeRuleKind::IconSet(rule) => rule.enabled,
         }
@@ -88,6 +92,7 @@ impl NativeRule {
             NativeRuleKind::Rank(rule) => Some(&rule.style),
             NativeRuleKind::Text(rule) => Some(&rule.style),
             NativeRuleKind::TimePeriod(rule) => Some(&rule.style),
+            NativeRuleKind::Average(rule) => Some(&rule.style),
             NativeRuleKind::Duplicates(rule) => Some(&rule.style),
             NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_) | NativeRuleKind::IconSet(_) => None,
         }
@@ -95,6 +100,7 @@ impl NativeRule {
 
     pub(super) fn statistic(&self) -> Option<ConditionalStatistic> {
         match &self.kind {
+            NativeRuleKind::Average(_) => Some(ConditionalStatistic::Average),
             NativeRuleKind::Rank(rule) => Some(rule.statistic()),
             NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_) | NativeRuleKind::IconSet(_) =>
                 Some(ConditionalStatistic::SortedNumbers),

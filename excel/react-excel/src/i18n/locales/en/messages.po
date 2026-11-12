@@ -863,6 +863,10 @@ msgid "Choose a supported category."
 msgstr "Choose a supported category."
 
 #: src/i18n/feedback-messages.ts
+msgid "Choose a supported date period and highlight."
+msgstr "Choose a supported date period and highlight."
+
+#: src/i18n/feedback-messages.ts
 msgid "Choose a table column."
 msgstr "Choose a table column."
 
@@ -1657,6 +1661,14 @@ msgstr "Date & time"
 #: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Date format"
 msgstr "Date format"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Date occurring"
+msgstr "Date occurring"
+
+#: src/workbook/chrome/ribbon/ConditionalTimePeriodFields.tsx
+msgid "Date period"
+msgstr "Date period"
 
 #: src/i18n/feedback-messages.ts
 msgid "Date sequence"
@@ -3082,6 +3094,10 @@ msgstr "Implementation limits"
 msgid "In memory"
 msgstr "In memory"
 
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "In the last 7 days"
+msgstr "In the last 7 days"
+
 #: src/i18n/feedback-messages.ts
 msgid "Include a source row or column and at least one destination."
 msgstr "Include a source row or column and at least one destination."
@@ -3349,9 +3365,17 @@ msgstr "Last"
 msgid "Last column emphasis"
 msgstr "Last column emphasis"
 
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Last month"
+msgstr "Last month"
+
 #: src/workbook/chrome/ribbon/FindResults.tsx
 msgid "Last page"
 msgstr "Last page"
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Last week"
+msgstr "Last week"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Left"
@@ -3834,6 +3858,10 @@ msgstr "Next"
 msgid "Next filter values page"
 msgstr "Next filter values page"
 
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Next month"
+msgstr "Next month"
+
 #: src/workbook/chrome/ribbon/FindResults.tsx
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Next page"
@@ -3846,6 +3874,10 @@ msgstr "Next sheet"
 #: src/components/formula-auditing/EvaluateFormulaDialog.tsx
 msgid "Next step result"
 msgstr "Next step result"
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Next week"
+msgstr "Next week"
 
 #: src/i18n/feedback-messages.ts
 msgid "No adjacent continuous data to fill."
@@ -6382,6 +6414,10 @@ msgstr "This is not a valid .einfach.json workbook file."
 msgid "This match is in a hidden row or column. Unhide it to view the cell."
 msgstr "This match is in a hidden row or column. Unhide it to view the cell."
 
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "This month"
+msgstr "This month"
+
 #: src/i18n/feedback-messages.ts
 msgid "This named range no longer refers to an available worksheet range."
 msgstr "This named range no longer refers to an available worksheet range."
@@ -6425,6 +6461,10 @@ msgstr "This validation formula cannot be translated across the range."
 #: src/i18n/feedback-messages.ts
 msgid "This value does not meet the cell’s data validation rule. Change it or press Escape."
 msgstr "This value does not meet the cell’s data validation rule. Change it or press Escape."
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "This week"
+msgstr "This week"
 
 #: src/i18n/feedback-messages.ts
 msgid "This workbook is read-only."
@@ -6491,6 +6531,14 @@ msgstr "To edit this cell, unprotect the worksheet first."
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "To replace a formula, choose Formulas / raw values. Calculated results are not overwritten."
 msgstr "To replace a formula, choose Formulas / raw values. Calculated results are not overwritten."
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Today"
+msgstr "Today"
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Tomorrow"
+msgstr "Tomorrow"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Too many custom formulas."
@@ -6909,6 +6957,10 @@ msgstr "Use wildcards"
 msgid "Use YYYY-MM-DD."
 msgstr "Use YYYY-MM-DD."
 
+#: src/workbook/chrome/ribbon/ConditionalTimePeriodFields.tsx
+msgid "Uses the current local date when the sheet refreshes. Weeks start on Sunday."
+msgstr "Uses the current local date when the sheet refreshes. Weeks start on Sunday."
+
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Validation formula"
 msgstr "Validation formula"
@@ -7128,6 +7180,10 @@ msgstr "Wrap text"
 #: src/workbook/sheet-management/tab-colors.ts
 msgid "Yellow"
 msgstr "Yellow"
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Yesterday"
+msgstr "Yesterday"
 
 #: src/i18n/feedback-messages.ts
 msgid "You can save at most 32 custom lists per workbook session."

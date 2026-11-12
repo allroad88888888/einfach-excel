@@ -10,15 +10,18 @@ import { nativeConditionalFormatPanelAtom, nativeConditionalFormatsAtom,
 import { cycleDialogFocus } from './dialog-focus'
 import { AdvancedConditionalFormatFields } from '../../advanced-conditional-format/AdvancedConditionalFormatFields'
 import { AdvancedFormattingFields } from '../../advanced-formatting/AdvancedFormattingFields'
+import { ConditionalTimePeriodFields } from './ConditionalTimePeriodFields'
+import { useConditionalTimePeriodLabels } from './conditional-time-period-labels'
 import './conditional-format-panel.css'
 
 function supported(rule: ConditionalFormatRule): rule is NativeConditionalFormatRule {
-  return ['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar', 'text', 'duplicate-values', 'icon-set'].includes(rule.kind)
+  return ['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar', 'text', 'duplicate-values', 'icon-set', 'time-period'].includes(rule.kind)
 }
 
 /** 显示原生规则目录；每个输入只更新 command atom 的未提交草稿。 */
 export function ConditionalFormatTools() {
   const { i18n, t } = useLingui()
+  const periods = useConditionalTimePeriodLabels()
   const OPERATORS = {
     gt: t`Greater than`, lt: t`Less than`, eq: t`Equal to`, ne: t`Not equal to`,
     gte: t`At least`, lte: t`At most`, between: t`Between`, 'not-between': t`Not between`,
@@ -29,6 +32,7 @@ export function ConditionalFormatTools() {
     'matches-wildcard': t`Matches wildcard`, 'not-matches-wildcard': t`Does not match wildcard`,
   }
   function ruleLabel(rule: ConditionalFormatRule): string {
+    if (rule.kind === 'time-period') return `${t`Date occurring`} · ${periods[rule.period]}`
     if (rule.kind === 'text') return `${TEXT_CONDITIONS[rule.condition]} “${rule.text}”`
     if (rule.kind === 'duplicate-values') return rule.mode === 'unique' ? t`Unique values` : t`Duplicate values`
     if (rule.kind === 'cell-value')
@@ -119,6 +123,7 @@ export function ConditionalFormatTools() {
             onChange={(event) => void run({ type: 'kind', kind: event.currentTarget.value as NativeConditionalFormatRule['kind'] })}>
             <option value="cell-value"><Trans>Cell value</Trans></option>
             <option value="formula"><Trans>Formula</Trans></option>
+            <option value="time-period"><Trans>Date occurring</Trans></option>
             <option value="top-bottom"><Trans>Top / bottom</Trans></option>
             <option value="text"><Trans>Text</Trans></option>
             <option value="duplicate-values"><Trans>Duplicate / unique values</Trans></option>
@@ -127,6 +132,7 @@ export function ConditionalFormatTools() {
             <option value="icon-set"><Trans>Icon set</Trans></option>
           </select>
           <AdvancedFormattingFields idPrefix={id} />
+          <ConditionalTimePeriodFields idPrefix={id} />
           {state.rule.kind === 'cell-value' && <>
           <label htmlFor={`${id}-operator`}><Trans>Condition</Trans></label>
           <select id={`${id}-operator`} value={state.rule.operator}

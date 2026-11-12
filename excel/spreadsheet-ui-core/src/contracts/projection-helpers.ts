@@ -212,6 +212,7 @@ export function cloneConditionalFormatRule(rule: ConditionalFormatRule): Conditi
     case 'formula':
       return { ...rule, format: cloneFormat(rule.format) }
     case 'top-bottom':
+    case 'time-period':
       return { ...rule, format: cloneFormat(rule.format) }
     default:
       return { ...rule }
@@ -238,6 +239,7 @@ export function conditionalRuleFormat(
     case 'top-bottom':
     case 'text':
     case 'duplicate-values':
+    case 'time-period':
       return normalizeFormat(rule.format)
     case 'data-bar':
       return normalizeFormat({ bgColor: rule.maxColor ?? '#bfdbfe' })

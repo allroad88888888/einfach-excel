@@ -114,6 +114,11 @@ fn rule_xml(entry: &ConditionalEntry, priority: usize, styles: &mut StyleTable) 
     let stop = if rule["stopIfTrue"].as_bool() == Some(true) { r#" stopIfTrue="1""# } else { "" };
     let cell = cell_name(entry.scope.range.row_start, entry.scope.range.col_start);
     match rule["kind"].as_str()? {
+        "time-period" => {
+            let period = rule["period"].as_str()?;
+            let body = escape(&crate::conditional_time_period::formula(period, &cell)?);
+            Some(format!(r#"{}{} timePeriod="{period}"{stop}><formula>{body}</formula></cfRule>"#, head("timePeriod"), dxf(styles)?))
+        }
         "color-scale" => Some(format!("{}>{}</cfRule>", head("colorScale"), color_scale(rule)?)),
         "data-bar" => Some(format!("{}>{}</cfRule>", head("dataBar"), data_bar(rule)?)),
         "cell-value" => {

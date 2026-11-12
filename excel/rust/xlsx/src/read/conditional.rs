@@ -1,6 +1,6 @@
 //! `<conditionalFormatting>` → 原生条件格式规则。
 //! 能表达：cellIs、expression、文本包含/开头/结尾、重复/唯一、前后 N、色阶、数据条，
-//! 以及带公式的空白/错误判断（折成公式规则）。图标集、高于平均、日期周期等无对应物，跳过。
+//! 日期周期保留原生类型；带公式的空白/错误判断暂折成公式规则。
 
 use serde_json::{json, Map, Value};
 
@@ -90,6 +90,10 @@ fn data_bar(node: &Node, theme: &[String]) -> Option<Value> {
 fn highlight_rule(node: &Node, formulas: &[String], format: Value) -> Option<Value> {
     let kind = node.attr("type")?;
     let mut rule = match kind {
+        "timePeriod" => {
+            let period = node.attr("timePeriod").filter(|period| crate::conditional_time_period::supported(period))?;
+            json!({"kind": "time-period", "period": period})
+        }
         "cellIs" => {
             let operator = comparison(node.attr("operator")?)?;
             let mut rule = json!({"kind": "cell-value", "operator": operator, "value": number_text(formulas.first()?)?});

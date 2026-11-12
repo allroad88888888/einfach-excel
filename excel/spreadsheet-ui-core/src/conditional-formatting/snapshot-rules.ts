@@ -1,4 +1,5 @@
 import { CONDITIONAL_FORMAT_RULES_MAX } from './constants'
+import { CONDITIONAL_TIME_PERIODS } from './time-period-types'
 import { snapshotAdvancedVisualRule } from './advanced/snapshot'
 import { snapshotAdvancedFormattingRule } from '../advanced-formatting/snapshot'
 import {
@@ -24,6 +25,13 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
       ...(value.stopIfTrue === undefined ? {} : { stopIfTrue: value.stopIfTrue as boolean }),
     }
     switch (value.kind) {
+      case 'time-period': {
+        const format = snapshotFormat(value.format)
+        if (format === null || !isOneOf(value.period, CONDITIONAL_TIME_PERIODS) ||
+          Object.keys(value).some((key) => !['kind', 'period', 'enabled', 'stopIfTrue', 'format'].includes(key)))
+          return null
+        return { ...options, kind: value.kind, period: value.period, format }
+      }
       case 'text':
       case 'duplicate-values':
         return snapshotAdvancedFormattingRule(value)

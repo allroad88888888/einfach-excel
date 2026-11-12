@@ -863,6 +863,10 @@ msgid "Choose a supported category."
 msgstr "请选择支持的类别。"
 
 #: src/i18n/feedback-messages.ts
+msgid "Choose a supported date period and highlight."
+msgstr "请选择支持的日期期间和高亮样式。"
+
+#: src/i18n/feedback-messages.ts
 msgid "Choose a table column."
 msgstr "请选择一个表格列。"
 
@@ -1657,6 +1661,14 @@ msgstr "日期与时间"
 #: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Date format"
 msgstr "日期格式"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Date occurring"
+msgstr "发生日期"
+
+#: src/workbook/chrome/ribbon/ConditionalTimePeriodFields.tsx
+msgid "Date period"
+msgstr "日期期间"
 
 #: src/i18n/feedback-messages.ts
 msgid "Date sequence"
@@ -3082,6 +3094,10 @@ msgstr "实现限制"
 msgid "In memory"
 msgstr "保存在内存中"
 
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "In the last 7 days"
+msgstr "最近 7 天"
+
 #: src/i18n/feedback-messages.ts
 msgid "Include a source row or column and at least one destination."
 msgstr "请选择来源行或列，并至少包含一个目标单元格。"
@@ -3349,9 +3365,17 @@ msgstr "最后"
 msgid "Last column emphasis"
 msgstr "突出末列"
 
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Last month"
+msgstr "上月"
+
 #: src/workbook/chrome/ribbon/FindResults.tsx
 msgid "Last page"
 msgstr "末页"
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Last week"
+msgstr "上周"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Left"
@@ -3834,6 +3858,10 @@ msgstr "下一项"
 msgid "Next filter values page"
 msgstr "下一页筛选值"
 
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Next month"
+msgstr "下月"
+
 #: src/workbook/chrome/ribbon/FindResults.tsx
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Next page"
@@ -3846,6 +3874,10 @@ msgstr "下一张工作表"
 #: src/components/formula-auditing/EvaluateFormulaDialog.tsx
 msgid "Next step result"
 msgstr "下一步求值结果"
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Next week"
+msgstr "下周"
 
 #: src/i18n/feedback-messages.ts
 msgid "No adjacent continuous data to fill."
@@ -6382,6 +6414,10 @@ msgstr "这不是有效的 .einfach.json 工作簿文件。"
 msgid "This match is in a hidden row or column. Unhide it to view the cell."
 msgstr "匹配项位于隐藏行或列中，请取消隐藏后查看。"
 
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "This month"
+msgstr "本月"
+
 #: src/i18n/feedback-messages.ts
 msgid "This named range no longer refers to an available worksheet range."
 msgstr "此命名区域已不再引用有效的工作表区域。"
@@ -6425,6 +6461,10 @@ msgstr "无法在此区域平移该验证公式。"
 #: src/i18n/feedback-messages.ts
 msgid "This value does not meet the cell’s data validation rule. Change it or press Escape."
 msgstr "此值不符合该单元格的数据验证规则。请修改，或按 Escape 取消。"
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "This week"
+msgstr "本周"
 
 #: src/i18n/feedback-messages.ts
 msgid "This workbook is read-only."
@@ -6491,6 +6531,14 @@ msgstr "若要修改此单元格，请先解除工作表保护。"
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "To replace a formula, choose Formulas / raw values. Calculated results are not overwritten."
 msgstr "要替换公式，请选择“公式 / 原始值”。不会覆盖计算结果。"
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Today"
+msgstr "今天"
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Tomorrow"
+msgstr "明天"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Too many custom formulas."
@@ -6909,6 +6957,10 @@ msgstr "使用通配符"
 msgid "Use YYYY-MM-DD."
 msgstr "请使用 YYYY-MM-DD 格式。"
 
+#: src/workbook/chrome/ribbon/ConditionalTimePeriodFields.tsx
+msgid "Uses the current local date when the sheet refreshes. Weeks start on Sunday."
+msgstr "工作表刷新时按当地当前日期判断。每周从周日开始。"
+
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Validation formula"
 msgstr "验证公式"
@@ -7128,6 +7180,10 @@ msgstr "自动换行"
 #: src/workbook/sheet-management/tab-colors.ts
 msgid "Yellow"
 msgstr "黄色"
+
+#: src/workbook/chrome/ribbon/conditional-time-period-labels.ts
+msgid "Yesterday"
+msgstr "昨天"
 
 #: src/i18n/feedback-messages.ts
 msgid "You can save at most 32 custom lists per workbook session."

@@ -35,6 +35,27 @@ async function click(name: string) {
   await act(async () => { fireEvent.click(screen.getByRole('button', { name })) })
 }
 
+test('date periods are editable drafts and save through one native command', async () => {
+  const request = setup()
+  await click('Conditional formatting')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: 'time-period' } })
+  })
+  expect(screen.getByLabelText('Date period')).toHaveValue('today')
+  expect(screen.getByLabelText('Date period').querySelectorAll('option')).toHaveLength(10)
+  expect(screen.queryByLabelText('Value', { exact: true })).toBeNull()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Date period'), { target: { value: 'nextMonth' } })
+    fireEvent.click(screen.getByLabelText('Stop if true'))
+  })
+  expect(request).not.toHaveBeenCalled()
+  await click('Add rule')
+  expect(request).toHaveBeenCalledOnce()
+  expect(request.mock.calls[0][1]).toMatchObject({ action: 'set',
+    rule: { kind: 'time-period', period: 'nextMonth', stopIfTrue: true } })
+  expect(request.mock.calls[0][1]).not.toHaveProperty('rule.operator')
+})
+
 test.each(['text', 'duplicate-values'])('edits %s and Stop using command atoms', async (kind) => {
   const request = setup()
   await click('Conditional formatting')

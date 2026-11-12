@@ -27,12 +27,16 @@ function collapsedCount(
     if (element.dataset.inactive === 'true') continue
     const id = element.dataset.ribbonGroup ?? ''
     if (ids.includes(id)) {
+      // 更多面板允许换行；缓存仍按行内的自然宽度，避免展开后误判为能放回工具栏。
+      const folded = element.parentElement !== tools
+      if (folded) element.setAttribute('data-ribbon-measuring', '')
       const currentInset = inset(element)
-      const inlineInset = element.parentElement === tools
+      const inlineInset = !folded
         ? currentInset : (widths.get(id)?.inset ?? currentInset)
       widths.set(id, {
         width: element.offsetWidth - currentInset + inlineInset, inset: inlineInset,
       })
+      if (folded) element.removeAttribute('data-ribbon-measuring')
     } else if (element.parentElement === tools) fixed += element.offsetWidth
   }
   const available = tools.clientWidth

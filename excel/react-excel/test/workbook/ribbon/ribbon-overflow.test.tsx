@@ -237,3 +237,31 @@ test('a native confirmation arriving after the menu closed exposes its original 
   expect(more()).toHaveAttribute('aria-expanded', 'true')
   expect(groupOf('Tool b')).toHaveAttribute('data-inactive', 'false')
 })
+
+test('moving focus out of More closes it without stealing the destination focus', () => {
+  toolsWidth = 300
+  setup()
+  fireEvent.click(more())
+  screen.getByRole('button', { name: 'Tool b' }).focus()
+  fireEvent.keyDown(document.activeElement!, { key: 'Tab', shiftKey: true })
+  const inline = screen.getByRole('button', { name: 'Tool a' })
+  act(() => inline.focus())
+  expect(more()).toHaveAttribute('aria-expanded', 'false')
+  expect(inline).toHaveFocus()
+})
+
+test('moving focus to an external popup keeps the folded opener available', () => {
+  toolsWidth = 300
+  setup()
+  fireEvent.click(more())
+  screen.getByRole('button', { name: 'Tool b' }).focus()
+  fireEvent.keyDown(document.activeElement!, { key: 'Tab' })
+  const dialog = document.createElement('div')
+  dialog.setAttribute('role', 'dialog')
+  const input = document.createElement('input')
+  dialog.append(input)
+  document.querySelector('.einfach-spreadsheet')!.append(dialog)
+  act(() => input.focus())
+  expect(more()).toHaveAttribute('aria-expanded', 'true')
+  expect(input).toHaveFocus()
+})

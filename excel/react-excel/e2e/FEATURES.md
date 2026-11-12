@@ -931,6 +931,11 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | VIEW-017 | 更多中的命令菜单执行后收起 | `workbook/ribbon-overflow.spec.ts` | a folded filter command closes More and leaves the header reachable at 390px |
 | VIEW-018 | 更多中的设置支持连续键盘调整 | `workbook/ribbon-overflow.spec.ts` | a folded setting supports consecutive keyboard adjustments at 390px |
 | VIEW-019 | 延迟确认框保留更多中的入口与焦点 | `workbook/ribbon-overflow.spec.ts` | a delayed merge confirmation keeps its folded opener available at 390px |
+| VIEW-020 | 窄屏更多面板换行后调整计算设置 | `workbook/ribbon-more-navigation.spec.ts` | folded calculation settings wrap and stay usable at 390px in en |
+| VIEW-021 | 向下键进入更多并用键盘选择设置 | `workbook/ribbon-more-navigation.spec.ts` | ArrowDown enters More at the first setting and applies a keyboard selection |
+| VIEW-022 | 向上键进入更多末项并打开对话框 | `workbook/ribbon-more-navigation.spec.ts` | ArrowUp enters More at the last command and a dialog returns to its opener |
+| VIEW-023 | Tab 离开更多后收起并继续定位单元格 | `workbook/ribbon-more-navigation.spec.ts` | Tab out of More closes it and leaves the next field ready for input |
+| VIEW-024 | Shift+Tab 离开更多后收起并操作行内按钮 | `workbook/ribbon-more-navigation.spec.ts` | Shift+Tab leaves More for an inline command without losing focus |
 | FILE-001 | 下载原生工作簿 | `workbook/workbook-files.spec.ts` | download preserves workbook data and history at 1280px |
 | FILE-002 | 无效文件不破坏当前工作簿 | `workbook/workbook-files.spec.ts` | invalid native content leaves values, selection, history and current file usable |
 | FILE-003 | 新建空白工作簿 | `workbook/workbook-files.spec.ts` | new workbook cancellation keeps data before confirmed replacement at 1280px |

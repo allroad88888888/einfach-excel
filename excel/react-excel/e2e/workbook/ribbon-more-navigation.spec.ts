@@ -1,0 +1,110 @@
+import { expect, test, type Page } from '@playwright/test'
+
+const more = (page: Page) => page.locator('[data-ribbon-more]')
+const panel = (page: Page) => page.locator('.ribbon-more-panel')
+const item = (page: Page, id: string) => page.locator(`[data-ribbon-item="${id}"]`)
+
+async function open(page: Page, width = 390, locale = 'en') {
+  await page.setViewportSize({ width, height: 844 })
+  await page.goto(`/e2e/fixtures/plain-sales-orders/?locale=${locale}`)
+  await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
+  await page.getByRole('tab', { name: locale === 'en' ? 'Formulas' : '公式', exact: true }).click()
+  await expect(more(page)).toHaveAttribute('aria-expanded', 'false')
+}
+
+for (const width of [320, 390]) for (const locale of ['en', 'zh']) {
+  test(`folded calculation settings wrap and stay usable at ${width}px in ${locale}`, async ({ page }, info) => {
+    await open(page, width, locale)
+    await more(page).click()
+    await expect(panel(page)).toBeVisible()
+    expect(await panel(page).evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true)
+    const outer = (await panel(page).boundingBox())!
+    for (const control of await panel(page).locator('button:visible, input:visible, select:visible').all()) {
+      const box = (await control.boundingBox())!
+      expect(box.x).toBeGreaterThanOrEqual(outer.x)
+      expect(box.x + box.width).toBeLessThanOrEqual(outer.x + outer.width)
+    }
+    const maxIterations = page.getByTestId('iterative-max-iterations')
+    const maxChange = page.getByTestId('iterative-max-change')
+    await maxIterations.fill('25')
+    await expect(maxChange).toBeEnabled()
+    await maxChange.click()
+    await expect(maxChange).toBeFocused()
+    await expect(more(page)).toHaveAttribute('aria-expanded', 'true')
+    await expect(maxChange).toHaveValue('0.001')
+    await page.screenshot({ path: info.outputPath('wrapped-more.png') })
+    await maxChange.press('Escape')
+    await more(page).click()
+    await expect(maxIterations).toHaveValue('25')
+    await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
+    await page.setViewportSize({ width: 1280, height: 844 })
+    await expect(more(page)).toHaveCount(0)
+    await expect(maxIterations).toHaveValue('25')
+    await expect(item(page, 'calculation.calculation-mode')).toHaveValue('automatic')
+  })
+}
+
+test('ArrowDown enters More at the first setting and applies a keyboard selection', async ({ page }) => {
+  await open(page)
+  await more(page).focus()
+  await more(page).press('ArrowDown')
+  const mode = item(page, 'calculation.calculation-mode')
+  await expect(mode).toBeFocused()
+  await mode.press('Escape')
+  await expect(more(page)).toBeFocused()
+  await expect(more(page)).toHaveAttribute('aria-expanded', 'false')
+  await more(page).press('ArrowDown')
+  await expect(mode).toBeFocused()
+  await mode.press('m')
+  await expect(mode).toHaveValue('manual')
+  await expect(more(page)).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
+})
+
+test('ArrowUp enters More at the last command and a dialog returns to its opener', async ({ page }) => {
+  await open(page)
+  await more(page).focus()
+  await more(page).press('ArrowUp')
+  const names = page.getByRole('button', { name: 'Name manager', exact: true })
+  await expect(names).toBeFocused()
+  await names.press('Enter')
+  const dialog = page.getByRole('dialog', { name: 'Name manager', exact: true })
+  await expect(dialog).toBeVisible()
+  await expect(more(page)).toHaveAttribute('aria-expanded', 'true')
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await expect(names).toBeFocused()
+  await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
+})
+
+test('Tab out of More closes it and leaves the next field ready for input', async ({ page }) => {
+  await open(page)
+  await more(page).focus()
+  await more(page).press('ArrowUp')
+  await expect(page.getByRole('button', { name: 'Name manager', exact: true })).toBeFocused()
+  await page.keyboard.press('Tab')
+  const nameBox = page.getByRole('textbox', { name: 'Name box', exact: true })
+  await expect(nameBox).toBeFocused()
+  await expect(more(page)).toHaveAttribute('aria-expanded', 'false')
+  await nameBox.fill('C4')
+  await nameBox.press('Enter')
+  await expect(page.locator('td[data-cell="3:2"]')).toHaveAttribute('data-selected', 'true')
+  await expect(page.locator('td[data-cell="3:2"]')).toHaveText('South')
+})
+
+test('Shift+Tab leaves More for an inline command without losing focus', async ({ page }) => {
+  await open(page)
+  await more(page).focus()
+  await more(page).press('ArrowDown')
+  await page.keyboard.press('Shift+Tab')
+  await expect(more(page)).toBeFocused()
+  await expect(more(page)).toHaveAttribute('aria-expanded', 'true')
+  await page.keyboard.press('Shift+Tab')
+  const custom = page.getByRole('button', { name: 'Custom formulas', exact: true })
+  await expect(custom).toBeFocused()
+  await expect(more(page)).toHaveAttribute('aria-expanded', 'false')
+  await custom.press('Enter')
+  const dialog = page.getByRole('dialog', { name: 'Custom formulas', exact: true })
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await expect(custom).toBeFocused()
+})

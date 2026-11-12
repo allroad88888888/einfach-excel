@@ -21,6 +21,33 @@ export function useRibbonMorePanel(panelRef: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const panel = panelRef.current
     if (!panel || collapsed === 0) return
+    let frame = 0
+    const enter = (event: KeyboardEvent) => {
+      const target = event.target
+      if (!(target instanceof Element) || !target.closest('[data-ribbon-more]') ||
+        !['ArrowDown', 'ArrowUp'].includes(event.key)) return
+      event.preventDefault()
+      setExpanded(true)
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const controls = [...panel.querySelectorAll<HTMLElement>(
+          `${FOLDED} :is(button, select, input, a[href], [tabindex="0"])`,
+        )].filter(control => !control.matches(':disabled') &&
+          !control.closest(POPUP) && control.checkVisibility())
+        const control = event.key === 'ArrowDown' ? controls[0] : controls.at(-1)
+        control?.focus()
+      })
+    }
+    panel.addEventListener('keydown', enter)
+    return () => {
+      cancelAnimationFrame(frame)
+      panel.removeEventListener('keydown', enter)
+    }
+  }, [collapsed, panelRef, setExpanded])
+
+  useEffect(() => {
+    const panel = panelRef.current
+    if (!panel || collapsed === 0) return
     const surface = () => {
       // Rust 预检可能晚于菜单收起；确认框出现后露出原入口，取消时焦点才有可返回的位置。
       if (panel.querySelector(`${FOLDED} dialog[open]`)) setExpanded(true)
@@ -44,12 +71,24 @@ export function useRibbonMorePanel(panelRef: RefObject<HTMLElement | null>) {
     const panel = panelRef.current
     if (!expanded || !panel) return
     let frame = 0
+    let tabbing = false
     const outside = (event: PointerEvent) => {
+      tabbing = false
       const target = event.target
       if (!(target instanceof Element) || panel.contains(target) || target.closest(POPUP)) return
       setExpanded(false)
     }
+    const leave = (event: FocusEvent) => {
+      if (!tabbing) return
+      tabbing = false
+      const next = event.relatedTarget
+      // 原生选择框或重挂载可能暂时没有目标；只在焦点确实离开后收起。
+      if (!(next instanceof Element) || next.closest(POPUP) ||
+        (panel.contains(next) && next.closest('.ribbon-more'))) return
+      setExpanded(false)
+    }
     const escape = (event: KeyboardEvent) => {
+      tabbing = event.key === 'Tab' && !event.defaultPrevented
       const target = event.target
       if (event.key !== 'Escape' || event.defaultPrevented || !(target instanceof Element)) return
       if (!panel.contains(target) || target.closest(POPUP)) return
@@ -83,12 +122,14 @@ export function useRibbonMorePanel(panelRef: RefObject<HTMLElement | null>) {
     panel.addEventListener('keydown', escape)
     panel.addEventListener('click', command)
     panel.addEventListener('change', command)
+    panel.addEventListener('focusout', leave)
     return () => {
       cancelAnimationFrame(frame)
       document.removeEventListener('pointerdown', outside, true)
       panel.removeEventListener('keydown', escape)
       panel.removeEventListener('click', command)
       panel.removeEventListener('change', command)
+      panel.removeEventListener('focusout', leave)
     }
   }, [expanded, panelRef, setExpanded])
 }

@@ -12,6 +12,10 @@ for (const width of [1280, 390]) {
     await page.getByRole('alertdialog').getByRole('button', { name: 'Merge cells', exact: true }).click()
     const merged = page.locator('[data-merged-cell][data-cell="5:0"]')
     await expect(merged).toBeVisible()
+    await expect(page.getByRole('alertdialog')).toHaveCount(0)
+    // 确认框保留更多中的入口；回到网格前先按真实键盘路径收起覆盖面板。
+    const expanded = page.locator('[data-ribbon-more][aria-expanded="true"]')
+    if (await expanded.count()) await expanded.press('Escape')
     await cell(page, 2, 0).click()
     await merged.click({ modifiers: ['Meta'], position: { x: 12, y: 12 } })
     await expect(nameBox(page)).toHaveValue('A6:B7')

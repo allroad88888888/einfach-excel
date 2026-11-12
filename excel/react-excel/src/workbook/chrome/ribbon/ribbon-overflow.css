@@ -46,6 +46,7 @@
 }
 
 :where(.einfach-spreadsheet) .ribbon-more-section {
+  min-width: 0;
   padding: 8px 0;
 }
 
@@ -64,4 +65,23 @@
   width: max-content;
   padding: 0;
   border-left: 0;
+}
+
+/* 窄宿主里的面板只纵向滚动；自然宽度测量时暂时恢复两行排布。 */
+@container einfach-spreadsheet (max-width: 480px) {
+  :where(.einfach-spreadsheet) .ribbon-more-section > .ribbon-tool-group:not([data-ribbon-measuring]) {
+    display: flex;
+    max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+  }
+
+  :where(.einfach-spreadsheet) .ribbon-more-section > .ribbon-tool-group:not([data-ribbon-measuring]) .ribbon-row {
+    height: auto;
+    min-height: 28px;
+    max-width: 100%;
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
 }

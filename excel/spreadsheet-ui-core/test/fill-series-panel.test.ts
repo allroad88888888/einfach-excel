@@ -109,7 +109,7 @@ test.each(['weekday-name', 'month-name', 'custom-list', 'date'] as const)(
     })
     expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(true)
     expect(fill.mock.lastCall![0].request.series).toEqual({ kind, sourceCount: 1,
-      ...(kind === 'custom-list' ? { customValues: ['Low', 'Medium', 'High'] } : {}),
+      ...(kind === 'custom-list' ? { customValues: ['Low', 'Medium', 'High'], customLocale: 'en' } : {}),
     })
     expect(fill).toHaveBeenCalledTimes(1)
     await store.setter(configureFillSeriesAtom, 'open')
@@ -159,4 +159,24 @@ test.each(['-2', '0', '1'])('geometric without stop accepts multiplier %s', asyn
   expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(true)
   expect(fill.mock.lastCall![0].request.series)
     .toEqual({ kind: 'geometric', sourceCount: 1, step: Number(value) })
+})
+
+test.each(['date-weekday', 'date-year'] as const)('%s fixes one source and sends a safe explicit step', async kind => {
+  const { store, fill } = await setup()
+  await store.setter(configureFillSeriesAtom, { field: 'kind', value: kind })
+  expect(store.getter(fillSeriesPanelAtom)).toMatchObject({ sourceCount: '1', step: '1' })
+  for (const value of ['', '0', '0.5', 'Infinity', '9007199254740992']) {
+    await store.setter(configureFillSeriesAtom, { field: 'step', value })
+    expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(false)
+    expect(store.getter(fillSeriesPanelAtom).error).toBe('Enter a non-zero safe whole-number step.')
+  }
+  expect(fill).not.toHaveBeenCalled()
+  await store.setter(configureFillSeriesAtom, { field: 'step', value: '-2' })
+  await store.setter(configureFillSeriesAtom, { field: 'sourceCount', value: '9' })
+  await store.setter(configureFillSeriesAtom, { field: 'stop', value: 'not a calendar field' })
+  fill.mockRejectedValueOnce(new Error('generated series contains an invalid date'))
+  expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(false)
+  expect(store.getter(fillSeriesPanelAtom)).toMatchObject({ kind, step: '-2' })
+  expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(true)
+  expect(fill.mock.lastCall![0].request.series).toEqual({ kind, sourceCount: 1, step: -2 })
 })

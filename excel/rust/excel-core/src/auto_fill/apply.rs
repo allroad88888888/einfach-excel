@@ -58,7 +58,8 @@ impl Workbook {
                 plan_numeric_series(sheet, request, write_range)?
             }
             AutoFillSeries::LinearTrend => plan_linear_trend(sheet, request, write_range)?,
-            AutoFillSeries::DateDay | AutoFillSeries::DateWeek | AutoFillSeries::DateMonth => {
+            AutoFillSeries::DateDay | AutoFillSeries::DateWeek | AutoFillSeries::DateMonth
+            | AutoFillSeries::DateWeekday | AutoFillSeries::DateYear => {
                 plan_date_series(sheet, request, write_range)?
             }
             AutoFillSeries::TextNumber => plan_text_number_series(sheet, request, write_range)?,

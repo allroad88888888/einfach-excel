@@ -1,8 +1,10 @@
 import type { RustFillRangeRequest } from './commands'
 import type { WasmWorkbook } from './wasm-types'
 import { withHistory } from './history-io'
+import { normalizeCustomFillSeriesListWitness } from '../auto-fill/list-locale'
+import { validateFillNamedLists } from '../auto-fill/named-list-candidates'
 import type { CellRange } from '../shared'
-import { minimumFillSamples } from '../auto-fill/series-options'
+import { minimumFillSamples, isExplicitDateSeries } from '../auto-fill/series-options'
 
 const nativeRange = (range: CellRange) => ({
   startRow: range.rowStart, endRow: range.rowEnd, startCol: range.colStart, endCol: range.colEnd,
@@ -48,11 +50,22 @@ export function fillRange(
     !Number.isFinite(series.step) || (series.stop !== undefined &&
       (!Number.isFinite(series.stop) || series.step! <= 0 || series.step === 1))))
     throw new Error('Geometric series requires one source, a finite step and a valid optional stop.')
-  const custom = series?.kind === 'custom-list' ? series.customValues : undefined
-  if (series?.kind === 'custom-list' && (!Array.isArray(custom) || custom.length < 2 ||
-    custom.length > 512 || custom.some((value) => typeof value !== 'string') ||
-    custom.join('').length > 16_384))
+  if (series && isExplicitDateSeries(series.kind) && (sourceCount !== 1 ||
+    !Number.isSafeInteger(series.step) || series.step === 0 || series.stop !== undefined))
+    throw new Error('Enter a non-zero safe whole-number step.')
+  const customValues = series?.kind === 'custom-list' ? series.customValues : undefined
+  if (series?.kind === 'custom-list' && (!Array.isArray(customValues) ||
+    customValues.length < 2 || customValues.length > 512 ||
+    customValues.some(value => typeof value !== 'string') || customValues.join('').length > 16_384))
     throw new Error('Enter 2–512 custom list items, at most 16384 characters.')
+  const custom = series?.kind === 'custom-list' ? normalizeCustomFillSeriesListWitness({
+    listName: 'custom-fill', values: series.customValues, locale: series.customLocale ?? 'en',
+  }) : null
+  if (series?.kind === 'custom-list' && !custom)
+    throw new Error('Enter 2–512 non-empty, unique list items.')
+  const namedLists = input.auto && !series ? input.namedLists : undefined
+  if (namedLists && !validateFillNamedLists(namedLists))
+    throw new Error('Invalid named-list candidates.')
   if (!workbook.apply_auto_fill || !workbook.history_begin || !workbook.history_finish ||
     !workbook.snapshot_viewport_sizes)
     throw new Error('Rust fill command is unavailable.')
@@ -92,8 +105,10 @@ export function fillRange(
     ...(series?.kind === 'geometric'
       ? { infer: false, step: series.step,
         ...(series.stop !== undefined ? { stop: series.stop } : {}) }
-      : series || input.auto ? { infer: true } : {}),
-    ...(custom ? { list: { listName: 'custom-fill', values: custom, locale: 'en' } } : {}),
+      : series && isExplicitDateSeries(series.kind) ? { infer: false, step: series.step }
+        : series || input.auto ? { infer: true } : {}),
+    ...(custom ? { list: custom } : {}),
+    ...(namedLists?.length ? { namedLists } : {}),
   })
   // Geometric Stop must plan its prefix before history checks protected destinations.
   const report = series?.kind === 'geometric' ? apply() : withHistory(

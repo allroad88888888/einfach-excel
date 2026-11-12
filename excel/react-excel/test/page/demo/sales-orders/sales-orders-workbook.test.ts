@@ -1,7 +1,9 @@
+import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from '../../../../src/page/demo/sales-orders/data/custom-list-drag-seed'
 import { describe, expect, it } from 'vitest'
 import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 import { SALES_ORDER_NUMBER_FORMAT_EXAMPLES, SALES_ORDER_SPECIAL_FORMAT_EXAMPLES } from '../../../../src/page/demo/sales-orders/data/import-seed'
 import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from '../../../../src/page/demo/sales-orders/data/alternating-colors-seed'
+import { SUMMARY_CALENDAR_CELLS } from '../../../../src/page/demo/sales-orders/data/calendar-seed'
 import { SUMMARY_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/fill-seed'
 import { SUMMARY_CONDITIONAL_DATE_CELLS, SUMMARY_CONDITIONAL_DATE_RULE } from '../../../../src/page/demo/sales-orders/data/conditional-date-seed'
 import { SUMMARY_CONDITIONAL_STATE_CELLS, SUMMARY_CONDITIONAL_STATE_RULES } from '../../../../src/page/demo/sales-orders/data/conditional-cell-state-seed'
@@ -79,10 +81,9 @@ describe('Sales Orders workbook definition', () => {
   })
 
   it('imports the summary examples into the second Rust sheet', async () => {
-    const chunks = []
-    for await (const chunk of SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks()) {
+    const chunks: (readonly RustImportCell[])[] = []
+    for await (const chunk of SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks())
       chunks.push(chunk)
-    }
     const expectedSummaryChunks = [
       SALES_ORDER_SUMMARY_CELLS,
       SALES_ORDER_NUMBER_FORMAT_EXAMPLES,
@@ -93,6 +94,8 @@ describe('Sales Orders workbook definition', () => {
       SUMMARY_TABLE_CELLS,
       SUMMARY_CONDITIONAL_TEXT_CELLS,
       SUMMARY_FILL_CELLS,
+      SUMMARY_CALENDAR_CELLS,
+      SUMMARY_CUSTOM_LIST_DRAG_CELLS,
       SUMMARY_BANDING_CELLS,
       SUMMARY_CONDITIONAL_DATE_CELLS,
       SUMMARY_CONDITIONAL_AVERAGE_CELLS,
@@ -147,10 +150,10 @@ describe('Sales Orders workbook definition', () => {
     expect(new Set(SUMMARY_CONDITIONAL_TEXT_CELLS.map(key)).size)
       .toBe(SUMMARY_CONDITIONAL_TEXT_CELLS.length)
   })
-  it('all import chunks use unique cell addresses, including the spill examples', () => {
-    const cells = [...SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
-      readonly RustImportCell[]
-    >].flat()
+  it('all import chunks use unique cell addresses, including the spill examples', async () => {
+    const cells: RustImportCell[] = []
+    for await (const chunk of SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks())
+      cells.push(...chunk)
     const seen = new Set<string>()
     for (const cell of cells) {
       const address = `${cell.sheet}:${cell.row}:${cell.col}`

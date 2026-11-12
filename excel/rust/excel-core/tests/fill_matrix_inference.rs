@@ -12,6 +12,7 @@ fn range(a: &str, b: &str) -> CellRange {
 }
 fn request(source: CellRange, target: CellRange, direction: AutoFillDirection) -> AutoFillRequest {
     AutoFillRequest {
+        named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
         sheet_idx: 0,
         source_range: source,
         target_range: target,

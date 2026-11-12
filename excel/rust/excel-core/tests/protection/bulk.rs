@@ -9,7 +9,8 @@ fn raw_and_inferred_fill_reject_a_locked_tail_without_changing_an_editable_prefi
     book.set_cell(0, "A1", Value::Number(1.0));
     allow(&mut book, range(1, 0, 1, 0));
     protect(&mut book);
-    let request = AutoFillRequest { sheet_idx: 0, source_range: range(0, 0, 0, 0),
+    let request = AutoFillRequest { named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
+            sheet_idx: 0, source_range: range(0, 0, 0, 0),
         target_range: range(0, 0, 2, 0), direction: AutoFillDirection::Down,
         series: AutoFillSeries::Copy, step: None, text_pattern: None, list: None };
     assert!(book.apply_auto_fill(&request).is_err());

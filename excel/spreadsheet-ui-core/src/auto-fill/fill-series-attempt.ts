@@ -2,7 +2,7 @@ import type { Getter, Setter } from '@einfach/core'
 import type { RangeProjectionResult } from '../contracts/types'
 import type { CellRange } from '../shared'
 import type { AutoFillControllerPort, AutoFillIntent } from './command-contract'
-import { detectFillSeries, fillSeriesLocaleAtom } from './detector'
+import { detectFillSeries, effectiveFillSeriesLocaleAtom } from './detector'
 import { classifyCompactAutoFillAcknowledgement, revisionForHistory } from './fill-acknowledgement'
 import { pushCompactHistory } from './fill-history'
 import { copyRange } from './fill-range-geometry'
@@ -103,7 +103,7 @@ export async function trySeries(
   const cells = orderedSeriesCells(projection, intent.sourceRange, intent.direction)
   if (cells === null) return { kind: 'not-used' }
 
-  const detected = detectFillSeries(cells, get(fillSeriesLocaleAtom))
+  const detected = detectFillSeries(cells, get(effectiveFillSeriesLocaleAtom))
   if (!isExecutableSeries(detected)) {
     return {
       kind: 'not-used',

@@ -18,6 +18,8 @@ enum AutoFillSeriesJSON {
     DateDay,
     DateWeek,
     DateMonth,
+    DateWeekday,
+    DateYear,
     TextNumber,
     WeekdayName,
     MonthName,
@@ -70,6 +72,19 @@ struct AutoFillListWitnessJSON {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+enum AutoFillNamedKindJSON { WeekdayName, MonthName, CustomList }
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct AutoFillNamedListJSON {
+    kind: AutoFillNamedKindJSON,
+    list_name: String,
+    values: Vec<String>,
+    locale: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct AutoFillRequestJSON {
     #[serde(default)]
@@ -89,11 +104,22 @@ struct AutoFillRequestJSON {
     stop: Option<f64>,
     #[serde(default)]
     list: Option<AutoFillListWitnessJSON>,
+    #[serde(default)]
+    named_lists: Vec<AutoFillNamedListJSON>,
 }
 
-impl From<AutoFillRequestJSON> for AutoFillRequest {
-    fn from(value: AutoFillRequestJSON) -> Self {
-        Self {
+impl TryFrom<AutoFillRequestJSON> for AutoFillRequest {
+    type Error = AutoFillError;
+    fn try_from(value: AutoFillRequestJSON) -> Result<Self, Self::Error> {
+        let named_lists = AutoFillNamedLists::new(value.named_lists.into_iter().map(|list|
+            AutoFillNamedList { series: match list.kind {
+                AutoFillNamedKindJSON::WeekdayName => AutoFillSeries::WeekdayName,
+                AutoFillNamedKindJSON::MonthName => AutoFillSeries::MonthName,
+                AutoFillNamedKindJSON::CustomList => AutoFillSeries::CustomList,
+            }, witness: AutoFillListWitness { list_name: list.list_name,
+                values: list.values, locale: list.locale } }).collect())?;
+        Ok(Self {
+            named_lists,
             sheet_idx: value.sheet as usize,
             source_range: value.source_range.into(),
             target_range: value.target_range.into(),
@@ -112,6 +138,8 @@ impl From<AutoFillRequestJSON> for AutoFillRequest {
                 AutoFillSeriesJSON::DateDay => AutoFillSeries::DateDay,
                 AutoFillSeriesJSON::DateWeek => AutoFillSeries::DateWeek,
                 AutoFillSeriesJSON::DateMonth => AutoFillSeries::DateMonth,
+                AutoFillSeriesJSON::DateWeekday => AutoFillSeries::DateWeekday,
+                AutoFillSeriesJSON::DateYear => AutoFillSeries::DateYear,
                 AutoFillSeriesJSON::TextNumber => AutoFillSeries::TextNumber,
                 AutoFillSeriesJSON::WeekdayName => AutoFillSeries::WeekdayName,
                 AutoFillSeriesJSON::MonthName => AutoFillSeries::MonthName,
@@ -127,8 +155,8 @@ impl From<AutoFillRequestJSON> for AutoFillRequest {
                 list_name: list.list_name,
                 values: list.values,
                 locale: list.locale,
-            }),
-        }
+            }.into()),
+        })
     }
 }
 

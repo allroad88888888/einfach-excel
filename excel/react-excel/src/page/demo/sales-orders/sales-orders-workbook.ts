@@ -1,8 +1,10 @@
+import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from './data/custom-list-drag-seed'
 import type { RustWorkbookDefinition, RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 import { applySalesOrderMerge, SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
   SALES_ORDER_EXTRA_MERGE_CELLS } from './data/merge-seed'
 import { createSalesOrderImportChunks, SALES_ORDER_NUMBER_FORMAT_EXAMPLES, SALES_ORDER_SPECIAL_FORMAT_EXAMPLES } from './data/import-seed'
 import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from './data/alternating-colors-seed'
+import { SUMMARY_CALENDAR_CELLS } from './data/calendar-seed'
 import { SUMMARY_FILL_CELLS } from './data/fill-seed'
 import { SUMMARY_CONDITIONAL_DATE_CELLS, SUMMARY_CONDITIONAL_DATE_RULE } from './data/conditional-date-seed'
 import { SUMMARY_CONDITIONAL_STATE_CELLS, SUMMARY_CONDITIONAL_STATE_RULES } from './data/conditional-cell-state-seed'
@@ -93,6 +95,8 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       SUMMARY_TABLE_CELLS,
       SUMMARY_CONDITIONAL_TEXT_CELLS,
       SUMMARY_FILL_CELLS,
+      SUMMARY_CALENDAR_CELLS,
+      SUMMARY_CUSTOM_LIST_DRAG_CELLS,
       SUMMARY_BANDING_CELLS,
       SUMMARY_CONDITIONAL_DATE_CELLS,
       SUMMARY_CONDITIONAL_AVERAGE_CELLS,

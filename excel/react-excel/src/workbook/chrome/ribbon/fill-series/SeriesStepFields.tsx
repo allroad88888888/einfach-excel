@@ -7,7 +7,7 @@ import {
   fillSeriesPanelAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 
-/** Explicit geometric parameters are drafts; native Rust reads the starting cell. */
+/** Explicit series parameters are drafts; native Rust reads the starting cell. */
 export function SeriesStepFields() {
   const id = useId()
   const state = useAtomValue(fillSeriesPanelAtom)
@@ -27,17 +27,21 @@ export function SeriesStepFields() {
         disabled={busy}
         onChange={(event) => void run({ field: 'step', value: event.currentTarget.value })}
       />
-      <label htmlFor={`${id}-stop`}>
-        <Trans>Stop value (optional)</Trans>
-      </label>
-      <input
-        id={`${id}-stop`}
-        type="text"
-        inputMode="decimal"
-        value={state.stop}
-        disabled={busy}
-        onChange={(event) => void run({ field: 'stop', value: event.currentTarget.value })}
-      />
+      {state.kind === 'geometric' && (
+        <>
+          <label htmlFor={`${id}-stop`}>
+            <Trans>Stop value (optional)</Trans>
+          </label>
+          <input
+            id={`${id}-stop`}
+            type="text"
+            inputMode="decimal"
+            value={state.stop}
+            disabled={busy}
+            onChange={(event) => void run({ field: 'stop', value: event.currentTarget.value })}
+          />
+        </>
+      )}
     </>
   )
 }

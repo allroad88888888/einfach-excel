@@ -74,6 +74,7 @@ fn install(book: &mut Workbook, target: CellRange, rule: DataValidationRule) {
 }
 fn fill() -> AutoFillRequest {
     AutoFillRequest {
+        named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
         sheet_idx: 0,
         source_range: range("A1", "A1"),
         target_range: range("A1", "A3"),

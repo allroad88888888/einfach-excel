@@ -31,6 +31,7 @@ pub enum NumberFormat {
     /// a small display subset while preserving the raw pattern for WASM/JS
     /// round-trip.
     Custom(String),
+    Special(crate::SpecialPreset),
 }
 
 impl CellFormat {
@@ -53,6 +54,8 @@ impl CellFormat {
             NumberFormat::Time(pattern) => crate::time_format::format_time(pattern, n),
             NumberFormat::Scientific { digits } => crate::scientific_format::format_scientific(n, *digits),
             NumberFormat::Fraction { denominator } => crate::fraction_format::format_fraction(n, *denominator),
+            NumberFormat::Special(preset) => preset.display(n)
+                .map_or_else(|| default_number_string(n), |shown| shown.text),
             NumberFormat::Custom(pattern) => crate::custom_number_format::format_number(pattern, n)
                 .map(|display| display.text)
                 .unwrap_or_else(|| default_number_string(n)),

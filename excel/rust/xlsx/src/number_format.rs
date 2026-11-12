@@ -79,6 +79,7 @@ fn date_time_tokens(code: &str) -> (bool, bool) {
 }
 
 pub fn from_code(code: &str) -> NumberFormat {
+    if let Some(format) = crate::special_number_format::from_code(code) { return format; }
     if let Some(format) = crate::accounting_format::from_code(code) { return format; }
     if code.eq_ignore_ascii_case("general") {
         return format("general");
@@ -118,6 +119,7 @@ pub fn to_code(format: &NumberFormat) -> String {
     let digits = format.digits;
     match format.kind.as_str() {
         "text" => "@".into(),
+        "special" => crate::special_number_format::to_code(format),
         "number" | "decimal" => {
             let integer = if format.thousands == Some(true) { "#,##0" } else { "0" };
             format!("{integer}{}", zeros(digits.unwrap_or(2)))

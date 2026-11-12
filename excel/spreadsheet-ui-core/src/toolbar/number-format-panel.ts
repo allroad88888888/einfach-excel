@@ -11,10 +11,11 @@ import type {
 import {
   selectionAuthorityWitnessAtom, selectionSnapshotAtom, type SelectionAuthorityWitness,
 } from '../selection'
+import { specialLocalePreset, specialPresetLocale, validSpecialFormat } from './special-number-format-presets'
 import { runSelectionMutationAtom } from './selection-mutation-command'
 
 type Category =
-  'number' | 'percent' | 'currency' | 'accounting' | 'scientific' | 'fraction' | 'time' | 'date' | 'text' | 'custom'
+  'number' | 'percent' | 'currency' | 'accounting' | 'scientific' | 'fraction' | 'time' | 'date' | 'text' | 'custom' | 'special'
 export const NUMBER_FORMAT_TIME_PATTERNS = [
   'h:mm', 'hh:mm', 'h:mm:ss', 'hh:mm:ss', 'h:mm AM/PM', 'h:mm:ss AM/PM', 'mm:ss', '[h]:mm:ss',
 ] as const
@@ -33,6 +34,8 @@ interface NumberFormatDraft {
   datePattern: string
   /** Custom 类别的 Excel 格式代码原文；只交给 Rust 校验与显示，不在 JS 解析。 */
   code: string
+  specialLocale: string
+  specialPreset: string
 }
 interface NumberFormatPanel {
   draft: NumberFormatDraft
@@ -49,7 +52,7 @@ interface NumberFormatPanel {
 }
 const CLOSED: NumberFormatPanel = {
   draft: { category: 'number', digits: '2', thousands: false, symbol: '$',
-    denominator: 'one-digit', pattern: 'hh:mm:ss', datePattern: 'yyyy-mm-dd', code: 'General' },
+    denominator: 'one-digit', pattern: 'hh:mm:ss', datePattern: 'yyyy-mm-dd', code: 'General', specialLocale: 'en-US', specialPreset: 'zip-code' },
   target: null, preview: null, busy: false, error: null,
 }
 /** 预览与网格同源：文本、段颜色，以及与网格同一份 `*x` 填充和 `_x` 留白。 */
@@ -68,7 +71,7 @@ type Action = 'open' | 'close' | 'apply' | { type: 'draft'; patch: Partial<Numbe
 function fromFormat(format: SpreadsheetNumberFormat | undefined): NumberFormatDraft {
   const category = format?.kind === 'currency' || format?.kind === 'accounting' || format?.kind === 'scientific' ||
     format?.kind === 'fraction' || format?.kind === 'time' || format?.kind === 'date' ||
-    format?.kind === 'text' || format?.kind === 'custom' ? format.kind
+    format?.kind === 'text' || format?.kind === 'custom' || format?.kind === 'special' ? format.kind
     : format?.kind === 'percent' || format?.kind === 'percentage' ? 'percent' : 'number'
   return {
     category,
@@ -79,6 +82,8 @@ function fromFormat(format: SpreadsheetNumberFormat | undefined): NumberFormatDr
     pattern: format?.kind === 'time' ? format.pattern ?? 'hh:mm:ss' : 'hh:mm:ss',
     datePattern: format?.kind === 'date' ? format.pattern ?? 'yyyy-mm-dd' : 'yyyy-mm-dd',
     code: format?.kind === 'custom' ? format.pattern : 'General',
+    specialPreset: format?.kind === 'special' ? format.preset : 'zip-code',
+    specialLocale: format?.kind === 'special' ? format.locale ?? specialPresetLocale(format.preset) ?? 'en-US' : 'en-US',
   }
 }
 
@@ -89,6 +94,9 @@ function draftFormat(draft: NumberFormatDraft): SpreadsheetNumberFormat | string
   if (['number', 'percent', 'currency', 'accounting', 'scientific'].includes(category) &&
     (!/^\d+$/.test(text) || !Number.isInteger(digits) || digits < 0 || digits > 15))
     return 'Enter a whole number of decimal places from 0 to 15.'
+  if (category === 'special') return validSpecialFormat(draft.specialPreset, draft.specialLocale)
+    ? { kind: 'special', preset: draft.specialPreset, locale: draft.specialLocale }
+    : 'Choose a supported category.'
   if (category === 'custom') return { kind: 'custom', pattern: draft.code }
   if (!['number', 'percent', 'currency', 'accounting', 'scientific', 'fraction', 'time', 'date', 'text'].includes(category))
     return 'Choose a supported category.'
@@ -146,7 +154,11 @@ export const runNumberFormatPanelAtom = atom(null, async (get, set, action: Acti
     } : state.target!
     const pending: NumberFormatPanel = {
       ...CLOSED, target, draft: action === 'open'
-        ? fromFormat(get(activeCellFormatAtom).numberFormat) : { ...state.draft, ...action.patch },
+        ? fromFormat(get(activeCellFormatAtom).numberFormat) : { ...state.draft, ...action.patch,
+          ...(action.patch.specialLocale !== undefined && action.patch.specialPreset === undefined
+            && specialLocalePreset(action.patch.specialLocale)
+            ? { specialPreset: specialLocalePreset(action.patch.specialLocale)! } : {}),
+        },
     }
     set(numberFormatPanelAtom, pending)
     const numberFormat = draftFormat(pending.draft)

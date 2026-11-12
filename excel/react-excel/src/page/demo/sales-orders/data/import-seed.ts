@@ -26,6 +26,15 @@ export const SALES_ORDER_NUMBER_FORMAT_EXAMPLES: readonly RustImportCell[] = [
     format: { numberFormat: { kind: 'accounting', symbol: '$', digits: 2 } } },
 ]
 
+/** Special displays on unused Summary cells; the source numbers remain ordinary numbers. */
+export const SALES_ORDER_SPECIAL_FORMAT_EXAMPLES: readonly RustImportCell[] = [
+  ...(['zip-code', 'zip-plus-4', 'phone-us', 'ssn-us', 'postal-code-cn'] as const)
+    .map((preset, col): RustImportCell => ({ sheet: 1, row: 22, col, kind: 'number',
+      value: [123, 1234567, 2125551234, 12345678, 123][col],
+      format: { numberFormat: { kind: 'special', preset, locale: col === 4 ? 'zh-CN' : 'en-US' } },
+    })),
+]
+
 const DEMO_CELL_FORMATS: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   ['1:0', { bold: true }],
   ['1:1', { italic: true }],

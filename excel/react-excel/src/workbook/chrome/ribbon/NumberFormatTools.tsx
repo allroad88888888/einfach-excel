@@ -9,6 +9,7 @@ import {
 import { useId, useLayoutEffect, useRef } from 'react'
 import { NumberFormatText } from '@einfach-excel/react-cells'
 import { cycleDialogFocus } from './dialog-focus'
+import { SpecialNumberFormatFields } from './SpecialNumberFormatFields'
 import { CustomNumberFormatFields } from './CustomNumberFormatFields'
 import './number-format.css'
 
@@ -57,7 +58,9 @@ export function NumberFormatTools() {
           <option value="time"><Trans>Time</Trans></option><option value="date"><Trans>Date</Trans></option>
           <option value="text"><Trans>Text</Trans></option>
           <option value="custom"><Trans>Custom</Trans></option>
+          <option value="special"><Trans>Special</Trans></option>
         </select>
+        {state.draft.category === 'special' && <SpecialNumberFormatFields id={id} />}
         {state.draft.category === 'custom' && <CustomNumberFormatFields id={id} />}
         {['number', 'percent', 'currency', 'accounting', 'scientific'].includes(state.draft.category) && <>
         <label htmlFor={`${id}-digits`}><Trans>Decimal places</Trans></label>

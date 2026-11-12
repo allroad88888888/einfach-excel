@@ -27,6 +27,8 @@ mod find_wildcard;
 pub mod format;
 mod number_format;
 pub mod accounting_format;
+pub mod special_number_format;
+pub use special_number_format::SpecialPreset;
 pub mod formula;
 pub mod general_text;
 pub mod history_snapshot;

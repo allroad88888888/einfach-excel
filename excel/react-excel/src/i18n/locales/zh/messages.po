@@ -796,6 +796,10 @@ msgstr "更改立即生效，可以撤销。"
 msgid "Changes apply immediately. Manual cell, row and column formatting stays in place."
 msgstr "更改立即生效。保留手动设置的单元格、行和列格式。"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Changes numeric display only. Existing text and the original values stay unchanged."
+msgstr "仅改变数值的显示方式，保留已有文本和原始值。"
+
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Changes the display only. The original date value stays unchanged."
 msgstr "只改变显示方式，原始日期值保持不变。"
@@ -815,6 +819,10 @@ msgstr "图表系列名称"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "charts"
 msgstr "图表"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Chinese (China)"
+msgstr "中文（中国）"
 
 #. placeholder {0}: label.toLowerCase()
 #: src/workbook/chrome/ribbon/ColorTools.tsx
@@ -2061,6 +2069,10 @@ msgstr "结尾是"
 #: src/i18n/feedback-messages.ts
 msgid "Engineering"
 msgstr "工程"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "English (United States)"
+msgstr "英语（美国）"
 
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 msgid "English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step."
@@ -3392,6 +3404,10 @@ msgstr "本地恢复"
 msgid "Local save status"
 msgstr "本地保存状态"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Locale (location)"
+msgstr "区域（位置）"
+
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
 msgid "Locating cells…"
 msgstr "正在定位单元格…"
@@ -4227,6 +4243,10 @@ msgstr "百分比"
 msgid "Percentile"
 msgstr "百分位"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Phone Number"
+msgstr "电话号码"
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "pivot tables"
 msgstr "数据透视表"
@@ -4251,6 +4271,10 @@ msgstr "正值数据条颜色"
 #: src/workbook/comments/CommentTools.tsx
 msgid "Post reply"
 msgstr "发表回复"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Postal Code"
+msgstr "邮政编码"
 
 #: src/i18n/feedback-messages.ts
 msgid "Preparing download…"
@@ -5472,6 +5496,10 @@ msgstr "跳过空白单元格"
 msgid "Skip field"
 msgstr "跳过字段"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Social Security Number"
+msgstr "社会安全号码"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Sort"
@@ -5544,6 +5572,14 @@ msgstr "空格"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "sparklines"
 msgstr "迷你图"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Special"
+msgstr "特殊"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Special format type"
+msgstr "特殊格式类型"
 
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Spill details"
@@ -6994,6 +7030,14 @@ msgstr "每个工作簿会话最多保存 32 个自定义列表。"
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "Your workbook is in memory. Download a file to keep your changes."
 msgstr "工作簿保存在内存中，请下载文件以保留更改。"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "ZIP Code"
+msgstr "ZIP 邮政编码"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "ZIP Code + 4"
+msgstr "ZIP+4 邮政编码"
 
 #: src/workbook/zoom/ZoomControl.tsx
 msgid "Zoom"

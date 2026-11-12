@@ -450,6 +450,16 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | NUM-036 | 会计格式原生文件往返 | `workbook/accounting-format-files.spec.ts` | native save and reopen restores accounting category symbol and decimal places |
 | NUM-037 | XLSX内置会计格式读取 | `xlsx/accounting-format.spec.ts` | opening built-in accounting formats 41 through 44 preserves symbols parentheses and zero dashes |
 | NUM-038 | 会计格式XLSX导出往返 | `xlsx/accounting-format.spec.ts` | XLSX export and reopen preserves accounting category custom symbol and decimal places |
+| NUM-039 | 美国ZIP邮编格式 | `format/number-format-special.spec.ts` | US ZIP settings display five digits without changing the value or neighboring cells |
+| NUM-040 | 美国ZIP+4邮编格式 | `format/number-format-special.spec.ts` | US ZIP plus 4 settings restore leading zeros and undo the format once |
+| NUM-041 | 美国电话号码格式 | `format/number-format-special.spec.ts` | US phone settings display seven and ten digit numbers without truncating the value |
+| NUM-042 | 美国社会安全号码格式 | `format/number-format-special.spec.ts` | US SSN settings display nine digits without converting formulas or text |
+| NUM-043 | 中国邮编格式 | `format/number-format-special.spec.ts` | Chinese postal settings display six digits and reopen with the same preset |
+| NUM-044 | 特殊格式区域切换 | `format/number-format-special-locale.spec.ts` | changing the special locale resets the draft preset without writing until Apply |
+| NUM-045 | 特殊格式前导零与文本输入 | `format/number-format-special-input.spec.ts` | typing into special formatted cells restores numeric zeros and preserves explicit text |
+| NUM-046 | 特殊格式自动列宽 | `format/number-format-special-auto-fit.spec.ts` | auto-fit measures the Rust special display without resizing the neighboring column |
+| NUM-047 | 特殊格式原生文件往返 | `workbook/special-format-files.spec.ts` | native save and reopen restores all special presets and their locales |
+| NUM-048 | 特殊格式XLSX往返 | `xlsx/special-format.spec.ts` | XLSX export and reopen recognizes all five special presets without changing values or text |
 | BORDER-001 | 外边框 | `format/border-settings.spec.ts` | outside uses selection edges, not every cell perimeter |
 | BORDER-002 | 内边框 | `format/border-settings.spec.ts` | inside uses selection edges, not every cell perimeter |
 | BORDER-003 | 所有边框 | `format/border-settings.spec.ts` | all uses selection edges, not every cell perimeter |

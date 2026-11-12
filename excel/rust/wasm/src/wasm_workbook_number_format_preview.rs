@@ -40,7 +40,7 @@ impl WasmWorkbook {
         }
         if !matches!(wire.kind.as_str(), "general" | "text" | "number" | "decimal"
             | "percent" | "percentage" | "currency" | "scientific" | "fraction"
-            | "time" | "date" | "custom" | "accounting") {
+            | "time" | "date" | "custom" | "accounting" | "special") {
             return Err("INVALID_NUMBER_FORMAT");
         }
         if wire.kind == "custom" {

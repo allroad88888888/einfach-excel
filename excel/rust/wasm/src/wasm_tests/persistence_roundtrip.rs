@@ -17,6 +17,7 @@ fn wasm_workbook_snapshot_persistence_v1_roundtrip_sparse_formula_and_formats() 
             pattern: None,
             thousands: Some(true),
             denominator: None,
+        preset: None, locale: None,
         }),
         ..Default::default()
     };
@@ -32,6 +33,7 @@ fn wasm_workbook_snapshot_persistence_v1_roundtrip_sparse_formula_and_formats() 
             pattern: Some("#,##0.0\" kg\"".into()),
             thousands: None,
             denominator: None,
+        preset: None, locale: None,
         }),
         ..Default::default()
     };
@@ -132,6 +134,7 @@ fn wasm_workbook_snapshot_persistence_v1_keeps_format_only_sheet() {
             pattern: None,
             thousands: None,
             denominator: None,
+        preset: None, locale: None,
         }),
         ..Default::default()
     };

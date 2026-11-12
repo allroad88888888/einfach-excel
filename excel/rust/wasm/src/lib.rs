@@ -29,6 +29,7 @@ use wasm_bindgen::JsCast;
 include!("wasm_autofill_wire.rs");
 include!("wasm_cell_format_wire.rs");
 include!("wasm_number_format_wire.rs");
+include!("wasm_special_number_format_wire.rs");
 include!("wasm_cell_style_wire.rs");
 include!("wasm_style_snapshot_wire.rs");
 include!("wasm_format_snapshot_wire.rs");
@@ -203,6 +204,7 @@ mod tests {
     include!("wasm_tests/advanced_number_formats.rs");
     include!("wasm_tests/number_format_preview.rs");
     include!("wasm_tests/accounting_format.rs");
+    include!("wasm_tests/special_number_formats.rs");
     include!("wasm_tests/tables.rs");
     include!("wasm_tests/table_commands.rs");
     include!("wasm_tests/table_append.rs");

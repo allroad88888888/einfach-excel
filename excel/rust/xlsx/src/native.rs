@@ -207,8 +207,9 @@ pub struct CellFormat {
     pub borders: Option<Borders>,
 }
 
-/// kind：general / text / number / percent / currency / accounting / scientific / fraction / date / time / custom
+/// kind：general / text / number / percent / currency / accounting / scientific / fraction / date / time / custom / special
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "crate::special_number_format::FormatInput")]
 pub struct NumberFormat {
     pub kind: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -221,6 +222,10 @@ pub struct NumberFormat {
     pub thousands: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub denominator: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preset: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub locale: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]

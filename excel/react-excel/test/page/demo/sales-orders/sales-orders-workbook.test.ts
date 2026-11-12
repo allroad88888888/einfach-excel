@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
-import { SALES_ORDER_NUMBER_FORMAT_EXAMPLES } from '../../../../src/page/demo/sales-orders/data/import-seed'
+import { SALES_ORDER_NUMBER_FORMAT_EXAMPLES, SALES_ORDER_SPECIAL_FORMAT_EXAMPLES } from '../../../../src/page/demo/sales-orders/data/import-seed'
 import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from '../../../../src/page/demo/sales-orders/data/alternating-colors-seed'
 import { SUMMARY_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/fill-seed'
 import { SUMMARY_CONDITIONAL_TEXT_CELLS, SUMMARY_CONDITIONAL_TEXT_RULES } from '../../../../src/page/demo/sales-orders/data/conditional-text-seed'
@@ -80,6 +80,7 @@ describe('Sales Orders workbook definition', () => {
     const expectedSummaryChunks = [
       SALES_ORDER_SUMMARY_CELLS,
       SALES_ORDER_NUMBER_FORMAT_EXAMPLES,
+      SALES_ORDER_SPECIAL_FORMAT_EXAMPLES,
       SUMMARY_VALIDATION_CELLS,
       SUMMARY_OUTLINE_CELLS,
       SUMMARY_NAMED_RANGE_CELLS,

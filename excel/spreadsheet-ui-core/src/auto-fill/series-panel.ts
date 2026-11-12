@@ -10,7 +10,7 @@ import { fillSeriesStateAtom as stateAtom, INITIAL_FILL_SERIES_STATE as initial,
 export const fillSeriesPanelAtom = atom((get) => get(stateAtom))
 type Action = 'open' | 'close' | 'apply' | 'new-list' | 'save-list' | 'delete-list' |
   { field: 'kind'; value: SeriesKind } | { field: 'direction'; value: 'down' | 'right' } |
-  { field: 'sourceCount' | 'listText' | 'listName' | 'selectedList'; value: string }
+  { field: 'step' | 'stop' | 'sourceCount' | 'listText' | 'listName' | 'selectedList'; value: string }
 
 /** 面板只保存选项；提交仍进入普通填充的唯一写入 command，不读取样本值。 */
 export const configureFillSeriesAtom = atom(null, async (
@@ -80,7 +80,16 @@ export const configureFillSeriesAtom = atom(null, async (
   const { range, sheetId } = state.target
   if (sheetId !== selection.selection.sheetId || !rangeEquals(range, selection.range))
     return fail('The selection changed. Close and reopen Series.')
-  const sourceCount = Number(state.sourceCount)
+  const geometric = state.kind === 'geometric'
+  const sourceCount = geometric ? 1 : Number(state.sourceCount)
+  const step = Number(state.step)
+  const stop = state.stop.trim() === '' ? undefined : Number(state.stop)
+  if (geometric && (!state.step.trim() || !Number.isFinite(step)))
+    return fail('Enter a finite step value.')
+  if (geometric && stop !== undefined && !Number.isFinite(stop))
+    return fail('Enter a finite stop value or leave it blank.')
+  if (geometric && stop !== undefined && (step <= 0 || step === 1))
+    return fail('Stop requires a non-zero start and a positive step other than 1.')
   const rows = range.rowEnd - range.rowStart + 1
   const cols = range.colEnd - range.colStart + 1
   if ((state.direction === 'down' ? cols : rows) !== 1 || !Number.isSafeInteger(sourceCount) ||
@@ -93,6 +102,7 @@ export const configureFillSeriesAtom = atom(null, async (
     ? state.listText.trim().split(/\r?\n/).map((value) => value.trim()) : undefined
   const completed = await set(fillSelectionAtom, {
     direction: state.direction, series: { kind: state.kind, sourceCount,
+      ...(geometric ? { step, ...(stop !== undefined ? { stop } : {}) } : {}),
       ...(customValues ? { customValues } : {}) },
   })
   // 替换工作簿会清空此状态；旧请求不能把旧面板或列表带回新会话。

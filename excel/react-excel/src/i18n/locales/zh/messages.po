@@ -2106,6 +2106,14 @@ msgstr "请输入已定义的名称或有效的 A1、R1C1 引用，也可在前�
 msgid "Enter a destination cell such as C1."
 msgstr "请输入目标单元格，例如 C1。"
 
+#: src/i18n/feedback-messages.ts
+msgid "Enter a finite step value."
+msgstr "请输入有限的步长值。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a finite stop value or leave it blank."
+msgstr "请输入有限的终止值，或留空。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Enter a finite threshold number."
 msgstr "请输入有限的阈值数值。"
@@ -2365,6 +2373,10 @@ msgstr "向下填充（Ctrl/⌘+D）"
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
 msgstr "每隔一行填色，其他行保留原有格式。选中已有交替色区域内的单元格可修改整个区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill geometric series"
+msgstr "填充等比序列"
 
 #: src/i18n/feedback-messages.ts
 msgid "Fill linear-trend series"
@@ -2814,6 +2826,10 @@ msgstr "常规字段"
 #: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "General format"
 msgstr "常规格式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Geometric sequence"
+msgstr "等比序列"
 
 #: src/workbook/chrome/ribbon/GoToTools.tsx
 msgid "Go"
@@ -3280,6 +3296,10 @@ msgstr "请至少保留一张工作表。"
 #: src/workbook/chrome/ribbon/TextColumnTypes.tsx
 msgid "Keep text (existing format)"
 msgstr "保留文本（现有格式）"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Keep the first numeric cell and multiply each next value by the step. Stop is inclusive and requires a non-zero start and a positive step other than 1."
+msgstr "保留首个数值单元格，后续各项依次乘以步长。包含终止值；起点须非零，步长须大于 0 且不为 1。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Lambda"
@@ -3790,6 +3810,10 @@ msgstr "未找到具体的阻挡单元格，请检查工作表边界或数组大
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "No borders"
 msgstr "无框线"
+
+#: src/i18n/feedback-messages.ts
+msgid "No cells filled."
+msgstr "未填充任何单元格。"
 
 #: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "No color"
@@ -5642,6 +5666,10 @@ msgstr "步入"
 msgid "Step Out"
 msgstr "步出"
 
+#: src/workbook/chrome/ribbon/fill-series/SeriesStepFields.tsx
+msgid "Step value"
+msgstr "步长值"
+
 #: src/components/formula-auditing/EvaluateFormulaDialog.tsx
 msgid "Stepped In"
 msgstr "已步入"
@@ -5653,6 +5681,14 @@ msgstr "停止"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Stop if true"
 msgstr "为真则停止"
+
+#: src/i18n/feedback-messages.ts
+msgid "Stop requires a non-zero start and a positive step other than 1."
+msgstr "使用终止值时，起点须非零，步长须大于 0 且不为 1。"
+
+#: src/workbook/chrome/ribbon/fill-series/SeriesStepFields.tsx
+msgid "Stop value (optional)"
+msgstr "终止值（可选）"
 
 #: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts

@@ -2106,6 +2106,14 @@ msgstr "Enter a defined name or a valid A1 or R1C1 reference, optionally prefixe
 msgid "Enter a destination cell such as C1."
 msgstr "Enter a destination cell such as C1."
 
+#: src/i18n/feedback-messages.ts
+msgid "Enter a finite step value."
+msgstr "Enter a finite step value."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a finite stop value or leave it blank."
+msgstr "Enter a finite stop value or leave it blank."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Enter a finite threshold number."
 msgstr "Enter a finite threshold number."
@@ -2365,6 +2373,10 @@ msgstr "Fill down (Ctrl/⌘+D)"
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
 msgstr "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill geometric series"
+msgstr "Fill geometric series"
 
 #: src/i18n/feedback-messages.ts
 msgid "Fill linear-trend series"
@@ -2814,6 +2826,10 @@ msgstr "General fields"
 #: src/workbook/chrome/ribbon/CellFormatTools.tsx
 msgid "General format"
 msgstr "General format"
+
+#: src/i18n/feedback-messages.ts
+msgid "Geometric sequence"
+msgstr "Geometric sequence"
 
 #: src/workbook/chrome/ribbon/GoToTools.tsx
 msgid "Go"
@@ -3280,6 +3296,10 @@ msgstr "Keep at least one worksheet."
 #: src/workbook/chrome/ribbon/TextColumnTypes.tsx
 msgid "Keep text (existing format)"
 msgstr "Keep text (existing format)"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Keep the first numeric cell and multiply each next value by the step. Stop is inclusive and requires a non-zero start and a positive step other than 1."
+msgstr "Keep the first numeric cell and multiply each next value by the step. Stop is inclusive and requires a non-zero start and a positive step other than 1."
 
 #: src/i18n/feedback-messages.ts
 msgid "Lambda"
@@ -3790,6 +3810,10 @@ msgstr "No blocking cell can be identified. Check worksheet limits or the array 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "No borders"
 msgstr "No borders"
+
+#: src/i18n/feedback-messages.ts
+msgid "No cells filled."
+msgstr "No cells filled."
 
 #: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "No color"
@@ -5642,6 +5666,10 @@ msgstr "Step In"
 msgid "Step Out"
 msgstr "Step Out"
 
+#: src/workbook/chrome/ribbon/fill-series/SeriesStepFields.tsx
+msgid "Step value"
+msgstr "Step value"
+
 #: src/components/formula-auditing/EvaluateFormulaDialog.tsx
 msgid "Stepped In"
 msgstr "Stepped In"
@@ -5653,6 +5681,14 @@ msgstr "Stop"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Stop if true"
 msgstr "Stop if true"
+
+#: src/i18n/feedback-messages.ts
+msgid "Stop requires a non-zero start and a positive step other than 1."
+msgstr "Stop requires a non-zero start and a positive step other than 1."
+
+#: src/workbook/chrome/ribbon/fill-series/SeriesStepFields.tsx
+msgid "Stop value (optional)"
+msgstr "Stop value (optional)"
 
 #: src/workbook/chrome/ribbon/CellFormatTools.tsx
 #: src/workbook/repeat/repeat-labels.ts

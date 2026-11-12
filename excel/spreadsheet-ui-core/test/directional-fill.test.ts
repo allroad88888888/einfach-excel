@@ -9,7 +9,12 @@ import {
 
 type Input = RustWorkbookCommands['range.fill']['payload']
 const result = (p: Input): RustWorkbookCommands['range.fill']['result'] => ({
-  acknowledgement: { sheetId: 's', requestId: p.request.requestId, revision: 2 },
+  acknowledgement: { sheetId: 's', requestId: p.request.requestId, revision: 2,
+    affectedRange: { ...p.request.range,
+      ...(p.request.direction === 'down' ? { rowStart: p.request.range.rowStart + 1 }
+        : { colStart: p.request.range.colStart + 1 }),
+    },
+  },
   projection: { ...p.projection, cells: [], revision: 2 },
   sizes: { rowHeights: [{ rowIndex: 50, heightPx: 60 }], colWidths: [] },
 })
@@ -146,4 +151,32 @@ test('retained projection, editing, composition and modified browser chords neve
   store.setter(keyboardModeAtom, 'editing')
   dispatch({ key: 'd', ctrlKey: true })
   expect(fill).not.toHaveBeenCalled()
+})
+
+test('native geometric prefix preserves stopped-out sizes and no-op keeps size state', async () => {
+  const { store, fill } = await setup()
+  store.setter(selectCellAtom, { sheetId: 's', coord: { row: 0, col: 1 } })
+  store.setter(selectCellAtom, { sheetId: 's', coord: { row: 50, col: 1 }, extend: true })
+  const current = store.getter(viewportSizeOverridesAtom)
+  store.setter(viewportSizeOverridesAtom, { ...current, rowHeightsBySheet: { s: { 50: 70 } } })
+  fill.mockImplementationOnce(async p => ({ ...result(p),
+    acknowledgement: { ...result(p).acknowledgement,
+      affectedRange: { rowStart: 1, rowEnd: 3, colStart: 1, colEnd: 1 } },
+    sizes: { rowHeights: [{ rowIndex: 2, heightPx: 60 }], colWidths: [] },
+  }))
+  expect(await store.setter(fillSelectionAtom, {
+    direction: 'down', series: { kind: 'geometric', sourceCount: 1, step: 1.5, stop: 7 },
+  })).toBe(true)
+  expect(store.getter(viewportSizeOverridesAtom).rowHeightsBySheet.s)
+    .toMatchObject({ 2: 60, 50: 70 })
+  const sizes = store.getter(viewportSizeOverridesAtom)
+  fill.mockImplementationOnce(async p => ({ ...result(p),
+    acknowledgement: { sheetId: 's', requestId: p.request.requestId, revision: 2 },
+    sizes: { rowHeights: [], colWidths: [] },
+  }))
+  expect(await store.setter(fillSelectionAtom, {
+    direction: 'down', series: { kind: 'geometric', sourceCount: 1, step: 2, stop: 2 },
+  })).toBe(true)
+  expect(store.getter(viewportSizeOverridesAtom)).toBe(sizes)
+  expect(store.getter(directionalFillFeedbackAtom).message).toBe('No cells filled.')
 })

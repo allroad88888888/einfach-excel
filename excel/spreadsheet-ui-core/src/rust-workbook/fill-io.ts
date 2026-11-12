@@ -11,7 +11,7 @@ const nativeRange = (range: CellRange) => ({
 /** 选区前 N 行／列作为源；数据、序列推断、样式覆盖及历史快照全部留在 Rust。 */
 export function fillRange(
   workbook: WasmWorkbook, sheet: number, input: RustFillRangeRequest,
-): CellRange {
+): CellRange | undefined {
   const { direction } = input
   let { range } = input
   if (input.adjacent) {
@@ -44,6 +44,10 @@ export function fillRange(
     sourceCount < minimumFillSamples(series.kind) ||
     sourceCount >= (direction === 'down' ? rows : cols) || (direction === 'down' ? cols : rows) !== 1))
     throw new Error('Select one row or column, with enough source samples and at least one destination.')
+  if (series?.kind === 'geometric' && (sourceCount !== 1 ||
+    !Number.isFinite(series.step) || (series.stop !== undefined &&
+      (!Number.isFinite(series.stop) || series.step! <= 0 || series.step === 1))))
+    throw new Error('Geometric series requires one source, a finite step and a valid optional stop.')
   const custom = series?.kind === 'custom-list' ? series.customValues : undefined
   if (series?.kind === 'custom-list' && (!Array.isArray(custom) || custom.length < 2 ||
     custom.length > 512 || custom.some((value) => typeof value !== 'string') ||
@@ -71,30 +75,41 @@ export function fillRange(
     : direction === 'up' ? { ...range, rowEnd: source.rowStart - 1 }
       : direction === 'right' ? { ...range, colStart: source.colEnd + 1 }
         : { ...range, colEnd: source.colStart - 1 }
-  withHistory(
-    workbook,
+  const apply = () => workbook.apply_auto_fill!({
     sheet,
-    destination,
-    `Fill ${series ? `${series.kind} series` : direction}`,
-    true,
-    () =>
-      workbook.apply_auto_fill!({
-        sheet,
-        sourceRange: nativeRange(source),
-        targetRange: nativeRange(range),
-        direction,
-        ...(input.validationConfirmation
-          ? { validationConfirmation: input.validationConfirmation }
-          : {}),
-        series:
-          series?.kind === 'number'
-            ? 'integer-step'
-            : series?.kind === 'date'
-              ? 'date-day'
-              : (series?.kind ?? 'copy'),
-        ...(series || input.auto ? { infer: true } : {}),
-        ...(custom ? { list: { listName: 'custom-fill', values: custom, locale: 'en' } } : {}),
-      }),
+    sourceRange: nativeRange(source),
+    targetRange: nativeRange(range),
+    direction,
+    ...(input.validationConfirmation
+      ? { validationConfirmation: input.validationConfirmation }
+      : {}),
+    series:
+      series?.kind === 'number'
+        ? 'integer-step'
+        : series?.kind === 'date'
+          ? 'date-day'
+          : (series?.kind ?? 'copy'),
+    ...(series?.kind === 'geometric'
+      ? { infer: false, step: series.step,
+        ...(series.stop !== undefined ? { stop: series.stop } : {}) }
+      : series || input.auto ? { infer: true } : {}),
+    ...(custom ? { list: { listName: 'custom-fill', values: custom, locale: 'en' } } : {}),
+  })
+  // Geometric Stop must plan its prefix before history checks protected destinations.
+  const report = series?.kind === 'geometric' ? apply() : withHistory(
+    workbook, sheet, destination, `Fill ${series ? `${series.kind} series` : direction}`,
+    true, apply,
   )
-  return destination
+  if (report.written === 0 && report.writeRange == null) return undefined
+  const actual = report.writeRange
+  if (!actual || !Number.isSafeInteger(report.written) || report.written < 1 ||
+    !Object.values(actual).every(Number.isSafeInteger) ||
+    actual.startRow < destination.rowStart || actual.endRow > destination.rowEnd ||
+    actual.startCol < destination.colStart || actual.endCol > destination.colEnd ||
+    actual.endRow < actual.startRow || actual.endCol < actual.startCol ||
+    report.written !== (actual.endRow - actual.startRow + 1) *
+      (actual.endCol - actual.startCol + 1))
+    throw new Error('Rust returned an invalid fill report.')
+  return { rowStart: actual.startRow, rowEnd: actual.endRow,
+    colStart: actual.startCol, colEnd: actual.endCol }
 }

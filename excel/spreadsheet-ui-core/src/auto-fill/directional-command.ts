@@ -93,8 +93,8 @@ export const resumeValidatedFillAtom = atom(null, async (get, set, input: {
       !Number.isSafeInteger(target.rowEnd) || target.rowEnd <= range.rowEnd ||
       target.rowEnd >= adjacent.rowLimit)) throw new Error('Rust returned a mismatched fill range.')
     // 双击的尺寸快照只覆盖实际写入行，不能拿它清理来源行已有的高度。
-    applyProjectionSizes(get, set, { ...result.projection,
-      window: adjacent ? ack.affectedRange! : target, ...result.sizes })
+    if (ack.affectedRange) applyProjectionSizes(get, set, { ...result.projection,
+      window: ack.affectedRange, ...result.sizes })
     set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
     const currentSelection = get(selectionSnapshotAtom)
     if (adjacent && currentSelection.selection.sheetId === sheetId &&
@@ -103,7 +103,7 @@ export const resumeValidatedFillAtom = atom(null, async (get, set, input: {
         anchor: { row: target.rowStart, col: target.colStart },
         focus: { row: target.rowEnd, col: target.colEnd } })
     }
-    set(feedbackAtom, { busy: false, error: '', message: `Filled ${direction}.` })
+    set(feedbackAtom, { busy: false, error: '', message: ack.affectedRange ? `Filled ${direction}.` : 'No cells filled.' })
     return true
   } catch (error) {
     if (!request.validationConfirmation && get(rustWorkbookConnectionAtom) === connection)

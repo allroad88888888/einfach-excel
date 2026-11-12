@@ -32,6 +32,7 @@ test.each([
   ['Copied Sum.', '已复制求和。'],
   ['Workbook recalculated (12 formulas).', '已重新计算工作簿（12 个公式）。'],
   ['Worksheet recalculated (2 formulas).', '已重新计算工作表（2 个公式）。'],
+  ['Fill geometric series', '填充等比序列'],
   ['Filled right.', '已向右填充。'],
   ['Filling down…', '正在向下填充…'],
   ['No adjacent continuous data to fill.', '相邻列没有可向下延续的连续数据。'],

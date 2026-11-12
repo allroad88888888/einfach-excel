@@ -1,5 +1,6 @@
 /** 同一份序列入口定义，供面板和传输校验使用；实际规律只由 Rust 推断。 */
 export const FILL_SERIES_OPTIONS = [
+  { kind: 'geometric', label: 'Geometric sequence', samples: 1 },
   { kind: 'number', label: 'Number sequence', samples: 2 },
   { kind: 'text-number', label: 'Text numbering', samples: 2 },
   { kind: 'linear-trend', label: 'Linear trend', samples: 3 },

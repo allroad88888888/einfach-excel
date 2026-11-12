@@ -165,6 +165,7 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
     readonly direction: 'down' | 'right' | 'up' | 'left'
     readonly series:
       | 'copy'
+      | 'geometric'
       | 'integer-step'
       | 'text-number'
       | 'linear-trend'
@@ -172,9 +173,13 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
       | 'month-name'
       | 'custom-list'
       | 'date-day'
+    readonly step?: number
+    readonly stop?: number
     readonly infer?: boolean
     readonly list?: { listName: string; values: readonly string[]; locale: string }
-  }) => { readonly written: number }
+  }) => { readonly written: number; readonly writeRange: {
+    startRow: number; endRow: number; startCol: number; endCol: number
+  } | null }
   find_fill_down_end?: (sheet: number,
     source: { startRow: number; endRow: number; startCol: number; endCol: number }, limit: number,
   ) => number | undefined

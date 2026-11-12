@@ -181,6 +181,7 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'A list with this name already exists.': msg`A list with this name already exists.`,
   'Enter 2–512 non-empty, unique list items.': msg`Enter 2–512 non-empty, unique list items.`,
   'You can save at most 32 custom lists per workbook session.': msg`You can save at most 32 custom lists per workbook session.`,
+  'List names cannot start with builtin- or locale-.': msg`List names cannot start with builtin- or locale-.`,
   'List saved.': msg`List saved.`,
   'List deleted.': msg`List deleted.`,
   'Fill was not applied. Try again.': msg`Fill was not applied. Try again.`,

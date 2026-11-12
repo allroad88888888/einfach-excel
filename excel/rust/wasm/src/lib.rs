@@ -15,7 +15,7 @@ use einfach_excel_core::{
     TotalsFunction, VerticalAlign, Workbook, WorkbookError, MAX_FILTER_PREDICATE_CELLS,
 };
 use einfach_excel_core::{
-    AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillReport, AutoFillRequest,
+    AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillNamedList, AutoFillNamedLists, AutoFillReport, AutoFillRequest,
     AutoFillSeries, AutoFillTextPattern,
 };
 use serde::{de, Deserialize, Serialize};
@@ -201,6 +201,7 @@ mod tests {
     wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
     include!("wasm_tests/custom.rs");
+    include!("wasm_tests/named_lists.rs");
     include!("wasm_tests/advanced_number_formats.rs");
     include!("wasm_tests/number_format_preview.rs");
     include!("wasm_tests/accounting_format.rs");

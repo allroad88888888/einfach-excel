@@ -45,7 +45,7 @@ test('save and reuse a trimmed preset without a native write; apply sends one ex
   expect(await store.setter(run, 'apply')).toBe(true)
   expect(fill).toHaveBeenCalledTimes(1)
   expect(fill.mock.lastCall![0].request.series).toEqual({ kind: 'custom-list', sourceCount: 1,
-    customValues: ['Low', 'Medium', 'High'] })
+    customValues: ['Low', 'Medium', 'High'], customLocale: 'en' })
 })
 
 test('edit replaces only the selected preset, rename and deletion never write cells', async () => {

@@ -1,4 +1,5 @@
 import { atom } from '@einfach/core'
+import { nativeFillNamedListsAtom } from './locale'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import {
@@ -56,6 +57,7 @@ export const fillSelectionAtom = atom(null, async (
   const payload = {
     request: { sheetId, requestId, range, direction, ...(series ? { series } : {}),
       ...(drag ? { sourceRange: drag.sourceRange, auto: drag.auto,
+        ...(drag.auto ? { namedLists: get(nativeFillNamedListsAtom) } : {}),
         ...(drag.adjacent ? { adjacent: drag.adjacent } : {}) } : {}) }, projection,
   }
   return set(resumeValidatedFillAtom, { connection, witness, payload })

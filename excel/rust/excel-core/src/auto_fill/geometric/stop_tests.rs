@@ -5,6 +5,7 @@ use crate::workbook_history::WorkbookHistory;
 fn addr(value: &str) -> CellAddress { CellAddress::parse(value).unwrap() }
 fn input(ratio: f64, stop: f64) -> AutoFillRequest {
     AutoFillRequest {
+        named_lists: crate::AutoFillNamedLists::empty(),
         sheet_idx: 0,
         source_range: CellRange::single(addr("A1")),
         target_range: CellRange::new(addr("A1"), addr("A6")),

@@ -10,6 +10,7 @@ fn range(first: u32, last: u32) -> CellRange {
 }
 fn request(series: AutoFillSeries) -> AutoFillRequest {
     AutoFillRequest {
+        named_lists: crate::AutoFillNamedLists::empty(),
         sheet_idx: 0, source_range: range(0, 0), target_range: range(0, 2),
         direction: AutoFillDirection::Down, series, step: Some(1.0), text_pattern: None, list: None,
     }

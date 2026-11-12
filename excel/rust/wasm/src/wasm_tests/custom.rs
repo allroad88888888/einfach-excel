@@ -156,7 +156,7 @@ fn auto_fill_wire_preserves_canonical_locale_and_rejects_unknown_fields() {
     assert!(serde_json::from_str::<AutoFillRequestJSON>(&inferred).unwrap().infer);
     let invalid = payload.replacen("\"sheet\": 0,", "\"sheet\": 0, \"infer\": \"true\",", 1);
     assert!(serde_json::from_str::<AutoFillRequestJSON>(&invalid).is_err());
-    let core: AutoFillRequest = request.into();
+    let core: AutoFillRequest = request.try_into().unwrap();
     assert_eq!(
         core.list.as_ref().map(|list| list.locale.as_str()),
         Some("tr-TR")
@@ -207,6 +207,7 @@ fn apply_auto_fill_engine_call_rejects_a_request_over_the_cell_budget() {
     // export) drives.
     let mut wb = Workbook::new();
     let request = AutoFillRequest {
+        named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
         sheet_idx: 0,
         source_range: CellRange::new(CellAddress::new(0, 0), CellAddress::new(0, 1)),
         target_range: CellRange::new(CellAddress::new(0, 0), CellAddress::new(1_048_575, 1)),
@@ -247,7 +248,7 @@ fn explicit_calendar_wire_preserves_step_and_disables_sample_inference() {
         }}"#);
         let wire: AutoFillRequestJSON = serde_json::from_str(&payload).unwrap();
         assert!(!wire.infer);
-        let core: AutoFillRequest = wire.into();
+        let core: AutoFillRequest = wire.try_into().unwrap();
         assert_eq!(core.series, series);
         assert_eq!(core.step, Some(-2.0));
         assert_eq!(core.source_range.cell_count(), 1);

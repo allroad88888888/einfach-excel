@@ -109,7 +109,7 @@ test.each(['weekday-name', 'month-name', 'custom-list', 'date'] as const)(
     })
     expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(true)
     expect(fill.mock.lastCall![0].request.series).toEqual({ kind, sourceCount: 1,
-      ...(kind === 'custom-list' ? { customValues: ['Low', 'Medium', 'High'] } : {}),
+      ...(kind === 'custom-list' ? { customValues: ['Low', 'Medium', 'High'], customLocale: 'en' } : {}),
     })
     expect(fill).toHaveBeenCalledTimes(1)
     await store.setter(configureFillSeriesAtom, 'open')

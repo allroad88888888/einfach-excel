@@ -9,6 +9,7 @@ fn serial(year: i32, month: u32, day: u32) -> f64 {
 }
 fn request(series: AutoFillSeries, step: f64, count: u32) -> AutoFillRequest {
     AutoFillRequest {
+        named_lists: crate::AutoFillNamedLists::empty(),
         sheet_idx: 0, source_range: range("A1", "A1"),
         target_range: CellRange::new(addr("A1"), CellAddress::new(count, 0)),
         direction: AutoFillDirection::Down, series, step: Some(step), text_pattern: None, list: None,

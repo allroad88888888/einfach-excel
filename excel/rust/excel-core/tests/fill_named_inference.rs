@@ -12,6 +12,7 @@ fn range(a: &str, b: &str) -> CellRange {
 }
 fn request(series: AutoFillSeries, count: u32) -> AutoFillRequest {
     AutoFillRequest {
+        named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
         sheet_idx: 0,
         source_range: range("C3", &format!("C{}", 2 + count)),
         target_range: range("C3", "C8"),
@@ -28,7 +29,7 @@ fn custom(values: &[&str]) -> AutoFillRequest {
         list_name: "priority".into(),
         locale: "en".into(),
         values: values.iter().map(|v| (*v).into()).collect(),
-    });
+    }.into());
     r
 }
 fn apply(wb: &mut Workbook, r: AutoFillRequest) -> Result<AutoFillRequest, String> {

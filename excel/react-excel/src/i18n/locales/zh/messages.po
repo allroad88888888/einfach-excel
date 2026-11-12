@@ -3395,12 +3395,16 @@ msgid "List name"
 msgstr "列表名称"
 
 #: src/i18n/feedback-messages.ts
+msgid "List names cannot start with builtin- or locale-."
+msgstr "列表名称不能以 builtin- 或 locale- 开头。"
+
+#: src/i18n/feedback-messages.ts
 msgid "List saved."
 msgstr "列表已保存。"
 
 #: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
-msgid "Lists stay in this workbook session only. Save list stores a preset; Apply series changes cells. Unsaved edits do not change the saved list."
-msgstr "列表仅保留在当前工作簿会话中。“保存列表”保存填充预设，“应用序列”才修改单元格。未保存的编辑不会改变已有列表。"
+msgid "Lists stay in this workbook session only. Saved lists guide fill handle drags. Apply series changes cells. Unsaved edits do not change the saved list."
+msgstr "列表仅保留在当前工作簿会话中。已保存列表会用于填充柄拖拽。“应用序列”会更改单元格；未保存的编辑不会更改已保存列表。"
 
 #: src/workbook/comments/CommentTools.tsx
 msgid "Loading comments…"

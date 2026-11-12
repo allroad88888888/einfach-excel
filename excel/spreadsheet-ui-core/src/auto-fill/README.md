@@ -1,119 +1,68 @@
-# auto-fill
+# Auto fill
 
-Owns fill-series locale state, pure series detection, and the command/request path shared by
-fill-handle drag, fill-handle double-click, and the visible Fill Down / Up / Right / Left commands.
+The maintained React path is FillHandle drag/double-click → `dragFillHandleAtom` →
+`fillSelectionAtom` → `range.fill` → `fill-io` → Rust Worker/WASM `apply_auto_fill`.
+React submits geometry and bounded options. Rust reads the actual source cells, infers each
+matrix lane, preflights all destinations, copies effective formats, and creates one history entry.
+Ctrl/Meta copy bypasses named-list candidates. Cancellation has no writes or history.
+The pure `detectFillSeries` API remains available for older integrations; the maintained drag
+path does not use browser-calculated source values or generated output cells.
 
-## State Decision Template
+## Session catalog and host API
 
-- Private source atom: `fillSeriesLocaleBackingAtom` stores the single bounded locale object.
-- Readonly projection: `fillSeriesLocaleAtom` exposes locale data without a public write path.
-- Command: `setFillSeriesLocaleAtom` is the only supported writer and replaces the locale at workbook
-  initialization or locale change.
-- Detection: `detectFillSeries` is a pure function. The Solid Grid calls it only after reading a
-  non-truncated, exact, one-dimensional source projection with a revision witness.
-- Scale bound: one `FillSeriesLocaleOptions` object and one bounded source projection; there are no
-  per-cell, per-row, or per-column atoms.
-- Tests: `test/auto-fill-series.test.ts`; the bounded Solid/Static integration witness is
-  `MAIN_REVIEW_ACCEPTED` and does not promote product parity.
+`fillSeriesLocaleAtom` is the readonly **host-only** configuration. The public
+`setFillSeriesLocaleAtom` is its sole writer and returns `true` on success, `false` on invalid
+input. Invalid writes preserve the entire previous host configuration and saved directory.
+Host read-modify-write therefore cannot copy user entries back into the host source.
+The default locale is `en`; UI language does not select the list locale.
+Supported canonical locale families are en/zh/tr/az, optionally with script and region.
 
-## Bounded product connection
+Saved user entries have one writable backing directory (`saved-list-state.ts`).
+The Series panel's `lists` is a readonly compatible projection. Only Save/Delete changes the
+catalog; draft changes, Cancel, Escape and explicit Apply do not save it. Closing and changing
+sheets preserve it. Workbook replacement resets user entries while preserving host configuration.
+Stores are isolated. Neither native workbook persistence nor XLSX stores this session catalog.
 
-The command path now serves fill-handle drag, fill-handle double-click, and the visible Fill Down /
-Up / Right / Left commands. The four visible commands always use copy semantics: the top row is the
-source for Down, the bottom row for Up, the leftmost column for Right, and the rightmost column for
-Left. Their target is the complete normalized selection. A selection with no extension along the
-requested axis is a no-op.
+`effectiveFillSeriesLocaleAtom` merges the two sources as a readonly view for integrations.
+The native candidate projection is also derived, never a writable mirror. Built-in English and
+Chinese weekday/month lists win first, then host candidates in stable name order, then user
+insertion order, then generic text-number inference. Users override host entries with the same
+locale-folded display name; deletion reveals the original host entry. Names within each source
+must remain unique. Names beginning with `builtin-` or `locale-` are reserved protocol names.
+Wire `host:`/`user:` namespaces preserve display names and do not bypass native validation.
 
-Double-click prefers the adjacent left guide and falls back to the right guide. It resolves the
-downward data edge only from an exact, non-blank guide projection, and the data-edge response must
-match that projection's request identity and revision. Active filters, the bottom sheet boundary, a
-missing valid guide, or a guide that ends at the source produce no mutation or history.
+Save, explicit custom-list Apply and automatic fill share the canonical locale fold, including
+Turkic I/combining-dot and Greek Final Sigma. A locale update that would create duplicate saved
+values or duplicate names within a source is atomically rejected. Cross-source name collisions
+remain legal user overrides. Values match whole strings, not prefixes or display-rendered numbers.
+Generated text uses the saved spelling; existing source spelling is unchanged.
 
-Series-capable intents dispatch `fillSeries` only from a complete, non-truncated, duplicate-free,
-in-range, one-dimensional canonical source projection carrying a revision. Depending on the kind,
-the source may contain one date-formatted number, one text-number or named-list seed, two uniform
-numeric observations, or at least three observations for a least-squares linear trend. Formula
-cells and mixed or unsupported sources remain copy operations.
+## Bounds and native ownership
 
-The executable kinds are uniform integer and decimal steps, least-squares linear trends, calendar
-day/week/month steps, text-number patterns such as `Item009`, built-in or locale weekday/month
-names, and custom lists. Built-in English short and long weekday/month names are available without
-host locale initialization. Every copy result, missing backend capability, rejected projection, or
-`copyOnly` intent keeps the existing `fillRange` or bounded per-cell fallback. That bounded
-per-cell path already shifts formula references; full formula-series semantics and Worker parity
-are not implemented.
+Host configuration permits 32 custom lists and two optional weekday/month lists. The user
+catalog permits 32 lists independently of built-ins: at most **66 external candidates**.
+Each list has 2–512 nonempty, locale-folded unique values and at most 16,384 UTF-16 code units
+of values. The panel's existing 16,384-unit text-input limit also includes line separators.
+Host/user display names are at most 64 UTF-16 units, wire names at most 80.
+All bounds use UTF-16 units in JS and Rust, including supplementary characters.
 
-The bounded `fillSeries` path in the Static backend independently re-reads the canonical source and
-preflights geometry, source cardinality, kind, step, text pattern, named-list witness, and the
-complete generated write plan before creating history. Date-kind series validate the VALUE type
-only (canonical, non-formula numbers) — Excel dates are plain serial numbers, so fill arithmetic
-ignores number format (display-only); there is no effective-date-format gate. Built-in list
-witnesses must exactly match their canonical lists. A valid write is one undoable mutation, advances
-the projection revision once, returns an ACK, and is followed by a canonical projection refresh.
-Invalid or stale requests have zero writes, zero history entries, and zero revision advancement; an
-empty write range returns a no-op ACK. Undo and redo replay the same bounded history entry. These
-guarantees are scoped to this Static path and must not be generalized to generic Static
-same-value/no-op history. Product item #12 stays **Partial**, not a completed product capability.
+Aggregate wire metadata (values + names + locale) is capped at 1,100,000 UTF-16 units.
+Every legal maximum directory fits: 66 × (16,384 + 69 + 11) = 1,086,624, where 69 includes
+`host:`/`user:` and 11 is the maximum supported canonical locale length. Even the wider native
+80-unit protocol-name allowance remains below the total cap. Invalid metadata rejects the request;
+there is no truncation and built-ins do not consume the 32-user quota.
 
-A shared `MAX_AUTO_FILL_CELLS` cap (1,048,576 cells — one full Excel column) rejects an oversized
-fill request before any read or RPC, identically enforced by the Rust engine
-(`excel/rust/excel-core/src/auto_fill.rs`) and both TS backends (`static-backend.ts`,
-`worker-workbook-backend.ts`).
+Rust validates and builds immutable normalized lookup maps once per request. Its Arc-backed
+prepared catalog is shared across matrix lanes. A lane folds only its source labels (at most once
+for en/zh and once for tr/az), tests membership and all modular source steps, and continues to later
+candidates when one order is inconsistent. Repeated identical source items use copy fallback.
+Up/Left use the same modular cycle; number/formula lanes retain their existing behavior.
+The selected witness is shared and actual source membership is rechecked during application.
+No global catalog cache or second workbook state is created.
 
-A fill whose formulas would close a dependency cycle always lands (Excel parity): cycle-closing
-cells read as `#CYCLE!` and every other cell in the same drag still computes, matching what typing
-the same formulas in by hand would produce.
+Geometric explicit Step/Stop and Calendar explicit Weekday/Year retain their existing native
+planning and rejection rules. Stop reports only the actual written prefix. The global fill cap
+is 1,048,576 cells. Protection, validation, spill and merged-cell gates remain native and atomic.
 
-Static-path tests also cover format behavior at this bounded layer: `fillRange` repeats effective
-source formats, including formats supplied by range-format layers, and default/blank source
-formats clear target formatting where the repeated pattern requires it. `fillSeries` has equivalent
-source-format repetition and target-format clearing evidence. Undo restores the prior values and
-formats.
-
-```mermaid
-flowchart TD
-  LocaleCommand["setFillSeriesLocaleAtom command"] --> LocaleBacking["private locale backing atom"]
-  LocaleBacking --> LocaleProjection["readonly fillSeriesLocaleAtom projection"]
-
-  PointerCommit["pointer fill-handle commit"] --> ProjectionGate{"exact one-dimensional canonical projection<br/>at least one cell + not truncated + revision present?"}
-  DoubleClick["fill-handle double-click"] --> GuideGate{"left guide, then right fallback<br/>exact non-blank cells + valid revision?"}
-  GuideGate -- no --> DoubleClickNoop["zero write and history"]
-  GuideGate -- yes --> DataEdge["resolve downward data edge"]
-  DataEdge --> DataEdgeAck{"matching sheet + request identity + revision<br/>valid in-bounds target?"}
-  DataEdgeAck -- no --> DataEdgeFailure["fail with zero write and history"]
-  DataEdgeAck -- yes --> ProjectionGate
-  FillCommands["Fill Down / Up / Right / Left<br/>edge source + normalized selection target"] --> CopyFallback
-  ProjectionGate -- no --> CopyFallback["fillRange or bounded per-cell fallback<br/>formula references shifted"]
-  ProjectionGate -- yes --> Detector["detectFillSeries with readonly locale projection"]
-  LocaleProjection --> Detector
-  Detector -- "copy or unsupported source" --> CopyFallback
-  Detector -- "numeric, trend, calendar, text-number, or named-list series" --> StaticPreflight{"fillSeries bounded preflight<br/>identity + revision + geometry + source + witness + plan"}
-  StaticPreflight -- "invalid or stale" --> ZeroEffect["reject with zero write, history, and revision change"]
-  StaticPreflight -- "empty write range" --> NoopAck["no-op ACK at current revision"]
-  StaticPreflight -- valid --> Mutation["one undoable mutation"]
-  Mutation --> Revision["advance revision once"]
-  Revision --> Ack["ACK with request, revision, and affected range"]
-  Ack --> Refresh["canonical projection refresh"]
-  NoopAck --> Refresh
-  CopyFallback --> Refresh
-  Refresh --> Ready["render readonly canonical projection"]
-  Mutation --> Undo["undo restores prior cells and formats"]
-  Undo --> Redo["redo reapplies cells and formats"]
-  Redo --> Undo
-  StaticPreflight -. "bounded Static evidence only" .-> Accepted["slice only; #12 remains Partial"]
-  GenericDebt["generic Static same-value/no-op history<br/>separate debt"] -. "outside this slice" .-> StaticPreflight
-```
-
-## Deferred scope
-
-Worker / real-transport atomic execution and format parity remain open; the bounded Static
-mutation and format evidence above cannot be generalized to those paths. Preview UI, full
-formula-series semantics, broader Excel-compatible format propagation policy, system
-capability/protection gates, and complete E2E/performance/accessibility evidence also remain open.
-Custom-list persistence and an authoritative backend registry remain host concerns even though
-detection, dispatch, and the bounded request witness are connected. These bounded paths do not
-establish complete Excel auto-fill parity.
-
-This bounded package slice keeps product item #12 **Partial** and does not change the strict product
-ledger (**41 = 0 Verified / 35 Partial / 5 Missing / 1 Deferred**). Data analysis (#9) and printing
-(#16) remain fully deferred outside those 41 items.
+Relevant proofs: `fill_saved_lists.rs`, `fill_saved_list_catalog.rs`, `saved-list-locale.test.ts`,
+`saved-list-command.test.ts`, and the real-browser `fill-custom-list-drag*.spec.ts` files.

@@ -1,4 +1,7 @@
 import { atom } from '@einfach/core'
+import { savedFillListsBackingAtom } from './saved-list-state'
+import { fillSeriesLocaleAtom } from './locale'
+import { foldFillSeriesText, isReservedFillSeriesListName } from './list-locale'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { selectionSnapshotAtom } from '../selection'
 import { rangeEquals } from '../shared'
@@ -7,7 +10,9 @@ import { minimumFillSamples, isExplicitDateSeries, hasExplicitFillStep } from '.
 import { fillSeriesStateAtom as stateAtom, INITIAL_FILL_SERIES_STATE as initial,
   type SeriesKind } from './series-state'
 
-export const fillSeriesPanelAtom = atom((get) => get(stateAtom))
+export const fillSeriesPanelAtom = atom(get => ({
+  ...get(stateAtom), lists: get(savedFillListsBackingAtom),
+}))
 type Action = 'open' | 'close' | 'apply' | 'new-list' | 'save-list' | 'delete-list' |
   { field: 'kind'; value: SeriesKind } | { field: 'direction'; value: 'down' | 'right' } |
   { field: 'step' | 'stop' | 'sourceCount' | 'listText' | 'listName' | 'selectedList'; value: string }
@@ -18,8 +23,10 @@ export const configureFillSeriesAtom = atom(null, async (
 ): Promise<boolean> => {
   if (get(directionalFillFeedbackAtom).busy || get(editingSessionAtom).source !== null) return false
   const state = get(stateAtom)
+  const lists = get(savedFillListsBackingAtom)
+  const locale = get(fillSeriesLocaleAtom).locale ?? 'en'
   const options = { listText: state.listText, listName: state.listName,
-    selectedList: state.selectedList, lists: state.lists }
+    selectedList: state.selectedList }
   if (action === 'close') { set(stateAtom, { ...initial, ...options }); return true }
   const selection = get(selectionSnapshotAtom)
   if (action === 'open') {
@@ -36,7 +43,7 @@ export const configureFillSeriesAtom = atom(null, async (
       return true
     }
     const index = Number(action.value)
-    const list = state.lists[index]
+    const list = lists[index]
     if (!Number.isSafeInteger(index) || !list) return false
     set(stateAtom, { ...state, selectedList: index, listName: list.name, listText: list.text,
       error: '', notice: '' })
@@ -57,27 +64,31 @@ export const configureFillSeriesAtom = atom(null, async (
   }
   if (action === 'delete-list') {
     if (state.selectedList === null) return false
-    set(stateAtom, { ...state, lists: state.lists.filter((_, i) => i !== state.selectedList),
+    set(savedFillListsBackingAtom, Object.freeze(lists.filter((_, i) => i !== state.selectedList)))
+    set(stateAtom, { ...state,
       selectedList: null, listName: '', listText: '', error: '', notice: 'List deleted.' })
     return true
   }
   if (action === 'save-list') {
     const name = state.listName.trim()
     if (!name || name.length > 64) return fail('Enter a list name of 1–64 characters.')
-    if (state.lists.some((list, i) => i !== state.selectedList &&
-      list.name.toLowerCase() === name.toLowerCase())) return fail('A list with this name already exists.')
+    if (isReservedFillSeriesListName(name))
+      return fail('List names cannot start with builtin- or locale-.')
+    if (lists.some((list, i) => i !== state.selectedList &&
+      foldFillSeriesText(list.name, locale) === foldFillSeriesText(name, locale))) return fail('A list with this name already exists.')
     if (state.listText.length > 16_384) return fail('Custom list is limited to 16384 characters.')
     const values = state.listText.trim().split(/\r?\n/).map(value => value.trim())
     if (values.length < 2 || values.length > 512 || values.some(value => !value) ||
-      new Set(values.map(value => value.toLowerCase())).size !== values.length)
+      new Set(values.map(value => foldFillSeriesText(value, locale))).size !== values.length)
       return fail('Enter 2–512 non-empty, unique list items.')
-    if (state.selectedList === null && state.lists.length >= 32)
+    if (state.selectedList === null && lists.length >= 32)
       return fail('You can save at most 32 custom lists per workbook session.')
-    const index = state.selectedList ?? state.lists.length
-    const lists = [...state.lists]
-    lists[index] = { name, text: values.join('\n') }
-    set(stateAtom, { ...state, lists, selectedList: index, listName: name,
-      listText: lists[index]!.text, error: '', notice: 'List saved.' })
+    const index = state.selectedList ?? lists.length
+    const updated = [...lists]
+    updated[index] = Object.freeze({ name, text: values.join('\n') })
+    set(savedFillListsBackingAtom, Object.freeze(updated))
+    set(stateAtom, { ...state, selectedList: index, listName: name,
+      listText: updated[index]!.text, error: '', notice: 'List saved.' })
     return true
   }
   const { range, sheetId } = state.target
@@ -110,7 +121,7 @@ export const configureFillSeriesAtom = atom(null, async (
     direction: state.direction, series: { kind: state.kind, sourceCount,
       ...(geometric ? { step, ...(stop !== undefined ? { stop } : {}) }
         : calendar ? { step } : {}),
-      ...(customValues ? { customValues } : {}) },
+      ...(customValues ? { customValues, customLocale: locale } : {}) },
   })
   // 替换工作簿会清空此状态；旧请求不能把旧面板或列表带回新会话。
   if (get(stateAtom) !== state) return false

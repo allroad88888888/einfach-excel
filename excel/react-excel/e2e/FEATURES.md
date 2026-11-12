@@ -357,6 +357,7 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | FILL-057 | 显式等比序列和包含终点的有限填充 | `editing/fill-geometric-series.spec.ts` | geometric series multiplies the native start by a decimal step and stops without changing neighbors |
 | FILL-058 | 显式工作日日期序列 | `editing/fill-calendar-series.spec.ts` | weekday date series skips weekends and preserves time and formatting with one undo |
 | FILL-059 | 显式按年日期序列 | `editing/fill-calendar-series.spec.ts` | yearly date series clamps leap day and restores it in a later leap year with one undo |
+| FILL-060 | 已保存自定义列表拖拽推断 | `editing/fill-custom-list-drag.spec.ts` | saved custom list continues from a partial cycle through the fill handle with one undo |
 | FONT-001 | 粗体 | `format/text-style.spec.ts` | Bold toggles the selected Rust cell style |
 | FONT-002 | 斜体 | `format/text-style.spec.ts` | Italic toggles the selected Rust cell style |
 | FONT-003 | 下划线 | `format/text-style.spec.ts` | Underline toggles the selected Rust cell style |

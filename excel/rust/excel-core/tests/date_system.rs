@@ -165,6 +165,7 @@ fn native_fill_and_formulas_agree_across_the_phantom_leap_day() {
     wb.set_formula(0, "B2", "=DAY(A2)");
     wb.set_formula(0, "B3", "=MONTH(A3)");
     wb.apply_auto_fill(&AutoFillRequest {
+        named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
         sheet_idx: 0,
         source_range: CellRange::single(CellAddress::new(0, 0)),
         target_range: CellRange::new(CellAddress::new(0, 0), CellAddress::new(2, 0)),

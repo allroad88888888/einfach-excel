@@ -39,9 +39,12 @@ impl Workbook {
                 for series in [
                     AutoFillSeries::IntegerStep,
                     AutoFillSeries::TextNumber,
-                    AutoFillSeries::WeekdayName,
-                    AutoFillSeries::MonthName,
                 ] {
+                    if series == AutoFillSeries::TextNumber {
+                        if let Ok(candidate) = named::infer_automatic_named_series(sheet, request.clone()) {
+                            return Ok(candidate);
+                        }
+                    }
                     let mut candidate = request.clone();
                     candidate.series = series;
                     let Ok(candidate) = self.infer_auto_fill_request(candidate) else {

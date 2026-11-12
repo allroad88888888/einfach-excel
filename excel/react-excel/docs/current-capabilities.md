@@ -162,6 +162,14 @@ Summary `F20:F23` 从 2024-03-01 12:00 跳过周末，得到 03-04、03-05、03-
 Summary `A55:A59` 选择 Weekday names：Friday…Tuesday，保持粗体；
 `C55:C59` 选择 Month names：Nov、Dec、Jan、Feb、Mar，保持斜体。
 `E55:E59` 选择 Custom list，逐行输入 Low、Medium、High：循环填充，保持下划线。
+
+保存的 Custom lists 也参与真实填充柄拖拽和双击填充。先在 Series 中 Save list 保存
+Low、Medium、High，关闭面板后选 `D55:D56`（Medium、High），向下拖到 `D58`，
+得到 Low、Medium；保留来源下划线、相邻样例和 `D59` 的 901 哨兵，一次 Undo/Redo 恢复。
+未保存草稿不生效，Delete 后恢复普通推断；Ctrl/Meta 强制复制。支持单源、部分/完整周期、
+反向及混合矩阵各 lane。会话目录上限为32用户列表（每表2–512项、16,384 UTF-16字符），
+关闭/切表保留，替换工作簿清空；宿主配置独立，locale冲突更新会整体拒绝。
+
 自定义列表要求 2–512 个非空且不重复的项目；草稿在本工作簿会话内保留，刷新后不保留。
 现在可在 Series 面板为列表命名并保存为会话预设，支持选择复用、修改及删除，最多 32 份。
 保存／修改／删除不写格子、不占用 Undo；“应用序列”才由 Rust 填充。切表保留，替换工作簿或刷新清空。

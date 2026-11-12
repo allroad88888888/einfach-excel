@@ -1,3 +1,4 @@
+import type { RustFillNamedList } from './fill-types'
 import type { SheetDefaults } from '../runtime/sheet-defaults'
 import type {
   DisplayCell, RichTextRun, IterativeCalculationConfig,
@@ -177,6 +178,7 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
       | 'date-year'
     readonly step?: number
     readonly stop?: number
+    readonly namedLists?: readonly RustFillNamedList[]
     readonly infer?: boolean
     readonly list?: { listName: string; values: readonly string[]; locale: string }
   }) => { readonly written: number; readonly writeRange: {

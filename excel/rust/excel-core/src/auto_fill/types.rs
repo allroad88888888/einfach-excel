@@ -53,7 +53,8 @@ pub struct AutoFillRequest {
     pub series: AutoFillSeries,
     pub step: Option<f64>,
     pub text_pattern: Option<AutoFillTextPattern>,
-    pub list: Option<AutoFillListWitness>,
+    pub list: Option<std::sync::Arc<AutoFillListWitness>>,
+    pub named_lists: super::AutoFillNamedLists,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

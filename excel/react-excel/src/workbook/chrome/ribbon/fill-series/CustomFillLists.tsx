@@ -34,7 +34,7 @@ High`}
       <button type="button" disabled={state.selectedList === null}
         onClick={() => void run('delete-list')}><Trans>Delete list</Trans></button>
     </div>
-    <p className="size-hint"><Trans>Lists stay in this workbook session only. Save list stores a preset;
+    <p className="size-hint"><Trans>Lists stay in this workbook session only. Saved lists guide fill handle drags.
       Apply series changes cells. Unsaved edits do not change the saved list.</Trans></p>
   </fieldset>
 }

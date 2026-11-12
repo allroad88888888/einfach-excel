@@ -9,6 +9,7 @@ fn addr(value: &str) -> CellAddress { CellAddress::parse(value).unwrap() }
 fn range(first: &str, last: &str) -> CellRange { CellRange::new(addr(first), addr(last)) }
 fn request(stop: Option<f64>) -> AutoFillRequest {
     AutoFillRequest {
+        named_lists: crate::AutoFillNamedLists::empty(),
         sheet_idx: 0, source_range: range("A1", "A1"), target_range: range("A1", "A6"),
         direction: AutoFillDirection::Down, series: AutoFillSeries::Geometric { stop },
         step: Some(2.0), text_pattern: None, list: None,

@@ -65,7 +65,7 @@ pub use workbook_aggregate::SelectionNumbers;
 pub use workbook_find::{FindLookIn, FindMatch, FindPage, FindQuery};
 
 pub use auto_fill::{
-    AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillReport, AutoFillRequest,
+    AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillNamedList, AutoFillNamedLists, AutoFillReport, AutoFillRequest,
     AutoFillSeries, AutoFillTextPattern,
 };
 pub use cell::CellAddress;

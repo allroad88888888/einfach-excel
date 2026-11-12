@@ -246,3 +246,15 @@ test.each(['date-weekday', 'date-year'] as const)('%s renders a controlled step 
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(screen.getByRole('button', { name: 'Fill series' })).toHaveFocus()
 })
+
+
+test('reserved list names report correctable feedback and saved-list drag hint remains visible', async () => {
+  const { fill } = await setup()
+  await customList('builtin-weekday-short', 'Low\nHigh')
+  expect(screen.getByRole('alert')).toHaveTextContent('List names cannot start with builtin- or locale-.')
+  expect(screen.getByText(/Saved lists guide fill handle drags/)).toBeVisible()
+  expect(screen.queryByRole('option', { name: 'builtin-weekday-short' })).toBeNull()
+  await customList('Priority', 'Low\nHigh')
+  expect(screen.getByRole('status')).toHaveTextContent('List saved.')
+  expect(fill).not.toHaveBeenCalled()
+})

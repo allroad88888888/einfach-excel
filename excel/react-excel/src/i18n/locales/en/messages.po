@@ -3395,12 +3395,16 @@ msgid "List name"
 msgstr "List name"
 
 #: src/i18n/feedback-messages.ts
+msgid "List names cannot start with builtin- or locale-."
+msgstr "List names cannot start with builtin- or locale-."
+
+#: src/i18n/feedback-messages.ts
 msgid "List saved."
 msgstr "List saved."
 
 #: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
-msgid "Lists stay in this workbook session only. Save list stores a preset; Apply series changes cells. Unsaved edits do not change the saved list."
-msgstr "Lists stay in this workbook session only. Save list stores a preset; Apply series changes cells. Unsaved edits do not change the saved list."
+msgid "Lists stay in this workbook session only. Saved lists guide fill handle drags. Apply series changes cells. Unsaved edits do not change the saved list."
+msgstr "Lists stay in this workbook session only. Saved lists guide fill handle drags. Apply series changes cells. Unsaved edits do not change the saved list."
 
 #: src/workbook/comments/CommentTools.tsx
 msgid "Loading comments…"

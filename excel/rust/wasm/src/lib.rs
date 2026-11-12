@@ -202,6 +202,7 @@ mod tests {
     include!("wasm_tests/custom.rs");
     include!("wasm_tests/advanced_number_formats.rs");
     include!("wasm_tests/number_format_preview.rs");
+    include!("wasm_tests/accounting_format.rs");
     include!("wasm_tests/tables.rs");
     include!("wasm_tests/table_commands.rs");
     include!("wasm_tests/table_append.rs");

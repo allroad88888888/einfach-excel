@@ -16,6 +16,7 @@ mod chartex_totals;
 mod drawing_geometry;
 mod native_rules;
 mod number_format;
+mod accounting_format;
 mod read;
 mod report;
 mod units;

@@ -16,6 +16,16 @@ const SHIP_MODES = ['Standard', 'Express', 'Pickup']
 const COUNTRIES = ['USA', 'Canada', 'Germany', 'Japan']
 const CITIES = ['Seattle', 'Toronto', 'Berlin', 'Tokyo']
 
+/** Actual Rust-imported examples on previously empty Summary cells. */
+export const SALES_ORDER_NUMBER_FORMAT_EXAMPLES: readonly RustImportCell[] = [
+  { sheet: 1, row: 18, col: 0, kind: 'number', value: 1234.5,
+    format: { numberFormat: { kind: 'accounting', symbol: '$', digits: 2 } } },
+  { sheet: 1, row: 18, col: 1, kind: 'number', value: -1234.5,
+    format: { numberFormat: { kind: 'accounting', symbol: '$', digits: 2 } } },
+  { sheet: 1, row: 18, col: 2, kind: 'number', value: 0,
+    format: { numberFormat: { kind: 'accounting', symbol: '$', digits: 2 } } },
+]
+
 const DEMO_CELL_FORMATS: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   ['1:0', { bold: true }],
   ['1:1', { italic: true }],
@@ -59,6 +69,8 @@ const DEMO_CELL_FORMATS: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   // 输入示例的原生数值与格式：可再次编辑，也可以直接输入时间／带分数。
   ['14:14', { numberFormat: { kind: 'time', pattern: 'h:mm' } }],
   ['15:14', { numberFormat: { kind: 'time', pattern: 'h:mm AM/PM' } }],
+  ['18:14', { numberFormat: { kind: 'custom', pattern: '[Blue]0.0%' } }],
+  ['18:15', { numberFormat: { kind: 'custom', pattern: '_($* #,##0.00_)' } }],
   ['17:14', { numberFormat: { kind: 'fraction', denominator: 20 } }],
   // 边框示例直接进入 Rust，不在视图里按坐标补样式。
   ['5:1', { borders: { bottom: { style: 'double', color: '#c00000' } } }],

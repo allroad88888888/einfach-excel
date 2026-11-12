@@ -235,6 +235,10 @@ msgstr "A worksheet can hold at most 1000 objects."
 msgid "A worksheet supports at most 256 editable ranges."
 msgstr "A worksheet supports at most 256 editable ranges."
 
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Accounting"
+msgstr "Accounting"
+
 #: src/workbook/chrome/formula-bar/FormulaBar.tsx
 msgid "Active cell value"
 msgstr "Active cell value"

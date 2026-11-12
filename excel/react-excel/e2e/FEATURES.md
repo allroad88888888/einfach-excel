@@ -443,6 +443,13 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | NUM-029 | 自定义格式斜杠字面量 | `format/number-format-custom-fractions.spec.ts` | quoted and escaped slashes remain literal in custom codes |
 | NUM-030 | 自定义数字留白自动列宽 | `format/number-format-custom-auto-fit.spec.ts` | auto-fit includes the actual width of custom padding characters |
 | NUM-031 | 自定义文本段自动列宽 | `format/number-format-custom-auto-fit.spec.ts` | auto-fit measures custom text sections with their prefixes and padding |
+| NUM-032 | 会计专用数字格式设置 | `format/number-format-accounting.spec.ts` | accounting settings align symbols left, bracket negatives and show zero as a dash without changing formulas |
+| NUM-033 | 会计格式增加小数位 | `format/number-format-accounting.spec.ts` | Increase decimal places keeps the accounting symbol and undoes exactly once |
+| NUM-034 | 会计格式减少小数位 | `format/number-format-accounting.spec.ts` | Decrease decimal places keeps accounting parentheses and undoes exactly once |
+| NUM-035 | 会计格式自动列宽 | `format/number-format-accounting-auto-fit.spec.ts` | accounting auto-fit includes symbol and parenthesis padding without resizing the neighboring column |
+| NUM-036 | 会计格式原生文件往返 | `workbook/accounting-format-files.spec.ts` | native save and reopen restores accounting category symbol and decimal places |
+| NUM-037 | XLSX内置会计格式读取 | `xlsx/accounting-format.spec.ts` | opening built-in accounting formats 41 through 44 preserves symbols parentheses and zero dashes |
+| NUM-038 | 会计格式XLSX导出往返 | `xlsx/accounting-format.spec.ts` | XLSX export and reopen preserves accounting category custom symbol and decimal places |
 | BORDER-001 | 外边框 | `format/border-settings.spec.ts` | outside uses selection edges, not every cell perimeter |
 | BORDER-002 | 内边框 | `format/border-settings.spec.ts` | inside uses selection edges, not every cell perimeter |
 | BORDER-003 | 所有边框 | `format/border-settings.spec.ts` | all uses selection edges, not every cell perimeter |

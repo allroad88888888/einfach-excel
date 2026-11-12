@@ -25,6 +25,8 @@ pub mod advanced_filter;
 mod find_text;
 mod find_wildcard;
 pub mod format;
+mod number_format;
+pub mod accounting_format;
 pub mod formula;
 pub mod general_text;
 pub mod history_snapshot;

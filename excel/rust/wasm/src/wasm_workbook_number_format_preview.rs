@@ -40,7 +40,7 @@ impl WasmWorkbook {
         }
         if !matches!(wire.kind.as_str(), "general" | "text" | "number" | "decimal"
             | "percent" | "percentage" | "currency" | "scientific" | "fraction"
-            | "time" | "date" | "custom") {
+            | "time" | "date" | "custom" | "accounting") {
             return Err("INVALID_NUMBER_FORMAT");
         }
         if wire.kind == "custom" {
@@ -54,19 +54,11 @@ impl WasmWorkbook {
         format.number_format = wire.into_number_format();
         let value = self.workbook_value(sheet_idx, &addr);
         let value = collapse_array_for_js(&value);
-        if let NumberFormat::Custom(pattern) = &format.number_format {
-            let shown = match value.as_ref() {
-                Value::Number(number) => einfach_excel_core::custom_number_format::format_number(pattern, *number),
-                Value::Text(text) => einfach_excel_core::custom_number_format::format_text(pattern, text),
-                _ => None,
-            };
-            if let Some(shown) = shown {
-                let shown = NativeNumberDisplay::from(shown);
-                return Ok(NumberFormatPreviewJSON {
-                    text: Some(shown.text), color: shown.color, fill: shown.fill, pads: shown.pads,
-                    invalid_code: None,
-                });
-            }
+        if let Some(shown) = native_number_display_for_value(&format, value.as_ref()) {
+            return Ok(NumberFormatPreviewJSON {
+                text: Some(shown.text), color: shown.color, fill: shown.fill, pads: shown.pads,
+                invalid_code: None,
+            });
         }
         let text = match value.as_ref() {
             Value::Number(number) => format.format_number(*number),

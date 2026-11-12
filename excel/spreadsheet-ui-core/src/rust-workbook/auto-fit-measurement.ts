@@ -114,7 +114,7 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
       border('top', layout.borderTop) +
       border('bottom', layout.borderBottom)
     // 自定义格式的 DOM 使用 white-space: pre；留白和重复空格都不能折叠。
-    const custom = numberFormat?.kind === 'custom'
+    const custom = numberFormat?.kind === 'custom' || numberFormat?.kind === 'accounting'
     const wrap = !custom && (format.overflow === 'wrap' || (!format.overflow && format.wrap))
     const measuredText = custom && pads?.length
       ? Array.from(text, (char, at) => pads.find((pad) => pad.at === at)?.char ?? char).join('')

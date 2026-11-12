@@ -48,7 +48,7 @@ function formatAt(
 export function usesNativeNumberDisplay(kind: SpreadsheetNumberFormat['kind']): boolean {
   return kind === 'text' || kind === 'date' || kind === 'time' || kind === 'scientific' ||
     kind === 'fraction' || kind === 'number' || kind === 'decimal' || kind === 'percent' ||
-    kind === 'percentage' || kind === 'currency' || kind === 'custom'
+    kind === 'percentage' || kind === 'currency' || kind === 'accounting' || kind === 'custom'
 }
 
 /** 条件格式字体色压过自定义格式段颜色；填充与留白保持不变。 */

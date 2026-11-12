@@ -52,13 +52,14 @@ export function NumberFormatTools() {
           } })}>
           <option value="number"><Trans>Number</Trans></option><option value="percent"><Trans>Percentage</Trans></option>
           <option value="currency"><Trans>Currency</Trans></option>
+          <option value="accounting"><Trans>Accounting</Trans></option>
           <option value="scientific"><Trans>Scientific</Trans></option><option value="fraction"><Trans>Fraction</Trans></option>
           <option value="time"><Trans>Time</Trans></option><option value="date"><Trans>Date</Trans></option>
           <option value="text"><Trans>Text</Trans></option>
           <option value="custom"><Trans>Custom</Trans></option>
         </select>
         {state.draft.category === 'custom' && <CustomNumberFormatFields id={id} />}
-        {['number', 'percent', 'currency', 'scientific'].includes(state.draft.category) && <>
+        {['number', 'percent', 'currency', 'accounting', 'scientific'].includes(state.draft.category) && <>
         <label htmlFor={`${id}-digits`}><Trans>Decimal places</Trans></label>
         <input id={`${id}-digits`} type="number" min="0" max="15" step="1" disabled={state.busy}
           value={state.draft.digits} aria-describedby={state.error ? `${id}-error` : undefined}
@@ -117,7 +118,7 @@ export function NumberFormatTools() {
             onChange={(event) => void run({ type: 'draft', patch: { thousands: event.currentTarget.checked } })} /><Trans>
           Use thousands separator
         </Trans></label>}
-        {state.draft.category === 'currency' && <>
+        {(state.draft.category === 'currency' || state.draft.category === 'accounting') && <>
           <label htmlFor={`${id}-symbol`}><Trans>Currency symbol</Trans></label>
           <input id={`${id}-symbol`} type="text" maxLength={16} disabled={state.busy}
             value={state.draft.symbol} aria-describedby={`${id}-symbol-hint`}

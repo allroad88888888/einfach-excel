@@ -71,6 +71,11 @@ fn native_number_display(
 
 /// 网格与自动尺寸共用同一份格式化结果，包括文本段与字符留白。
 fn native_number_display_for_value(format: &CellFormat, value: &Value) -> Option<NativeNumberDisplay> {
+    if let NumberFormat::Accounting { symbol, digits } = &format.number_format {
+        let Value::Number(number) = value else { return None };
+        return einfach_excel_core::accounting_format::display(symbol, *digits, *number)
+            .map(NativeNumberDisplay::from);
+    }
     if let NumberFormat::Custom(pattern) = &format.number_format {
         let shown = match value {
             Value::Number(number) => einfach_excel_core::custom_number_format::format_number(pattern, *number)

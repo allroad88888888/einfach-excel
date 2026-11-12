@@ -1,6 +1,7 @@
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 struct NumberFormatJSON {
     /// 原生数字格式类别；别名在 into_number_format 统一。
+    #[serde(deserialize_with = "deserialize_number_format_kind")]
     kind: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     denominator: Option<FractionDenominatorJSON>,
@@ -27,6 +28,10 @@ impl NumberFormatJSON {
             },
             "percent" | "percentage" => NumberFormat::Percent {
                 digits: self.digits.unwrap_or(0),
+            },
+            "accounting" => NumberFormat::Accounting {
+                symbol: self.symbol.unwrap_or_else(|| "$".into()),
+                digits: self.digits.unwrap_or(2).min(15),
             },
             "currency" => NumberFormat::Currency {
                 symbol: self.symbol.unwrap_or_else(|| "$".into()),
@@ -93,6 +98,10 @@ impl NumberFormatJSON {
                 thousands: None,
                 denominator: None,
             },
+            NumberFormat::Accounting { symbol, digits } => NumberFormatJSON {
+                kind: "accounting".into(), digits: Some(*digits), symbol: Some(symbol.clone()),
+                ..Default::default()
+            },
             NumberFormat::Currency { symbol, digits } => NumberFormatJSON {
                 kind: "currency".into(),
                 digits: Some(*digits),
@@ -129,6 +138,7 @@ fn uses_native_number_display(format: &NumberFormat) -> bool {
             | NumberFormat::Decimal { .. }
             | NumberFormat::Percent { .. }
             | NumberFormat::Currency { .. }
+            | NumberFormat::Accounting { .. }
             | NumberFormat::Date(_)
             | NumberFormat::Time(_)
             | NumberFormat::Scientific { .. }
@@ -178,5 +188,15 @@ impl From<FractionDenominatorJSON> for FractionDenominatorInput {
             ThreeDigit => Self::Named("three-digit".into()),
             Fixed(n) => Self::Fixed(n),
         }
+    }
+}
+
+fn deserialize_number_format_kind<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<String, D::Error> {
+    let kind = String::deserialize(deserializer)?;
+    if matches!(kind.as_str(), "general" | "text" | "number" | "decimal" | "percent" | "percentage"
+        | "currency" | "accounting" | "scientific" | "fraction" | "time" | "date" | "custom") {
+        Ok(kind)
+    } else {
+        Err(serde::de::Error::custom("unsupported number format category"))
     }
 }

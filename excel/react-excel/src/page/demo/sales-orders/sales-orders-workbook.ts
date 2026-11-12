@@ -1,7 +1,7 @@
 import type { RustWorkbookDefinition, RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 import { applySalesOrderMerge, SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
   SALES_ORDER_EXTRA_MERGE_CELLS } from './data/merge-seed'
-import { createSalesOrderImportChunks } from './data/import-seed'
+import { createSalesOrderImportChunks, SALES_ORDER_NUMBER_FORMAT_EXAMPLES } from './data/import-seed'
 import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from './data/alternating-colors-seed'
 import { SUMMARY_FILL_CELLS } from './data/fill-seed'
 import { SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
@@ -79,6 +79,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       ...createSalesOrderImportChunks().map((chunk) => chunk.map(applySalesOrderMerge)),
       SALES_ORDER_EXTRA_MERGE_CELLS,
       SALES_ORDER_SUMMARY_CELLS,
+      SALES_ORDER_NUMBER_FORMAT_EXAMPLES,
       SUMMARY_VALIDATION_CELLS,
       SUMMARY_OUTLINE_CELLS,
       SUMMARY_NAMED_RANGE_CELLS,

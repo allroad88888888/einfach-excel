@@ -20,7 +20,8 @@ export function numberFormatColorStyle(
 
 /** 自定义代码的 `_x` 留白要保留空格宽度，不能被 nowrap 折叠。 */
 export function numberFormatSpacingStyle(cell: DisplayCell | undefined): CSSProperties | undefined {
-  return cell?.format?.numberFormat?.kind === 'custom' ? { whiteSpace: 'pre' } : undefined
+  const kind = cell?.format?.numberFormat?.kind
+  return kind === 'custom' || kind === 'accounting' ? { whiteSpace: 'pre' } : undefined
 }
 
 type NumberFormatDisplay = NonNullable<DisplayCell['numberFormatDisplay']>

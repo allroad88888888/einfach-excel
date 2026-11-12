@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
+import { SALES_ORDER_NUMBER_FORMAT_EXAMPLES } from '../../../../src/page/demo/sales-orders/data/import-seed'
 import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from '../../../../src/page/demo/sales-orders/data/alternating-colors-seed'
 import { SUMMARY_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/fill-seed'
 import { SUMMARY_CONDITIONAL_TEXT_CELLS, SUMMARY_CONDITIONAL_TEXT_RULES } from '../../../../src/page/demo/sales-orders/data/conditional-text-seed'
@@ -76,8 +77,9 @@ describe('Sales Orders workbook definition', () => {
     const chunks = SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
       readonly unknown[]
     >
-    expect([...chunks].slice(-9)).toEqual([
+    const expectedSummaryChunks = [
       SALES_ORDER_SUMMARY_CELLS,
+      SALES_ORDER_NUMBER_FORMAT_EXAMPLES,
       SUMMARY_VALIDATION_CELLS,
       SUMMARY_OUTLINE_CELLS,
       SUMMARY_NAMED_RANGE_CELLS,
@@ -87,7 +89,8 @@ describe('Sales Orders workbook definition', () => {
       SUMMARY_BANDING_CELLS,
       [{ sheet: 1, row: 81, col: 7, kind: 'text', value: 'ORDER_NET', format: { bold: true } },
         { sheet: 1, row: 82, col: 7, kind: 'formula', value: '=ORDER_NET(3,25)' }],
-    ])
+    ]
+    expect([...chunks].slice(-expectedSummaryChunks.length)).toEqual(expectedSummaryChunks)
     expect(SALES_ORDER_SUMMARY_CELLS).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

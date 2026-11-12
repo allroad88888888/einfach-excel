@@ -207,7 +207,7 @@ pub struct CellFormat {
     pub borders: Option<Borders>,
 }
 
-/// kind：general / text / number / percent / currency / scientific / fraction / date / time / custom
+/// kind：general / text / number / percent / currency / accounting / scientific / fraction / date / time / custom
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NumberFormat {
     pub kind: String,

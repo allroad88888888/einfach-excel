@@ -235,6 +235,10 @@ msgstr "一张工作表最多 1000 个对象。"
 msgid "A worksheet supports at most 256 editable ranges."
 msgstr "每个工作表最多支持 256 个允许编辑范围。"
 
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Accounting"
+msgstr "会计专用"
+
 #: src/workbook/chrome/formula-bar/FormulaBar.tsx
 msgid "Active cell value"
 msgstr "活动单元格内容"

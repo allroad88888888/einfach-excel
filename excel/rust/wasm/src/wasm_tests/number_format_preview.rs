@@ -47,10 +47,10 @@ fn preview_preserves_text_blank_boolean_and_error_values() {
 #[test]
 fn preview_rejects_missing_targets_and_unknown_categories() {
     let wb = WasmWorkbook::new();
+    assert!(serde_json::from_value::<NumberFormatJSON>(serde_json::json!({"kind":"unknown"})).is_err());
     for (sheet, addr, kind, expected) in [(99, "A1", "number", "INVALID_SHEET"),
         (0, "invalid", "number", "INVALID_ADDRESS"), (0, "A0", "number", "INVALID_ADDRESS"),
-        (0, "XFE1", "number", "INVALID_ADDRESS"), (0, "A1048577", "number", "INVALID_ADDRESS"),
-        (0, "A1", "unknown", "INVALID_NUMBER_FORMAT")] {
+        (0, "XFE1", "number", "INVALID_ADDRESS"), (0, "A1048577", "number", "INVALID_ADDRESS")] {
         assert_eq!(wb.number_format_preview(sheet, addr,
             serde_json::from_value(serde_json::json!({"kind":kind})).unwrap()).map(|p| p.text), Err(expected));
     }

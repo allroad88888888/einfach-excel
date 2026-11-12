@@ -14,7 +14,7 @@ import {
 import { runSelectionMutationAtom } from './selection-mutation-command'
 
 type Category =
-  'number' | 'percent' | 'currency' | 'scientific' | 'fraction' | 'time' | 'date' | 'text' | 'custom'
+  'number' | 'percent' | 'currency' | 'accounting' | 'scientific' | 'fraction' | 'time' | 'date' | 'text' | 'custom'
 export const NUMBER_FORMAT_TIME_PATTERNS = [
   'h:mm', 'hh:mm', 'h:mm:ss', 'hh:mm:ss', 'h:mm AM/PM', 'h:mm:ss AM/PM', 'mm:ss', '[h]:mm:ss',
 ] as const
@@ -66,7 +66,7 @@ export const numberFormatPanelAtom = atom<NumberFormatPanel>(CLOSED)
 type Action = 'open' | 'close' | 'apply' | { type: 'draft'; patch: Partial<NumberFormatDraft> }
 
 function fromFormat(format: SpreadsheetNumberFormat | undefined): NumberFormatDraft {
-  const category = format?.kind === 'currency' || format?.kind === 'scientific' ||
+  const category = format?.kind === 'currency' || format?.kind === 'accounting' || format?.kind === 'scientific' ||
     format?.kind === 'fraction' || format?.kind === 'time' || format?.kind === 'date' ||
     format?.kind === 'text' || format?.kind === 'custom' ? format.kind
     : format?.kind === 'percent' || format?.kind === 'percentage' ? 'percent' : 'number'
@@ -74,7 +74,7 @@ function fromFormat(format: SpreadsheetNumberFormat | undefined): NumberFormatDr
     category,
     digits: String((format && 'digits' in format ? format.digits : undefined) ?? (category === 'percent' ? 0 : 2)),
     thousands: !!(format && 'thousands' in format && format.thousands),
-    symbol: format?.kind === 'currency' ? format.symbol ?? '$' : '$',
+    symbol: format?.kind === 'currency' || format?.kind === 'accounting' ? format.symbol ?? '$' : '$',
     denominator: String(format?.kind === 'fraction' ? format.denominator ?? 'one-digit' : 'one-digit'),
     pattern: format?.kind === 'time' ? format.pattern ?? 'hh:mm:ss' : 'hh:mm:ss',
     datePattern: format?.kind === 'date' ? format.pattern ?? 'yyyy-mm-dd' : 'yyyy-mm-dd',
@@ -86,14 +86,14 @@ function fromFormat(format: SpreadsheetNumberFormat | undefined): NumberFormatDr
 function draftFormat(draft: NumberFormatDraft): SpreadsheetNumberFormat | string {
   const { category, digits: text, thousands, symbol, denominator, pattern, datePattern } = draft
   const digits = Number(text)
-  if (['number', 'percent', 'currency', 'scientific'].includes(category) &&
+  if (['number', 'percent', 'currency', 'accounting', 'scientific'].includes(category) &&
     (!/^\d+$/.test(text) || !Number.isInteger(digits) || digits < 0 || digits > 15))
     return 'Enter a whole number of decimal places from 0 to 15.'
   if (category === 'custom') return { kind: 'custom', pattern: draft.code }
-  if (!['number', 'percent', 'currency', 'scientific', 'fraction', 'time', 'date', 'text'].includes(category))
+  if (!['number', 'percent', 'currency', 'accounting', 'scientific', 'fraction', 'time', 'date', 'text'].includes(category))
     return 'Choose a supported category.'
   // 空字符串表示不显示币种；符号作为普通文本交给 Rust，拒绝控制字符。
-  if (category === 'currency' && (symbol.length > 16 || /[\x00-\x1f\x7f]/.test(symbol)))
+  if ((category === 'currency' || category === 'accounting') && (symbol.length > 16 || /[\x00-\x1f\x7f]/.test(symbol)))
     return 'Use at most 16 characters for the currency symbol, without control characters.'
   if (category === 'fraction') {
     const named = denominator === 'one-digit' || denominator === 'two-digit' || denominator === 'three-digit'
@@ -111,7 +111,7 @@ function draftFormat(draft: NumberFormatDraft): SpreadsheetNumberFormat | string
     return { kind: 'date', pattern: datePattern }
   } else if (category === 'text') return { kind: 'text' }
   return category === 'number' ? { kind: 'number', digits, thousands }
-    : category === 'currency' ? { kind: 'currency', digits, symbol } : { kind: category, digits }
+    : category === 'currency' || category === 'accounting' ? { kind: category, digits, symbol } : { kind: category, digits }
 }
 
 /** 设置一次提交整个 numberFormat 字段；草稿变化只请求原生预览。 */

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -7,6 +8,7 @@ const input = (page: Page) => page.getByRole('textbox', { name: 'Active cell val
 const low = 'rgb(248, 105, 107)'
 const high = 'rgb(99, 190, 123)'
 async function go(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()
@@ -16,7 +18,7 @@ async function go(page: Page, reference: string) {
 async function write(page: Page, address: string, value: string) {
   await go(page, address); await input(page).fill(value); await input(page).press('Enter')
 }
-async function open(page: Page) { await button(page, 'Conditional formatting').click() }
+async function open(page: Page) { await showRibbonItem(page, 'format.conditional-formatting'); await showRibbonItem(page, 'format.conditional-formatting'); await button(page, 'Conditional formatting').click() }
 async function save(page: Page, edit = false) {
   await button(page, edit ? 'Save rule' : 'Add rule').click()
   await expect(dialog(page)).toHaveCount(0)
@@ -156,6 +158,7 @@ test('data-bar disable, recolor, delete and undo update visuals without changing
 
 test('bar range follows structural history and rejects text as a numeric member', async ({ page }) => {
   await go(page, 'E75')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' }).selectOption('insert-rows')
   await expect(cell(page, '75:4').locator('[data-data-bar]')).toHaveCount(1)
   await open(page); await button(page, 'Edit rule 8').click()
@@ -169,6 +172,7 @@ test('bar range follows structural history and rejects text as a numeric member'
 
 test('merged anchor renders one bar across the full merged width', async ({ page }) => {
   await go(page, 'E79:F79')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   const merged = page.locator('[data-merged-cell="true"][data-cell="78:4"]')
   await expect(merged).toBeVisible()
@@ -193,8 +197,8 @@ test('frozen numeric cell keeps its bar while scrolling away', async ({ page }) 
 
 test('ordinary copy pastes base formatting, not the conditional bar', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-  await go(page, 'E75'); await button(page, 'Copy').click()
-  await go(page, 'F75'); await button(page, 'Paste').click()
+  await go(page, 'E75'); await showRibbonItem(page, 'clipboard.copy'); await showRibbonItem(page, 'clipboard.copy'); await button(page, 'Copy').click()
+  await go(page, 'F75'); await showRibbonItem(page, 'clipboard.paste'); await showRibbonItem(page, 'clipboard.paste'); await button(page, 'Paste').click()
   await expect(cell(page, '74:5')).toHaveText('-10')
   await expect(cell(page, '74:5').locator('[data-data-bar]')).toHaveCount(0)
   await expect(cell(page, '74:4').locator('[data-data-bar]')).toHaveCount(1)
@@ -214,6 +218,7 @@ for (const width of [1280, 390]) test(`visual rule forms fit ${width}px and retu
     await page.screenshot({ path: info.outputPath(`${kind}-${width}.png`), fullPage: true })
   }
   await page.getByLabel('Positive bar color').press('Escape')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await expect(button(page, 'Conditional formatting')).toBeFocused()
   expect(errors).toEqual([])
 })

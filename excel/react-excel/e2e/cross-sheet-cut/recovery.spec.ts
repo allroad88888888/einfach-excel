@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, copy, edit, formula, paste, select, sheet, start } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -17,6 +18,7 @@ test('XSCUT-03 partial range rejection preserves data redo and the same cut for 
   await copy(page, 'Cut')
   await sheet(page, "Target O'Brien")
   await select(page, 'C14', '13:2')
+  await showRibbonItem(page, 'clipboard.paste')
   await button(page, 'Paste').click()
   await expect(page.getByLabel('Clipboard status')).toContainText('larger range')
   await expect(cell(page, '13:2')).toHaveText('')
@@ -45,6 +47,7 @@ test('XSCUT-04 stop validation rolls back the cross-sheet cut and permits a corr
   await copy(page, 'Cut')
   await sheet(page, "Target O'Brien")
   await select(page, 'C8', '7:2')
+  await showRibbonItem(page, 'clipboard.paste')
   await button(page, 'Paste').click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Nothing was pasted')
   await expect(cell(page, '7:2')).toHaveText('9')
@@ -67,6 +70,7 @@ test('XSCUT-05 warning cancel keeps the cut and explicit continue moves it with 
   await copy(page, 'Cut')
   await sheet(page, "Target O'Brien")
   await select(page, 'C10', '9:2')
+  await showRibbonItem(page, 'clipboard.paste')
   await button(page, 'Paste').click()
   const confirmation = page.getByRole('dialog', { name: 'Within 0–10', exact: true })
   await expect(confirmation).toBeVisible()
@@ -74,6 +78,7 @@ test('XSCUT-05 warning cancel keeps the cut and explicit continue moves it with 
   await confirmation.getByRole('button', { name: 'Cancel', exact: true }).click()
   await expect(confirmation).toHaveCount(0)
   await expect(button(page, 'Undo')).toBeDisabled()
+  await showRibbonItem(page, 'clipboard.paste')
   await button(page, 'Paste').click()
   await confirmation.getByRole('button', { name: 'Continue', exact: true }).click()
   await expect(confirmation).toHaveCount(0)
@@ -92,6 +97,7 @@ test('XSCUT-06 merged destination rejects atomically and the same cut can move t
   await copy(page, 'Cut')
   await sheet(page, "Target O'Brien")
   await select(page, 'G20:H20', '19:6')
+  await showRibbonItem(page, 'clipboard.paste')
   await button(page, 'Paste').click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Unmerge the source and destination')
   await expect(button(page, 'Undo')).toBeDisabled()

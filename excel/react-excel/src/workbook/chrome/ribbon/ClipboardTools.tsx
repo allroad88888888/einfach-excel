@@ -64,7 +64,7 @@ export function ClipboardTools() {
         <RibbonItem id={`clipboard.${operation}`} key={operation}>
           <button
             data-ribbon-item={`clipboard.${operation}`}
-            className="tool-button"
+            className={operation === 'paste' ? 'tool-button ribbon-large' : 'tool-button'}
             type="button"
             key={operation}
             aria-label={{ paste: t`Paste`, cut: t`Cut`, copy: t`Copy` }[operation]}
@@ -84,6 +84,9 @@ export function ClipboardTools() {
             }
           >
             <span aria-hidden="true">{{ paste: '▣', cut: '✂', copy: '▤' }[operation]}</span>
+            {operation === 'paste' && (
+              <span className="ribbon-large-label" aria-hidden="true">{t`Paste`}</span>
+            )}
           </button>
         </RibbonItem>
       ))}
@@ -129,7 +132,6 @@ export function ClipboardTools() {
           ))}
         </select>
       </RibbonItem>
-      <PasteSpecialTools />
       <RibbonItem id="clipboard.copy-as">
         <select
           data-ribbon-item="clipboard.copy-as"
@@ -161,6 +163,7 @@ export function ClipboardTools() {
           ))}
         </select>
       </RibbonItem>
+      <PasteSpecialTools />
     </>
   )
 }

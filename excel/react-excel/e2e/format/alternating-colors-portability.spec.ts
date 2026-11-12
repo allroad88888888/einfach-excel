@@ -1,8 +1,10 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 async function go(page: Page, ref: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(ref)
   await button(page, 'Go').click()
@@ -10,6 +12,7 @@ async function go(page: Page, ref: string) {
 }
 async function apply(page: Page) {
   await go(page, 'B64:B67')
+  await showRibbonItem(page, 'format.alternating-colors')
   await button(page, 'Alternating colors').click()
   await page.getByLabel('Band color').fill('#12ab34')
   await button(page, 'Apply').click()
@@ -32,8 +35,10 @@ test('canvas paints and removes the same native banding through the ribbon', asy
     return count
   })
   await expect.poll(pixels).toBeGreaterThan(1000)
-  await go(page, 'B65'); await button(page, 'Alternating colors').click()
-  await button(page, 'Remove banding').click(); await go(page, 'A64')
+  await go(page, 'B65'); await showRibbonItem(page, 'format.alternating-colors'); await showRibbonItem(page, 'format.alternating-colors'); await button(page, 'Alternating colors').click()
+  await button(page, 'Remove banding').click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await go(page, 'A64')
   await expect.poll(pixels).toBe(0)
   await button(page, 'Undo').click(); await go(page, 'A64')
   await expect.poll(pixels).toBeGreaterThan(1000)
@@ -60,6 +65,7 @@ test('Excel round trip retains the formula colors and recognizes imported bandin
   await go(page, 'B64')
   await expect(page.locator('td[data-cell="63:1"]')).toHaveCSS('background-color', 'rgb(18, 171, 52)')
   await expect(page.locator('td[data-cell="64:1"]')).not.toHaveCSS('background-color', 'rgb(18, 171, 52)')
+  await showRibbonItem(page, 'format.alternating-colors')
   await button(page, 'Alternating colors').click()
   await expect(page.getByLabel('Applies to', { exact: true })).toHaveValue('B64:B67')
   await expect(button(page, 'Remove banding')).toBeEnabled()

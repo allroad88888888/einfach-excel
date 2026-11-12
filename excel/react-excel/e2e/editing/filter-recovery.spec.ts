@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const menu = (page: Page) => page.getByRole('combobox', { name: 'Worksheet filter' })
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 async function open(page: Page) {
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('open')
   return page.getByRole('dialog', { name: 'Filter conditions' })
 }
@@ -26,6 +28,7 @@ test.beforeEach(async ({ page }) => {
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'A25:C29', '24:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('selection')
   await button(page, 'Filter column A').click()
   await page.getByLabel('Filter value 1', { exact: true }).fill('West')
@@ -52,6 +55,7 @@ for (const dismissal of ['Cancel', 'Escape']) for (const width of [1280])
     if (dismissal === 'Cancel') await button(page, 'Cancel').click()
     else await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'data.worksheet-filter')
     await expect(menu(page)).toBeFocused()
     await westStillApplied(page)
     await history(page, '2 undo · 1 redo')

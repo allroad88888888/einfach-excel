@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const grid = (page: Page) => page.locator('[data-workbook-grid="true"]')
 async function go(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()
@@ -73,6 +75,7 @@ test('absolute R1C1 reaches the last canvas row and column without clipping or a
 test('invalid and out-of-canvas cross-sheet addresses do not change tabs, selection or scroll', async ({ page }) => {
   await go(page, 'D90')
   const before = await page.locator('.sheet-scroll').evaluate((node) => [node.scrollTop, node.scrollLeft])
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   for (const reference of ['Summary!Z2000', 'Absent!B2', 'R[-999]C', '$$A1']) {
     await page.getByLabel('Reference', { exact: true }).fill(reference)
@@ -92,6 +95,7 @@ test('invalid and out-of-canvas cross-sheet addresses do not change tabs, select
 test('history is capped, deduplicated and scoped to the current workbook page', async ({ page }) => {
   for (let row = 2; row <= 13; row += 1) await go(page, `B${row}`)
   await go(page, 'b5')
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   const recent = page.getByRole('region', { name: 'Recent locations' }).getByRole('button')
   await expect(recent).toHaveCount(10)
@@ -100,6 +104,7 @@ test('history is capped, deduplicated and scoped to the current workbook page', 
   await button(page, 'Cancel').click()
   await page.reload()
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await expect(page.getByText('No recent locations yet.')).toBeVisible()
 })
@@ -109,6 +114,7 @@ test('hidden targets stay hidden until explicitly unhidden, and merged targets s
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A10')
   await expect(cell(page, '9:0')).toHaveCount(0)
   await expect(button(page, 'Undo')).toBeDisabled()
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await expect(cell(page, '9:0')).toHaveText('Hidden row example')
   await button(page, 'Undo').click()
@@ -121,7 +127,9 @@ test('hidden targets stay hidden until explicitly unhidden, and merged targets s
 
 test('offscreen cross-sheet navigation works with frozen panes and returning keeps the source view', async ({ page }) => {
   await go(page, 'C3')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
+  await showRibbonItem(page, 'view.freeze-panes')
   await expect(page.getByRole('combobox', { name: 'Freeze panes' })).toContainText('Panes frozen')
   await go(page, 'P1001')
   await expect(cell(page, '1000:15')).toBeVisible()
@@ -142,6 +150,7 @@ test('quoted worksheet names navigate correctly and an obsolete history address 
   await page.getByRole('textbox', { name: 'Sheet name' }).press('Enter')
   await expect(page.getByRole('tab', { name: "Manager'!s report", exact: true })).toBeVisible()
   await go(page, "'Sales Orders'!B40")
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await button(page, "'Summary'!B2").click()
   await expect(page.getByRole('alert')).toBeVisible()
@@ -153,11 +162,14 @@ test('quoted worksheet names navigate correctly and an obsolete history address 
 })
 
 test('a typed edit disables Go To and composing Enter does not submit the reference form', async ({ page }) => {
+  // 先切到视图分类：编辑中点分类标签会让编辑器失焦提交。
+  await showRibbonItem(page, 'view.go-to')
   await cell(page, '1:0').dblclick()
   const editor = page.getByRole('textbox', { name: 'Cell editor' })
   await editor.fill('pending')
   await expect(button(page, 'Go to')).toBeDisabled()
   await editor.press('Escape')
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   const input = page.getByLabel('Reference', { exact: true })
   await input.fill('B12')

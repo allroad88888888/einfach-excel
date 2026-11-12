@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Find and replace' })
@@ -9,6 +10,7 @@ async function select(page: Page, address: string) {
   await expect(box).toHaveValue(address)
 }
 async function open(page: Page, needle: string, replacing = false) {
+  await showRibbonItem(page, 'view.find-and-replace')
   await page.getByRole('button', { name: 'Find and replace', exact: true }).click()
   await expect(dialog(page)).toBeVisible()
   if (replacing) await dialog(page).getByRole('tab', { name: 'Replace', exact: true }).click()

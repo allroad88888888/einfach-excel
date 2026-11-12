@@ -1,5 +1,6 @@
 import { expect, test } from '../support/input-stall-fixture'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab', 'Cancel', 'Escape'])
   test(`${action} Tables preserves native tables cell styles and redo at ${width}px`, async ({ page }, info) => {
@@ -17,6 +18,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     await button('Undo').click()
     await select(page, 'C75', '74:2')
     const background = await cell('74:2').evaluate(node => getComputedStyle(node).backgroundColor)
+    await showRibbonItem(page, 'insert.tables')
     await button('Tables').click()
     const dialog = page.getByRole('dialog', { name: 'Tables', exact: true })
     const name = dialog.getByRole('textbox', { name: 'Table name', exact: true })
@@ -43,6 +45,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     if (action === 'Escape') await page.keyboard.press('Escape')
     else await button('Cancel').click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'insert.tables')
     await expect(button('Tables')).toBeFocused()
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('C75')
     await expect(cell('74:2')).toHaveText('-10')
@@ -54,6 +57,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     await select(page, 'B5', '4:1')
     await expect(cell('4:1')).toHaveText('60')
     await expect(bar).toHaveValue('=SUM(DemoTable[Amount])')
+    await showRibbonItem(page, 'insert.tables')
     await button('Tables').click()
     await expect(first).toBeVisible()
     await expect(button('Edit table DemoTable')).toBeVisible()

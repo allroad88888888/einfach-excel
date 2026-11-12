@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function border(page: Page, address: string, coord: string, color: string, style: string) {
   await select(page, address, coord)
+  await showRibbonItem(page, 'format.border-settings')
   await page.getByRole('button', { name: 'Border settings', exact: true }).click()
   await page.getByLabel('Position', { exact: true }).selectOption('right')
   await page.getByLabel('Line style', { exact: true }).selectOption(style)
@@ -32,8 +34,10 @@ for (const mode of ['down', 'drag-copy', 'series', 'drag-series']) {
     } else {
       await select(page, 'A40:A43', '39:0')
       if (mode === 'down') {
+        await showRibbonItem(page, 'data.fill-selected-range')
         await page.getByRole('combobox', { name: 'Fill selected range' }).selectOption('down')
       } else {
+        await showRibbonItem(page, 'data.fill-series')
         await page.getByRole('button', { name: 'Fill series', exact: true }).click()
         const dialog = page.getByRole('dialog', { name: 'Fill series', exact: true })
         await dialog.getByLabel('Sequence type').selectOption('number')

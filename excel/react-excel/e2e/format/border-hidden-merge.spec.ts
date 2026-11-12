@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 async function select(page: Page, address: string) {
   const name = page.getByRole('textbox', { name: 'Name box' })
@@ -9,6 +10,7 @@ async function select(page: Page, address: string) {
 
 async function paint(page: Page, address: string, preset: string, color: string) {
   await select(page, address)
+  await showRibbonItem(page, 'format.border-settings')
   await page.getByRole('button', { name: 'Border settings', exact: true }).click()
   await page.getByLabel('Position', { exact: true }).selectOption(preset)
   await page.getByLabel('Line style', { exact: true }).selectOption(color === '#123abc' ? 'thin' : 'thick')
@@ -24,12 +26,15 @@ for (const width of [1280, 390]) {
     page.on('pageerror', (error) => errors.push(error.message))
     await page.goto('/')
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+    await showRibbonItem(page, 'view.row-and-column-visibility')
     await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
     await select(page, 'C2:E14')
+    await showRibbonItem(page, 'data.merge-cells')
     await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
     await paint(page, 'C2:E14', 'outside', '#c00000')
     await paint(page, 'D1', 'bottom', '#123abc')
     await select(page, 'A2:A10')
+    await showRibbonItem(page, 'view.row-and-column-visibility')
     await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
     await select(page, 'A1')
     await page.getByTestId('sheet-scroll').evaluate((node) => { node.scrollTop = 0; node.scrollLeft = 320 })
@@ -56,18 +61,23 @@ for (const width of [1280, 390]) {
     page.on('pageerror', (error) => errors.push(error.message))
     await page.goto('/')
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+    await showRibbonItem(page, 'view.row-and-column-visibility')
     await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
     await select(page, 'H1')
+    await showRibbonItem(page, 'view.row-and-column-size')
     await page.getByRole('button', { name: 'Row and column size', exact: true }).click()
     await page.getByRole('spinbutton', { name: 'Column width' }).fill('1024')
     await page.getByRole('button', { name: 'Set column width' }).click()
     await expect(page.getByRole('dialog')).toHaveCount(0)
     await select(page, 'B2:G5')
+    await showRibbonItem(page, 'clear.contents')
     await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
+    await showRibbonItem(page, 'data.merge-cells')
     await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
     await paint(page, 'B2:G5', 'outside', '#c00000')
     await paint(page, 'A3', 'right', '#123abc')
     await select(page, 'B1:F1')
+    await showRibbonItem(page, 'view.row-and-column-visibility')
     await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-columns')
     await select(page, 'A1')
     // A 列宽 200；滚到 G 的左边界，B:F 的逻辑外沿已在读取窗口以外。

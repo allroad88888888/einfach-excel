@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test('iterative calculation converges circular formulas and respects maxIterations / maxChange', async ({
   page,
@@ -14,6 +15,7 @@ test('iterative calculation converges circular formulas and respects maxIteratio
   const toggle = page.getByTestId('iterative-calculation-toggle')
   const maxIterInput = page.getByTestId('iterative-max-iterations')
   const maxChangeInput = page.getByTestId('iterative-max-change')
+  await showRibbonItem(page, 'calculation.iterative-calculation')
   await expect(toggle).toHaveAttribute('aria-pressed', 'false')
 
   const editor = page.getByRole('textbox', { name: 'Active cell value' })

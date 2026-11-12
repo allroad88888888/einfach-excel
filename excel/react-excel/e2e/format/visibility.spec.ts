@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const grid = (page: Page) => page.locator('[data-workbook-grid]')
 async function visibility(page: Page, action: string) {
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   const menu = page.getByRole('combobox', { name: 'Row and column visibility' })
   await menu.selectOption(action)
   await expect(menu).toBeEnabled()

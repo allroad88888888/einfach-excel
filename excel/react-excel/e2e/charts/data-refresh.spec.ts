@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { box, button, cell, frame, openWorkbook, settings, trackECharts } from './chart-support'
+import { showRibbonItem } from '../support/ribbon'
 
 test.use({ viewport: { width: 1440, height: 1500 } })
 
@@ -44,6 +45,7 @@ test('inserting a row above a chart moves its anchor and its data reference down
   expect(Math.abs(before.y - rowBefore.y)).toBeLessThan(2)
 
   await select(page, 'A2', '1:0')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await rowMenu(page).selectOption('insert-rows')
   await expect(cell(page, '3:0')).toHaveText('Month')
 
@@ -73,6 +75,7 @@ test('hiding a data row drops that point from the chart and undo draws it again'
 
   await select(page, 'A5', '4:0')
   await expect(cell(page, '4:0')).toHaveText('Feb')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await visibilityMenu(page).selectOption('hide-rows')
   await expect(cell(page, '4:0')).toHaveCount(0)
   await expect.poll(async () => (await option('chart-revenue')).categories.length).toBe(11)

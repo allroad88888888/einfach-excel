@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -13,6 +14,7 @@ for (const action of ['Open', 'Tab', 'Shift+Tab']) for (const width of [1280, 39
   test(`${action} border dialog preserves native settings and selection at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     const original = await cell(page, '5:1').textContent()
+    await showRibbonItem(page, 'format.border-settings')
     await button(page, 'Border settings').click()
     const dialog = page.getByRole('dialog', { name: 'Borders', exact: true })
     const position = page.getByLabel('Position', { exact: true })
@@ -39,6 +41,7 @@ for (const action of ['Open', 'Tab', 'Shift+Tab']) for (const width of [1280, 39
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('B6')
     await button(page, 'Cancel').click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'format.border-settings')
     await expect(button(page, 'Border settings')).toBeFocused()
     await expect(button(page, 'Undo')).toBeDisabled()
   })

@@ -1,12 +1,14 @@
 import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const grid = (page: Page) => page.locator('[data-workbook-grid]')
 const nameBox = (page: Page) => page.getByRole('textbox', { name: 'Name box' })
 async function visibility(page: Page, action: string) {
-  const menu = page.getByRole('combobox', { name: 'Row and column visibility' })
+  await showRibbonItem(page, 'view.row-and-column-visibility')
+  const menu = page.getByRole('combobox', { name: 'Row and column visibility', includeHidden: true })
   await menu.scrollIntoViewIfNeeded()
   await menu.selectOption(action)
   await expect(menu).toBeEnabled()
@@ -113,6 +115,7 @@ test('hidden and empty states remain usable at desktop and narrow widths', async
     await page.setViewportSize({ width, height: 844 })
     await select(page, 'A3:A5', '2:0')
     await visibility(page, 'hide-rows')
+    await showRibbonItem(page, 'view.row-and-column-visibility')
     const menu = page.getByRole('combobox', { name: 'Row and column visibility' })
     await menu.focus()
     await expect(menu).toBeFocused()
@@ -127,6 +130,7 @@ test('hidden and empty states remain usable at desktop and narrow widths', async
     ).toBe(true)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.screenshot({ path: info.outputPath(`hidden-rows-${width}.png`) })
+    await menu.press('Escape')
     await page.getByRole('button', { name: 'Select all cells' }).click()
     await visibility(page, 'hide-rows')
     await expect(page.locator('td[data-cell]')).toHaveCount(0)

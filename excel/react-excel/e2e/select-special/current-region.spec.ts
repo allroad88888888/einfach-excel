@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, focusGrid, openSummary, select, selectedCells, status } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => { await openSummary(page) })
 
@@ -17,6 +18,7 @@ test('Ctrl+Shift+8 selects the current region around the active cell at 1280px',
 
 test('Go to special Current region selects the region of the active cell at 1280px', async ({ page }) => {
   await select(page, 'A2', '1:0')
+  await showRibbonItem(page, 'view.go-to-special')
   await button(page, 'Go to special').click()
   const dialog = page.getByRole('dialog', { name: 'Go to special' })
   await dialog.getByRole('button', { name: 'Current region', exact: true }).click()

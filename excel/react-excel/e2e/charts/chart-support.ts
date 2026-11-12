@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 export const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -80,6 +81,7 @@ export async function box(locator: Locator) {
 
 /** 在 Go to 对话框里输入引用并选中，用于超出可见区的范围。 */
 export async function goTo(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()

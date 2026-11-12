@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const panel = (page: Page) => page.getByRole('dialog', { name: 'Find and replace' })
 const results = (page: Page) => panel(page).getByRole('region', { name: 'All search results' })
 const button = (page: Page, name: string) => panel(page).getByRole('button', { name, exact: true })
 async function findOrders(page: Page) {
+  await showRibbonItem(page, 'view.find-and-replace')
   await page.getByRole('button', { name: 'Find and replace', exact: true }).click()
   await panel(page).getByRole('textbox', { name: 'Find what' }).fill('SO-')
   await button(page, 'Find all').click()
@@ -86,6 +88,7 @@ for (const entry of [
 for (const width of [1280, 390])
   test(`click search result selects its exact Unicode cell without editing at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
+    await showRibbonItem(page, 'view.find-and-replace')
     await page.getByRole('button', { name: 'Find and replace', exact: true }).click()
     await panel(page).getByRole('textbox', { name: 'Find what' }).fill('SKU-*')
     await panel(page).getByRole('combobox', { name: 'Within' }).selectOption('workbook')

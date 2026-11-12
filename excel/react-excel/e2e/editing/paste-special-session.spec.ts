@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
@@ -21,6 +22,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     await select(page, 'B2', '1:1')
     await copy(page)
     await select(page, 'B3', '2:1')
+    await showRibbonItem(page, 'data.paste-special')
     const opener = page.getByRole('button', { name: 'Paste special', exact: true })
     await opener.click()
     const dialog = page.getByRole('dialog', { name: 'Paste special', exact: true })

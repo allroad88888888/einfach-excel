@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape', 'Tab', 'Shift+Tab'])
   test(`${action} Go To Special preserves its exact scope and native redo at ${width}px`, async ({ page }, info) => {
@@ -16,6 +17,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     await expect(cell('93:7')).toHaveText('special redo')
     await button('Undo').click()
     await select(page, 'A93:F94', '92:0')
+    await showRibbonItem(page, 'view.go-to-special')
     await button('Go to special').click()
     const dialog = page.getByRole('dialog', { name: 'Go to special', exact: true })
     await expect(dialog).toContainText('Selected range: A93:F94')

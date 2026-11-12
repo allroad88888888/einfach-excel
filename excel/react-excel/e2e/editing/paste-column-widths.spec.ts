@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, pasteOption } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.use({ screenshot: 'only-on-failure' })
 
@@ -46,6 +47,7 @@ test('default column width clears an existing override and preserves Summary row
   await copy(page)
   await sheet(page, 'Summary')
   await select(page, 'A1', '0:0')
+  await showRibbonItem(page, 'data.paste-special')
   await button(page, 'Paste special').click()
   await page.getByLabel('Paste content', { exact: true }).selectOption('column-widths')
   await button(page, 'Apply paste').click()
@@ -97,6 +99,7 @@ test('copied width stays frozen when the source column is resized later', async 
   await sheet(page, 'Summary')
   await select(page, 'A1', '0:0')
   await copy(page)
+  await showRibbonItem(page, 'view.row-and-column-size')
   await button(page, 'Row and column size').click()
   await page.getByRole('spinbutton', { name: 'Column width' }).fill('300')
   await button(page, 'Set column width').click()
@@ -115,6 +118,7 @@ test('width paste beyond the canvas rejects and leaves the source available for 
   await copy(page)
   await sheet(page, 'Sales Orders')
   await select(page, 'P1001', '1000:15')
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   await page.getByRole('combobox', { name: 'More paste options' }).selectOption('column-widths')
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText(
     'beyond the sheet',

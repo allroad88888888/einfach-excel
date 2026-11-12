@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const preview = (page: Page) => page.getByRole('status', { name: 'Number format preview' })
 const formula = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
 async function open(page: Page, category?: string) {
+  await showRibbonItem(page, 'format.number-format-settings')
   await page.getByRole('button', { name: 'Number format settings', exact: true }).click()
   if (category) await page.getByLabel('Number format category').selectOption(category)
 }
@@ -66,6 +68,7 @@ for (const width of [1280, 390]) test(`date shortcut replaces only the seeded pa
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'C96', '95:2')
   await expect(cell(page, '95:2')).toHaveText('29-Feb-24')
+  await showRibbonItem(page, 'format.date-format')
   await page.getByRole('button', { name: 'Date format', exact: true }).click()
   await expect(cell(page, '95:2')).toHaveText('2024-02-29')
   await expect(formula(page)).toHaveValue('45351')
@@ -167,6 +170,7 @@ for (const width of [1280, 390]) test(`format preview fits and stays keyboard us
   expect(box!.x + box!.width).toBeLessThanOrEqual(width)
   await page.screenshot({ path: info.outputPath(`date-preview-${width}.png`) })
   await page.keyboard.press('Escape')
+  await showRibbonItem(page, 'format.number-format-settings')
   await expect(page.getByRole('button', { name: 'Number format settings' })).toBeFocused()
   await select(page, 'A96', '95:0')
   await open(page)

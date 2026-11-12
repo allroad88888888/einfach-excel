@@ -8,6 +8,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { useLingui } from '@lingui/react/macro'
 import { REPEAT_LABELS } from './repeat-labels'
+import { RepeatIcon } from '../chrome/ribbon/history-icons'
 
 /** 与撤销／重做并排：只在存在可重复动作时可用，提示里写出动作名。 */
 export function RepeatButton() {
@@ -28,7 +29,7 @@ export function RepeatButton() {
         disabled={editing || busy || label === null}
         onClick={() => void repeat()}
       >
-        ↻
+        <RepeatIcon />
       </button>
     </RibbonItem>
   )

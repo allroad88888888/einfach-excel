@@ -15,7 +15,7 @@
 
 ## 贡献点（`SpreadsheetPlugin`，类型见 `excel/react-excel/src/plugin/types.ts`）
 
-- `ribbon`：功能区分组，排在内置分组之后，沿用内置的分类显隐。
+- `ribbon`：功能区分组，排在内置分组之后，只在声明的 `tab` 分类显示；放不下时与内置分组一样整组收进“更多”。
 - `contextMenu`：单元格右键菜单项，排在内置项（`cells.insert`、`cells.delete`）之后；一个菜单项派发一个零参数命令 atom。
 - `editorAdornments`：渲染在当前格内编辑器或公式栏内部，属于同一失焦提交范围；控件间移焦点不会提前提交。
 - `panels`：对话框与面板，挂在工作簿视图根部。

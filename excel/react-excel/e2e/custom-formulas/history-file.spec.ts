@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { button, cell, editor, register, choose, inputFormula, neighbors, download, openFile, openEditor,
   DOUBLE_ORDER_QUANTITY, expectOrderQuantitySource } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
@@ -75,6 +76,7 @@ test('invalid custom expression stays retryable and missing arguments produce na
 
 test('protected worksheet rejects custom definition mutation without changing native callers', async ({ page }) => {
   await register(page); await inputFormula(page)
+  await showRibbonItem(page, 'data.worksheet-protection')
   await button(page, 'Worksheet protection').click()
   await button(page, 'Protect worksheet').click()
   await expect(button(page, 'Unprotect worksheet')).toBeEnabled()

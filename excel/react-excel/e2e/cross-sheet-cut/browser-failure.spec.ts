@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, copy, paste, select, sheet, start } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 test('XSCUT-08 failed browser cut write leaves the source untouched and preserves the previous copy across tabs', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -14,6 +15,7 @@ test('XSCUT-08 failed browser cut write leaves the source untouched and preserve
       return Promise.reject(new DOMException('Test permission denied', 'NotAllowedError'))
     } })
   })
+  await showRibbonItem(page, 'clipboard.cut')
   await button(page, 'Cut').click()
   await expect(page.getByLabel('Clipboard status')).toContainText('permission')
   await expect(cell(page, '6:0')).toHaveText('20')

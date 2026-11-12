@@ -300,6 +300,7 @@ msgstr "Adds all the numbers in a range of cells."
 msgid "Advanced number parsing"
 msgstr "Advanced number parsing"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Alignment"
 msgstr "Alignment"
@@ -583,7 +584,7 @@ msgstr "Blocked by {0}."
 msgid "Blue"
 msgstr "Blue"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Bold"
@@ -602,7 +603,7 @@ msgid "Border settings"
 msgstr "Border settings"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Borders"
 msgstr "Borders"
@@ -643,6 +644,10 @@ msgstr "broken defined names"
 #: src/workbook/chrome/footer/SelectionStatus.tsx
 msgid "Calculating selection…"
 msgstr "Calculating selection…"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Calculation"
+msgstr "Calculation"
 
 #: src/workbook/chrome/ribbon/CalculationTools.tsx
 msgid "Calculation mode"
@@ -771,6 +776,10 @@ msgstr "Cell text"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Cell value"
 msgstr "Cell value"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Cells"
+msgstr "Cells"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Center"
@@ -989,6 +998,10 @@ msgstr "Clear the filter before cutting this range. No cells were moved."
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Clear validation"
 msgstr "Clear validation"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Clipboard"
+msgstr "Clipboard"
 
 #: src/i18n/feedback-messages.ts
 msgid "Clipboard access is unavailable."
@@ -1428,7 +1441,7 @@ msgstr "Create table needs a selection with a header row and at least one data r
 msgid "Currency"
 msgstr "Currency"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Currency format"
 msgstr "Currency format"
 
@@ -1566,6 +1579,10 @@ msgstr "Data"
 msgid "Data bar"
 msgstr "Data bar"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Data tools"
+msgstr "Data tools"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Data validation"
@@ -1608,7 +1625,7 @@ msgstr "Date — YMD"
 msgid "Date & time"
 msgstr "Date & time"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Date format"
 msgstr "Date format"
 
@@ -1632,7 +1649,7 @@ msgstr "Decimal places"
 msgid "Decimal separator"
 msgstr "Decimal separator"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Decrease decimal places"
 msgstr "Decrease decimal places"
 
@@ -1640,7 +1657,7 @@ msgstr "Decrease decimal places"
 msgid "Decrease font size"
 msgstr "Decrease font size"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/AlignmentTools.tsx
 msgid "Decrease indent"
 msgstr "Decrease indent"
 
@@ -1652,6 +1669,10 @@ msgstr "Default"
 #: src/workbook/custom-formulas/CustomFormulaTools.tsx
 msgid "Define a formula once, then call it in any sheet."
 msgstr "Define a formula once, then call it in any sheet."
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Defined names"
+msgstr "Defined names"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/drawings/DrawingContextMenu.tsx
@@ -2276,6 +2297,10 @@ msgstr "Extending series…"
 msgid "external links"
 msgstr "external links"
 
+#: src/workbook/chrome/ribbon/RibbonMore.tsx
+msgid "Fewer tools"
+msgstr "Fewer tools"
+
 #: src/workbook/chrome/ribbon/TextColumnTypes.tsx
 msgid "Field "
 msgstr "Field "
@@ -2297,6 +2322,7 @@ msgid "File"
 msgstr "File"
 
 #: src/workbook/chrome/ribbon/FillTools.tsx
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 msgid "Fill"
 msgstr "Fill"
 
@@ -2476,6 +2502,7 @@ msgid "Financial"
 msgstr "Financial"
 
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 msgid "Find"
 msgstr "Find"
 
@@ -2602,11 +2629,12 @@ msgstr "Fixed: {0}"
 msgid "Fixed: {value}"
 msgstr "Fixed: {value}"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Font"
 msgstr "Font"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Font family"
 msgstr "Font family"
@@ -2691,6 +2719,10 @@ msgstr "Formula"
 msgid "Formula arguments"
 msgstr "Formula arguments"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Formula auditing"
+msgstr "Formula auditing"
+
 #: src/workbook/chrome/ribbon/ViewOptionsTools.tsx
 msgid "Formula bar"
 msgstr "Formula bar"
@@ -2758,6 +2790,10 @@ msgstr "Function arguments"
 msgid "Function name"
 msgstr "Function name"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Functions"
+msgstr "Functions"
+
 #: src/workbook/formula/FormulaAssist.tsx
 msgid "Functions "
 msgstr "Functions "
@@ -2770,7 +2806,7 @@ msgstr "General"
 msgid "General fields"
 msgstr "General fields"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "General format"
 msgstr "General format"
 
@@ -2997,7 +3033,7 @@ msgstr "Include a source row or column and at least one destination."
 msgid "Includes hidden cells. Merged cells are selected as a whole."
 msgstr "Includes hidden cells. Merged cells are selected as a whole."
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Increase decimal places"
 msgstr "Increase decimal places"
 
@@ -3005,7 +3041,7 @@ msgstr "Increase decimal places"
 msgid "Increase font size"
 msgstr "Increase font size"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/AlignmentTools.tsx
 msgid "Increase indent"
 msgstr "Increase indent"
 
@@ -3190,7 +3226,7 @@ msgstr "Invalid rich text format."
 msgid "Invalid rich text projection request."
 msgstr "Invalid rich text projection request."
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Italic"
@@ -3300,6 +3336,10 @@ msgstr "Link address"
 #: src/i18n/feedback-messages.ts
 msgid "Linked content"
 msgstr "Linked content"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Links and notes"
+msgstr "Links and notes"
 
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "List"
@@ -3566,9 +3606,17 @@ msgstr "Minimum threshold value"
 msgid "Month names"
 msgstr "Month names"
 
+#: src/workbook/chrome/ribbon/RibbonMore.tsx
+msgid "More"
+msgstr "More"
+
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "More paste options"
 msgstr "More paste options"
+
+#: src/workbook/chrome/ribbon/RibbonMore.tsx
+msgid "More tools"
+msgstr "More tools"
 
 #: src/workbook/chrome/footer/WorkbookFooter.tsx
 msgid "Move cells error"
@@ -3870,6 +3918,7 @@ msgstr "Notes only"
 
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 msgid "Number"
 msgstr "Number"
 
@@ -4181,7 +4230,7 @@ msgstr "Pasting…"
 msgid "Percent"
 msgstr "Percent"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Percent format"
 msgstr "Percent format"
 
@@ -4269,6 +4318,10 @@ msgstr "Previous sheet"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "print settings"
 msgstr "print settings"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Protect"
+msgstr "Protect"
 
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "Protect worksheet"
@@ -4830,6 +4883,10 @@ msgstr "Row outline levels"
 msgid "rows {0}–{1}"
 msgstr "rows {0}–{1}"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Rows and columns"
+msgstr "Rows and columns"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Rule type"
 msgstr "Rule type"
@@ -5368,6 +5425,10 @@ msgstr "Shifting these cells exceeds the 32 MiB undo budget."
 msgid "Shifting these cells would remove or split conditional formatting beyond its limits."
 msgstr "Shifting these cells would remove or split conditional formatting beyond its limits."
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Show"
+msgstr "Show"
+
 #. placeholder {0}: i + 1
 #: src/workbook/grid/viewport/OutlineGutters.tsx
 msgid "Show column outline level {0}"
@@ -5443,6 +5504,10 @@ msgstr "Skip field"
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Sort"
 msgstr "Sort"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Sort and filter"
+msgstr "Sort and filter"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Sort ascending"
@@ -5585,7 +5650,7 @@ msgstr "Stop"
 msgid "Stop if true"
 msgstr "Stop if true"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Strikethrough"
@@ -5594,6 +5659,10 @@ msgstr "Strikethrough"
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Style preset"
 msgstr "Style preset"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Styles"
+msgstr "Styles"
 
 #: src/workbook/advanced-validation/ValidationErrorAlert.tsx
 msgid "Submitting input…"
@@ -5687,6 +5756,7 @@ msgid "Table totals"
 msgstr "Table totals"
 
 #: src/workbook/chrome/ribbon/NamedTableList.tsx
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Tables"
 msgstr "Tables"
@@ -6268,7 +6338,7 @@ msgstr "This worksheet is protected."
 msgid "This worksheet is protected. Unprotect it before changing locked cells."
 msgstr "This worksheet is protected. Unprotect it before changing locked cells."
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Thousands format"
 msgstr "Thousands format"
 
@@ -6394,7 +6464,7 @@ msgstr "Trim and ignore case"
 msgid "Trim whitespace"
 msgstr "Trim whitespace"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Underline"
@@ -6925,7 +6995,7 @@ msgstr "Worksheet tab"
 msgid "Worksheet tables"
 msgstr "Worksheet tables"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/AlignmentTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Wrap text"
 msgstr "Wrap text"

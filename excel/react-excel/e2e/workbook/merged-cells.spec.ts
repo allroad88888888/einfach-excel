@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const merged = (page: Page, coord = '1:1') =>
   page.locator(`[data-merged-cell][data-cell="${coord}"]`)
 const menu = (page: Page) => page.getByRole('combobox', { name: 'Merge cells', exact: true })
 async function merge(page: Page, action = 'merge') {
+  await showRibbonItem(page, 'data.merge-cells')
   await menu(page).selectOption(action)
   if (action !== 'unmerge') {
     const dialog = page.getByRole('alertdialog', { name: 'Merge these cells?' })
@@ -12,6 +14,7 @@ async function merge(page: Page, action = 'merge') {
     await dialog.getByRole('button', { name: 'Merge cells', exact: true }).click()
     await expect(dialog).toHaveCount(0)
   }
+  await showRibbonItem(page, 'data.merge-cells')
   await expect(menu(page)).toBeEnabled()
 }
 test.beforeEach(async ({ page }) => {
@@ -65,6 +68,7 @@ for (const width of [1280, 390]) test(`cancel merge keeps every selected value a
   await select(page, 'B2:C3', '1:1')
   const coords = ['1:1', '1:2', '2:1', '2:2', '1:3']
   const before = await Promise.all(coords.map(coord => page.locator(`td[data-cell="${coord}"]`).innerText()))
+  await showRibbonItem(page, 'data.merge-cells')
   await menu(page).selectOption('merge')
   await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel', exact: true }).click()
   await expect(page.getByRole('alertdialog')).toHaveCount(0)
@@ -72,6 +76,7 @@ for (const width of [1280, 390]) test(`cancel merge keeps every selected value a
   for (const [index, coord] of coords.entries())
     await expect(page.locator(`td[data-cell="${coord}"]`)).toHaveText(before[index]!)
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await showRibbonItem(page, 'data.merge-cells')
   await expect(menu(page)).toBeEnabled()
 })
 
@@ -142,7 +147,9 @@ test('merge menu and confirmation fit desktop and narrow screens', async ({ page
     await page.setViewportSize({ width, height: 800 })
   await page.goto('/e2e/fixtures/plain-sales-orders/')
     await select(page, 'B2:C3', '1:1')
+    await showRibbonItem(page, 'data.merge-cells')
     await menu(page).scrollIntoViewIfNeeded()
+    await showRibbonItem(page, 'data.merge-cells')
     await menu(page).selectOption('center')
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toBeVisible()
@@ -165,6 +172,7 @@ test('a merged cell remains editable when its anchor row and column are hidden',
 }) => {
   await select(page, 'B2:C3', '1:1')
   await merge(page)
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   const visibility = page.getByRole('combobox', { name: 'Row and column visibility' })
   await page.getByRole('button', { name: 'Select row 2', exact: true }).click()
   await visibility.selectOption('hide-rows')

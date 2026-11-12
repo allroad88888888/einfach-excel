@@ -1,11 +1,13 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const status = (page: Page) => page.getByRole('dialog').getByRole('status')
 async function open(page: Page, range = 'D32:F37', coord = '31:3') {
   await select(page, range, coord)
+  await showRibbonItem(page, 'data.remove-duplicates')
   await button(page, 'Remove duplicates').click()
   await expect(status(page)).toContainText('duplicate records;')
 }
@@ -103,6 +105,7 @@ test('empty keys and merged cells reject without mutation and remain correctable
   await expect(status(page)).toContainText('0 duplicate records;')
   await page.getByRole('dialog').press('Escape')
   await select(page, 'A15:D15', '14:0')
+  await showRibbonItem(page, 'data.remove-duplicates')
   await button(page, 'Remove duplicates').click()
   await page.getByLabel('First row contains headers').uncheck()
   await button(page, 'Update preview').click()

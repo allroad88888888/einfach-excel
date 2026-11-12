@@ -1,6 +1,7 @@
 import { expect, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { apply, button as filterButton, menu, open } from '../advanced-filter/support'
+import { showRibbonItem } from '../support/ribbon'
 
 export { select }
 export const button = filterButton
@@ -26,6 +27,7 @@ export async function focusGrid(page: Page) {
 /** 只保留 West 行：Summary 的 A25:C29 中 E10/E30 行被筛选隐藏。 */
 export async function filterWest(page: Page) {
   await select(page, 'A25:C29', '24:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('selection')
   await open(page)
   await page.getByRole('dialog', { name: 'Filter conditions', exact: true })

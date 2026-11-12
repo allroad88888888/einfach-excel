@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { copy, paste } from '../support/clipboard'
 import { button, cell, filterWest, focusGrid, nameBox, openSummary, select, selectedCells,
   status } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -41,6 +42,7 @@ test('copying visible cells only pastes the visible values at 1280px', async ({ 
 
 test('visible cells skips a hidden column and copy pastes the remaining columns at 1280px', async ({ page }) => {
   await select(page, 'B25', '24:1')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-columns')
   await expect(cell(page, 24, 1)).toHaveCount(0)
   await select(page, 'A25:C26', '24:0')
@@ -52,6 +54,7 @@ test('visible cells skips a hidden column and copy pastes the remaining columns 
   await select(page, 'A60', '59:0')
   await paste(page)
   // 隐藏的 B 列没有进入剪贴板：C 列内容紧挨 A 列落在 B60，C60 保持空白。
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await expect(cell(page, 59, 0)).toHaveText('Team')
   await expect(cell(page, 60, 1)).toHaveText('W20')
@@ -61,6 +64,7 @@ test('visible cells skips a hidden column and copy pastes the remaining columns 
 test('Go to special Visible cells only selects the visible blocks and closes the dialog at 1280px', async ({ page }) => {
   await filterWest(page)
   await select(page, 'A25:C29', '24:0')
+  await showRibbonItem(page, 'view.go-to-special')
   await button(page, 'Go to special').click()
   const dialog = page.getByRole('dialog', { name: 'Go to special' })
   await dialog.getByRole('button', { name: 'Visible cells only', exact: true }).click()

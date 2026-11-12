@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select, copy, paste, pasteOption } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ context, page }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -12,6 +13,7 @@ test('formulas only shifts references without copying source fonts or replacing 
 }) => {
   const target = await select(page, 'G3', '2:6')
   const font = await target.evaluate((element) => getComputedStyle(element).fontFamily)
+  await showRibbonItem(page, 'format.currency-format')
   await page.getByRole('button', { name: 'Currency format', exact: true }).click()
   await expect(target).toContainText('$')
   const display = await target.textContent()
@@ -41,6 +43,7 @@ test('formulas and number formats replaces only number formatting and retains a 
 }) => {
   const target = await select(page, 'G10', '9:6')
   const originalDisplay = await target.innerText()
+  await showRibbonItem(page, 'format.bold')
   await page.getByRole('button', { name: 'Bold', exact: true }).click()
   await expect(target).toHaveCSS('font-weight', '700')
   await select(page, 'G9', '8:6')
@@ -86,6 +89,7 @@ test('values and number formats keeps precision and destination italic without s
   await page.getByRole('button', { name: 'Redo', exact: true }).click()
   await expect(target).toHaveText('$125')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('125.02')
+  await showRibbonItem(page, 'clear.formats')
   await page.getByRole('button', { name: 'Clear formatting', exact: true }).click()
   await expect(target).toHaveText('125.02')
 })
@@ -130,6 +134,7 @@ test('external formulas keep their references but cannot provide source number f
   await pasteOption(page, 'formulas')
   await expect(target).toHaveText('79')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('=E2*F2')
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   const menu = page.getByRole('combobox', { name: 'More paste options' })
   for (const mode of ['formulas-number-formats', 'values-number-formats']) {
     await menu.selectOption(mode)
@@ -144,6 +149,7 @@ test('cut rejects all three modes without consuming the source snapshot', async 
   await select(page, 'A2', '1:0')
   await copy(page, 'Cut')
   const target = await select(page, 'A10', '9:0')
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   const menu = page.getByRole('combobox', { name: 'More paste options' })
   for (const mode of ['formulas', 'formulas-number-formats', 'values-number-formats']) {
     await menu.selectOption(mode)
@@ -171,9 +177,11 @@ test('the three options use the existing compact menu on desktop and narrow scre
   await expect(target).toHaveText('$125')
   await page.screenshot({ path: info.outputPath('formula-paste-desktop.png') })
   await page.setViewportSize({ width: 390, height: 844 })
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   const menu = page.getByRole('combobox', { name: 'More paste options' })
   await menu.scrollIntoViewIfNeeded()
   await pasteOption(page, 'values-number-formats')
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   await expect(menu).toHaveValue('')
   await expect(menu).toBeInViewport()
   expect(

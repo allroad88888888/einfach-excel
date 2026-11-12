@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { start, open, save, highlighted, cleanNeighbor, go, valueInput, button, dialog } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) {
   test(`AFMT-001 toolbar wildcard match preserves Unicode and escapes at ${width}px`, async ({ page }) => {
@@ -31,6 +32,7 @@ for (const width of [1280]) {
     await page.getByLabel('Matching text', { exact: true }).fill('b*')
     await page.keyboard.press('Escape')
     await expect(dialog(page)).toHaveCount(0)
+    await showRibbonItem(page, 'format.conditional-formatting')
     await expect(button(page, 'Conditional formatting')).toBeFocused()
     await highlighted(page, 0); await cleanNeighbor(page)
   })

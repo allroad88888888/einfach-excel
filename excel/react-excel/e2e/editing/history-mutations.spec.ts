@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -20,6 +21,7 @@ test('clear-all is one undo step restoring raw values, formula sources and forma
   page,
 }) => {
   await button(page, 'Select row 2').click()
+  await showRibbonItem(page, 'clear.all')
   await button(page, 'Clear all').click()
   await expect(cell(page, '1:0')).toHaveText('')
   await expect(cell(page, '1:0')).toHaveCSS('font-weight', '400')
@@ -38,12 +40,15 @@ test('row formatting undo restores crossing column style without changing anothe
   page,
 }) => {
   await page.getByRole('columnheader', { name: 'Select column B', exact: true }).click()
+  await showRibbonItem(page, 'format.bold')
   await button(page, 'Bold').click()
   await expect(cell(page, '2:1')).toHaveCSS('font-weight', '700')
   await button(page, 'Select row 3').click()
   // 行范围从 A3 的非粗体开始；先统一开粗体，再关粗体。
+  await showRibbonItem(page, 'format.bold')
   await button(page, 'Bold').click()
   await expect(cell(page, '2:0')).toHaveCSS('font-weight', '700')
+  await showRibbonItem(page, 'format.bold')
   await button(page, 'Bold').click()
   await expect(cell(page, '2:1')).toHaveCSS('font-weight', '400')
   await button(page, 'Undo').click()
@@ -62,6 +67,7 @@ test('reset-size undo restores Summary initial dimensions and aligned headers', 
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await expect(cell(page, '0:0')).toHaveText('First order total')
   await select(page, 'A1', '0:0')
+  await showRibbonItem(page, 'view.row-and-column-size')
   await button(page, 'Row and column size').click()
   await button(page, 'Reset selected sizes').click()
   await expect(page.getByRole('dialog')).toHaveCount(0)

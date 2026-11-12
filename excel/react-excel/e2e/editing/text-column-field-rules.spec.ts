@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) for (const action of ['Skip field', 'Field number', 'Reset rules'])
   test(`${action} keeps source field numbering and one native split at ${width}px`, async ({ page }) => {
@@ -10,6 +11,7 @@ for (const width of [1280]) for (const action of ['Skip field', 'Field number', 
     await expect(cell('1:0')).toHaveText('SO-10001')
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
     await select(page, 'E95', '94:4')
+    await showRibbonItem(page, 'data.text-to-columns')
     await button('Text to columns').click()
     const dialog = page.getByRole('dialog', { name: 'Text to columns', exact: true })
     await dialog.getByRole('textbox', { name: 'Destination cell', exact: true }).fill('A95')

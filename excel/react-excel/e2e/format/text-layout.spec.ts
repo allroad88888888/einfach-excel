@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 async function selectTestCell(page: Page) {
   await page.goto('/')
@@ -10,6 +11,7 @@ async function selectTestCell(page: Page) {
 
 test('font family is written through Rust and reflected by the ribbon', async ({ page }) => {
   const cell = await selectTestCell(page)
+  await showRibbonItem(page, 'format.font-family')
   const fontFamily = page.getByRole('combobox', { name: 'Font family' })
 
   await fontFamily.selectOption('Georgia')
@@ -19,6 +21,7 @@ test('font family is written through Rust and reflected by the ribbon', async ({
 
 test('font size is written through Rust and reflected by the ribbon', async ({ page }) => {
   const cell = await selectTestCell(page)
+  await showRibbonItem(page, 'format.font-size')
   const fontSize = page.getByRole('combobox', { name: 'Font size' })
 
   await expect(fontSize).toHaveCSS('width', '56px')
@@ -33,6 +36,7 @@ test('a 36px cell font grows only its own row', async ({ page }) => {
   const nextRow = page.locator('td[data-cell="3:1"]')
   const nextRowBefore = await nextRow.boundingBox()
 
+  await showRibbonItem(page, 'format.font-size')
   await page.getByRole('combobox', { name: 'Font size' }).selectOption('36')
   await expect(cell).toHaveCSS('font-size', '36px')
   await expect.poll(async () => (await cell.boundingBox())?.height).toBeGreaterThan(36)
@@ -48,6 +52,7 @@ test('a 36px cell font grows only its own row', async ({ page }) => {
 
 test('wrap text toggles the selected Rust cell style', async ({ page }) => {
   const cell = await selectTestCell(page)
+  await showRibbonItem(page, 'format.wrap-text')
   const wrap = page.getByRole('button', { name: 'Wrap text' })
 
   await wrap.click()
@@ -60,7 +65,9 @@ test('wrap text toggles the selected Rust cell style', async ({ page }) => {
 
 test('indent can increase and decrease through Rust', async ({ page }) => {
   const cell = await selectTestCell(page)
+  await showRibbonItem(page, 'format.increase-indent')
   const increase = page.getByRole('button', { name: 'Increase indent' })
+  await showRibbonItem(page, 'format.decrease-indent')
   const decrease = page.getByRole('button', { name: 'Decrease indent' })
 
   await increase.click()
@@ -88,6 +95,7 @@ for (const width of [1280, 390]) test(`increase indent preserves text and undoes
   await page.setViewportSize({ width, height: 850 })
   const target = await selectTestCell(page)
   await expect(target).toHaveCSS('padding-left', '7px')
+  await showRibbonItem(page, 'format.increase-indent')
   await page.getByRole('button', { name: 'Increase indent', exact: true }).click()
   await expect(target).toHaveCSS('padding-left', '8px')
   await expect(target).toHaveText('Northwind')
@@ -108,6 +116,7 @@ for (const width of [1280, 390]) test(`decrease indent uses the seeded value and
   const target = page.locator('td[data-cell="1:13"]')
   const before = await target.innerText()
   await expect(target).toHaveCSS('padding-left', '16px')
+  await showRibbonItem(page, 'format.decrease-indent')
   await page.getByRole('button', { name: 'Decrease indent', exact: true }).click()
   await expect(target).toHaveCSS('padding-left', '8px')
   await expect(target).toHaveText(before)

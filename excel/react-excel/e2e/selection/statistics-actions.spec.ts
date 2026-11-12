@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '../support/input-stall-fixture'
+import { showRibbonItem } from '../support/ribbon'
 
 const statistics = (page: Page) => page.getByRole('status', { name: 'Selection statistics' })
 const settings = (page: Page) => page.getByRole('button', { name: 'Selection statistics settings' })
@@ -76,6 +77,7 @@ test('copies full precision to the real system clipboard and pastes as a scalar'
   await expect(page.getByLabel('Statistic copy status')).toHaveText('Copied Sum.')
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('0.3333333333333333')
   await select(page, 'B95')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(cell(page, '94:1')).toContainText('0.333333')
   await select(page, 'B95')
@@ -92,6 +94,7 @@ test('copies full precision to the real system clipboard and pastes as a scalar'
 
 test('copying a statistic never creates a cut token or clears the source on paste', async ({ page }) => {
   await select(page, 'A93')
+  await showRibbonItem(page, 'clipboard.cut')
   await page.getByRole('button', { name: 'Cut', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('ready to move')
   await statistics(page).getByRole('button', { name: 'Copy Sum' }).click()
@@ -100,6 +103,7 @@ test('copying a statistic never creates a cut token or clears the source on past
     (await navigator.clipboard.read()).map((item) => item.types))
   expect(items).toEqual([['text/plain']])
   await select(page, 'A95')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(cell(page, '94:0')).toHaveText('10')
   await expect(cell(page, '92:0')).toHaveText('10')

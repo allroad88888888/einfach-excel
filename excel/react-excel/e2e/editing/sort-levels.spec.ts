@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -13,6 +14,7 @@ async function expectRecords(page: Page, values: readonly string[]) {
 async function applyAndUndoOnce(page: Page, values: readonly string[]) {
   await button(page, 'Apply sort').click(); await expect(page.getByRole('dialog')).toHaveCount(0)
   await expectRecords(page, values)
+  await showRibbonItem(page, 'data.sort-selected-range')
   await expect(page.getByRole('combobox', { name: 'Sort selected range' })).toBeFocused()
   await button(page, 'Undo').click(); await expectRecords(page, original)
   await expect(button(page, 'Undo')).toBeDisabled()
@@ -27,6 +29,7 @@ for (const width of [1280]) test.describe(`${width}px sort levels`, () => {
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
     await select(page, 'A25:C29', '24:0')
     await expectRecords(page, original)
+    await showRibbonItem(page, 'data.sort-selected-range')
     await page.getByRole('combobox', { name: 'Sort selected range' }).selectOption('custom')
     await page.getByLabel('First row is a header').check()
   })

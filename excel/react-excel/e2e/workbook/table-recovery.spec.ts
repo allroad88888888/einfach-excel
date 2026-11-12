@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280])
   test(`overlapping table corrects in the same panel before one native creation at ${width}px`, async ({ page }) => {
@@ -16,6 +17,7 @@ for (const width of [1280])
     await expect(cell('93:7')).toHaveText('old table redo')
     await button('Undo').click()
     await select(page, 'C75', '74:2')
+    await showRibbonItem(page, 'insert.tables')
     await button('Tables').click()
     const dialog = page.getByRole('dialog', { name: 'Tables', exact: true })
     const name = dialog.getByRole('textbox', { name: 'Table name', exact: true })
@@ -32,12 +34,14 @@ for (const width of [1280])
     await button('Create table').click()
     await expect(dialog).toHaveCount(0)
     await expect(button('Redo')).toBeDisabled()
+    await showRibbonItem(page, 'insert.tables')
     await button('Tables').click()
     await expect(button('Edit table CreatedAfterReject')).toContainText('D32:F37')
     await expect(button('Edit table DemoTable')).toBeVisible()
     await button('Cancel').click()
     await button('Undo').click()
     await expect(button('Undo')).toBeDisabled()
+    await showRibbonItem(page, 'insert.tables')
     await button('Tables').click()
     await expect(button('Edit table CreatedAfterReject')).toHaveCount(0)
     await expect(button('Edit table DemoTable')).toBeVisible()

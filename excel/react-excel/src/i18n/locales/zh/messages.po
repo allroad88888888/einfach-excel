@@ -300,6 +300,7 @@ msgstr "计算单元格区域内所有数字之和。"
 msgid "Advanced number parsing"
 msgstr "高级数字解析"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Alignment"
 msgstr "对齐方式"
@@ -583,7 +584,7 @@ msgstr "被 {0} 阻挡。"
 msgid "Blue"
 msgstr "蓝色"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Bold"
@@ -602,7 +603,7 @@ msgid "Border settings"
 msgstr "边框设置"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Borders"
 msgstr "边框"
@@ -643,6 +644,10 @@ msgstr "失效的名称定义"
 #: src/workbook/chrome/footer/SelectionStatus.tsx
 msgid "Calculating selection…"
 msgstr "正在计算选区…"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Calculation"
+msgstr "计算"
 
 #: src/workbook/chrome/ribbon/CalculationTools.tsx
 msgid "Calculation mode"
@@ -771,6 +776,10 @@ msgstr "单元格文字"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Cell value"
 msgstr "单元格值"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Cells"
+msgstr "单元格"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Center"
@@ -989,6 +998,10 @@ msgstr "请先清除筛选再剪切此区域，未移动任何单元格。"
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Clear validation"
 msgstr "清除数据验证"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Clipboard"
+msgstr "剪贴板"
 
 #: src/i18n/feedback-messages.ts
 msgid "Clipboard access is unavailable."
@@ -1428,7 +1441,7 @@ msgstr "创建表格的选区需包含表头和至少一行数据。"
 msgid "Currency"
 msgstr "货币"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Currency format"
 msgstr "货币格式"
 
@@ -1566,6 +1579,10 @@ msgstr "数据"
 msgid "Data bar"
 msgstr "数据条"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Data tools"
+msgstr "数据工具"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Data validation"
@@ -1608,7 +1625,7 @@ msgstr "日期 — 年月日"
 msgid "Date & time"
 msgstr "日期与时间"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Date format"
 msgstr "日期格式"
 
@@ -1632,7 +1649,7 @@ msgstr "小数位数"
 msgid "Decimal separator"
 msgstr "小数分隔符"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Decrease decimal places"
 msgstr "减少小数位数"
 
@@ -1640,7 +1657,7 @@ msgstr "减少小数位数"
 msgid "Decrease font size"
 msgstr "减小字号"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/AlignmentTools.tsx
 msgid "Decrease indent"
 msgstr "减少缩进"
 
@@ -1652,6 +1669,10 @@ msgstr "默认"
 #: src/workbook/custom-formulas/CustomFormulaTools.tsx
 msgid "Define a formula once, then call it in any sheet."
 msgstr "定义一次公式，即可在任意工作表中调用。"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Defined names"
+msgstr "定义的名称"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/drawings/DrawingContextMenu.tsx
@@ -2276,6 +2297,10 @@ msgstr "正在扩展序列…"
 msgid "external links"
 msgstr "外部链接"
 
+#: src/workbook/chrome/ribbon/RibbonMore.tsx
+msgid "Fewer tools"
+msgstr "收起工具"
+
 #: src/workbook/chrome/ribbon/TextColumnTypes.tsx
 msgid "Field "
 msgstr "字段"
@@ -2297,6 +2322,7 @@ msgid "File"
 msgstr "文件"
 
 #: src/workbook/chrome/ribbon/FillTools.tsx
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 msgid "Fill"
 msgstr "填充"
 
@@ -2476,6 +2502,7 @@ msgid "Financial"
 msgstr "财务"
 
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 msgid "Find"
 msgstr "查找"
 
@@ -2602,11 +2629,12 @@ msgstr "固定：{0}"
 msgid "Fixed: {value}"
 msgstr "固定：{value}"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Font"
 msgstr "字体"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Font family"
 msgstr "字体"
@@ -2691,6 +2719,10 @@ msgstr "公式"
 msgid "Formula arguments"
 msgstr "公式参数"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Formula auditing"
+msgstr "公式审核"
+
 #: src/workbook/chrome/ribbon/ViewOptionsTools.tsx
 msgid "Formula bar"
 msgstr "公式栏"
@@ -2758,6 +2790,10 @@ msgstr "函数参数"
 msgid "Function name"
 msgstr "函数名称"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Functions"
+msgstr "函数"
+
 #: src/workbook/formula/FormulaAssist.tsx
 msgid "Functions "
 msgstr "函数"
@@ -2770,7 +2806,7 @@ msgstr "常规"
 msgid "General fields"
 msgstr "常规字段"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "General format"
 msgstr "常规格式"
 
@@ -2997,7 +3033,7 @@ msgstr "请选择来源行或列，并至少包含一个目标单元格。"
 msgid "Includes hidden cells. Merged cells are selected as a whole."
 msgstr "包含隐藏单元格，合并单元格按整体选中。"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Increase decimal places"
 msgstr "增加小数位数"
 
@@ -3005,7 +3041,7 @@ msgstr "增加小数位数"
 msgid "Increase font size"
 msgstr "增大字号"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/AlignmentTools.tsx
 msgid "Increase indent"
 msgstr "增加缩进"
 
@@ -3190,7 +3226,7 @@ msgstr "富文本样式无效。"
 msgid "Invalid rich text projection request."
 msgstr "富文本显示请求无效。"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Italic"
@@ -3300,6 +3336,10 @@ msgstr "链接地址"
 #: src/i18n/feedback-messages.ts
 msgid "Linked content"
 msgstr "链接内容"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Links and notes"
+msgstr "链接与备注"
 
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "List"
@@ -3566,9 +3606,17 @@ msgstr "最小阈值数值"
 msgid "Month names"
 msgstr "月份名称"
 
+#: src/workbook/chrome/ribbon/RibbonMore.tsx
+msgid "More"
+msgstr "更多"
+
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "More paste options"
 msgstr "更多粘贴选项"
+
+#: src/workbook/chrome/ribbon/RibbonMore.tsx
+msgid "More tools"
+msgstr "更多工具"
 
 #: src/workbook/chrome/footer/WorkbookFooter.tsx
 msgid "Move cells error"
@@ -3870,6 +3918,7 @@ msgstr "仅备注"
 
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 msgid "Number"
 msgstr "数字"
 
@@ -4181,7 +4230,7 @@ msgstr "正在粘贴…"
 msgid "Percent"
 msgstr "百分比"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Percent format"
 msgstr "百分比格式"
 
@@ -4269,6 +4318,10 @@ msgstr "上一张工作表"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "print settings"
 msgstr "打印设置"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Protect"
+msgstr "保护"
 
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "Protect worksheet"
@@ -4830,6 +4883,10 @@ msgstr "行分组级别"
 msgid "rows {0}–{1}"
 msgstr "第 {0}–{1} 行"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Rows and columns"
+msgstr "行和列"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Rule type"
 msgstr "规则类型"
@@ -5368,6 +5425,10 @@ msgstr "移动这些单元格超出 32 MiB 撤销预算。"
 msgid "Shifting these cells would remove or split conditional formatting beyond its limits."
 msgstr "移动这些单元格会删除条件格式区域，或使其拆分超出限制。"
 
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Show"
+msgstr "显示"
+
 #. placeholder {0}: i + 1
 #: src/workbook/grid/viewport/OutlineGutters.tsx
 msgid "Show column outline level {0}"
@@ -5443,6 +5504,10 @@ msgstr "跳过字段"
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Sort"
 msgstr "排序"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Sort and filter"
+msgstr "排序和筛选"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Sort ascending"
@@ -5585,7 +5650,7 @@ msgstr "停止"
 msgid "Stop if true"
 msgstr "为真则停止"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Strikethrough"
@@ -5594,6 +5659,10 @@ msgstr "删除线"
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Style preset"
 msgstr "预设样式"
+
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
+msgid "Styles"
+msgstr "样式"
 
 #: src/workbook/advanced-validation/ValidationErrorAlert.tsx
 msgid "Submitting input…"
@@ -5687,6 +5756,7 @@ msgid "Table totals"
 msgstr "表格汇总"
 
 #: src/workbook/chrome/ribbon/NamedTableList.tsx
+#: src/workbook/chrome/ribbon/ribbon-groups.tsx
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Tables"
 msgstr "表格"
@@ -6268,7 +6338,7 @@ msgstr "此工作表已受保护。"
 msgid "This worksheet is protected. Unprotect it before changing locked cells."
 msgstr "此工作表已受保护，请先取消保护再更改锁定单元格。"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "Thousands format"
 msgstr "千位分隔格式"
 
@@ -6394,7 +6464,7 @@ msgstr "去除首尾空白并忽略大小写"
 msgid "Trim whitespace"
 msgstr "去除首尾空白"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Underline"
@@ -6925,7 +6995,7 @@ msgstr "工作表标签"
 msgid "Worksheet tables"
 msgstr "工作表表格"
 
-#: src/workbook/chrome/ribbon/CellFormatTools.tsx
+#: src/workbook/chrome/ribbon/AlignmentTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Wrap text"
 msgstr "自动换行"

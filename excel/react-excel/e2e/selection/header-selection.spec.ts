@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, row: number, col: number) => page.locator(`td[data-cell="${row}:${col}"]`)
 
@@ -12,6 +13,7 @@ test('row headers select full rows and Shift click extends the selection', async
     .getByRole('button', { name: 'Select row 5', exact: true })
     .click({ modifiers: ['Shift'] })
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A3:P5')
+  await showRibbonItem(page, 'format.fill-color')
   await page.getByRole('button', { name: 'Fill color', exact: true }).click()
   await expect(cell(page, 2, 0)).toHaveCSS('background-color', 'rgb(255, 242, 204)')
   await expect(cell(page, 4, 0)).toHaveCSS('background-color', 'rgb(255, 242, 204)')
@@ -25,6 +27,7 @@ test('column style reaches the last row and later row/column formatting wins at 
   await expect(cell(page, 2, 0)).toBeVisible()
   const row = page.getByRole('button', { name: 'Select row 3', exact: true })
   const column = page.getByRole('columnheader', { name: 'Select column B' })
+  await showRibbonItem(page, 'format.bold')
   const bold = page.getByRole('button', { name: 'Bold', exact: true })
   await row.click()
   await bold.click()
@@ -65,6 +68,7 @@ test('the corner selects and formats the full sheet including cells outside the 
   await expect(corner).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A1:P1001')
   await expect(page.getByText('Selected: 16016', { exact: true })).toBeVisible()
+  await showRibbonItem(page, 'format.italic')
   await page.getByRole('button', { name: 'Italic', exact: true }).click()
   await expect(cell(page, 0, 0)).toHaveCSS('font-style', 'italic')
   await page.getByTestId('sheet-scroll').evaluate((element) => {

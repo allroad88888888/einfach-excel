@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -54,6 +55,7 @@ for (const width of [1280]) {
   test(`Recent operations lists native addresses and undone records without changing history at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
     await select(page, 'B3', '2:1')
+    await showRibbonItem(page, 'format.bold')
     await button(page, 'Bold').click()
     await expect(cell(page, '2:1')).toHaveCSS('font-weight', '700')
     await button(page, 'Undo').click()

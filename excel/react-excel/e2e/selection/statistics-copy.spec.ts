@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const values = [{ label: 'Count', value: '6' }, { label: 'Numerical count', value: '4' },
@@ -26,6 +27,7 @@ for (const { label, value } of values) for (const width of [1280])
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A93:F93')
     await select(page, 'H94', '93:7')
+    await showRibbonItem(page, 'clipboard.paste')
     await page.getByRole('button', { name: 'Paste', exact: true }).click()
     await expect(cell(page, '93:7')).toHaveText(value)
     await expect(cell(page, '92:0')).toHaveText('10')

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 import { cell, controlledJson, formula, openAsyncDemo, write } from '../async-formulas/fixtures'
 
 for (const width of [1280, 390]) for (const locale of ['en', 'zh'] as const) {
@@ -25,6 +26,7 @@ for (const width of [1280, 390]) for (const locale of ['en', 'zh'] as const) {
     await expect(cell(page, '2:1')).toHaveText('7')
     await expect(cell(page, '2:2')).toHaveText('14')
     await expect(bar).toHaveValue(source)
+    await showRibbonItem(page, 'calculation.recalculate')
     await expect(page.getByRole('combobox', {
       name: locale === 'zh' ? '重新计算' : 'Recalculate', exact: true,
     })).toBeVisible()

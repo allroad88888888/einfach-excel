@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { bar, button, calculate, cell, controlledJson, formula, neighbors, openAsyncDemo, write } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => openAsyncDemo(page))
 
@@ -16,6 +17,7 @@ test('enter FETCHJSON through the formula bar and settle real HTTP with native d
   await write(page, 'B14', '13:1', formula('primary', '/price'))
   await expect(cell(page, '13:1')).toHaveText('7')
   expect(http.requests).toHaveLength(1)
+  await showRibbonItem(page, 'calculation.recalculate')
   await calculate(page).selectOption('workbook')
   await expect(cell(page, '13:1')).toHaveText('7')
   expect(http.requests).toHaveLength(1)
@@ -31,6 +33,7 @@ test('retry a failed FETCHJSON with the existing Recalculate control', async ({ 
   })
   await write(page, 'B12', '11:1', formula('retry'))
   await expect(cell(page, '11:1')).toHaveText('#N/A')
+  await showRibbonItem(page, 'calculation.recalculate')
   await calculate(page).selectOption('sheet')
   await expect(cell(page, '11:1')).toHaveText('9')
   expect(requests).toBe(2)
@@ -63,6 +66,7 @@ test('actual JSON arrays spill through Rust and update cross-sheet formulas', as
 test('settlement on a protected worksheet computes existing formulas without changing their source', async ({ page }) => {
   const http = await controlledJson(page, 'protected')
   await write(page, 'B12', '11:1', formula('protected'))
+  await showRibbonItem(page, 'data.worksheet-protection')
   await button(page, 'Worksheet protection').click()
   await button(page, 'Protect worksheet').click()
   await button(page, 'Close').click()

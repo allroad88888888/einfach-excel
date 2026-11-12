@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem, showRibbonControl } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -6,6 +7,7 @@ async function selectConstants(page: Page) {
   const name = page.getByRole('textbox', { name: 'Name box' })
   await name.fill('A93:H94')
   await name.press('Enter')
+  await showRibbonItem(page, 'view.go-to-special')
   await button(page, 'Go to special').click()
   await button(page, 'Constants').click()
   await expect(page.getByRole('dialog', { name: 'Go to special' })).toBeHidden()
@@ -29,6 +31,7 @@ for (const [name, property, value] of [
   const originals = await Promise.all(['92:0', '92:4', '93:0', '92:3'].map((coord) =>
     cell(page, coord).evaluate((node, css) =>
       getComputedStyle(node).getPropertyValue(css), property)))
+  await showRibbonControl(page, name)
   await button(page, name).click()
   for (const coord of ['92:0', '92:4', '93:0']) await expect(cell(page, coord)).toHaveCSS(property, value)
   await expect(cell(page, '92:3')).toHaveCSS(property, originals[3])
@@ -43,6 +46,7 @@ for (const [name, property, value] of [
 })
 
 test('number format changes numeric displays in all areas without changing text, booleans or gap formulas', async ({ page }) => {
+  await showRibbonItem(page, 'format.percent-format')
   await button(page, 'Percent format').click()
   await expect(cell(page, '92:0')).toHaveText('1000%')
   await expect(cell(page, '92:7')).toHaveText('25%')
@@ -60,6 +64,7 @@ test('number format changes numeric displays in all areas without changing text,
 test('multi-area font size changes only selected rows and restores their geometry with one undo', async ({ page }) => {
   const before = (await cell(page, '92:0').boundingBox())!.height
   const nextRow = (await cell(page, '94:0').boundingBox())!.height
+  await showRibbonItem(page, 'format.font-size')
   await page.getByRole('combobox', { name: 'Font size', exact: true }).selectOption('36')
   await expect(cell(page, '92:0')).toHaveCSS('font-size', '36px')
   await expect(cell(page, '93:0')).toHaveCSS('font-size', '36px')
@@ -94,6 +99,7 @@ test('an invalid later area rejects the entire native format and the same dialog
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await selectConstants(page)
+  await showRibbonItem(page, 'format.number-format-settings')
   await button(page, 'Number format settings').click()
   await page.getByRole('combobox', { name: 'Number format category' }).selectOption('percent')
   await button(page, 'Apply number format').click()
@@ -113,6 +119,7 @@ for (const width of [1280, 390]) test(`number settings apply across areas and pr
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.setViewportSize({ width, height: 850 })
+  await showRibbonItem(page, 'format.number-format-settings')
   await button(page, 'Number format settings').focus()
   await page.keyboard.press('Enter')
   const dialog = page.getByRole('dialog', { name: 'Number format', exact: true })

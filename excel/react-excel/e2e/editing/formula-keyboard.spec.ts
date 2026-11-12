@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
@@ -66,6 +67,7 @@ test('F2 switches actual DOM caret movement and resumes the existing reference w
 })
 
 test('keyboard references skip real hidden rows and columns', async ({ page }) => {
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   const menu = page.getByRole('combobox', { name: 'Row and column visibility' })
   await select(page, 'A3', '2:0')
   await menu.selectOption('hide-rows')
@@ -87,6 +89,7 @@ test('merged cells are one reference stop and the next arrow exits the whole mer
   page,
 }) => {
   await select(page, 'B2:C3', '1:1')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await page
     .getByRole('alertdialog')
@@ -110,6 +113,7 @@ for (const width of [1280, 390]) {
     page,
   }, info) => {
     await page.setViewportSize({ width, height: 800 })
+    await showRibbonItem(page, 'view.freeze-panes')
     await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('first-row')
     await select(page, 'B2', '1:1')
     const input = page.getByRole('textbox', { name: 'Active cell value', exact: true })

@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function open(page: Page) {
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click()
   return page.getByRole('dialog', { name: 'Name manager' })
 }
@@ -94,6 +96,7 @@ for (const width of [1280, 390]) test(`name manager fits ${width}px and traps ke
   await page.screenshot({ path: info.outputPath(`named-ranges-${width}.png`) })
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
+  await showRibbonItem(page, 'formula.name-manager')
   await expect(button(page, 'Name manager')).toBeFocused()
   expect(errors).toEqual([])
 })
@@ -116,6 +119,7 @@ test('seed names are native definitions, update their formulas and start without
 test('deleting a source range retains its broken name for repair and undo', async ({ page }) => {
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'C65:C67', '64:2')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' })
     .selectOption('delete-rows')
   await open(page); await button(page, 'Edit SampleAmounts').click()

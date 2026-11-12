@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
@@ -10,6 +11,7 @@ for (const width of [1280]) for (const direction of ['down', 'right'])
     await expect(cell(page, '1:0')).toHaveText('SO-10001')
     if (direction === 'down') await page.getByRole('tab', { name: 'Summary', exact: true }).click()
     await select(page, direction === 'down' ? 'A40:A44' : 'E4:H4', direction === 'down' ? '39:0' : '3:4')
+    await showRibbonItem(page, 'data.fill-series')
     await page.getByRole('button', { name: 'Fill series', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Fill series', exact: true })
     const menu = dialog.getByRole('combobox', { name: 'Direction', exact: true })

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 // 尺寸弹窗的放弃草稿入口不能改变尺寸、值、样式或既有重做记录。
 for (const width of [1280]) for (const cancel of ['Cancel', 'Escape'] as const)
@@ -16,6 +17,7 @@ for (const width of [1280]) for (const cancel of ['Cancel', 'Escape'] as const)
     await expect(page.locator('td[data-cell="1:7"]')).toHaveText('Keep size redo')
     await undo.click()
     await select(page, 'B2', '1:1')
+    await showRibbonItem(page, 'view.row-and-column-size')
     const opener = page.getByRole('button', { name: 'Row and column size', exact: true })
     await opener.click()
     const dialog = page.getByRole('dialog', { name: 'Row and column size', exact: true })

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 
@@ -32,6 +33,7 @@ for (const width of [1280]) {
     await copy(page)
     const sourceValue = await (await select(page, 'B2', '1:1')).innerText()
     await denyOnce(page, 'write')
+    await showRibbonItem(page, 'clipboard.cut')
     await button(page, 'Cut').click()
     await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('permission')
     await expect(button(page, 'Undo')).toBeDisabled()
@@ -66,6 +68,7 @@ for (const width of [1280]) {
     await select(page, 'A4', '3:0')
     await page.evaluate(() => navigator.clipboard.writeText('recovered'))
     await denyOnce(page, 'read')
+    await showRibbonItem(page, 'clipboard.paste')
     await button(page, 'Paste').click()
     await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('permission')
     await expect(target).toHaveText(original)

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) {
   test(`spill details and reopened dialog follow UI language at ${width}px`, async ({ page }) => {
@@ -8,6 +9,7 @@ for (const width of [1280]) {
     await page.goto('/?locale=zh')
     await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
     await page.getByRole('tab', { name: '公式', exact: true }).click()
+    await showRibbonItem(page, 'formula.spill-details')
     await page.getByRole('button', { name: '溢出详情', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: '溢出详情' })
     await expect(dialog).toContainText('此单元格不属于溢出数组。')
@@ -18,6 +20,7 @@ for (const width of [1280]) {
     await page.screenshot({ path: test.info().outputPath(`spill-zh-${width}.png`) })
     await dialog.getByRole('button', { name: '关闭', exact: true }).click()
     await page.getByRole('combobox', { name: '界面语言' }).selectOption('en')
+    await showRibbonItem(page, 'formula.spill-details')
     await page.getByRole('button', { name: 'Spill details', exact: true }).click()
     await expect(page.getByRole('dialog')).toContainText('This cell is not part of a spilled array.')
     await page.keyboard.press('Escape')

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function select(page: Page, address: string) {
@@ -8,6 +9,7 @@ async function select(page: Page, address: string) {
   await expect(name).toHaveValue(address)
 }
 async function open(page: Page) {
+  await showRibbonItem(page, 'view.row-and-column-size')
   await page.getByRole('button', { name: 'Row and column size', exact: true }).click()
   await expect(page.getByRole('dialog')).toBeVisible()
 }
@@ -93,8 +95,11 @@ test('reset restores defaults only for selected rows and columns', async ({ page
 
 test('manual small row clips large text instead of breaking grid geometry', async ({ page }) => {
   await select(page, 'B3')
+  await showRibbonItem(page, 'format.font-size')
   await page.getByRole('combobox', { name: 'Font size' }).selectOption('36')
+  await showRibbonItem(page, 'format.borders')
   await page.getByRole('button', { name: 'Borders', exact: true }).click()
+  await showRibbonItem(page, 'format.text-rotation')
   await page.getByRole('combobox', { name: 'Text rotation', exact: true }).selectOption('45')
   await size(page, 'row', 16)
   await expect.poll(async () => (await cell(page, '2:1').boundingBox())?.height).toBe(16)
@@ -159,6 +164,7 @@ test('size dialog is usable at desktop and narrow widths and Escape cancels', as
     await page.screenshot({ path: info.outputPath(`selection-sizes-${width}.png`) })
     await page.keyboard.press('Escape')
     await expect(page.getByRole('dialog')).toHaveCount(0)
+    await showRibbonItem(page, 'view.row-and-column-size')
     await expect(
       page.getByRole('button', { name: 'Row and column size', exact: true }),
     ).toBeFocused()

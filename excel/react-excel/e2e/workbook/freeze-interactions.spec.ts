@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
@@ -40,14 +41,17 @@ test('hidden frozen rows and columns collapse the bands, and native undo restore
   page,
 }) => {
   await select(page, 'C4', '3:2')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   const corner = page.locator('[data-frozen-pane="corner"]')
   await expect(corner).toBeVisible()
   const before = (await corner.boundingBox())!
   await page.getByRole('button', { name: 'Select row 2', exact: true }).click()
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
   await expect.poll(async () => (await corner.boundingBox())!.height).toBe(before.height - 28)
   await page.getByRole('columnheader', { name: 'Select column B', exact: true }).click()
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page
     .getByRole('combobox', { name: 'Row and column visibility' })
     .selectOption('hide-columns')
@@ -62,6 +66,7 @@ test('dragging from a frozen cell extends into scrolling cells and keeps autoscr
   page,
 }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   const start = (await page
     .locator('[data-frozen-pane="corner"] td[data-cell="1:0"]')
@@ -86,6 +91,7 @@ test('Shift PageDown from a frozen cell selects into an unobscured scrolling row
   page,
 }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await page.locator('[data-frozen-pane="corner"] td[data-cell="1:0"]').click()
   const grid = page.locator('[data-workbook-grid]')

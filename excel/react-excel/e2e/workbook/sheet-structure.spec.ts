@@ -1,6 +1,7 @@
 import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test, type Page } from '@playwright/test'
 import { copy, paste, select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -156,6 +157,7 @@ test('deleting the cut source refuses stale paste without erasing the surviving 
   await select(page, 'A2', '1:0')
   await copy(page, 'Cut')
   await remove(page, 'Sales Orders')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('worksheet was deleted')
   await expect(page.locator('td[data-cell="0:0"]')).toHaveText('First order total')
@@ -164,6 +166,7 @@ test('deleting the cut source refuses stale paste without erasing the surviving 
 test('cut follows index shifts when an earlier unrelated sheet is deleted', async ({ page }) => {
   await switchSheet(page, 'Summary')
   // A10 现在是初始隐藏样例；先通过真实菜单恢复，再验证跨索引剪切。
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   const visibility = page.getByRole('combobox', { name: 'Row and column visibility' })
   await visibility.selectOption('unhide-all')
   await expect(visibility).toBeEnabled()

@@ -1,8 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function border(page: Page, preset: string, style: string, color: string) {
+  await showRibbonItem(page, 'format.border-settings')
   await page.getByRole('button', { name: 'Border settings', exact: true }).click()
   await page.getByLabel('Position', { exact: true }).selectOption(preset)
   await page.getByLabel('Line style', { exact: true }).selectOption(style)
@@ -13,6 +15,7 @@ async function border(page: Page, preset: string, style: string, color: string) 
 async function sourceToTarget(page: Page, writer: string, source = 'A2', coord = '1:0') {
   await select(page, source, coord)
   if (writer === 'painter') {
+    await showRibbonItem(page, 'format.format-painter')
     const brush = page.getByRole('button', { name: 'Format painter', exact: true })
     await brush.click()
     await expect(brush).toHaveAttribute('aria-busy', 'false')
@@ -103,6 +106,7 @@ for (const axis of ['row', 'column']) {
     const peerValue = await peer.textContent()
     const side = axis === 'row' ? 'bottom' : 'right'
     await expect(peer).toHaveCSS(`border-${side}-color`, 'rgb(192, 0, 0)')
+    await showRibbonItem(page, 'clear.formats')
     await page.getByRole('button', { name: 'Clear formatting', exact: true }).click()
     await expect(peer).not.toHaveCSS(`border-${side}-color`, 'rgb(192, 0, 0)')
     await expect(peer).toHaveText(peerValue!)

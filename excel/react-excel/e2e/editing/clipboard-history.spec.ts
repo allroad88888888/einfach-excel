@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, paste, pasteOption } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -63,6 +64,7 @@ test('cut undo restores source, destination and moved formula references in one 
   await expect(cell(page, '3:4')).toHaveText('1')
   // 已消费的剪切不会因撤销/重做再次获准清除源格。
   await select(page, 'E5', '4:4')
+  await showRibbonItem(page, 'clipboard.paste')
   await button(page, 'Paste').click()
   await expect(page.getByLabel('Clipboard status')).toHaveText(
     'These cells have already been moved. Copy or cut again to paste.',

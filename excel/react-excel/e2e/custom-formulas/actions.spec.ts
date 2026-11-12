@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { button, cell, editor, openEditor, register, choose, inputFormula, neighbors } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
@@ -22,6 +23,7 @@ for (const width of [1280, 390]) {
     await select(page, 'L3', '2:11')
     await expect(cell(page, '2:11')).toHaveText('Express')
     await register(page)
+    await showRibbonItem(page, 'formula.custom-formulas')
     await expect(button(page, 'Custom formulas')).toBeFocused()
     await choose(page)
     await expect(page.getByLabel('Formula expression', { exact: true })).toHaveValue('=amount*2')
@@ -77,7 +79,7 @@ for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 850 })
     await openEditor(page); await page.getByLabel('Function name', { exact: true }).fill('DISCARD')
     await page.getByLabel('Function name', { exact: true }).press('Escape')
-    await expect(editor(page)).toHaveCount(0); await expect(button(page, 'Custom formulas')).toBeFocused()
+    await expect(editor(page)).toHaveCount(0); await showRibbonItem(page, 'formula.custom-formulas'); await showRibbonItem(page, 'formula.custom-formulas'); await expect(button(page, 'Custom formulas')).toBeFocused()
     await expect(button(page, 'Undo')).toBeDisabled(); await neighbors(page)
   })
 

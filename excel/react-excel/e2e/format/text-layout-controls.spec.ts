@@ -1,8 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem, showRibbonControl } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function choose(page: Page, label: string, value: string) {
+  await showRibbonControl(page, label)
   const control = page.getByRole('combobox', { name: label, exact: true })
   await control.selectOption(value)
   await expect(control).toBeEnabled()
@@ -16,10 +18,13 @@ test.beforeEach(async ({ page }) => {
 
 test('native seed values select the matching alignment and rotation controls', async ({ page }) => {
   await select(page, 'F2', '1:5')
+  await showRibbonItem(page, 'format.horizontal-alignment')
   await expect(page.getByRole('combobox', { name: 'Horizontal alignment' })).toHaveValue('center')
   await select(page, 'J2', '1:9')
+  await showRibbonItem(page, 'format.vertical-alignment')
   await expect(page.getByRole('combobox', { name: 'Vertical alignment' })).toHaveValue('top')
   await select(page, 'K2', '1:10')
+  await showRibbonItem(page, 'format.text-rotation')
   await expect(page.getByRole('combobox', { name: 'Text rotation' })).toHaveValue('45')
 })
 
@@ -71,6 +76,7 @@ test('row and column alignment obey last-write rules and cell default masks inhe
 
 test('rotation presets and upright vertical text leave row height, width and contents intact', async ({ page }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'view.row-and-column-size')
   await page.getByRole('button', { name: 'Row and column size', exact: true }).click()
   await page.getByRole('spinbutton', { name: 'Row height' }).fill('180')
   await page.getByRole('button', { name: 'Set row height' }).click()
@@ -112,7 +118,9 @@ test('pending native layout disables all three choices and makes one undo entry'
   })
   await page.reload()
   await select(page, 'P1001', '1000:15')
+  await showRibbonItem(page, 'format.horizontal-alignment')
   await page.getByRole('combobox', { name: 'Horizontal alignment' }).focus()
+  await showRibbonItem(page, 'format.horizontal-alignment')
   await page.getByRole('combobox', { name: 'Horizontal alignment' }).selectOption('center')
   for (const name of ['Horizontal alignment', 'Vertical alignment', 'Text rotation'])
     await expect(page.getByRole('combobox', { name })).toBeDisabled()
@@ -163,6 +171,7 @@ test('native rejection is visible and a retry creates only one undo entry', asyn
   })
   await page.reload()
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.horizontal-alignment')
   await page.getByRole('combobox', { name: 'Horizontal alignment' }).selectOption('right')
   await expect(page.getByRole('alert')).toContainText('Check the cell before retrying')
   await expect(cell(page, '2:1')).toHaveCSS('text-align', 'left')
@@ -177,8 +186,10 @@ test('native rejection is visible and a retry creates only one undo entry', asyn
 
 test('merged frozen fragments display all three choices from the same native anchor', async ({ page }) => {
   await select(page, 'C3', '2:2')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await select(page, 'B2:D4', '1:1')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await page.getByRole('alertdialog').getByRole('button', { name: 'Merge cells', exact: true }).click()
   const fragments = page.locator('[data-merged-cell="true"]')
@@ -205,6 +216,7 @@ for (const width of [1280, 390]) {
   test(`layout controls remain visible and keyboard accessible at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 800 })
     await select(page, 'B3', '2:1')
+    await showRibbonItem(page, 'format.text-rotation')
     const rotation = page.getByRole('combobox', { name: 'Text rotation' })
     await rotation.scrollIntoViewIfNeeded()
     await rotation.focus()
@@ -233,6 +245,7 @@ for (const width of [1280, 390]) test.describe(`${width}px restore text layout`,
     await expect(cell(page, '2:9')).toHaveCSS('vertical-align', 'bottom')
     await page.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect(target).toHaveCSS('vertical-align', 'top')
+    await showRibbonItem(page, 'format.vertical-alignment')
     await expect(page.getByRole('combobox', { name: 'Vertical alignment' })).toHaveValue('top')
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
     await page.getByRole('button', { name: 'Redo', exact: true }).click()
@@ -250,6 +263,7 @@ for (const width of [1280, 390]) test.describe(`${width}px restore text layout`,
     await expect(cell(page, '2:10').locator('.cell-rotated-text')).toHaveCount(0)
     await page.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect(target.locator('.cell-rotated-text')).toHaveAttribute('style', /rotate\(45deg\)/)
+    await showRibbonItem(page, 'format.text-rotation')
     await expect(page.getByRole('combobox', { name: 'Text rotation' })).toHaveValue('45')
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
     await page.getByRole('button', { name: 'Redo', exact: true }).click()

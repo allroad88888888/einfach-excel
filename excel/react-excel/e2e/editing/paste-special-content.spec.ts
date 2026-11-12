@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const modes = [
@@ -20,6 +21,7 @@ for (const width of [1280]) for (const { mode, value, fontStyle } of modes)
     await select(page, 'B3', '2:1')
     await expect(cell(page, '2:1')).toHaveText('Northwind')
     await expect(cell(page, '2:1')).toHaveCSS('font-style', 'normal')
+    await showRibbonItem(page, 'data.paste-special')
     const opener = page.getByRole('button', { name: 'Paste special', exact: true })
     await opener.click()
     const dialog = page.getByRole('dialog', { name: 'Paste special', exact: true })

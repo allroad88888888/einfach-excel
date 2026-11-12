@@ -924,6 +924,13 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | VIEW-010 | 斜向滚动保持旧格真实坐标 | `workbook/scroll-stability.spec.ts` | diagonal scroll reuses buffered cells at their actual sheet coordinates |
 | VIEW-011 | 定位多行内容后公式栏与视口稳定 | `workbook/name-box-scroll.spec.ts` | multiline target keeps its formula bar and viewport stable at 1280px |
 | VIEW-012 | 连续滚轮输入时双向滚动保持视口覆盖 | `workbook/wheel-scroll-coverage.spec.ts` | rapid wheel scrolling keeps the populated viewport covered in both directions |
+| VIEW-013 | 放不下的组整组收进更多 | `workbook/ribbon-overflow.spec.ts` | trailing groups fold into More and a folded tool applies at 760px |
+| VIEW-014 | Escape 收起更多工具 | `workbook/ribbon-overflow.spec.ts` | Escape collapses More and returns focus to it at 760px |
+| VIEW-015 | 点击表格收起更多工具 | `workbook/ribbon-overflow.spec.ts` | clicking the grid collapses More and selects the cell at 760px |
+| VIEW-016 | 宽屏开始分类不出现更多 | `workbook/ribbon-overflow.spec.ts` | Start fits every group without More at 1280px |
+| VIEW-017 | 更多中的命令菜单执行后收起 | `workbook/ribbon-overflow.spec.ts` | a folded filter command closes More and leaves the header reachable at 390px |
+| VIEW-018 | 更多中的设置支持连续键盘调整 | `workbook/ribbon-overflow.spec.ts` | a folded setting supports consecutive keyboard adjustments at 390px |
+| VIEW-019 | 延迟确认框保留更多中的入口与焦点 | `workbook/ribbon-overflow.spec.ts` | a delayed merge confirmation keeps its folded opener available at 390px |
 | FILE-001 | 下载原生工作簿 | `workbook/workbook-files.spec.ts` | download preserves workbook data and history at 1280px |
 | FILE-002 | 无效文件不破坏当前工作簿 | `workbook/workbook-files.spec.ts` | invalid native content leaves values, selection, history and current file usable |
 | FILE-003 | 新建空白工作簿 | `workbook/workbook-files.spec.ts` | new workbook cancellation keeps data before confirmed replacement at 1280px |

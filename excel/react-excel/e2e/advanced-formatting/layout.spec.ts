@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { start, open, button, dialog, cleanNeighbor } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) {
   test(`advanced text comparison editor fits English and Chinese at ${width}px`, async ({ page }, info) => {
@@ -16,6 +17,7 @@ for (const width of [1280, 390]) {
     await page.screenshot({ path: info.outputPath(`advanced-formatting-comparison-en-${width}.png`), fullPage: true })
     await page.keyboard.press('Escape')
     await page.getByRole('combobox', { name: 'Interface language', exact: true }).selectOption('zh')
+    await showRibbonItem(page, 'format.conditional-formatting')
     await button(page, '条件格式').click()
     const localized = page.getByRole('dialog', { name: '条件格式', exact: true })
     await expect(localized).toBeVisible()

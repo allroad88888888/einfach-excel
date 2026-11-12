@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { button, cell, copy, select, sheet, start } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const locale of ['en', 'zh']) {
   test(`cross-sheet merge rejection stays readable in ${locale} at ${width}px`, async ({ page, context }, info) => {
@@ -10,6 +11,7 @@ for (const width of [1280, 390]) for (const locale of ['en', 'zh']) {
     await copy(page, 'Cut')
     await sheet(page, "Target O'Brien")
     await select(page, 'G20:H20', '19:6')
+    await showRibbonItem(page, 'clipboard.paste')
     await button(page, 'Paste').click()
     await expect(page.getByLabel('Clipboard status')).toContainText('Unmerge the source and destination')
     if (locale === 'zh') await page.getByRole('combobox', { name: 'Interface language' }).selectOption('zh')

@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test'
+import { showRibbonItem, showRibbonControl } from './ribbon'
 
 /** 剪贴板用例共用真实名称框定位，等待可编辑的 Rust 投影。 */
 export async function select(page: Page, address: string, coord: string) {
@@ -15,6 +16,7 @@ export async function select(page: Page, address: string, coord: string) {
 }
 
 export async function copy(page: Page, operation: 'Copy' | 'Cut' = 'Copy') {
+  await showRibbonControl(page, operation)
   await page.getByRole('button', { name: operation, exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText(
     operation === 'Copy' ? 'Copied' : 'ready to move',
@@ -22,11 +24,13 @@ export async function copy(page: Page, operation: 'Copy' | 'Cut' = 'Copy') {
 }
 
 export async function paste(page: Page, name = 'Paste') {
+  await showRibbonControl(page, name)
   await page.getByRole('button', { name, exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toHaveText('Pasted cells.')
 }
 
 export async function pasteOption(page: Page, option: string) {
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   const menu = page.getByRole('combobox', { name: 'More paste options' })
   await menu.scrollIntoViewIfNeeded()
   await menu.selectOption(option)

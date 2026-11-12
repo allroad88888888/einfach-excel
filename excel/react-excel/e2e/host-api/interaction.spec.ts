@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { call, cell, ok, start } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 test('host selects scrolls and zooms with session callbacks', async ({ page }) => {
   await start(page); await ok(page, 'Select other')
@@ -29,6 +30,7 @@ test('host before change cancels toolbar and API writes before history or events
   const before = await call(page, 'Inspect')
   await call(page, 'Cancel changes')
   expect(await call(page, 'Clear')).toMatchObject({ status: 'error', error: { code: 'HOST_COMMAND_CANCELLED' } })
+  await showRibbonItem(page, 'format.bold')
   await page.locator('[data-ribbon-item="format.bold"]').click()
   expect((await call(page, 'Inspect')).counts.change).toBe(before.counts.change)
   await expect(cell(page, '0:0')).toHaveCSS('font-weight', '400')
@@ -51,10 +53,13 @@ test('host A1 helpers convert coordinates and bounded rectangular references', a
 
 test('host hides individual ribbon controls and restores them without resetting data', async ({ page }) => {
   await start(page); await ok(page, 'Format'); await call(page, 'Hide controls')
+  await showRibbonItem(page, 'format.bold')
   await expect(page.locator('[data-ribbon-item="format.bold"]')).toHaveCount(0)
   await expect(page.locator('[data-ribbon-item="history.undo"]')).toHaveCount(0)
+  await showRibbonItem(page, 'format.italic')
   await expect(page.locator('[data-ribbon-item="format.italic"]')).toBeVisible()
   await call(page, 'Show controls'); await ok(page, 'Select other')
+  await showRibbonItem(page, 'format.bold')
   await expect(page.locator('[data-ribbon-item="format.bold"]')).toBeVisible()
   await expect(cell(page, '2:2')).toHaveCSS('font-weight', '700')
 })

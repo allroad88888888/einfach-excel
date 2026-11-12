@@ -14,19 +14,30 @@ export function EvaluateFormulaDialog(): JSX.Element | null {
   const dialog = useAtomValue(evaluateFormulaDialogAtom)
   const runEvaluate = useSetAtom(runEvaluateFormulaAtom)
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const initialFocus = useRef(false)
 
   useLayoutEffect(() => {
     const element = dialogRef.current
     if (!dialog.open || !element) return
     const opener = document.activeElement
+    initialFocus.current = true
     if (element.showModal) element.showModal()
     else element.setAttribute('open', '')
-    element.querySelector<HTMLButtonElement>('[data-evaluate-action="evaluate"]:enabled')?.focus()
     return () => {
       element.close?.()
       if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true })
     }
   }, [dialog.open])
+
+  useLayoutEffect(() => {
+    const element = dialogRef.current
+    if (!element || !dialog.open || dialog.busy || !initialFocus.current) return
+    initialFocus.current = false
+    // 原生对话框先聚焦关闭按钮；等待异步求值就绪后，才将初始焦点交给可执行的求值按钮。
+    if (document.activeElement === element.querySelector('[data-evaluate-action="close"]')) {
+      element.querySelector<HTMLButtonElement>('[data-evaluate-action="evaluate"]:enabled')?.focus()
+    }
+  }, [dialog.open, dialog.busy])
 
   if (!dialog.open) return null
 

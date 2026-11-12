@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -32,6 +33,7 @@ for (const width of [1280]) test.describe(`${width}px conditional ranking`, () =
     // 原生种子已有红色条件规则；新排名必须用不同颜色，撤销则恢复原始投影。
     const baseline = await Promise.all([64, 65, 66].map(row => cell(page, `${row}:2`)
       .evaluate(node => getComputedStyle(node).backgroundColor)))
+    await showRibbonItem(page, 'format.conditional-formatting')
     await button(page, 'Conditional formatting').click()
     await page.getByLabel('Rule type').selectOption('top-bottom')
     await page.getByLabel('Rank direction').selectOption(entry.direction)
@@ -50,6 +52,7 @@ for (const width of [1280]) test.describe(`${width}px conditional ranking`, () =
     await expect(button(page, 'Undo')).toBeDisabled()
     await button(page, 'Redo').click()
     await expectRanking(page, entry.matches, baseline)
+    await showRibbonItem(page, 'format.conditional-formatting')
     await button(page, 'Conditional formatting').click(); await button(page, 'Edit rule 1').click()
     await expect(page.getByLabel('Rank direction')).toHaveValue(entry.direction)
     await expect(page.getByLabel('Rank by')).toHaveValue(entry.unit)

@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 async function outline(page: Page, action: string) {
-  const menu = page.getByRole('combobox', { name: 'Outline groups' })
+  await showRibbonItem(page, 'view.outline-groups')
+  const menu = page.getByRole('combobox', { name: 'Outline groups', includeHidden: true })
   await menu.selectOption(action)
   await expect(menu).toBeEnabled()
   await expect(page.getByRole('alert')).toHaveCount(0)
@@ -38,6 +40,7 @@ test('row grouping collapses without gaps and uses native undo/redo', async ({ p
 
 test('column expansion keeps manual hiding and scrolling controls follow their columns', async ({ page }) => {
   await select(page, 'C2', '1:2')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-columns')
   await expect(cell(page, '1:2')).toHaveCount(0)
   await select(page, 'B2:D2', '1:1')
@@ -68,6 +71,7 @@ test('nested groups retain child collapse and partial overlaps fail without losi
   await button(page, 'Show row outline level 3').click()
   await expect(cell(page, '3:0')).toBeVisible()
   await select(page, 'A6:A9', '5:0')
+  await showRibbonItem(page, 'view.outline-groups')
   await page.getByRole('combobox', { name: 'Outline groups' }).selectOption('group-rows')
   await expect(page.getByRole('alert')).toContainText('partially overlap')
   await expect(button(page, 'Collapse rows 3–7, level 1')).toBeVisible()
@@ -92,6 +96,7 @@ test('Summary seeds use native nesting, SUBTOTAL and independent manual hidden a
 
 test('outline survives insert/undo and freeze crossing without moving cell editors', async ({ page }) => {
   await select(page, 'C4', '3:2')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await select(page, 'A2:A6', '1:0'); await outline(page, 'group-rows')
   await select(page, 'B2:D2', '1:1'); await outline(page, 'group-columns')
@@ -99,6 +104,7 @@ test('outline survives insert/undo and freeze crossing without moving cell edito
   await expect(cell(page, '1:0')).toHaveCount(0)
   await outline(page, 'expand-rows')
   await select(page, 'A3', '2:0')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' }).selectOption('insert-rows')
   await expect(button(page, 'Collapse rows 2–7, level 1')).toBeVisible()
   await button(page, 'Undo').click()

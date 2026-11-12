@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonControl } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const kind of ['fill', 'text'])
   for (const action of ['Open', 'Tab', 'Shift+Tab'])
@@ -21,6 +22,7 @@ for (const width of [1280, 390]) for (const kind of ['fill', 'text'])
         return { fill: style.backgroundColor, text: style.color }
       })
       const opener = button(`Choose ${kind} color`)
+      await showRibbonControl(page, `Choose ${kind} color`)
       await opener.click()
       const dialog = page.getByRole('dialog', { name: kind === 'fill' ? 'Fill color' : 'Text color', exact: true })
       const first = dialog.getByRole('button', { name: 'Close color palette', exact: true })
@@ -51,6 +53,7 @@ for (const width of [1280, 390]) for (const kind of ['fill', 'text'])
       await expect(cell('1:6')).toHaveCSS('color', colors.text)
       await expect(cell('1:5')).toHaveText('79')
       await expect(button('Undo')).toBeDisabled()
+      await showRibbonControl(page, `Choose ${kind} color`)
       await opener.click()
       await expect(hex).toHaveValue(original)
       await first.click()

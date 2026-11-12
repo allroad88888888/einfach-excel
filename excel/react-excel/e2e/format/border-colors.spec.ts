@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -19,6 +20,7 @@ for (const { action, color, css } of entries) for (const width of [1280])
     await page.setViewportSize({ width, height: 850 })
     const before = await cell(page, '1:1').evaluate((node) => getComputedStyle(node).borderBottomColor)
     const neighbor = await cell(page, '1:3').evaluate((node) => getComputedStyle(node).borderBottomColor)
+    await showRibbonItem(page, 'format.border-settings')
     await button(page, 'Border settings').click()
     await page.getByLabel('Position', { exact: true }).selectOption('bottom')
     await page.getByLabel('Line style', { exact: true }).selectOption('thin')
@@ -39,6 +41,7 @@ for (const { action, color, css } of entries) for (const width of [1280])
     await expect(button(page, 'Undo')).toBeDisabled()
     await button(page, 'Redo').click()
     await expect(cell(page, '1:1')).toHaveCSS('border-bottom-color', css)
+    await showRibbonItem(page, 'format.border-settings')
     await button(page, 'Border settings').click()
     await expect(page.getByLabel('Hex color', { exact: true })).toHaveValue(color)
     await button(page, 'Cancel').click()

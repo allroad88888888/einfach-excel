@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { start, cell, book, select, edit, snapshot } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const bundler of ['vite', 'rspack']) {
   test(`installed ${bundler} unmount terminates its Worker and sibling editing remains independent`, async ({
@@ -77,6 +78,7 @@ for (const bundler of ['vite', 'rspack']) {
     })
     const priorRow2 = (await header(2).elementHandle())!
     const priorRow5 = (await header(5).elementHandle())!
+    await showRibbonItem(first, 'view.freeze-panes')
     await first.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
     await expect(first.locator('.sheet-grid-frame')).toHaveAttribute('data-frozen-rows', '3')
     await expect(first.locator('[data-workbook-grid]'))
@@ -89,6 +91,7 @@ for (const bundler of ['vite', 'rspack']) {
     await header(2).click()
     await expect(first.getByRole('textbox', { name: 'Name box', exact: true }))
       .toHaveValue('A2:T2')
+    await showRibbonItem(first, 'structure.insert-or-delete-rows-and-columns')
     await first.getByRole('combobox', { name: 'Insert or delete rows and columns' })
       .selectOption('insert-rows')
     await expect(first.locator('.sheet-grid-frame')).toHaveAttribute('data-frozen-rows', '4')

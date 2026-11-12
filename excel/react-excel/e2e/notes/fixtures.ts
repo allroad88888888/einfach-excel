@@ -1,11 +1,13 @@
 import { expect, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 export const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 export const marker = (page: Page, coord: string) => cell(page, coord).locator('[data-cell-note]')
 export const editor = (page: Page) => page.getByRole('dialog', { name: /^(Insert|Edit) note$/ })
 export async function openNote(page: Page) {
+  await showRibbonItem(page, 'insert.note')
   await button(page, 'Note').click()
   await expect(editor(page)).toBeVisible()
   await expect(page.getByLabel('Note text', { exact: true })).toBeEnabled()

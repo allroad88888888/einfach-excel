@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { cell, chooseTabMenu, menuItem, openSeed, openTabMenu, redo, tab, tabs, undo } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => openSeed(page))
 
@@ -71,6 +72,7 @@ test('Editing a cell, formatting, or clearing while sheets are grouped writes to
 
   // Format cell 0:0 (A1) italic across grouped sheets
   await cell(page, '0:0').click()
+  await showRibbonItem(page, 'format.italic')
   await page.getByRole('button', { name: 'Italic', exact: true }).click()
   await expect(cell(page, '0:0')).toHaveCSS('font-style', 'italic')
 

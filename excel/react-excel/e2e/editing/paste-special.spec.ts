@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select, copy, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ context, page }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -11,6 +12,7 @@ test('values-only uses the unrounded Rust value and keeps destination formatting
   page,
 }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.italic')
   await page.getByRole('button', { name: 'Italic', exact: true }).click()
   await expect(page.locator('td[data-cell="2:1"]')).toHaveCSS('font-style', 'italic')
   const source = await select(page, 'P3', '2:15')
@@ -30,6 +32,7 @@ test('values-only freezes a formula result when its source inputs later change',
   const original = await source.textContent()
   await copy(page)
   await select(page, 'E2', '1:4')
+  await showRibbonItem(page, 'clear.contents')
   await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
   await expect(await select(page, 'G2', '1:6')).toHaveText('0')
   const target = await select(page, 'B4', '3:1')
@@ -88,13 +91,16 @@ test('non-multiple selection and cut-special reject without changing cells', asy
   await copy(page)
   const target = await select(page, 'A3:C3', '2:0')
   const before = await target.textContent()
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('whole copies')
   await expect(target).toHaveText(before ?? '')
   await select(page, 'A2', '1:0')
+  await showRibbonItem(page, 'clipboard.cut')
   await page.getByRole('button', { name: 'Cut', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('ready to move')
   await select(page, 'A3', '2:0')
+  await showRibbonItem(page, 'clipboard.paste-values')
   await page.getByRole('button', { name: 'Paste values only', exact: true }).click()
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('requires Copy')
   await expect(await select(page, 'A2', '1:0')).toHaveText('SO-10001')
@@ -110,6 +116,7 @@ test('external plain text can paste values but cannot pretend to have source for
   const target = await select(page, 'A3', '2:0')
   await paste(page, 'Paste values only')
   await expect(target).toHaveText('=SUM(')
+  await showRibbonItem(page, 'clipboard.paste-formats')
   await page.getByRole('button', { name: 'Paste formatting only', exact: true }).click()
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText(
     'no workbook formatting',
@@ -129,6 +136,7 @@ test('paste-special controls remain usable on desktop and narrow screens', async
   await expect(target).toHaveText('125.02')
   await page.screenshot({ path: info.outputPath('paste-special-desktop.png') })
   await page.setViewportSize({ width: 390, height: 844 })
+  await showRibbonItem(page, 'clipboard.paste-formats')
   await page
     .getByRole('button', { name: 'Paste formatting only', exact: true })
     .scrollIntoViewIfNeeded()

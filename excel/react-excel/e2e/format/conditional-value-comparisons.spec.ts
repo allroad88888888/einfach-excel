@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, row: number) => page.locator(`td[data-cell="${row}:2"]`)
@@ -32,6 +33,7 @@ for (const width of [1280]) test.describe(`${width}px value comparisons`, () => 
           await expect(cell(page, row)).toHaveText(String((row - 63) * 2))
         }
       }
+      await showRibbonItem(page, 'format.conditional-formatting')
       await button(page, 'Conditional formatting').click()
       await page.getByLabel('Condition', { exact: true }).selectOption(entry.operator)
       const twoBounds = entry.operator === 'between' || entry.operator === 'not-between'
@@ -46,6 +48,7 @@ for (const width of [1280]) test.describe(`${width}px value comparisons`, () => 
       await button(page, 'Undo').click()
       await expectMatches([]); await expect(button(page, 'Undo')).toBeDisabled()
       await button(page, 'Redo').click(); await expectMatches(entry.matches)
+      await showRibbonItem(page, 'format.conditional-formatting')
       await button(page, 'Conditional formatting').click(); await button(page, 'Edit rule 1').click()
       await expect(page.getByLabel('Condition', { exact: true })).toHaveValue(entry.operator)
       await expect(page.getByLabel(twoBounds ? 'Minimum' : 'Value', { exact: true }))

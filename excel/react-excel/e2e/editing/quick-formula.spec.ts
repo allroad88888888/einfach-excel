@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const bar = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
 const menu = (page: Page) => page.getByRole('combobox', { name: 'Quick formula' })
 async function go(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()
@@ -25,6 +27,7 @@ for (const [fn, col, index, expected] of [
   await expect(cell(page, `69:${index}`)).toHaveText(expected)
   const neighbor = cell(page, `67:${index + 1}`)
   const neighborText = await neighbor.innerText()
+  await showRibbonItem(page, 'formula.quick-formula')
   await menu(page).selectOption(fn)
   await expect(bar(page)).toHaveValue(`=${fn.toUpperCase()}(${col}65:${col}67)`)
   await expect(bar(page)).toBeFocused()
@@ -50,12 +53,14 @@ for (const [fn, col, index, expected] of [
 
 test('explicit selection uses an empty trailing cell, permits draft correction and Escape writes nothing', async ({ page }) => {
   await go(page, 'C65:C68')
+  await showRibbonItem(page, 'formula.auto-sum')
   await button(page, 'Auto sum').click()
   await expect(bar(page)).toHaveValue('=SUM(C65:C67)')
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('C68')
   await bar(page).press('Escape')
   await expect(cell(page, '67:2')).toHaveText('')
   await expect(button(page, 'Undo')).toBeDisabled()
+  await showRibbonItem(page, 'formula.auto-sum')
   await button(page, 'Auto sum').click()
   await expect(bar(page)).toHaveValue('=SUM(C65:C67)')
   await bar(page).fill('=SUM(C65:C66)')
@@ -71,8 +76,10 @@ test('explicit selection uses an empty trailing cell, permits draft correction a
 })
 
 test('horizontal explicit range counts numbers, not text or booleans', async ({ page }) => {
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await go(page, 'A93:F93')
+  await showRibbonItem(page, 'formula.quick-formula')
   await menu(page).selectOption('count')
   await expect(bar(page)).toHaveValue('=COUNT(A93:F93)')
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('G93')
@@ -82,14 +89,17 @@ test('horizontal explicit range counts numbers, not text or booleans', async ({ 
 
 test('occupied result, merged source and hidden result reject without modifying selection or history', async ({ page }) => {
   await go(page, 'C65:C66')
+  await showRibbonItem(page, 'formula.auto-sum')
   await button(page, 'Auto sum').click()
   await expect(page.getByRole('alert')).toContainText('not empty')
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('C65:C66')
   await expect(cell(page, '66:2')).toHaveText('6')
   await go(page, 'A15:D15')
+  await showRibbonItem(page, 'formula.auto-sum')
   await button(page, 'Auto sum').click()
   await expect(page.getByRole('alert')).toContainText('unmerged')
   await go(page, 'A93:F93')
+  await showRibbonItem(page, 'formula.quick-formula')
   await menu(page).selectOption('count')
   await expect(page.getByRole('alert')).toContainText('Unhide')
   await expect(button(page, 'Undo')).toBeDisabled()
@@ -99,9 +109,11 @@ test('no nearby number and canvas edge stay correctable', async ({ page }) => {
   await go(page, 'H81')
   await expect(bar(page)).toHaveValue('')
   await expect(button(page, 'Undo')).toBeDisabled()
+  await showRibbonItem(page, 'formula.auto-sum')
   await button(page, 'Auto sum').click()
   await expect(page.getByRole('alert')).toContainText('immediately below or right')
   await go(page, 'A100:B100')
+  await showRibbonItem(page, 'formula.quick-formula')
   await menu(page).selectOption('average')
   // Both cells are blank: the last cell may be the explicit result; cancel this valid draft.
   await expect(bar(page)).toHaveValue('=AVERAGE(A100:A100)')
@@ -112,6 +124,7 @@ test('no nearby number and canvas edge stay correctable', async ({ page }) => {
   await go(page, 'A100')
   await bar(page).fill('2')
   await bar(page).press('Enter')
+  await showRibbonItem(page, 'formula.auto-sum')
   await button(page, 'Auto sum').click()
   await expect(page.getByRole('alert')).toContainText('no room')
   await expect(cell(page, '99:0')).toHaveText('2')
@@ -122,6 +135,7 @@ for (const width of [1280, 390]) test(`formula draft stays editable and visible 
   page.on('pageerror', (error) => errors.push(error.message))
   await page.setViewportSize({ width, height: 850 })
   await go(page, 'C68')
+  await showRibbonItem(page, 'formula.auto-sum')
   await button(page, 'Auto sum').click()
   await expect(bar(page)).toHaveValue('=SUM(C65:C67)')
   await expect(bar(page)).toBeFocused()

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test('Summary seeds native merged cells with clean history, editable anchors and undoable unmerge', async ({
   page,
@@ -25,6 +26,7 @@ test('Summary seeds native merged cells with clean history, editable anchors and
   await editor.press('Enter')
   await expect(heading).toHaveText('Edited heading')
   await select(page, 'A15', '14:0')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('unmerge')
   await expect(heading).toHaveCount(0)
   await expect(page.locator('td[data-cell="14:0"]')).toHaveText('Edited heading')

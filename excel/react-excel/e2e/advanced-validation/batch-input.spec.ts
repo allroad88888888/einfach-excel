@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { copy, select } from '../support/clipboard'
 import { button, cell, configure, edit, start } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) test.describe(`${width}px batch validation`, () => {
   test.use({ viewport: { width, height: 850 } })
@@ -10,7 +11,7 @@ for (const width of [1280]) test.describe(`${width}px batch validation`, () => {
     await configure(page, { style: 'warning' })
     await edit(page, 'D44', '43:3', '-1'); await expect(cell(page, '43:3')).toHaveText('-1')
     await select(page, 'D44', '43:3'); await copy(page)
-    await select(page, 'D45:D46', '44:3'); await button(page, 'Paste').click()
+    await select(page, 'D45:D46', '44:3'); await showRibbonItem(page, 'clipboard.paste'); await showRibbonItem(page, 'clipboard.paste'); await button(page, 'Paste').click()
     const dialog = page.getByRole('dialog', { name: 'Check quantity', exact: true })
     await expect(dialog).toBeVisible()
     await expect(cell(page, '44:3')).toHaveText(''); await expect(cell(page, '45:3')).toHaveText('')
@@ -26,7 +27,7 @@ for (const width of [1280]) test.describe(`${width}px batch validation`, () => {
   test(`cancel warning paste leaves every target and native undo untouched at ${width}px`, async ({ page }) => {
     await configure(page, { style: 'warning' })
     await edit(page, 'D44', '43:3', '-1'); await select(page, 'D44', '43:3'); await copy(page)
-    await select(page, 'D45:D46', '44:3'); await button(page, 'Paste').click()
+    await select(page, 'D45:D46', '44:3'); await showRibbonItem(page, 'clipboard.paste'); await showRibbonItem(page, 'clipboard.paste'); await button(page, 'Paste').click()
     await page.getByRole('dialog', { name: 'Check quantity', exact: true }).getByRole('button', { name: 'Cancel', exact: true }).click()
     await expect(cell(page, '44:3')).toHaveText(''); await expect(cell(page, '45:3')).toHaveText('')
     await button(page, 'Undo').click(); await expect(cell(page, '43:3')).toHaveText('')
@@ -37,6 +38,7 @@ for (const width of [1280]) test.describe(`${width}px batch validation`, () => {
     await configure(page, { style: 'information' })
     await edit(page, 'D44', '43:3', '-1')
     await select(page, 'D44:D46', '43:3')
+    await showRibbonItem(page, 'data.fill-selected-range')
     await page.getByRole('combobox', { name: 'Fill selected range', exact: true }).selectOption('down')
     const dialog = page.getByRole('dialog', { name: 'Check quantity', exact: true })
     await expect(dialog).toBeVisible()

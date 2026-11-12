@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 /** 网格滚到远处并等投影落定；此时活动格已不在可见区投影里。 */
 async function scrollFarDown(page: Page) {
@@ -24,6 +25,7 @@ for (const width of [1280, 390]) {
     await expect(bar).toHaveValue('Northwind')
     await expect(bar).toBeEnabled()
     if (width === 1280) {
+      await showRibbonItem(page, 'insert.hyperlink')
       await expect(page.getByRole('button', { name: 'Hyperlink', exact: true })).toBeEnabled()
     }
     await page.locator('.sheet-scroll').evaluate((node) => { node.scrollTop = 0 })

@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -12,6 +13,7 @@ async function go(page: Page, address: string) {
 }
 async function details(page: Page, address: string) {
   await go(page, address)
+  await showRibbonItem(page, 'formula.spill-details')
   await button(page, 'Spill details').click()
   await expect(page.getByText('Reading spill details…')).toBeHidden()
   return page.getByRole('dialog', { name: 'Spill details' })
@@ -65,6 +67,7 @@ test('locating a blocker preserves content; clear resolves and undo restores the
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('F63')
   await expect(bar(page)).toHaveValue('Clear to unblock')
   await expect(button(page, 'Undo')).toBeDisabled()
+  await showRibbonItem(page, 'clear.contents')
   await button(page, 'Clear contents').click()
   await expect(cell(page, '61:5')).toHaveText('1')
   await expect(cell(page, '63:5')).toHaveText('3')
@@ -87,6 +90,7 @@ test('two-dimensional spill locates a frozen anchor and retains hidden columns',
   await button(page, 'Select blocking cell').click()
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('G1')
   await expect(bar(page)).toHaveValue('Hidden column example')
+  await showRibbonItem(page, 'clear.contents')
   await button(page, 'Clear contents').click()
   await expect(cell(page, '2:7')).toHaveText('12')
   const dialog = await details(page, 'H3')
@@ -108,6 +112,7 @@ test('ordinary cells and drafts do not fabricate array information', async ({ pa
   await expect(button(page, 'Select spill range')).toHaveCount(0)
   await button(page, 'Close').click()
   await bar(page).fill('=SUM(')
+  await showRibbonItem(page, 'formula.spill-details')
   await expect(button(page, 'Spill details')).toBeDisabled()
   await expect(bar(page)).toHaveValue('=SUM(')
   await bar(page).press('Escape')
@@ -118,6 +123,7 @@ for (const width of [1280, 390]) test(`spill details fit ${width}px with keyboar
   page.on('pageerror', (error) => errors.push(error.message))
   await page.setViewportSize({ width, height: 850 })
   await go(page, 'F58')
+  await showRibbonItem(page, 'formula.spill-details')
   await button(page, 'Spill details').focus()
   await page.keyboard.press('Enter')
   const dialog = page.getByRole('dialog', { name: 'Spill details' })

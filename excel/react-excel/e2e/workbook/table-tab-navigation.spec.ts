@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const grid = (page: Page) => page.getByLabel('Summary cells', { exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -69,6 +70,7 @@ test('last calculated cell Tab appends inherited formulas, then further Tab rema
   await expect(button(page, 'Undo')).toBeDisabled()
 })
 test('Table Tab skips hidden rows and columns in both directions', async ({ page }) => {
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   const visibility = page.getByRole('combobox', { name: 'Row and column visibility' })
   await select(page, 'B47', '46:1')
   await visibility.selectOption('hide-columns'); await expect(visibility).toBeEnabled()

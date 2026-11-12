@@ -1,12 +1,16 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const brush = (page: Page) => page.getByRole('button', { name: 'Format painter', exact: true })
 const cell = (page: Page, coord: string) => page.locator(`[data-cell="${coord}"]`)
 async function arm(page: Page, sticky = false) {
+  await showRibbonItem(page, 'format.format-painter')
   if (sticky) await brush(page).dblclick()
   else await brush(page).click()
+  await showRibbonItem(page, 'format.format-painter')
   await expect(brush(page)).toHaveAttribute('data-painter-mode', sticky ? 'sticky' : 'armed')
+  await showRibbonItem(page, 'format.format-painter')
   await expect(brush(page)).toHaveAttribute('aria-busy', 'false')
   await expect(page.getByLabel('Format painter status')).toContainText('Select cells')
 }
@@ -28,6 +32,7 @@ test('single paint copies seeded bold, retains target content, exits and undoes 
   await cell(page, '9:1').click()
   await expect(cell(page, '9:1')).toHaveCSS('font-weight', '700')
   await expect(cell(page, '9:1')).toHaveText(before!)
+  await showRibbonItem(page, 'format.format-painter')
   await expect(brush(page)).toHaveAttribute('data-painter-mode', 'idle')
   await cell(page, '10:1').click()
   await expect(cell(page, '10:1')).toHaveCSS('font-weight', '400')
@@ -101,9 +106,11 @@ test('double click paints multiple targets from one snapshot; Escape stops subse
   for (const coord of ['9:1', '10:1']) {
     await cell(page, coord).click()
     await expect(cell(page, coord)).toHaveCSS('font-style', 'italic')
+    await showRibbonItem(page, 'format.format-painter')
     await expect(brush(page)).toHaveAttribute('data-painter-mode', 'sticky')
   }
   await page.keyboard.press('Escape')
+  await showRibbonItem(page, 'format.format-painter')
   await expect(brush(page)).toHaveAttribute('data-painter-mode', 'idle')
   await cell(page, '11:1').click()
   await expect(cell(page, '11:1')).toHaveCSS('font-style', 'normal')
@@ -115,7 +122,9 @@ test('double click paints multiple targets from one snapshot; Escape stops subse
 test('clicking the active button cancels without painting or adding history', async ({ page }) => {
   await select(page, 'A2', '1:0')
   await arm(page)
+  await showRibbonItem(page, 'format.format-painter')
   await brush(page).click()
+  await showRibbonItem(page, 'format.format-painter')
   await expect(brush(page)).toHaveAttribute('aria-pressed', 'false')
   await cell(page, '9:1').click()
   await expect(cell(page, '9:1')).toHaveCSS('font-weight', '400')
@@ -123,12 +132,14 @@ test('clicking the active button cancels without painting or adding history', as
 })
 
 test('Escape cancels with focus on another toolbar button or in the name box', async ({ page }) => {
+  await showRibbonItem(page, 'format.bold')
   for (const target of [page.getByRole('button', { name: 'Bold', exact: true }),
     page.getByRole('textbox', { name: 'Name box' })]) {
     await select(page, 'A2', '1:0')
     await arm(page, true)
     await target.focus()
     await target.press('Escape')
+    await showRibbonItem(page, 'format.format-painter')
     await expect(brush(page)).toHaveAttribute('data-painter-mode', 'idle')
   }
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
@@ -152,6 +163,7 @@ test('format painter does not replace the ordinary clipboard or touch system per
 test('changing the source after capture does not alter the frozen native format', async ({ page }) => {
   await select(page, 'A2', '1:0')
   await arm(page, true)
+  await showRibbonItem(page, 'format.bold')
   await page.getByRole('button', { name: 'Bold', exact: true }).click()
   await expect(cell(page, '1:0')).toHaveCSS('font-weight', '400')
   await cell(page, '9:1').click()
@@ -162,8 +174,10 @@ test('sheet switch cancels the brush permanently, including switching back', asy
   await select(page, 'A2', '1:0')
   await arm(page, true)
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await showRibbonItem(page, 'format.format-painter')
   await expect(brush(page)).toHaveAttribute('data-painter-mode', 'idle')
   await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
+  await showRibbonItem(page, 'format.format-painter')
   await expect(brush(page)).toHaveAttribute('data-painter-mode', 'idle')
   await select(page, 'B10', '9:1')
   await cell(page, '9:1').click()
@@ -172,6 +186,7 @@ test('sheet switch cancels the brush permanently, including switching back', asy
 
 test('frozen source and an offscreen target share native formatting', async ({ page }) => {
   await select(page, 'C3', '2:2')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await select(page, 'A2', '1:0')
   await arm(page)
@@ -188,12 +203,14 @@ for (const width of [1280, 390]) {
     page.on('pageerror', (error) => errors.push(error.message))
     await select(page, 'A2:A3', '1:0')
     await arm(page)
+    await showRibbonItem(page, 'format.format-painter')
     await brush(page).scrollIntoViewIfNeeded()
     await page.screenshot({ path: info.outputPath(`painter-ready-${width}.png`) })
     await select(page, 'A10:A12', '9:0')
     await page.locator('[data-workbook-grid]').press('Enter')
     const feedback = page.getByLabel('Format painter status')
     await expect(feedback).toContainText('whole copies')
+    await showRibbonItem(page, 'format.format-painter')
     await expect(brush(page)).toHaveAttribute('data-painter-mode', 'armed')
     await expect(cell(page, '9:0')).toHaveCSS('font-weight', '400')
     await feedback.scrollIntoViewIfNeeded()

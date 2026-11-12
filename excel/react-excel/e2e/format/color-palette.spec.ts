@@ -1,8 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem, showRibbonControl } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function open(page: Page, kind = 'fill') {
+  await showRibbonControl(page, `Choose ${kind} color`)
   await page.getByRole('button', { name: `Choose ${kind} color`, exact: true }).click()
   await expect(page.getByRole('dialog')).toBeVisible()
 }
@@ -53,8 +55,10 @@ test('custom Hex validates without writing; last colors remain independent acros
     await expect(cell(page, coord)).toHaveCSS('background-color', 'rgb(171, 205, 239)')
   await choose(page, '#434343', 'text')
   await select(page, 'D5', '4:3')
+  await showRibbonItem(page, 'format.fill-color')
   await page.getByRole('button', { name: 'Fill color', exact: true }).click()
   await expect(cell(page, '4:3')).toHaveCSS('background-color', 'rgb(171, 205, 239)')
+  await showRibbonItem(page, 'format.text-color')
   await page.getByRole('button', { name: 'Text color', exact: true }).click()
   await expect(cell(page, '4:3')).toHaveCSS('color', 'rgb(67, 67, 67)')
 })
@@ -164,6 +168,7 @@ test('a native rejection keeps the quick color retryable without a phantom undo'
   })
   await page.reload()
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.text-color')
   await page.getByRole('button', { name: 'Text color', exact: true }).click()
   await expect(page.getByRole('alert')).toContainText('Check the cell before retrying')
   await expect(page.getByRole('textbox', { name: 'Color hex' })).toHaveValue('#c00000')
@@ -177,8 +182,10 @@ test('a native rejection keeps the quick color retryable without a phantom undo'
 
 test('merged frozen fragments share native color; both editing entries disable the palette', async ({ page }) => {
   await select(page, 'C3', '2:2')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await select(page, 'B2:D4', '1:1')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await page.getByRole('alertdialog').getByRole('button', { name: 'Merge cells', exact: true }).click()
   await choose(page, '#93c47d')
@@ -190,10 +197,12 @@ test('merged frozen fragments share native color; both editing entries disable t
   await corner.dblclick({ position: { x: 8, y: 8 } })
   const editor = page.getByRole('textbox', { name: 'Cell editor', exact: true })
   await expect(editor).toBeVisible()
+  await showRibbonItem(page, 'format.fill-color-palette')
   await expect(page.getByRole('button', { name: 'Choose fill color' })).toBeDisabled()
   await editor.press('Escape')
   const formula = page.getByRole('textbox', { name: 'Active cell value' })
   await formula.fill('Uncommitted')
+  await showRibbonItem(page, 'format.text-color-palette')
   await expect(page.getByRole('button', { name: 'Choose text color' })).toBeDisabled()
   await formula.press('Escape')
   await expect(corner).toHaveText('Acme Co.')
@@ -283,6 +292,7 @@ for (const width of [1280, 390]) {
     await page.screenshot({ path: info.outputPath(`color-palette-${width}.png`) })
     await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'format.fill-color-palette')
     await expect(page.getByRole('button', { name: 'Choose fill color' })).toBeFocused()
     await expect(cell(page, '1:3')).toHaveCSS('background-color', 'rgb(255, 242, 204)')
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()

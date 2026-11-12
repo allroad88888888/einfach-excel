@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const filterMenu = (page: Page) => page.getByRole('combobox', { name: 'Worksheet filter' })
@@ -10,6 +11,7 @@ async function select(page: Page, address: string) {
   await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
 }
 async function west(page: Page) {
+  await showRibbonItem(page, 'data.worksheet-filter')
   await filterMenu(page).selectOption('open')
   const dialog = page.getByRole('dialog', { name: 'Filter conditions' })
   await dialog.getByLabel('Filter column 1', { exact: true }).selectOption('2')
@@ -18,6 +20,7 @@ async function west(page: Page) {
   await expect(page.getByLabel('Filter status')).toHaveText('750 rows filtered out.')
 }
 async function copy(page: Page) {
+  await showRibbonItem(page, 'clipboard.copy')
   await page.getByRole('button', { name: 'Copy', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Copied')
   return page.evaluate(() => navigator.clipboard.readText())
@@ -30,6 +33,7 @@ test.beforeEach(async ({ page, context }) => {
 
 test('copy all 1,000 records compacts filtered rows, includes manual hidden rows and reaches the last record', async ({ page }) => {
   await select(page, 'A5')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
   await west(page)
   await select(page, 'A2:A1001')
@@ -45,6 +49,7 @@ test('filtered formula copy stays frozen after clear and pastes compacted formul
   await west(page)
   await select(page, 'G5:G9')
   expect((await copy(page)).split('\n')).toHaveLength(2)
+  await showRibbonItem(page, 'data.worksheet-filter')
   await filterMenu(page).selectOption('clear')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   // 只粘贴两条筛选结果；相邻格可能有其它演示种子，必须保留原值。
@@ -52,6 +57,7 @@ test('filtered formula copy stays frozen after clear and pastes compacted formul
   await select(page, 'E32')
   const adjacentBefore = await cell(page, '31:4').innerText()
   await select(page, 'E30')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Pasted')
   await select(page, 'E30')
@@ -72,6 +78,7 @@ for (const format of ['text', 'markdown', 'html']) {
   test(`Copy As ${format} uses the same filter exclusion as ordinary copy`, async ({ page }) => {
     await west(page)
     await select(page, 'A2:A9')
+    await showRibbonItem(page, 'clipboard.copy-as')
     await page.getByRole('combobox', { name: 'Copy as' }).selectOption(format)
     await expect(page.getByLabel('Clipboard status')).toContainText(`as ${format}.`)
     const text = await page.evaluate(() => navigator.clipboard.readText())
@@ -95,9 +102,11 @@ test('filtered cut rejects without erasing source or replacing the last successf
   const before = await copy(page)
   await west(page)
   await select(page, 'A5:A9')
+  await showRibbonItem(page, 'clipboard.cut')
   await page.getByRole('button', { name: 'Cut', exact: true }).click()
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('Clear the filter')
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(before)
+  await showRibbonItem(page, 'data.worksheet-filter')
   await filterMenu(page).selectOption('clear')
   await select(page, 'A5')
   await expect(cell(page, '4:0')).toHaveText('SO-10004')
@@ -106,9 +115,11 @@ test('filtered cut rejects without erasing source or replacing the last successf
 
 test('sort permutes only unfiltered slots; manual hiding and native undo do not change the filter', async ({ page }) => {
   await select(page, 'A9')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
   await west(page)
   await select(page, 'A2:P1001')
+  await showRibbonItem(page, 'data.sort-selected-range')
   await page.getByRole('combobox', { name: 'Sort selected range' }).selectOption('desc')
   await expect(page.getByLabel('Sort status')).toContainText('Sorted 250 rows.')
   await select(page, 'A5')
@@ -120,17 +131,20 @@ test('sort permutes only unfiltered slots; manual hiding and native undo do not 
   await expect(cell(page, '1000:0')).toHaveText('SO-11000')
   await page.getByRole('button', { name: 'Redo', exact: true }).click()
   await expect(cell(page, '1000:0')).toHaveText('SO-10004')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await filterMenu(page).selectOption('clear')
   await select(page, 'A2')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await expect(cell(page, '4:0')).toHaveText('SO-11000')
   await expect(cell(page, '8:0')).toHaveCount(0)
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await expect(cell(page, '8:0')).toHaveText('SO-10996')
 })
 
 test('whole-column statistics exclude filtered rows, include manual hidden rows and refresh on clear/undo', async ({ page }) => {
   await select(page, 'A5')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
   await page.getByRole('columnheader', { name: 'Select column E', exact: true }).click()
   const status = page.getByRole('status', { name: 'Selection statistics' })
@@ -142,6 +156,7 @@ test('whole-column statistics exclude filtered rows, include manual hidden rows 
     await expect(status.getByText(text, { exact: true })).toBeVisible()
   await page.getByTestId('sheet-scroll').evaluate((element) => { element.scrollTop = element.scrollHeight })
   await expect(status).toContainText('Numerical count: 250')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await filterMenu(page).selectOption('clear')
   await expect(status).toContainText('Numerical count: 1,000')
   await expect(status).toContainText('Sum: 12,436')

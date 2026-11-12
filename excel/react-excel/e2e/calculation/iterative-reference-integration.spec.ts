@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 async function setCell(page: Page, address: string, coord: string, text: string) {
   await select(page, address, coord)
@@ -14,6 +15,7 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole('button', { name: 'New sheet' }).click()
   await expect(page.getByRole('tab', { name: 'Sheet3' })).toHaveAttribute('aria-selected', 'true')
   await setCell(page, 'G1', '0:6', '99')
+  await showRibbonItem(page, 'calculation.iterative-calculation')
   await page.getByTestId('iterative-calculation-toggle').click()
   await expect(page.getByTestId('iterative-calculation-toggle')).toHaveAttribute('aria-pressed', 'true')
 })
@@ -29,6 +31,7 @@ test('iterative calculation converges a cycle through a three dimensional refere
 })
 
 test('iterative calculation converges a cycle through a scoped named formula', async ({ page }) => {
+  await showRibbonItem(page, 'formula.name-manager')
   await page.getByRole('button', { name: 'Name manager', exact: true }).click()
   await page.getByLabel('Name', { exact: true }).fill('Loop')
   await page.getByLabel('Scope', { exact: true }).selectOption({ label: 'Sheet3' })

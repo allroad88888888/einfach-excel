@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -40,6 +41,7 @@ for (const action of ['Open', 'Refresh', 'Select spill range', 'Go to formula ce
         }
       })
     }
+    await showRibbonItem(page, 'formula.spill-details')
     await button(page, 'Spill details').click()
     if (action === 'Refresh') {
       await expect(dialog(page).getByRole('alert')).toHaveText('Spill inspection unavailable')

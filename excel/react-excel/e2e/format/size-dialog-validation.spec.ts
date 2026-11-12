@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const axes = [
@@ -18,6 +19,7 @@ for (const width of [1280, 390]) test.describe(`${width}px size validation`, () 
   })
 
   test(`open size dialog reads native dimensions without mutation at ${width}px`, async ({ page }) => {
+    await showRibbonItem(page, 'view.row-and-column-size')
     await page.getByRole('button', { name: 'Row and column size', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Row and column size', exact: true })
     await expect(dialog).toBeInViewport()
@@ -47,6 +49,7 @@ for (const width of [1280, 390]) test.describe(`${width}px size validation`, () 
       await select(page, 'B2', '1:1')
       const neighbor = (await cell(page, '2:2').boundingBox())![axis.dimension]
       const handle = page.getByRole('separator', { name: axis.handle, exact: true })
+      await showRibbonItem(page, 'view.row-and-column-size')
       await page.getByRole('button', { name: 'Row and column size', exact: true }).click()
       const dialog = page.getByRole('dialog', { name: 'Row and column size', exact: true })
       const input = dialog.getByRole('spinbutton', { name: axis.input })

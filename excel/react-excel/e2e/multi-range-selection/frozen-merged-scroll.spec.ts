@@ -1,11 +1,13 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { cell, expectSelected, nameBox, openOrders } from './pointer'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) {
   test(`modifier selection includes a merged area without selecting its gap at ${width}px`, async ({ page }, info) => {
     await openOrders(page, width)
     await select(page, 'A6:B7', '5:0')
+    await showRibbonItem(page, 'data.merge-cells')
     await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Merge cells', exact: true }).click()
     const merged = page.locator('[data-merged-cell][data-cell="5:0"]')
@@ -17,6 +19,7 @@ for (const width of [1280, 390]) {
     await expectSelected(page, 4, 0, false)
     await expect(page.getByRole('status', { name: 'Multi-area selection', exact: true }))
       .toContainText('5 cells selected in multiple areas')
+    await showRibbonItem(page, 'format.bold')
     await page.getByRole('button', { name: 'Bold', exact: true }).click()
     await expect(merged).toHaveCSS('font-weight', '700')
     await expect(cell(page, 2, 0)).toHaveCSS('font-weight', '700')
@@ -27,6 +30,7 @@ for (const width of [1280, 390]) {
   test(`modifier drag from frozen cells appends into the scrolling pane at ${width}px`, async ({ page }, info) => {
     await openOrders(page, width)
     await select(page, 'B3', '2:1')
+    await showRibbonItem(page, 'view.freeze-panes')
     await page.getByRole('combobox', { name: 'Freeze panes', exact: true }).selectOption('selection')
     await cell(page, 9, 1).click()
     const frozen = page.locator('[data-frozen-pane="corner"] td[data-cell="1:0"]')

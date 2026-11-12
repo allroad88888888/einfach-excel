@@ -35,6 +35,7 @@ include!("wasm_format_snapshot_wire.rs");
 include!("wasm_import_value_wire.rs");
 include!("wasm_import_cells_wire.rs");
 include!("wasm_bulk_wire.rs");
+include!("wasm_cell_snapshot_wire.rs");
 include!("hyperlink/mod.rs");
 include!("rich_text.rs");
 include!("wasm_conditional_format_wire.rs");

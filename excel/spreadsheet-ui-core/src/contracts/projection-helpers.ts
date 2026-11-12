@@ -154,6 +154,7 @@ export function cloneCell(cell: DisplayCell): DisplayCell {
   if (cell.formatKey !== undefined) clone.formatKey = cell.formatKey
   if (cell.format) clone.format = cloneFormat(cell.format)
   if (cell.conditionalFormat) clone.conditionalFormat = cloneFormat(cell.conditionalFormat)
+  if (cell.numberFormatDisplay) clone.numberFormatDisplay = { ...cell.numberFormatDisplay }
   if (cell.dataBar) clone.dataBar = { ...cell.dataBar }
   if (cell.conditionalIcon) clone.conditionalIcon = { ...cell.conditionalIcon }
   if (cell.noteIndicator !== undefined) clone.noteIndicator = cell.noteIndicator

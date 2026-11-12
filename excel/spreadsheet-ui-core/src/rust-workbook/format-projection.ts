@@ -48,7 +48,13 @@ function formatAt(
 export function usesNativeNumberDisplay(kind: SpreadsheetNumberFormat['kind']): boolean {
   return kind === 'text' || kind === 'date' || kind === 'time' || kind === 'scientific' ||
     kind === 'fraction' || kind === 'number' || kind === 'decimal' || kind === 'percent' ||
-    kind === 'percentage' || kind === 'currency'
+    kind === 'percentage' || kind === 'currency' || kind === 'custom'
+}
+
+/** 条件格式字体色压过自定义格式段颜色；填充与留白保持不变。 */
+function withoutSectionColor(cell: DisplayCell): DisplayCell {
+  const { fill, pads } = cell.numberFormatDisplay ?? {}
+  return { ...cell, numberFormatDisplay: fill || pads ? { fill, pads } : undefined }
 }
 
 function formattedDisplayValue(cell: DisplayCell, format: SpreadsheetCellFormat): string {
@@ -81,6 +87,7 @@ export function applyVisibleFormats(
     return [addr, bar] as const
   }))
   const result: DisplayCell[] = []
+  const conditionalFontColors = new Set(snapshot.conditionalFontColors ?? [])
   const icons = new Map((snapshot.conditionalIcons ?? []).map(({ addr, ...icon }) => {
     if (!['three-arrows', 'three-traffic-lights', 'three-flags'].includes(icon.set) ||
       ![0, 1, 2].includes(icon.index) || typeof icon.showValue !== 'boolean')
@@ -94,7 +101,9 @@ export function applyVisibleFormats(
       const dataBar = dataBars.get(toA1(row, col))
       const conditionalIcon = icons.get(toA1(row, col))
       // 每帧都显式替换视觉字段，撤销规则后不能遗留旧图标或数据条。
-      const cell = source && { ...source, dataBar, conditionalIcon }
+      const visual = source && { ...source, dataBar, conditionalIcon }
+      const cell = visual?.numberFormatDisplay?.color && conditionalFontColors.has(toA1(row, col))
+        ? withoutSectionColor(visual) : visual
       let format = formatAt(cellStyles, rowStyles, columnStyles, row, col)
       if (format.fontSize === undefined && snapshot.defaultFontSize !== undefined)
         format = { ...format, fontSize: snapshot.defaultFontSize }

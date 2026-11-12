@@ -97,6 +97,8 @@ impl WasmWorkbook {
                 DisplayDataBarJSON { addr: addr.to_string(), bar }).collect(),
             conditional_icons: snapshot.conditional_icons.into_iter().map(|(addr, icon)|
                 DisplayConditionalIconJSON { addr: addr.to_string(), icon }).collect(),
+            conditional_font_colors: snapshot.conditional_font_colors.iter()
+                .map(ToString::to_string).collect(),
         };
         wire.serialize(&serde_wasm_bindgen::Serializer::json_compatible())
             .map_err(|error| JsValue::from_str(&format!("serialize display formatting: {error}")))
@@ -136,6 +138,8 @@ struct DisplayFormatRangeSnapshotJSON {
     data_bars: Vec<DisplayDataBarJSON>,
     #[serde(rename = "conditionalIcons")]
     conditional_icons: Vec<DisplayConditionalIconJSON>,
+    #[serde(rename = "conditionalFontColors", skip_serializing_if = "Vec::is_empty")]
+    conditional_font_colors: Vec<String>,
 }
 
 #[derive(Serialize)]

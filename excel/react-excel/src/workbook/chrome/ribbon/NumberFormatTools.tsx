@@ -7,7 +7,9 @@ import {
   NUMBER_FORMAT_TIME_PATTERNS, NUMBER_FORMAT_DATE_PATTERNS, NUMBER_FORMAT_FRACTIONS,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef } from 'react'
+import { NumberFormatText } from '@einfach-excel/react-cells'
 import { cycleDialogFocus } from './dialog-focus'
+import { CustomNumberFormatFields } from './CustomNumberFormatFields'
 import './number-format.css'
 
 /** 数字格式表单只渲染 UI Core 草稿；关闭时把键盘焦点还给入口。 */
@@ -20,6 +22,8 @@ export function NumberFormatTools() {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const id = useId()
   const open = state.target !== null
+  // 自定义代码须等 Rust 预览确认有效后才能提交。
+  const blocked = state.draft.category === 'custom' && !(state.preview && 'text' in state.preview)
   useLayoutEffect(() => {
     const dialog = dialogRef.current
     const opener = trigger.current
@@ -51,7 +55,9 @@ export function NumberFormatTools() {
           <option value="scientific"><Trans>Scientific</Trans></option><option value="fraction"><Trans>Fraction</Trans></option>
           <option value="time"><Trans>Time</Trans></option><option value="date"><Trans>Date</Trans></option>
           <option value="text"><Trans>Text</Trans></option>
+          <option value="custom"><Trans>Custom</Trans></option>
         </select>
+        {state.draft.category === 'custom' && <CustomNumberFormatFields id={id} />}
         {['number', 'percent', 'currency', 'scientific'].includes(state.draft.category) && <>
         <label htmlFor={`${id}-digits`}><Trans>Decimal places</Trans></label>
         <input id={`${id}-digits`} type="number" min="0" max="15" step="1" disabled={state.busy}
@@ -120,14 +126,19 @@ export function NumberFormatTools() {
         </>}
         <div className="number-format-preview">
           <span><Trans>Preview · {state.target?.addr}</Trans></span>
-          <div role="status" aria-label={t`Number format preview`} aria-busy={state.preview === null}>
+          <div role="status" aria-label={t`Number format preview`} aria-busy={state.preview === null}
+            style={state.preview && 'color' in state.preview ? { color: state.preview.color } : undefined}>
             {state.preview === null ? t`Loading preview…` : 'text' in state.preview
-              ? state.preview.text || t`(Empty)` : translateFeedback(i18n, state.preview.error)}
+              ? state.preview.fill || state.preview.pads
+                ? <NumberFormatText display={state.preview} text={state.preview.text} />
+                : state.preview.text || t`(Empty)` : 'invalidCode' in state.preview
+                ? t`Correct the format code to see a preview.`
+                : translateFeedback(i18n, state.preview.error)}
           </div>
         </div>
         <div className="number-format-actions">
           <button type="button" disabled={state.busy} onClick={() => void run('close')}><Trans>Cancel</Trans></button>
-          <button type="submit" disabled={state.busy}><Trans>Apply number format</Trans></button>
+          <button type="submit" disabled={state.busy || blocked}><Trans>Apply number format</Trans></button>
         </div>
       </form>
       {state.error && <p id={`${id}-error`} role="alert">{translateFeedback(i18n, state.error)}</p>}

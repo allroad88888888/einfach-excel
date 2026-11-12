@@ -13,6 +13,9 @@ import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { createMergedBorderStyle, MergedCellBorders } from './MergedCellBorders'
 import { CellDataBar } from './CellDataBar'
 import { RichCellText } from './RichCellText'
+import {
+  NumberFormatText, numberFormatColorStyle, numberFormatLayout, numberFormatSpacingStyle,
+} from './NumberFormatText'
 import { CellHyperlink } from './hyperlink/CellHyperlink'
 import { CellMetadata, type CellMetadataLabels } from './cell-metadata/CellMetadata'
 import { useMemo } from 'react'
@@ -47,6 +50,7 @@ export function MergedCells({ window, anchors, metadataLabels }: {
           colEnd: cell.col + span.cols - 1,
         }
         const rect = getViewportRangeRectangle(metrics, sizes, range)
+        const layout = numberFormatLayout(cell, showFormulas)
         if (rect.width === 0 || rect.height === 0) return null
         const selected = selections.some((selection) =>
           selection.rowStart <= range.rowStart && selection.rowEnd >= range.rowEnd &&
@@ -66,6 +70,7 @@ export function MergedCells({ window, anchors, metadataLabels }: {
               ...cellFormatStyle({ ...cell.format, borders: undefined,
               ...(cell.richText?.length && !showFormulas
                 ? { underline: false, strikethrough: false } : {}) }, cell.valueKind),
+              ...numberFormatColorStyle(cell, showFormulas),
               border: 0,
               top: rect.top - origin.top,
               left: rect.left - origin.left,
@@ -83,13 +88,16 @@ export function MergedCells({ window, anchors, metadataLabels }: {
               borderStyle={borderStyle} />
             <CellDataBar bar={cell.dataBar} />
             <CellMetadata cell={cell} labels={metadataLabels} />
-            <span className="cell-content" data-conditional-icon-value={cell.conditionalIcon
-              ? cell.conditionalIcon.showValue ? 'visible' : 'hidden' : undefined}>
+            <span className="cell-content" style={numberFormatSpacingStyle(cell)}
+              data-conditional-icon-value={cell.conditionalIcon
+                ? cell.conditionalIcon.showValue ? 'visible' : 'hidden' : undefined}>
               <span style={cellTextRotationStyle(cell.format)}>
                 <CellHyperlink url={showFormulas ? undefined : cell.hyperlink}
                   color={cell.format?.fgColor}>
-                  <RichCellText cell={cell} text={formulaViewText(cell, showFormulas)}
-            showFormulas={showFormulas} />
+                  {layout ? <NumberFormatText display={layout}
+                    text={formulaViewText(cell, showFormulas)} />
+                    : <RichCellText cell={cell} text={formulaViewText(cell, showFormulas)}
+                      showFormulas={showFormulas} />}
                 </CellHyperlink>
               </span>
             </span>

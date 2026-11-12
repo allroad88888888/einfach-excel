@@ -130,7 +130,7 @@ fn advanced_formats_survive_workbook_persistence_without_converting_values() {
         let addr = format!("A{}", i + 1);
         assert_eq!(restored.get_number(0, &addr), *value);
         assert_eq!(
-            native_number_display(&restored.workbook, 0, &addr, &Value::Number(*value)),
+            native_number_display(&restored.workbook, 0, &addr, &Value::Number(*value)).map(|shown| shown.text),
             Some(expected.to_string())
         );
         assert!(restored.workbook.sheet(0).unwrap().get_format(&addr).italic);

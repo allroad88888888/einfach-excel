@@ -169,7 +169,7 @@ impl WasmWorkbook :: [] :: pub fn patch_format_selection(&mut self, request: JsV
 impl WasmWorkbook :: [] :: pub fn patch_range_borders( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, input: JsValue, ) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn prepare_clipboard( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, cut: bool, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn prepare_clipboard_blocks(&mut self, sheet_idx: u32, blocks: JsValue) -> Result<JsValue, JsValue>
-impl WasmWorkbook :: [] :: pub fn preview_number_format( &self, sheet_idx: u32, addr: &str, format: JsValue, ) -> Result<String, JsValue>
+impl WasmWorkbook :: [] :: pub fn preview_number_format( &self, sheet_idx: u32, addr: &str, format: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_remove_duplicates(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_text_columns(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn put_media(&mut self, bytes: &[u8]) -> Result<String, JsValue>

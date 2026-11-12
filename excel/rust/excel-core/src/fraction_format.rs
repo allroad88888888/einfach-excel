@@ -25,21 +25,7 @@ pub(crate) fn format_fraction(number: f64, denominator: FractionDenominator) -> 
                 FractionDenominator::TwoDigit => 99,
                 _ => 999,
             };
-            let mut best = (0, 1);
-            let mut error = fraction;
-            // 至多 999 个候选，常见精确分数提前退出；相同误差取较小分母。
-            for divisor in 1..=max {
-                let numerator = (fraction * f64::from(divisor)).round() as u32;
-                let distance = (fraction - f64::from(numerator) / f64::from(divisor)).abs();
-                if distance < error {
-                    best = (numerator, divisor);
-                    error = distance;
-                }
-                if error == 0.0 {
-                    break;
-                }
-            }
-            best
+            best_fraction(fraction, max)
         }
     };
     if numerator == divisor {
@@ -58,4 +44,23 @@ pub(crate) fn format_fraction(number: f64, denominator: FractionDenominator) -> 
     } else {
         format!("{sign}{whole:.0} {numerator}/{divisor}")
     }
+}
+
+/// 分母不超过 `max` 时最接近 `fraction`（0..1）的分数；自定义代码 `# ?/?` 也用它。
+pub(crate) fn best_fraction(fraction: f64, max: u32) -> (u32, u32) {
+    let mut best = (0, 1);
+    let mut error = fraction;
+    // 至多 max 个候选，常见精确分数提前退出；相同误差取较小分母。
+    for divisor in 1..=max.max(1) {
+        let numerator = (fraction * f64::from(divisor)).round() as u32;
+        let distance = (fraction - f64::from(numerator) / f64::from(divisor)).abs();
+        if distance < error {
+            best = (numerator, divisor);
+            error = distance;
+        }
+        if error == 0.0 {
+            break;
+        }
+    }
+    best
 }

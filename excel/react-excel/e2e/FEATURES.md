@@ -436,6 +436,13 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | NUM-022 | 原生拒绝后保留数字格式重试 | `format/number-format-feedback.spec.ts` | native rejection retains number settings, fits 390px and retries as one history entry |
 | NUM-023 | 数字格式处理中阻止重复及取消 | `format/number-format-feedback.spec.ts` | pending format blocks duplicate apply, draft edits and cancellation until Rust responds |
 | NUM-024 | 空白文本错误值只读预览 | `format/number-format-session.spec.ts` | preview reads blank, text and formula errors without inventing a sample or writing |
+| NUM-025 | 自定义格式代码应用 | `format/number-format-custom.spec.ts` | custom code sections color negatives, keep the raw value and undo as one step |
+| NUM-026 | 自定义格式字面量与填充 | `format/number-format-custom.spec.ts` | custom literals sit between digits and fill pushes the symbol and number to the edges |
+| NUM-027 | 非法自定义格式原地纠正 | `format/number-format-custom.spec.ts` | invalid custom codes stay in the draft until corrected and then apply once |
+| NUM-028 | 自定义分数格式缩放与补零 | `format/number-format-custom-fractions.spec.ts` | custom fraction codes preserve scaling and mandatory denominator zeros |
+| NUM-029 | 自定义格式斜杠字面量 | `format/number-format-custom-fractions.spec.ts` | quoted and escaped slashes remain literal in custom codes |
+| NUM-030 | 自定义数字留白自动列宽 | `format/number-format-custom-auto-fit.spec.ts` | auto-fit includes the actual width of custom padding characters |
+| NUM-031 | 自定义文本段自动列宽 | `format/number-format-custom-auto-fit.spec.ts` | auto-fit measures custom text sections with their prefixes and padding |
 | BORDER-001 | 外边框 | `format/border-settings.spec.ts` | outside uses selection edges, not every cell perimeter |
 | BORDER-002 | 内边框 | `format/border-settings.spec.ts` | inside uses selection edges, not every cell perimeter |
 | BORDER-003 | 所有边框 | `format/border-settings.spec.ts` | all uses selection edges, not every cell perimeter |

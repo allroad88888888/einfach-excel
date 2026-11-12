@@ -1,7 +1,7 @@
 //! 日期显示使用原生 1900 序号；不交给系统时区或 JavaScript Date。
 use crate::date_serial::{excel_serial_to_date_parts, valid_date_serial, weekday_sunday_indexed};
 
-const MONTHS: [&str; 12] = [
+pub(crate) const MONTHS: [&str; 12] = [
     "January",
     "February",
     "March",
@@ -15,7 +15,7 @@ const MONTHS: [&str; 12] = [
     "November",
     "December",
 ];
-const WEEKDAYS: [&str; 7] = [
+pub(crate) const WEEKDAYS: [&str; 7] = [
     "Sunday",
     "Monday",
     "Tuesday",

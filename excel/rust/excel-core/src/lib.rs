@@ -16,6 +16,7 @@ mod date_serial;
 mod date_format;
 mod scientific_format;
 mod fraction_format;
+pub mod custom_number_format;
 mod time_format;
 pub use fraction_format::FractionDenominator;
 pub mod eval;

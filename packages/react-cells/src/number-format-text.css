@@ -1,0 +1,26 @@
+/* `*x` 填充占满单元格内容宽度：两端文字不收缩，中间的重复字符被裁到剩余宽度。 */
+:where(.einfach-spreadsheet) .cell-fill-text {
+  display: flex;
+  width: 100%;
+  white-space: pre;
+}
+
+:where(.einfach-spreadsheet) .cell-fill-start,
+:where(.einfach-spreadsheet) .cell-fill-end {
+  flex: none;
+}
+
+:where(.einfach-spreadsheet) .cell-fill-repeat {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* `_x` 留白：占位字符保留自身宽度但不可见，复制与读屏都不带它。 */
+:where(.einfach-spreadsheet) .cell-pad {
+  visibility: hidden;
+}
+
+:where(.einfach-spreadsheet) .cell-number-text {
+  white-space: pre;
+}

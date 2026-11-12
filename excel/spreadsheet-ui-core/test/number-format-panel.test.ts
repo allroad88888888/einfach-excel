@@ -24,7 +24,7 @@ async function setup(numberFormat?: SpreadsheetNumberFormat) {
       projection: project(projection) }
   })
   const { store } = createSpreadsheetUi({ connection: createTestRustWorkbookConnection({
-    previewNumberFormat: async () => '12.50',
+    previewNumberFormat: async () => ({ text: '12.50' }),
     readVisibleProjection: async (request) => project(request), setRangeFormat: write,
   }) })
   store.setter(setSelectionBoundsAtom, { rowCount: 10, colCount: 10 })

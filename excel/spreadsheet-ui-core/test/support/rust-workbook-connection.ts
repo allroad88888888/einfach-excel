@@ -18,7 +18,8 @@ import {
 } from '../../src'
 
 export interface TestRustWorkbookHandlers {
-  previewNumberFormat?: (request: RustWorkbookCommands['format.preview']['payload']) => Promise<string>
+  previewNumberFormat?: (request: RustWorkbookCommands['format.preview']['payload']) =>
+    Promise<RustWorkbookCommands['format.preview']['result']>
   exportClipboard?: (request: RustClipboardExportRequest) => Promise<RustClipboardExport>
   captureClipboard?: (request: RustClipboardCaptureRequest) => Promise<RustClipboardCapture>
   finishClipboardCapture?: (request: RustWorkbookCommands['clipboard.finishCapture']['payload']) => Promise<void>

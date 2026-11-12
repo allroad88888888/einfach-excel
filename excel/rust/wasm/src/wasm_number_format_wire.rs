@@ -133,6 +133,7 @@ fn uses_native_number_display(format: &NumberFormat) -> bool {
             | NumberFormat::Time(_)
             | NumberFormat::Scientific { .. }
             | NumberFormat::Fraction { .. }
+            | NumberFormat::Custom(_)
     )
 }
 

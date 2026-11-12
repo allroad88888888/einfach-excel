@@ -1,7 +1,7 @@
 import type { SheetDefaults } from '../runtime/sheet-defaults'
+import type { RustNumberFormatPreview } from './native-number-display'
 import type {
-  SetCellInputRequest,
-  ProjectionRevision,
+  SetCellInputRequest, ProjectionRevision,
   SetFormatRangeRequest,
   SpreadsheetCellFormat,
   SpreadsheetNumberFormat,
@@ -225,7 +225,7 @@ export interface RustWorkbookCommands
       readonly addr: string
       readonly numberFormat: SpreadsheetNumberFormat
     },
-    string
+    RustNumberFormatPreview
   >
   readonly 'range.fill': WorkerCommand<
     { readonly request: RustFillRangeRequest; readonly projection: VisibleProjectionRequest },

@@ -3,6 +3,8 @@
 struct AutoFitTextJSON {
     text: String,
     numeric_value: Option<f64>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pads: Vec<FormattedCharJSON>,
     format: CellFormatJSON,
     width: f64,
 }
@@ -29,12 +31,10 @@ impl WasmWorkbook {
             |value, format, width| {
                 let value = collapse_array_for_js(value);
                 let value = value.as_ref();
+                let native = native_number_display_for_value(format, value);
                 let input = AutoFitTextJSON {
-                    text: match value {
-                        Value::Number(n) if uses_native_number_display(&format.number_format) =>
-                            format.format_number(*n),
-                        _ => value_to_display(value),
-                    },
+                    text: native.as_ref().map_or_else(|| value_to_display(value), |shown| shown.text.clone()),
+                    pads: native.map_or_else(Vec::new, |shown| shown.pads),
                     numeric_value: match value { Value::Number(n) => Some(*n), _ => None },
                     format: CellFormatJSON::from_format(format), width,
                 };

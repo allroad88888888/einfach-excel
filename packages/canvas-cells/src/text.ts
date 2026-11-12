@@ -1,4 +1,5 @@
 import { paintRichText } from './rich-text'
+import { paintNumberFormatLine } from './number-format-line'
 import type { Rect } from '@einfach-excel/canvas'
 import { externalHyperlink, type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import type { CanvasCellsTheme } from './types'
@@ -58,6 +59,9 @@ export function paintText(
     ctx.font = font(fontSize)
     ctx.fillStyle = hyperlink ? theme.selection : theme.foreground
     if (format?.fgColor) ctx.fillStyle = format.fgColor
+    // 自定义格式段颜色压过用户字体色；公式视图显示公式原文时不适用。
+    const numberDisplay = showFormulas && cell?.formula ? undefined : cell?.numberFormatDisplay
+    if (numberDisplay?.color) ctx.fillStyle = numberDisplay.color
     const wrapping = format?.overflow === 'wrap' || format?.wrap
     const vertical = format?.rotation === 'vertical'
     let size = fontSize
@@ -88,7 +92,9 @@ export function paintText(
     }
     lines.forEach((line, index) => {
       const top = y + index * lineHeight
-      ctx.fillText(line, x, top)
+      const layout = !wrapping && !vertical && numberDisplay
+      if (!layout || !paintNumberFormatLine(ctx, line, layout, { left, width, x }, top))
+        ctx.fillText(line, x, top)
       if (format?.underline || hyperlink || format?.strikethrough) {
         const measured = ctx.measureText(line).width
         const from = ctx.textAlign === 'right' ? x - measured

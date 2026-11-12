@@ -66,7 +66,8 @@ function writeCells(
       current, context.sheetIndex(request.sheetId), request, context.sheetIndex,
     )
   }
-  context.revision += 1
+  const noFill = command === 'range.fill' && !affectedRange
+  if (!noFill) context.revision += 1
   const acknowledgement: BackendMutationResult = {
     sheetId: request.sheetId,
     requestId: request.requestId,
@@ -76,8 +77,9 @@ function writeCells(
   return {
     acknowledgement,
     ...('direction' in request || fontSizeWrite
-      ? { sizes: readSizes(current, context.sheetIndex(request.sheetId),
-        'direction' in request && !request.adjacent ? request.range : affectedRange) } : {}),
+      ? { sizes: noFill ? { rowHeights: [], colWidths: [] } :
+        readSizes(current, context.sheetIndex(request.sheetId),
+          affectedRange!) } : {}),
     ...(colWidths ? { colWidths } : {}),
     projection: readVisibleProjection(
       current,

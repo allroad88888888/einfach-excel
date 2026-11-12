@@ -1,6 +1,7 @@
 import type { DisplayCell } from '../contracts'
 import { toA1 } from '../contracts'
 import type { RustCellSnapshot, WasmWorkbook } from './wasm-types'
+import { nativeNumberDisplay } from './native-number-display'
 
 function requiredMethod<T>(method: T | undefined, name: string): T {
   if (method) return method
@@ -34,6 +35,8 @@ export function displayCell(snapshot: RustCellSnapshot): DisplayCell | null {
     ...coord, displayValue: snapshot.formattedDisplay ?? snapshot.display, valueKind,
   }
   cell.inputText = snapshot.inputText ?? (snapshot.formula || snapshot.display)
+  const numberFormatDisplay = nativeNumberDisplay(snapshot)
+  if (numberFormatDisplay) cell.numberFormatDisplay = numberFormatDisplay
   if (snapshot.richText?.length) cell.richText = snapshot.richText
   if (snapshot.hyperlink) cell.hyperlink = snapshot.hyperlink
   if (snapshot.noteIndicator) cell.noteIndicator = true

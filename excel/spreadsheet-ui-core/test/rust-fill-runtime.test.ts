@@ -1,3 +1,4 @@
+import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
 import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
@@ -11,7 +12,16 @@ async function runtime() {
     location: { origin: 'http://localhost' },
     addEventListener: (_: string, fn: typeof receive) => { receive = fn }, postMessage: post,
   })
-  const fill = vi.fn(() => ({ written: 6 }))
+  const fill = vi.fn((input: Parameters<NonNullable<WasmWorkbook['apply_auto_fill']>>[0]) => {
+    const { sourceRange: source, targetRange: target, direction } = input
+    const writeRange = { ...target,
+      ...(direction === 'down' ? { startRow: source.endRow + 1 } :
+        direction === 'up' ? { endRow: source.startRow - 1 } :
+          direction === 'right' ? { startCol: source.endCol + 1 } : { endCol: source.startCol - 1 }),
+    }
+    return { written: (writeRange.endRow - writeRange.startRow + 1) *
+      (writeRange.endCol - writeRange.startCol + 1), writeRange }
+  })
   const begin = vi.fn()
   const finish = vi.fn()
   const sizes = vi.fn(() => ({ rowHeights: [], colWidths: [] }))
@@ -64,7 +74,8 @@ test.each(['down', 'right'])('%s copies only the first axis through one native c
   )
   expect(finish).toHaveBeenCalledTimes(1)
   expect(finish).toHaveBeenCalledWith(true)
-  expect(sizes).toHaveBeenCalledWith(0, 50, 1, 53, 2)
+  expect(sizes).toHaveBeenCalledWith(0, direction === 'down' ? 51 : 50,
+    direction === 'down' ? 1 : 2, 53, 2)
 })
 
 test('invalid ranges, sheet mismatch and direction are rejected before history snapshots', async () => {
@@ -161,4 +172,40 @@ test('malformed custom lists reject before native history allocation', async () 
   }
   expect(begin).not.toHaveBeenCalled()
   expect(fill).not.toHaveBeenCalled()
+})
+
+test('geometric passes explicit decimal parameters and publishes only the native prefix', async () => {
+  const { call, fill, sizes, begin, finish } = await runtime()
+  fill.mockReturnValueOnce({ written: 2,
+    writeRange: { startRow: 51, endRow: 52, startCol: 1, endCol: 1 } })
+  const reply = await call('range.fill', { ...input, request: { ...input.request,
+    range: { ...range, colEnd: 1 },
+    series: { kind: 'geometric', sourceCount: 1, step: 1.5, stop: 7 },
+  } })
+  expect(fill).toHaveBeenCalledWith({ sheet: 0, direction: 'down', series: 'geometric',
+    infer: false, step: 1.5, stop: 7,
+    sourceRange: { startRow: 50, endRow: 50, startCol: 1, endCol: 1 },
+    targetRange: { startRow: 50, endRow: 53, startCol: 1, endCol: 1 },
+  })
+  expect(reply.result.acknowledgement.affectedRange)
+    .toEqual({ rowStart: 51, rowEnd: 52, colStart: 1, colEnd: 1 })
+  expect(sizes).toHaveBeenCalledWith(0, 51, 1, 52, 1)
+  expect(begin).not.toHaveBeenCalled()
+  expect(finish).not.toHaveBeenCalled()
+})
+
+test('native zero-write report does not advance revision or read destination sizes', async () => {
+  const { call, fill, finish, sizes } = await runtime()
+  fill.mockReturnValueOnce({ written: 0, writeRange: null } as never)
+  const reply = await call('range.fill', { ...input, request: { ...input.request,
+    range: { ...range, colEnd: 1 }, series: { kind: 'geometric', sourceCount: 1, step: 2, stop: 2 },
+  } })
+  expect(reply).toMatchObject({ ok: true, result: {
+    acknowledgement: { revision: 0 }, projection: { revision: 0 },
+    sizes: { rowHeights: [], colWidths: [] },
+  } })
+  expect(reply.result.acknowledgement.affectedRange).toBeUndefined()
+  expect(finish).not.toHaveBeenCalled()
+  expect(sizes).toHaveBeenCalledTimes(1)
+  expect(sizes).toHaveBeenCalledWith(0, 0, 0, 9, 4)
 })

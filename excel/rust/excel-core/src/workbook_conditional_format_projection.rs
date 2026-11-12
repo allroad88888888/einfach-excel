@@ -12,6 +12,8 @@ pub struct DisplayFormatRangeSnapshot {
     pub formats: FormatRangeSnapshot,
     pub data_bars: Vec<(CellAddress, DataBarDisplay)>,
     pub conditional_icons: Vec<(CellAddress, ConditionalIconDisplay)>,
+    /// 条件格式改了字体色的格：显示层据此让条件色压过自定义数字格式的段颜色。
+    pub conditional_font_colors: Vec<CellAddress>,
 }
 impl Workbook {
     pub fn snapshot_display_format_range(
@@ -54,6 +56,7 @@ impl Workbook {
                 formats: snapshot,
                 data_bars: Vec::new(),
                 conditional_icons: Vec::new(),
+                conditional_font_colors: Vec::new(),
             });
         }
         // 数字较小的优先级更高；同优先级时，列表中较前的规则优先。
@@ -65,6 +68,7 @@ impl Workbook {
             .collect();
         let mut data_bars = BTreeMap::new();
         let mut conditional_icons = BTreeMap::new();
+        let mut conditional_font_colors = Vec::new();
         for row in range.start.row..=range.end.row {
             for col in range.start.col..=range.end.col {
                 if !rules.iter().any(|(entry, _, _)| entry.contains(row, col)) {
@@ -137,6 +141,9 @@ impl Workbook {
                 for patch in patches.iter().rev() {
                     styles.entry((row, col)).or_default().apply_patch(patch);
                 }
+                if patches.iter().any(|patch| matches!(patch.color, Some(Some(_)))) {
+                    conditional_font_colors.push(CellAddress::new(row, col));
+                }
             }
         }
         self.store.settle_pending_reads();
@@ -152,6 +159,7 @@ impl Workbook {
                 .collect(),
             conditional_icons: conditional_icons.into_iter()
                 .map(|((row, col), icon)| (CellAddress::new(row, col), icon)).collect(),
+            conditional_font_colors,
         })
     }
 }

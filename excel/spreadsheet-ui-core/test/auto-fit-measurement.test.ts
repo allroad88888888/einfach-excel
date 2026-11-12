@@ -68,7 +68,7 @@ test('measurement uses the same numeric display formatter as visible projections
   expect(context.measureText).toHaveBeenCalledWith('12.34%')
 })
 
-test.each(['scientific', 'fraction', 'time', 'text', 'number', 'decimal', 'percent', 'percentage', 'currency'] as const)(
+test.each(['scientific', 'fraction', 'time', 'text', 'number', 'decimal', 'percent', 'percentage', 'currency', 'accounting'] as const)(
   '%s measures the native display verbatim', (kind) => {
   const { context } = setup()
   createAutoFitMeasurer('column', layout)({
@@ -104,4 +104,30 @@ test('missing browser measurement and invalid layout fail rather than guess char
   expect(() => createAutoFitMeasurer('row', { ...layout, fontSize: NaN })).toThrow(
     'layout is unavailable',
   )
+})
+
+test.each(['custom', 'accounting'] as const)('%s auto-fit reserves each padding character width and keeps literal spaces', (kind) => {
+  const { context } = setup()
+  context.measureText.mockImplementation((value: string) => ({
+    width: Array.from(value).reduce((sum, char) => sum + (char === 'W' ? 20 : 10), 0),
+  }))
+  const measure = createAutoFitMeasurer('column', layout)
+  expect(measure({
+    ...text({ numberFormat: { kind } }, '  7 '),
+    pads: [{ at: 0, char: 'W' }, { at: 3, char: 'W' }],
+  })).toBe(75)
+  expect(context.measureText).toHaveBeenCalledWith('W')
+  expect(context.measureText).toHaveBeenCalledWith(' 7')
+  // 文本段已经在 Rust 展开，Unicode 下标按字符而非 UTF-16 code unit。
+  expect(measure({
+    ...text({ numberFormat: { kind } }, '😀  Note: x'),
+    pads: [{ at: 1, char: 'W' }],
+  })).toBe(125)
+})
+
+test('custom auto-fit follows preformatted line breaks even if the cell has wrap enabled', () => {
+  setup()
+  const format = { numberFormat: { kind: 'custom' as const }, wrap: true }
+  expect(createAutoFitMeasurer('column', layout)(text(format, 'a  b\nc'))).toBe(55)
+  expect(createAutoFitMeasurer('row', layout)(text(format, 'a  b\nc'))).toBeCloseTo(35.8)
 })

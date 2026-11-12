@@ -1,16 +1,21 @@
 import { atom } from '@einfach/core'
-import type { SpreadsheetNumberFormat } from '../contracts'
+import type { DisplayCell, SpreadsheetNumberFormat } from '../contracts'
 import { toA1 } from '../contracts'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { activeCellFormatAtom } from '../projection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustWorkbookConnection } from '../rust-workbook'
+import type {
+  NumberFormatCodeError, RustNumberFormatPreview,
+} from '../rust-workbook/native-number-display'
 import {
   selectionAuthorityWitnessAtom, selectionSnapshotAtom, type SelectionAuthorityWitness,
 } from '../selection'
+import { specialLocalePreset, specialPresetLocale, validSpecialFormat } from './special-number-format-presets'
 import { runSelectionMutationAtom } from './selection-mutation-command'
 
-type Category = 'number' | 'percent' | 'currency' | 'scientific' | 'fraction' | 'time' | 'date' | 'text'
+type Category =
+  'number' | 'percent' | 'currency' | 'accounting' | 'scientific' | 'fraction' | 'time' | 'date' | 'text' | 'custom' | 'special'
 export const NUMBER_FORMAT_TIME_PATTERNS = [
   'h:mm', 'hh:mm', 'h:mm:ss', 'hh:mm:ss', 'h:mm AM/PM', 'h:mm:ss AM/PM', 'mm:ss', '[h]:mm:ss',
 ] as const
@@ -27,6 +32,10 @@ interface NumberFormatDraft {
   denominator: string
   pattern: string
   datePattern: string
+  /** Custom 类别的 Excel 格式代码原文；只交给 Rust 校验与显示，不在 JS 解析。 */
+  code: string
+  specialLocale: string
+  specialPreset: string
 }
 interface NumberFormatPanel {
   draft: NumberFormatDraft
@@ -36,14 +45,22 @@ interface NumberFormatPanel {
     sheetId: string
     addr: string
   } | null
-  preview: { text: string } | { error: string } | null
+  preview: NumberFormatPreviewText | { error: string } |
+    { invalidCode: NumberFormatCodeError } | null
   busy: boolean
   error: string | null
 }
 const CLOSED: NumberFormatPanel = {
   draft: { category: 'number', digits: '2', thousands: false, symbol: '$',
-    denominator: 'one-digit', pattern: 'hh:mm:ss', datePattern: 'yyyy-mm-dd' },
+    denominator: 'one-digit', pattern: 'hh:mm:ss', datePattern: 'yyyy-mm-dd', code: 'General', specialLocale: 'en-US', specialPreset: 'zip-code' },
   target: null, preview: null, busy: false, error: null,
+}
+/** 预览与网格同源：文本、段颜色，以及与网格同一份 `*x` 填充和 `_x` 留白。 */
+type NumberFormatPreviewText = { text: string } & NonNullable<DisplayCell['numberFormatDisplay']>
+function previewText(result: Exclude<RustNumberFormatPreview, { invalidCode: string }>) {
+  const { text, color, fill, pads } = result
+  return { text, ...(color ? { color } : {}), ...(fill ? { fill } : {}),
+    ...(pads?.length ? { pads } : {}) } as NumberFormatPreviewText
 }
 const PREVIEW_UNAVAILABLE = 'Preview unavailable. Change a setting to try again.'
 
@@ -52,18 +69,21 @@ export const numberFormatPanelAtom = atom<NumberFormatPanel>(CLOSED)
 type Action = 'open' | 'close' | 'apply' | { type: 'draft'; patch: Partial<NumberFormatDraft> }
 
 function fromFormat(format: SpreadsheetNumberFormat | undefined): NumberFormatDraft {
-  const category = format?.kind === 'currency' || format?.kind === 'scientific' ||
+  const category = format?.kind === 'currency' || format?.kind === 'accounting' || format?.kind === 'scientific' ||
     format?.kind === 'fraction' || format?.kind === 'time' || format?.kind === 'date' ||
-    format?.kind === 'text' ? format.kind
+    format?.kind === 'text' || format?.kind === 'custom' || format?.kind === 'special' ? format.kind
     : format?.kind === 'percent' || format?.kind === 'percentage' ? 'percent' : 'number'
   return {
     category,
     digits: String((format && 'digits' in format ? format.digits : undefined) ?? (category === 'percent' ? 0 : 2)),
     thousands: !!(format && 'thousands' in format && format.thousands),
-    symbol: format?.kind === 'currency' ? format.symbol ?? '$' : '$',
+    symbol: format?.kind === 'currency' || format?.kind === 'accounting' ? format.symbol ?? '$' : '$',
     denominator: String(format?.kind === 'fraction' ? format.denominator ?? 'one-digit' : 'one-digit'),
     pattern: format?.kind === 'time' ? format.pattern ?? 'hh:mm:ss' : 'hh:mm:ss',
     datePattern: format?.kind === 'date' ? format.pattern ?? 'yyyy-mm-dd' : 'yyyy-mm-dd',
+    code: format?.kind === 'custom' ? format.pattern : 'General',
+    specialPreset: format?.kind === 'special' ? format.preset : 'zip-code',
+    specialLocale: format?.kind === 'special' ? format.locale ?? specialPresetLocale(format.preset) ?? 'en-US' : 'en-US',
   }
 }
 
@@ -71,13 +91,17 @@ function fromFormat(format: SpreadsheetNumberFormat | undefined): NumberFormatDr
 function draftFormat(draft: NumberFormatDraft): SpreadsheetNumberFormat | string {
   const { category, digits: text, thousands, symbol, denominator, pattern, datePattern } = draft
   const digits = Number(text)
-  if (['number', 'percent', 'currency', 'scientific'].includes(category) &&
+  if (['number', 'percent', 'currency', 'accounting', 'scientific'].includes(category) &&
     (!/^\d+$/.test(text) || !Number.isInteger(digits) || digits < 0 || digits > 15))
     return 'Enter a whole number of decimal places from 0 to 15.'
-  if (!['number', 'percent', 'currency', 'scientific', 'fraction', 'time', 'date', 'text'].includes(category))
+  if (category === 'special') return validSpecialFormat(draft.specialPreset, draft.specialLocale)
+    ? { kind: 'special', preset: draft.specialPreset, locale: draft.specialLocale }
+    : 'Choose a supported category.'
+  if (category === 'custom') return { kind: 'custom', pattern: draft.code }
+  if (!['number', 'percent', 'currency', 'accounting', 'scientific', 'fraction', 'time', 'date', 'text'].includes(category))
     return 'Choose a supported category.'
   // 空字符串表示不显示币种；符号作为普通文本交给 Rust，拒绝控制字符。
-  if (category === 'currency' && (symbol.length > 16 || /[\x00-\x1f\x7f]/.test(symbol)))
+  if ((category === 'currency' || category === 'accounting') && (symbol.length > 16 || /[\x00-\x1f\x7f]/.test(symbol)))
     return 'Use at most 16 characters for the currency symbol, without control characters.'
   if (category === 'fraction') {
     const named = denominator === 'one-digit' || denominator === 'two-digit' || denominator === 'three-digit'
@@ -95,7 +119,7 @@ function draftFormat(draft: NumberFormatDraft): SpreadsheetNumberFormat | string
     return { kind: 'date', pattern: datePattern }
   } else if (category === 'text') return { kind: 'text' }
   return category === 'number' ? { kind: 'number', digits, thousands }
-    : category === 'currency' ? { kind: 'currency', digits, symbol } : { kind: category, digits }
+    : category === 'currency' || category === 'accounting' ? { kind: category, digits, symbol } : { kind: category, digits }
 }
 
 /** 设置一次提交整个 numberFormat 字段；草稿变化只请求原生预览。 */
@@ -130,7 +154,11 @@ export const runNumberFormatPanelAtom = atom(null, async (get, set, action: Acti
     } : state.target!
     const pending: NumberFormatPanel = {
       ...CLOSED, target, draft: action === 'open'
-        ? fromFormat(get(activeCellFormatAtom).numberFormat) : { ...state.draft, ...action.patch },
+        ? fromFormat(get(activeCellFormatAtom).numberFormat) : { ...state.draft, ...action.patch,
+          ...(action.patch.specialLocale !== undefined && action.patch.specialPreset === undefined
+            && specialLocalePreset(action.patch.specialLocale)
+            ? { specialPreset: specialLocalePreset(action.patch.specialLocale)! } : {}),
+        },
     }
     set(numberFormatPanelAtom, pending)
     const numberFormat = draftFormat(pending.draft)
@@ -144,8 +172,9 @@ export const runNumberFormatPanelAtom = atom(null, async (get, set, action: Acti
         // 异步 command 首次让出后发布草稿，不能等网络返回才打开弹窗。
         await Promise.resolve()
         if (get(numberFormatPanelAtom) === pending) set(numberFormatPanelAtom, pending)
-        const text = await response
-        preview = { text }
+        const result = await response
+        preview = result.invalidCode !== undefined ? { invalidCode: result.invalidCode }
+          : previewText(result)
       } catch {
         preview = { error: PREVIEW_UNAVAILABLE }
       }
@@ -160,6 +189,8 @@ export const runNumberFormatPanelAtom = atom(null, async (get, set, action: Acti
   }
   const numberFormat = draftFormat(state.draft)
   if (typeof numberFormat === 'string') return fail(numberFormat)
+  // 自定义代码只在 Rust 预览确认有效后提交；无效代码的提示已在草稿旁，留待原地纠正。
+  if (numberFormat.kind === 'custom' && !(state.preview && 'text' in state.preview)) return false
   const pending = { ...state, busy: true, error: null }
   set(numberFormatPanelAtom, pending)
   const response = set(runSelectionMutationAtom, { kind: 'format', format: { numberFormat } })

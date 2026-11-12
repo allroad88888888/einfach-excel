@@ -112,6 +112,8 @@ export {
   numberFormatPanelAtom, runNumberFormatPanelAtom,
   NUMBER_FORMAT_TIME_PATTERNS, NUMBER_FORMAT_DATE_PATTERNS, NUMBER_FORMAT_FRACTIONS,
 } from './toolbar/number-format-panel'
+export { NUMBER_FORMAT_SPECIAL_PRESETS } from './toolbar/special-number-format-presets'
+export type { SpecialNumberFormatLocale } from './toolbar/special-number-format-presets'
 export {
   DEFAULT_FONT_SIZE, FONT_SIZE_PRESETS, fontSizePanelAtom, runFontSizeAtom,
 } from './toolbar/font-size-command'
@@ -119,6 +121,7 @@ export { clearSelectionAtom, selectionMutationFeedbackAtom } from './toolbar/sel
 export { selectionSizePanelAtom, runSelectionSizeAtom } from './toolbar/selection-size-command'
 export { resizeDragAtom, runResizeDragAtom } from './viewport/resize-drag'
 export type { AutoFitLayout } from './rust-workbook/auto-fit-measurement'
+export type { NumberFormatCodeError } from './rust-workbook/native-number-display'
 export * from './selection/header-selection-command'
 export * from './viewport'
 export * from './workspace'

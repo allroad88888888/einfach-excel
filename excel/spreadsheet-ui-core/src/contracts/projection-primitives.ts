@@ -55,6 +55,16 @@ export interface DisplayCell {
   commentThreadId?: string
   validation?: ValidationOutcome
   conditionalFormat?: SpreadsheetCellFormat
+  /**
+   * Rust 自定义数字格式的显示附加信息：段颜色（压过用户字体色，条件格式字体色除外）与
+   * `*x` 填充。`fill.at` 是 displayValue 中的字符下标，之前贴左、之后贴右、中间重复 char。
+   * `pads` 是 `_x` 留白：displayValue 在 `at` 处是空格，渲染时留出 `char` 的宽度。
+   */
+  numberFormatDisplay?: {
+    readonly color?: string
+    readonly fill?: { readonly char: string; readonly at: number }
+    readonly pads?: readonly { readonly char: string; readonly at: number }[]
+  }
   /** 原生条件格式的临时显示几何；不是 cellStyle 或单元格宽高。 */
   dataBar?: {
     readonly left: number

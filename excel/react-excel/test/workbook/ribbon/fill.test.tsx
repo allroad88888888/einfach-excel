@@ -11,7 +11,12 @@ import { FillTools } from '../../../src/workbook/chrome/ribbon/FillTools'
 
 type Input = RustWorkbookCommands['range.fill']['payload']
 const result = (p: Input): RustWorkbookCommands['range.fill']['result'] => ({
-  acknowledgement: { sheetId: 's', requestId: p.request.requestId, revision: 1 },
+  acknowledgement: { sheetId: 's', requestId: p.request.requestId, revision: 1,
+    affectedRange: { ...p.request.range,
+      ...(p.request.direction === 'down' ? { rowStart: p.request.range.rowStart + 1 }
+        : { colStart: p.request.range.colStart + 1 }),
+    },
+  },
   projection: { ...p.projection, cells: [], revision: 1 },
   sizes: { rowHeights: [], colWidths: [] },
 })

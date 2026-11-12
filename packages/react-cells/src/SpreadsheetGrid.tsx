@@ -8,6 +8,9 @@ import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'
 import { RichCellText } from './RichCellText'
+import {
+  NumberFormatText, numberFormatColorStyle, numberFormatLayout, numberFormatSpacingStyle,
+} from './NumberFormatText'
 import { CellHyperlink } from './hyperlink/CellHyperlink'
 import { CellMetadata, type CellMetadataLabels } from './cell-metadata/CellMetadata'
 import { SelectionOutlines } from './SelectionOutlines'
@@ -102,6 +105,7 @@ export function SpreadsheetGrid({
                 ? { underline: false, strikethrough: false } : {}) } : undefined, cell?.valueKind,
           ),
           ...borderStyle(row, col, cell?.format),
+          ...numberFormatColorStyle(cell, showFormulas),
           ...across?.cell,
         }
         const height = rowHeights?.[row - window.rowStart] ?? DEFAULT_CELL_ROW_HEIGHT
@@ -111,11 +115,12 @@ export function SpreadsheetGrid({
         )
         const bottomBorder = Number.parseFloat(String(formatStyle.borderBottomWidth ?? 1))
         const text = formulaViewText(cell, showFormulas)
+        const layout = numberFormatLayout(cell, showFormulas)
         // Keep the common plain-text path as a text node: thousands of redundant
         // component fibers otherwise delay buffered viewport replacement on scroll.
         const displayValue = cell?.richText?.length && !showFormulas
           ? <RichCellText cell={cell} text={text} showFormulas={false} />
-          : text
+          : layout ? <NumberFormatText display={layout} text={text} /> : text
         const filterTable = tableHeaders.find(({ range }) =>
           col >= range.colStart && col <= range.colEnd)?.table
         const filterHeader = !merged && (filterTable !== undefined || row === filterRange?.rowStart
@@ -142,6 +147,7 @@ export function SpreadsheetGrid({
               style={{
                 maxHeight: Math.max(0, height - 6 - topBorder - bottomBorder),
                 visibility: merged ? 'hidden' : undefined,
+                ...numberFormatSpacingStyle(cell),
                 ...across?.content,
               }}
             >

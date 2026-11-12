@@ -1,8 +1,6 @@
-import type { RichTextRun } from '../contracts'
 import type { SheetDefaults } from '../runtime/sheet-defaults'
 import type {
-  DisplayCell,
-  IterativeCalculationConfig,
+  DisplayCell, RichTextRun, IterativeCalculationConfig,
   SpreadsheetCellFormat,
   SpreadsheetNumberFormat,
   ViewportRowHeight,
@@ -20,6 +18,7 @@ import type { WasmSelectSpecialQueries } from './select-special-commands'
 import type { CellRange } from '../shared'
 import type { SelectionNumbers } from '../status-bar/types'
 import type { RustSortKey } from './sort-commands'
+import type { RustConditionalFontColors, RustNativeNumberDisplay, RustNumberFormatPreview } from './native-number-display'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import type { RustFilterReport, RustFilterValuesPage, RustFilterValuesQuery } from './filter-commands'
 import type { NativeTextColumnsRequest, RustTextColumnsPreview, RustTextColumnsReport } from './text-columns-commands'
@@ -42,11 +41,10 @@ import type { WasmAsyncFormulaQueries } from './async-formulas/commands'
 import type { WasmFormulaAuditingQueries } from '../formula-auditing/types'
 import type { HostWasmCommands } from '../host/types'
 
-export interface RustCellSnapshot {
+export interface RustCellSnapshot extends RustNativeNumberDisplay {
   readonly sheet: number
   readonly addr: string
   readonly display: string
-  readonly formattedDisplay?: string
   readonly inputText?: string
   readonly richText?: readonly RichTextRun[]
   readonly hyperlink?: string
@@ -75,7 +73,7 @@ export interface RustIndexedRowStyleSnapshot extends RustIndexedStyleSnapshot {
   readonly height?: number
 }
 
-export interface RustFormatRangeSnapshot {
+export interface RustFormatRangeSnapshot extends RustConditionalFontColors {
   readonly defaultFontSize?: number
   readonly cellStyles: readonly RustCellStyleSnapshot[]
   readonly rowStyles: readonly RustIndexedRowStyleSnapshot[]
@@ -139,7 +137,8 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   split_text_columns?: (
     request: NativeTextColumnsRequest, overwrite: boolean,
   ) => RustTextColumnsReport
-  preview_number_format?: (sheet: number, addr: string, format: SpreadsheetNumberFormat) => string
+  preview_number_format?: (
+    sheet: number, addr: string, format: SpreadsheetNumberFormat) => RustNumberFormatPreview
   applyFilter?: (
     sheet: number,
     input: { rules: readonly ColumnFilterRule[]; range?: CellRange },
@@ -166,6 +165,7 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
     readonly direction: 'down' | 'right' | 'up' | 'left'
     readonly series:
       | 'copy'
+      | 'geometric'
       | 'integer-step'
       | 'text-number'
       | 'linear-trend'
@@ -173,9 +173,13 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
       | 'month-name'
       | 'custom-list'
       | 'date-day'
+    readonly step?: number
+    readonly stop?: number
     readonly infer?: boolean
     readonly list?: { listName: string; values: readonly string[]; locale: string }
-  }) => { readonly written: number }
+  }) => { readonly written: number; readonly writeRange: {
+    startRow: number; endRow: number; startCol: number; endCol: number
+  } | null }
   find_fill_down_end?: (sheet: number,
     source: { startRow: number; endRow: number; startCol: number; endCol: number }, limit: number,
   ) => number | undefined

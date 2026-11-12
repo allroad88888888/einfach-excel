@@ -50,7 +50,7 @@ impl WasmWorkbook {
             let address = addr.to_string();
             if present.contains(&address) { continue; }
             out.push(CellSnapshotJSON { rich_text: None, sheet, addr: address, display: String::new(),
-                formatted_display: None, input_text: String::new(), cell_type: "null".into(),
+                formatted_display: None, formatted_color: None, formatted_fill: None, formatted_pads: None, input_text: String::new(), cell_type: "null".into(),
                 is_error: false, formula: String::new(), hyperlink: Some(url),
                 note_indicator: target.note(addr).map(|_| true),
                 comment_indicator: target.comment(addr).map(|_| true) });

@@ -1,4 +1,5 @@
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(try_from = "NumberFormatInput")]
 struct NumberFormatJSON {
     /// 原生数字格式类别；别名在 into_number_format 统一。
     kind: String,
@@ -15,11 +16,18 @@ struct NumberFormatJSON {
     /// Render thousands separators for `decimal`.
     #[serde(default)]
     thousands: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    preset: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    locale: Option<String>,
 }
 
 impl NumberFormatJSON {
     fn into_number_format(self) -> NumberFormat {
         match self.kind.as_str() {
+            "special" => NumberFormat::Special(einfach_excel_core::SpecialPreset::parse(
+                self.preset.as_deref().expect("validated special preset"), self.locale.as_deref(),
+            ).expect("validated special format")),
             "text" => NumberFormat::Text,
             "number" | "decimal" => NumberFormat::Decimal {
                 digits: self.digits.unwrap_or(2),
@@ -27,6 +35,10 @@ impl NumberFormatJSON {
             },
             "percent" | "percentage" => NumberFormat::Percent {
                 digits: self.digits.unwrap_or(0),
+            },
+            "accounting" => NumberFormat::Accounting {
+                symbol: self.symbol.unwrap_or_else(|| "$".into()),
+                digits: self.digits.unwrap_or(2).min(15),
             },
             "currency" => NumberFormat::Currency {
                 symbol: self.symbol.unwrap_or_else(|| "$".into()),
@@ -49,75 +61,31 @@ impl NumberFormatJSON {
     }
 
     fn from_number_format(nf: &NumberFormat) -> Self {
-        match nf {
-            NumberFormat::Text => NumberFormatJSON {
-                kind: "text".into(),
-                ..Default::default()
-            },
-            NumberFormat::Scientific { digits } => NumberFormatJSON {
-                kind: "scientific".into(),
-                digits: Some(*digits),
-                ..Default::default()
-            },
-            NumberFormat::Fraction { denominator } => NumberFormatJSON {
-                kind: "fraction".into(),
-                denominator: Some(FractionDenominatorJSON(*denominator)),
-                ..Default::default()
-            },
-            NumberFormat::Time(pattern) => NumberFormatJSON {
-                kind: "time".into(),
-                pattern: Some(pattern.clone()),
-                ..Default::default()
-            },
-            NumberFormat::General => NumberFormatJSON {
-                kind: "general".into(),
-                digits: None,
-                symbol: None,
-                pattern: None,
-                thousands: None,
-                denominator: None,
-            },
-            NumberFormat::Decimal { digits, thousands } => NumberFormatJSON {
-                kind: "number".into(),
-                digits: Some(*digits),
-                symbol: None,
-                pattern: None,
-                thousands: Some(*thousands),
-                denominator: None,
-            },
-            NumberFormat::Percent { digits } => NumberFormatJSON {
-                kind: "percent".into(),
-                digits: Some(*digits),
-                symbol: None,
-                pattern: None,
-                thousands: None,
-                denominator: None,
-            },
-            NumberFormat::Currency { symbol, digits } => NumberFormatJSON {
-                kind: "currency".into(),
-                digits: Some(*digits),
-                symbol: Some(symbol.clone()),
-                pattern: None,
-                thousands: None,
-                denominator: None,
-            },
-            NumberFormat::Date(p) => NumberFormatJSON {
-                kind: "date".into(),
-                digits: None,
-                symbol: None,
-                pattern: Some(p.clone()),
-                thousands: None,
-                denominator: None,
-            },
-            NumberFormat::Custom(p) => NumberFormatJSON {
-                kind: "custom".into(),
-                digits: None,
-                symbol: None,
-                pattern: Some(p.clone()),
-                thousands: None,
-                denominator: None,
-            },
-        }
+        let mut wire = Self::default();
+        wire.kind = match nf {
+            NumberFormat::General => "general",
+            NumberFormat::Text => "text",
+            NumberFormat::Decimal { digits, thousands } => {
+                wire.digits = Some(*digits); wire.thousands = Some(*thousands); "number"
+            }
+            NumberFormat::Percent { digits } => { wire.digits = Some(*digits); "percent" }
+            NumberFormat::Currency { symbol, digits } | NumberFormat::Accounting { symbol, digits } => {
+                wire.digits = Some(*digits); wire.symbol = Some(symbol.clone());
+                if matches!(nf, NumberFormat::Accounting { .. }) { "accounting" } else { "currency" }
+            }
+            NumberFormat::Scientific { digits } => { wire.digits = Some(*digits); "scientific" }
+            NumberFormat::Fraction { denominator } => {
+                wire.denominator = Some(FractionDenominatorJSON(*denominator)); "fraction"
+            }
+            NumberFormat::Date(pattern) | NumberFormat::Time(pattern) | NumberFormat::Custom(pattern) => {
+                wire.pattern = Some(pattern.clone());
+                match nf { NumberFormat::Date(_) => "date", NumberFormat::Time(_) => "time", _ => "custom" }
+            }
+            NumberFormat::Special(preset) => {
+                wire.preset = Some(preset.id().into()); wire.locale = Some(preset.locale().into()); "special"
+            }
+        }.into();
+        wire
     }
 }
 
@@ -129,10 +97,13 @@ fn uses_native_number_display(format: &NumberFormat) -> bool {
             | NumberFormat::Decimal { .. }
             | NumberFormat::Percent { .. }
             | NumberFormat::Currency { .. }
+            | NumberFormat::Accounting { .. }
             | NumberFormat::Date(_)
             | NumberFormat::Time(_)
             | NumberFormat::Scientific { .. }
             | NumberFormat::Fraction { .. }
+            | NumberFormat::Custom(_)
+            | NumberFormat::Special(_)
     )
 }
 
@@ -177,5 +148,15 @@ impl From<FractionDenominatorJSON> for FractionDenominatorInput {
             ThreeDigit => Self::Named("three-digit".into()),
             Fixed(n) => Self::Fixed(n),
         }
+    }
+}
+
+fn deserialize_number_format_kind<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<String, D::Error> {
+    let kind = String::deserialize(deserializer)?;
+    if matches!(kind.as_str(), "general" | "text" | "number" | "decimal" | "percent" | "percentage"
+        | "currency" | "accounting" | "scientific" | "fraction" | "time" | "date" | "custom" | "special") {
+        Ok(kind)
+    } else {
+        Err(serde::de::Error::custom("unsupported number format category"))
     }
 }

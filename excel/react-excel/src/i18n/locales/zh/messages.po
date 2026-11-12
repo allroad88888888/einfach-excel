@@ -235,6 +235,10 @@ msgstr "一张工作表最多 1000 个对象。"
 msgid "A worksheet supports at most 256 editable ranges."
 msgstr "每个工作表最多支持 256 个允许编辑范围。"
 
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Accounting"
+msgstr "会计专用"
+
 #: src/workbook/chrome/formula-bar/FormulaBar.tsx
 msgid "Active cell value"
 msgstr "活动单元格内容"
@@ -283,6 +287,10 @@ msgstr "添加规则"
 #: src/i18n/feedback-messages.ts
 msgid "Add table row"
 msgstr "添加表格行"
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Add the character that follows \\, _ or * at the end of the code."
+msgstr "在代码末尾的 \\、_ 或 * 后面补上一个字符。"
 
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 msgid "Add Watch"
@@ -797,6 +805,10 @@ msgstr "更改立即生效，可以撤销。"
 msgid "Changes apply immediately. Manual cell, row and column formatting stays in place."
 msgstr "更改立即生效。保留手动设置的单元格、行和列格式。"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Changes numeric display only. Existing text and the original values stay unchanged."
+msgstr "仅改变数值的显示方式，保留已有文本和原始值。"
+
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Changes the display only. The original date value stays unchanged."
 msgstr "只改变显示方式，原始日期值保持不变。"
@@ -816,6 +828,10 @@ msgstr "图表系列名称"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "charts"
 msgstr "图表"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Chinese (China)"
+msgstr "中文（中国）"
 
 #. placeholder {0}: label.toLowerCase()
 #: src/workbook/chrome/ribbon/ColorTools.tsx
@@ -1047,6 +1063,14 @@ msgstr "关闭批注"
 #: src/workbook/chrome/ribbon/HistoryTools.tsx
 msgid "Close history"
 msgstr "关闭历史记录"
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Close the bracket with ] — for example [Red] or [>=100]."
+msgstr "用 ] 闭合方括号，例如 [Red] 或 [>=100]。"
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Close the quoted text with a matching double quote (\")."
+msgstr "用配对的双引号（\"）闭合引号中的文字。"
 
 #. placeholder {0}: group.level
 #: src/workbook/grid/viewport/OutlineGutters.tsx
@@ -1311,6 +1335,10 @@ msgstr "正在复制…"
 msgid "Copying statistic…"
 msgstr "正在复制统计值…"
 
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Correct the format code to see a preview."
+msgstr "更正格式代码后即可预览。"
+
 #: src/i18n/translate-feedback.ts
 msgid "Could not capture formatting: {detail}"
 msgstr "无法读取格式：{detail}"
@@ -1462,6 +1490,7 @@ msgid "Current worksheet"
 msgstr "当前工作表"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Custom"
 msgstr "自定义"
 
@@ -2062,6 +2091,10 @@ msgstr "结尾是"
 msgid "Engineering"
 msgstr "工程"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "English (United States)"
+msgstr "英语（美国）"
+
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 msgid "English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step."
 msgstr "支持英文缩写、英文全称或中文名称。单个样本按步长 1 递增；多个样本用于推断循环步长。"
@@ -2094,9 +2127,21 @@ msgstr "请输入已定义的名称或有效的 A1、R1C1 引用，也可在前�
 msgid "Enter a destination cell such as C1."
 msgstr "请输入目标单元格，例如 C1。"
 
+#: src/i18n/feedback-messages.ts
+msgid "Enter a finite step value."
+msgstr "请输入有限的步长值。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a finite stop value or leave it blank."
+msgstr "请输入有限的终止值，或留空。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Enter a finite threshold number."
 msgstr "请输入有限的阈值数值。"
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Enter a format code, for example #,##0.00."
+msgstr "请输入格式代码，例如 #,##0.00。"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Enter a formula of at most 8192 bytes with a valid range anchor."
@@ -2354,6 +2399,10 @@ msgstr "向下填充（Ctrl/⌘+D）"
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
 msgstr "每隔一行填色，其他行保留原有格式。选中已有交替色区域内的单元格可修改整个区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill geometric series"
+msgstr "填充等比序列"
 
 #: src/i18n/feedback-messages.ts
 msgid "Fill linear-trend series"
@@ -2665,6 +2714,10 @@ msgstr "设置边框格式"
 msgid "Format cells"
 msgstr "设置单元格格式"
 
+#: src/workbook/chrome/ribbon/CustomNumberFormatFields.tsx
+msgid "Format code"
+msgstr "格式代码"
+
 #: src/workbook/chrome/ribbon/FormatPainterTools.tsx
 msgid "Format painter"
 msgstr "格式刷"
@@ -2809,6 +2862,10 @@ msgstr "常规字段"
 #: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "General format"
 msgstr "常规格式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Geometric sequence"
+msgstr "等比序列"
 
 #: src/workbook/chrome/ribbon/GoToTools.tsx
 msgid "Go"
@@ -3276,6 +3333,10 @@ msgstr "请至少保留一张工作表。"
 msgid "Keep text (existing format)"
 msgstr "保留文本（现有格式）"
 
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Keep the first numeric cell and multiply each next value by the step. Stop is inclusive and requires a non-zero start and a positive step other than 1."
+msgstr "保留首个数值单元格，后续各项依次乘以步长。包含终止值；起点须非零，步长须大于 0 且不为 1。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Lambda"
 msgstr "Lambda 函数"
@@ -3402,6 +3463,10 @@ msgstr "本地恢复"
 #: src/page/demo/local-restore/LocalRestoreBar.tsx
 msgid "Local save status"
 msgstr "本地保存状态"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Locale (location)"
+msgstr "区域（位置）"
 
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
 msgid "Locating cells…"
@@ -3793,6 +3858,10 @@ msgstr "未找到具体的阻挡单元格，请检查工作表边界或数组大
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "No borders"
 msgstr "无框线"
+
+#: src/i18n/feedback-messages.ts
+msgid "No cells filled."
+msgstr "未填充任何单元格。"
 
 #: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "No color"
@@ -4247,6 +4316,10 @@ msgstr "百分比"
 msgid "Percentile"
 msgstr "百分位"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Phone Number"
+msgstr "电话号码"
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "pivot tables"
 msgstr "数据透视表"
@@ -4271,6 +4344,10 @@ msgstr "正值数据条颜色"
 #: src/workbook/comments/CommentTools.tsx
 msgid "Post reply"
 msgstr "发表回复"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Postal Code"
+msgstr "邮政编码"
 
 #: src/i18n/feedback-messages.ts
 msgid "Preparing download…"
@@ -4334,6 +4411,10 @@ msgstr "保护配置引用了不存在的工作表。"
 #: src/workbook/sheet-management/tab-colors.ts
 msgid "Purple"
 msgstr "紫色"
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Put the text placeholder @ in a section without digit placeholders."
+msgstr "文本占位符 @ 只能放在不含数字占位符的节中。"
 
 #: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
 msgid "Quick formula"
@@ -5500,6 +5581,10 @@ msgstr "跳过空白单元格"
 msgid "Skip field"
 msgstr "跳过字段"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Social Security Number"
+msgstr "社会安全号码"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Sort"
@@ -5577,6 +5662,14 @@ msgstr "空格"
 msgid "sparklines"
 msgstr "迷你图"
 
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Special"
+msgstr "特殊"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Special format type"
+msgstr "特殊格式类型"
+
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Spill details"
 msgstr "溢出详情"
@@ -5638,6 +5731,10 @@ msgstr "步入"
 msgid "Step Out"
 msgstr "步出"
 
+#: src/workbook/chrome/ribbon/fill-series/SeriesStepFields.tsx
+msgid "Step value"
+msgstr "步长值"
+
 #: src/components/formula-auditing/EvaluateFormulaDialog.tsx
 msgid "Stepped In"
 msgstr "已步入"
@@ -5649,6 +5746,14 @@ msgstr "停止"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Stop if true"
 msgstr "为真则停止"
+
+#: src/i18n/feedback-messages.ts
+msgid "Stop requires a non-zero start and a positive step other than 1."
+msgstr "使用终止值时，起点须非零，步长须大于 0 且不为 1。"
+
+#: src/workbook/chrome/ribbon/fill-series/SeriesStepFields.tsx
+msgid "Stop value (optional)"
+msgstr "终止值（可选）"
 
 #: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
@@ -6671,6 +6776,10 @@ msgstr "最多三位数"
 msgid "Up to 8 groups and 32 conditions; each group can contain up to 8 conditions."
 msgstr "最多 8 组、共 32 个条件；每组最多 8 个条件。"
 
+#: src/workbook/chrome/ribbon/CustomNumberFormatFields.tsx
+msgid "Up to four sections: positive;negative;zero;text. For example #,##0.00;[Red](#,##0.00)."
+msgstr "最多四节：正数;负数;零;文本。例如 #,##0.00;[Red](#,##0.00)。"
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Update preview"
@@ -6724,6 +6833,10 @@ msgstr "图标上限阈值数值"
 msgid "Use a clock time from 00:00 to 23:59:59."
 msgstr "请输入 00:00 至 23:59:59 之间的时间。"
 
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Use a color such as [Red] or [Color10], a condition such as [>=100], or a currency tag such as [$¥-411] inside brackets."
+msgstr "方括号内只能使用颜色（如 [Red]、[Color10]）、条件（如 [>=100]）或货币标签（如 [$¥-411]）。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Use a formula name beginning with a letter or underscore, without cell references."
 msgstr "公式名称须以字母或下划线开头，且不能是单元格地址。"
@@ -6736,6 +6849,10 @@ msgstr "分母必须为正整数，最大为 4294967295。"
 msgid "Use at most 16 characters for the currency symbol, without control characters."
 msgstr "货币符号最多 16 个字符，不能包含控制字符。"
 
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Use at most 255 characters in a format code."
+msgstr "格式代码最多 255 个字符。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Use at most 64 custom formula parameters."
 msgstr "自定义公式最多支持64个参数。"
@@ -6743,6 +6860,10 @@ msgstr "自定义公式最多支持64个参数。"
 #: src/i18n/seven-feature-feedback.ts
 msgid "Use at most 8192 characters in a custom formula expression."
 msgstr "自定义公式表达式不能超过8192个字符。"
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Use at most four sections separated by semicolons: positive;negative;zero;text."
+msgstr "最多用分号分成四节：正数;负数;零;文本。"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Use commas between ranges. Write the formula for the first range’s top-left cell. Use $ to lock a row or column."
@@ -6767,6 +6888,10 @@ msgstr "请使用含有效筛选条件的非空组。"
 #: src/i18n/seven-feature-feedback.ts
 msgid "Use only declared parameters and local LET or LAMBDA names in custom formula expressions."
 msgstr "自定义公式表达式只能使用已声明的参数及 LET 或 LAMBDA 局部名称。"
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Use only one decimal point in each section."
+msgstr "每一节只能有一个小数点。"
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Use thousands separator"
@@ -7011,6 +7136,14 @@ msgstr "每个工作簿会话最多保存 32 个自定义列表。"
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "Your workbook is in memory. Download a file to keep your changes."
 msgstr "工作簿保存在内存中，请下载文件以保留更改。"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "ZIP Code"
+msgstr "ZIP 邮政编码"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "ZIP Code + 4"
+msgstr "ZIP+4 邮政编码"
 
 #: src/workbook/zoom/ZoomControl.tsx
 msgid "Zoom"

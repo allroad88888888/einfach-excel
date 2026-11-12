@@ -1,7 +1,7 @@
 import type { SheetDefaults } from '../runtime/sheet-defaults'
+import type { RustNumberFormatPreview } from './native-number-display'
 import type {
   SetCellInputRequest,
-  ProjectionRevision,
   SetFormatRangeRequest,
   SpreadsheetCellFormat,
   SpreadsheetNumberFormat,
@@ -11,7 +11,8 @@ import type {
   ViewportColumnWidth,
 } from '../contracts'
 import type { WorkerCommand, WorkerLike, WorkerTransport } from '../rust-worker'
-import type { FillSeriesKind } from '../auto-fill/series-options'
+import type { RustFillRangeRequest } from './fill-types'
+export type { RustFillRangeRequest } from './fill-types'
 import type { CellRange } from '../shared'
 import { createHostWorkbookConnection } from '../host/connection'
 import type { HostCommands } from '../host/types'
@@ -225,7 +226,7 @@ export interface RustWorkbookCommands
       readonly addr: string
       readonly numberFormat: SpreadsheetNumberFormat
     },
-    string
+    RustNumberFormatPreview
   >
   readonly 'range.fill': WorkerCommand<
     { readonly request: RustFillRangeRequest; readonly projection: VisibleProjectionRequest },
@@ -390,24 +391,6 @@ export interface RustWorkbookCommands
 }
 
 export type RustWorkbookConnection = WorkerTransport<RustWorkbookCommands>
-
-export interface RustFillRangeRequest {
-  readonly validationConfirmation?: 'continue'
-  readonly validationRevision?: ProjectionRevision
-  readonly sheetId: string
-  readonly requestId: number
-  readonly range: CellRange
-  readonly direction: 'down' | 'right' | 'up' | 'left'
-  readonly sourceRange?: CellRange
-  readonly auto?: boolean
-  /** 双击只提交来源与工作表边界；相邻连续数据的末行由 Rust 决定。 */
-  readonly adjacent?: { readonly rowLimit: number }
-  readonly series?: {
-    readonly kind: FillSeriesKind
-    readonly sourceCount: number
-    readonly customValues?: readonly string[]
-  }
-}
 
 /** 创建 UI Core 唯一持有的 Rust 工作簿连接。 */
 export function createRustWorkbookConnection(

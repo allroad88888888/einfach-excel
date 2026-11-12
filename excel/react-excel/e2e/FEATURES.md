@@ -354,6 +354,7 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | FILL-054 | 无相邻连续数据拒绝后重新填充 | `editing/fill-double-click.spec.ts` | no adjacent continuation does not write and another source can fill afterwards |
 | FILL-055 | 合并目标拒绝后拆分重试 | `editing/fill-double-click.spec.ts` | merged destination rejects atomically and succeeds after unmerge |
 | FILL-056 | 双击使用右邻数据且在首个空隙停止 | `editing/fill-double-click.spec.ts` | right-neighbor fallback extends a numeric source only to the first gap |
+| FILL-057 | 显式等比序列和包含终点的有限填充 | `editing/fill-geometric-series.spec.ts` | geometric series multiplies the native start by a decimal step and stops without changing neighbors |
 | FONT-001 | 粗体 | `format/text-style.spec.ts` | Bold toggles the selected Rust cell style |
 | FONT-002 | 斜体 | `format/text-style.spec.ts` | Italic toggles the selected Rust cell style |
 | FONT-003 | 下划线 | `format/text-style.spec.ts` | Underline toggles the selected Rust cell style |
@@ -436,6 +437,30 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | NUM-022 | 原生拒绝后保留数字格式重试 | `format/number-format-feedback.spec.ts` | native rejection retains number settings, fits 390px and retries as one history entry |
 | NUM-023 | 数字格式处理中阻止重复及取消 | `format/number-format-feedback.spec.ts` | pending format blocks duplicate apply, draft edits and cancellation until Rust responds |
 | NUM-024 | 空白文本错误值只读预览 | `format/number-format-session.spec.ts` | preview reads blank, text and formula errors without inventing a sample or writing |
+| NUM-025 | 自定义格式代码应用 | `format/number-format-custom.spec.ts` | custom code sections color negatives, keep the raw value and undo as one step |
+| NUM-026 | 自定义格式字面量与填充 | `format/number-format-custom.spec.ts` | custom literals sit between digits and fill pushes the symbol and number to the edges |
+| NUM-027 | 非法自定义格式原地纠正 | `format/number-format-custom.spec.ts` | invalid custom codes stay in the draft until corrected and then apply once |
+| NUM-028 | 自定义分数格式缩放与补零 | `format/number-format-custom-fractions.spec.ts` | custom fraction codes preserve scaling and mandatory denominator zeros |
+| NUM-029 | 自定义格式斜杠字面量 | `format/number-format-custom-fractions.spec.ts` | quoted and escaped slashes remain literal in custom codes |
+| NUM-030 | 自定义数字留白自动列宽 | `format/number-format-custom-auto-fit.spec.ts` | auto-fit includes the actual width of custom padding characters |
+| NUM-031 | 自定义文本段自动列宽 | `format/number-format-custom-auto-fit.spec.ts` | auto-fit measures custom text sections with their prefixes and padding |
+| NUM-032 | 会计专用数字格式设置 | `format/number-format-accounting.spec.ts` | accounting settings align symbols left, bracket negatives and show zero as a dash without changing formulas |
+| NUM-033 | 会计格式增加小数位 | `format/number-format-accounting.spec.ts` | Increase decimal places keeps the accounting symbol and undoes exactly once |
+| NUM-034 | 会计格式减少小数位 | `format/number-format-accounting.spec.ts` | Decrease decimal places keeps accounting parentheses and undoes exactly once |
+| NUM-035 | 会计格式自动列宽 | `format/number-format-accounting-auto-fit.spec.ts` | accounting auto-fit includes symbol and parenthesis padding without resizing the neighboring column |
+| NUM-036 | 会计格式原生文件往返 | `workbook/accounting-format-files.spec.ts` | native save and reopen restores accounting category symbol and decimal places |
+| NUM-037 | XLSX内置会计格式读取 | `xlsx/accounting-format.spec.ts` | opening built-in accounting formats 41 through 44 preserves symbols parentheses and zero dashes |
+| NUM-038 | 会计格式XLSX导出往返 | `xlsx/accounting-format.spec.ts` | XLSX export and reopen preserves accounting category custom symbol and decimal places |
+| NUM-039 | 美国ZIP邮编格式 | `format/number-format-special.spec.ts` | US ZIP settings display five digits without changing the value or neighboring cells |
+| NUM-040 | 美国ZIP+4邮编格式 | `format/number-format-special.spec.ts` | US ZIP plus 4 settings restore leading zeros and undo the format once |
+| NUM-041 | 美国电话号码格式 | `format/number-format-special.spec.ts` | US phone settings display seven and ten digit numbers without truncating the value |
+| NUM-042 | 美国社会安全号码格式 | `format/number-format-special.spec.ts` | US SSN settings display nine digits without converting formulas or text |
+| NUM-043 | 中国邮编格式 | `format/number-format-special.spec.ts` | Chinese postal settings display six digits and reopen with the same preset |
+| NUM-044 | 特殊格式区域切换 | `format/number-format-special-locale.spec.ts` | changing the special locale resets the draft preset without writing until Apply |
+| NUM-045 | 特殊格式前导零与文本输入 | `format/number-format-special-input.spec.ts` | typing into special formatted cells restores numeric zeros and preserves explicit text |
+| NUM-046 | 特殊格式自动列宽 | `format/number-format-special-auto-fit.spec.ts` | auto-fit measures the Rust special display without resizing the neighboring column |
+| NUM-047 | 特殊格式原生文件往返 | `workbook/special-format-files.spec.ts` | native save and reopen restores all special presets and their locales |
+| NUM-048 | 特殊格式XLSX往返 | `xlsx/special-format.spec.ts` | XLSX export and reopen recognizes all five special presets without changing values or text |
 | BORDER-001 | 外边框 | `format/border-settings.spec.ts` | outside uses selection edges, not every cell perimeter |
 | BORDER-002 | 内边框 | `format/border-settings.spec.ts` | inside uses selection edges, not every cell perimeter |
 | BORDER-003 | 所有边框 | `format/border-settings.spec.ts` | all uses selection edges, not every cell perimeter |

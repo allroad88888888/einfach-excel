@@ -10,6 +10,7 @@ enum AutoFillDirectionJSON {
 #[derive(Clone, Copy, Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 enum AutoFillSeriesJSON {
+    Geometric,
     Copy,
     IntegerStep,
     DecimalStep,
@@ -85,6 +86,8 @@ struct AutoFillRequestJSON {
     #[serde(default)]
     text_pattern: Option<AutoFillTextPatternJSON>,
     #[serde(default)]
+    stop: Option<f64>,
+    #[serde(default)]
     list: Option<AutoFillListWitnessJSON>,
 }
 
@@ -101,6 +104,7 @@ impl From<AutoFillRequestJSON> for AutoFillRequest {
                 AutoFillDirectionJSON::Right => AutoFillDirection::Right,
             },
             series: match value.series {
+                AutoFillSeriesJSON::Geometric => AutoFillSeries::Geometric { stop: value.stop },
                 AutoFillSeriesJSON::Copy => AutoFillSeries::Copy,
                 AutoFillSeriesJSON::IntegerStep => AutoFillSeries::IntegerStep,
                 AutoFillSeriesJSON::DecimalStep => AutoFillSeries::DecimalStep,

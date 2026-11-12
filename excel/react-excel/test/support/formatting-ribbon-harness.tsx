@@ -29,7 +29,7 @@ function projection(
 
 /** Renders the ribbon over a controllable Rust formatting connection. */
 export async function renderFormattingRibbon(
-  previewNumberFormat: NonNullable<TestRustWorkbookHandlers['previewNumberFormat']> = async () => 'Order',
+  previewNumberFormat: NonNullable<TestRustWorkbookHandlers['previewNumberFormat']> = async () => ({ text: 'Order' }),
 ): Promise<{
   readonly writes: SetFormatRangeRequest[]
   readonly clears: RustClearRangeRequest[]

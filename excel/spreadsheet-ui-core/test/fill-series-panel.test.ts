@@ -125,3 +125,38 @@ test('custom list text budget rejects before transport', async () => {
   expect(store.getter(fillSeriesPanelAtom).error).toContain('16384')
   expect(fill).not.toHaveBeenCalled()
 })
+
+test('geometric fixes one native source and validates correctable step and stop drafts', async () => {
+  const { store, fill } = await setup()
+  await store.setter(configureFillSeriesAtom, { field: 'kind', value: 'geometric' })
+  expect(store.getter(fillSeriesPanelAtom)).toMatchObject({ sourceCount: '1', step: '2', stop: '' })
+  for (const [field, value] of [['step', 'Infinity'], ['step', ''], ['stop', 'NaN']] as const) {
+    await store.setter(configureFillSeriesAtom, { field: 'step', value: '2' })
+    await store.setter(configureFillSeriesAtom, { field, value })
+    expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(false)
+    expect(store.getter(fillSeriesPanelAtom).target).not.toBeNull()
+    expect(store.getter(fillSeriesPanelAtom).error).toContain('finite')
+  }
+  await store.setter(configureFillSeriesAtom, { field: 'stop', value: '7' })
+  for (const value of ['-2', '0', '1']) {
+    await store.setter(configureFillSeriesAtom, { field: 'step', value })
+    expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(false)
+    expect(store.getter(fillSeriesPanelAtom).error).toContain('positive step other than 1')
+  }
+  expect(fill).not.toHaveBeenCalled()
+  await store.setter(configureFillSeriesAtom, { field: 'step', value: '1.5' })
+  // Even a stale external draft cannot change the geometric native sample count.
+  await store.setter(configureFillSeriesAtom, { field: 'sourceCount', value: '8' })
+  expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(true)
+  expect(fill.mock.lastCall![0].request.series)
+    .toEqual({ kind: 'geometric', sourceCount: 1, step: 1.5, stop: 7 })
+})
+
+test.each(['-2', '0', '1'])('geometric without stop accepts multiplier %s', async value => {
+  const { store, fill } = await setup()
+  await store.setter(configureFillSeriesAtom, { field: 'kind', value: 'geometric' })
+  await store.setter(configureFillSeriesAtom, { field: 'step', value })
+  expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(true)
+  expect(fill.mock.lastCall![0].request.series)
+    .toEqual({ kind: 'geometric', sourceCount: 1, step: Number(value) })
+})

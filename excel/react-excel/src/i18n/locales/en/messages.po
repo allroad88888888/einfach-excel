@@ -235,6 +235,10 @@ msgstr "A worksheet can hold at most 1000 objects."
 msgid "A worksheet supports at most 256 editable ranges."
 msgstr "A worksheet supports at most 256 editable ranges."
 
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Accounting"
+msgstr "Accounting"
+
 #: src/workbook/chrome/formula-bar/FormulaBar.tsx
 msgid "Active cell value"
 msgstr "Active cell value"
@@ -283,6 +287,10 @@ msgstr "Add rule"
 #: src/i18n/feedback-messages.ts
 msgid "Add table row"
 msgstr "Add table row"
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Add the character that follows \\, _ or * at the end of the code."
+msgstr "Add the character that follows \\, _ or * at the end of the code."
 
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 msgid "Add Watch"
@@ -797,6 +805,10 @@ msgstr "Changes apply immediately and can be undone."
 msgid "Changes apply immediately. Manual cell, row and column formatting stays in place."
 msgstr "Changes apply immediately. Manual cell, row and column formatting stays in place."
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Changes numeric display only. Existing text and the original values stay unchanged."
+msgstr "Changes numeric display only. Existing text and the original values stay unchanged."
+
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Changes the display only. The original date value stays unchanged."
 msgstr "Changes the display only. The original date value stays unchanged."
@@ -816,6 +828,10 @@ msgstr "chart series names"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "charts"
 msgstr "charts"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Chinese (China)"
+msgstr "Chinese (China)"
 
 #. placeholder {0}: label.toLowerCase()
 #: src/workbook/chrome/ribbon/ColorTools.tsx
@@ -1047,6 +1063,14 @@ msgstr "Close comments"
 #: src/workbook/chrome/ribbon/HistoryTools.tsx
 msgid "Close history"
 msgstr "Close history"
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Close the bracket with ] — for example [Red] or [>=100]."
+msgstr "Close the bracket with ] — for example [Red] or [>=100]."
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Close the quoted text with a matching double quote (\")."
+msgstr "Close the quoted text with a matching double quote (\")."
 
 #. placeholder {0}: group.level
 #: src/workbook/grid/viewport/OutlineGutters.tsx
@@ -1311,6 +1335,10 @@ msgstr "copy…"
 msgid "Copying statistic…"
 msgstr "Copying statistic…"
 
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Correct the format code to see a preview."
+msgstr "Correct the format code to see a preview."
+
 #: src/i18n/translate-feedback.ts
 msgid "Could not capture formatting: {detail}"
 msgstr "Could not capture formatting: {detail}"
@@ -1462,6 +1490,7 @@ msgid "Current worksheet"
 msgstr "Current worksheet"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Custom"
 msgstr "Custom"
 
@@ -2062,6 +2091,10 @@ msgstr "Ends with"
 msgid "Engineering"
 msgstr "Engineering"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "English (United States)"
+msgstr "English (United States)"
+
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 msgid "English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step."
 msgstr "English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step."
@@ -2094,9 +2127,21 @@ msgstr "Enter a defined name or a valid A1 or R1C1 reference, optionally prefixe
 msgid "Enter a destination cell such as C1."
 msgstr "Enter a destination cell such as C1."
 
+#: src/i18n/feedback-messages.ts
+msgid "Enter a finite step value."
+msgstr "Enter a finite step value."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a finite stop value or leave it blank."
+msgstr "Enter a finite stop value or leave it blank."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Enter a finite threshold number."
 msgstr "Enter a finite threshold number."
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Enter a format code, for example #,##0.00."
+msgstr "Enter a format code, for example #,##0.00."
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Enter a formula of at most 8192 bytes with a valid range anchor."
@@ -2354,6 +2399,10 @@ msgstr "Fill down (Ctrl/⌘+D)"
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
 msgstr "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill geometric series"
+msgstr "Fill geometric series"
 
 #: src/i18n/feedback-messages.ts
 msgid "Fill linear-trend series"
@@ -2665,6 +2714,10 @@ msgstr "Format borders"
 msgid "Format cells"
 msgstr "Format cells"
 
+#: src/workbook/chrome/ribbon/CustomNumberFormatFields.tsx
+msgid "Format code"
+msgstr "Format code"
+
 #: src/workbook/chrome/ribbon/FormatPainterTools.tsx
 msgid "Format painter"
 msgstr "Format painter"
@@ -2809,6 +2862,10 @@ msgstr "General fields"
 #: src/workbook/chrome/ribbon/NumberTools.tsx
 msgid "General format"
 msgstr "General format"
+
+#: src/i18n/feedback-messages.ts
+msgid "Geometric sequence"
+msgstr "Geometric sequence"
 
 #: src/workbook/chrome/ribbon/GoToTools.tsx
 msgid "Go"
@@ -3276,6 +3333,10 @@ msgstr "Keep at least one worksheet."
 msgid "Keep text (existing format)"
 msgstr "Keep text (existing format)"
 
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Keep the first numeric cell and multiply each next value by the step. Stop is inclusive and requires a non-zero start and a positive step other than 1."
+msgstr "Keep the first numeric cell and multiply each next value by the step. Stop is inclusive and requires a non-zero start and a positive step other than 1."
+
 #: src/i18n/feedback-messages.ts
 msgid "Lambda"
 msgstr "Lambda"
@@ -3402,6 +3463,10 @@ msgstr "Local restore"
 #: src/page/demo/local-restore/LocalRestoreBar.tsx
 msgid "Local save status"
 msgstr "Local save status"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Locale (location)"
+msgstr "Locale (location)"
 
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
 msgid "Locating cells…"
@@ -3793,6 +3858,10 @@ msgstr "No blocking cell can be identified. Check worksheet limits or the array 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "No borders"
 msgstr "No borders"
+
+#: src/i18n/feedback-messages.ts
+msgid "No cells filled."
+msgstr "No cells filled."
 
 #: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "No color"
@@ -4247,6 +4316,10 @@ msgstr "Percentage"
 msgid "Percentile"
 msgstr "Percentile"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Phone Number"
+msgstr "Phone Number"
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "pivot tables"
 msgstr "pivot tables"
@@ -4271,6 +4344,10 @@ msgstr "Positive bar color"
 #: src/workbook/comments/CommentTools.tsx
 msgid "Post reply"
 msgstr "Post reply"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Postal Code"
+msgstr "Postal Code"
 
 #: src/i18n/feedback-messages.ts
 msgid "Preparing download…"
@@ -4334,6 +4411,10 @@ msgstr "Protection refers to a missing worksheet."
 #: src/workbook/sheet-management/tab-colors.ts
 msgid "Purple"
 msgstr "Purple"
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Put the text placeholder @ in a section without digit placeholders."
+msgstr "Put the text placeholder @ in a section without digit placeholders."
 
 #: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
 msgid "Quick formula"
@@ -5500,6 +5581,10 @@ msgstr "Skip blanks"
 msgid "Skip field"
 msgstr "Skip field"
 
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Social Security Number"
+msgstr "Social Security Number"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Sort"
@@ -5577,6 +5662,14 @@ msgstr "Space"
 msgid "sparklines"
 msgstr "sparklines"
 
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Special"
+msgstr "Special"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "Special format type"
+msgstr "Special format type"
+
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Spill details"
 msgstr "Spill details"
@@ -5638,6 +5731,10 @@ msgstr "Step In"
 msgid "Step Out"
 msgstr "Step Out"
 
+#: src/workbook/chrome/ribbon/fill-series/SeriesStepFields.tsx
+msgid "Step value"
+msgstr "Step value"
+
 #: src/components/formula-auditing/EvaluateFormulaDialog.tsx
 msgid "Stepped In"
 msgstr "Stepped In"
@@ -5649,6 +5746,14 @@ msgstr "Stop"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Stop if true"
 msgstr "Stop if true"
+
+#: src/i18n/feedback-messages.ts
+msgid "Stop requires a non-zero start and a positive step other than 1."
+msgstr "Stop requires a non-zero start and a positive step other than 1."
+
+#: src/workbook/chrome/ribbon/fill-series/SeriesStepFields.tsx
+msgid "Stop value (optional)"
+msgstr "Stop value (optional)"
 
 #: src/workbook/chrome/ribbon/FontTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
@@ -6671,6 +6776,10 @@ msgstr "Up to 3 digits"
 msgid "Up to 8 groups and 32 conditions; each group can contain up to 8 conditions."
 msgstr "Up to 8 groups and 32 conditions; each group can contain up to 8 conditions."
 
+#: src/workbook/chrome/ribbon/CustomNumberFormatFields.tsx
+msgid "Up to four sections: positive;negative;zero;text. For example #,##0.00;[Red](#,##0.00)."
+msgstr "Up to four sections: positive;negative;zero;text. For example #,##0.00;[Red](#,##0.00)."
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Update preview"
@@ -6724,6 +6833,10 @@ msgstr "Upper icon threshold value"
 msgid "Use a clock time from 00:00 to 23:59:59."
 msgstr "Use a clock time from 00:00 to 23:59:59."
 
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Use a color such as [Red] or [Color10], a condition such as [>=100], or a currency tag such as [$¥-411] inside brackets."
+msgstr "Use a color such as [Red] or [Color10], a condition such as [>=100], or a currency tag such as [$¥-411] inside brackets."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Use a formula name beginning with a letter or underscore, without cell references."
 msgstr "Use a formula name beginning with a letter or underscore, without cell references."
@@ -6736,6 +6849,10 @@ msgstr "Use a positive whole-number denominator, at most 4294967295."
 msgid "Use at most 16 characters for the currency symbol, without control characters."
 msgstr "Use at most 16 characters for the currency symbol, without control characters."
 
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Use at most 255 characters in a format code."
+msgstr "Use at most 255 characters in a format code."
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Use at most 64 custom formula parameters."
 msgstr "Use at most 64 custom formula parameters."
@@ -6743,6 +6860,10 @@ msgstr "Use at most 64 custom formula parameters."
 #: src/i18n/seven-feature-feedback.ts
 msgid "Use at most 8192 characters in a custom formula expression."
 msgstr "Use at most 8192 characters in a custom formula expression."
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Use at most four sections separated by semicolons: positive;negative;zero;text."
+msgstr "Use at most four sections separated by semicolons: positive;negative;zero;text."
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Use commas between ranges. Write the formula for the first range’s top-left cell. Use $ to lock a row or column."
@@ -6767,6 +6888,10 @@ msgstr "Use nonempty groups with valid filter conditions."
 #: src/i18n/seven-feature-feedback.ts
 msgid "Use only declared parameters and local LET or LAMBDA names in custom formula expressions."
 msgstr "Use only declared parameters and local LET or LAMBDA names in custom formula expressions."
+
+#: src/workbook/chrome/ribbon/number-format-code-errors.ts
+msgid "Use only one decimal point in each section."
+msgstr "Use only one decimal point in each section."
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Use thousands separator"
@@ -7011,6 +7136,14 @@ msgstr "You can save at most 32 custom lists per workbook session."
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "Your workbook is in memory. Download a file to keep your changes."
 msgstr "Your workbook is in memory. Download a file to keep your changes."
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "ZIP Code"
+msgstr "ZIP Code"
+
+#: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
+msgid "ZIP Code + 4"
+msgstr "ZIP Code + 4"
 
 #: src/workbook/zoom/ZoomControl.tsx
 msgid "Zoom"

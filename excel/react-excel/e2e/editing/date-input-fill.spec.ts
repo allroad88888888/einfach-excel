@@ -113,7 +113,8 @@ test('date series infers day, week and month ends from native samples', async ({
   await expect(cell(page, '22:0')).toHaveText('2024-03-02')
   await expect(cell(page, '22:0')).toHaveCSS('font-weight', '700')
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect(cell(page, '22:0')).toHaveText('')
+  // A23 is the Special ZIP seed; undo restores its value and formatting.
+  await expect(cell(page, '22:0')).toHaveText('00123')
   await open(page, 'C20:C24', '2')
   await apply(page)
   await expect(cell(page, '21:2')).toHaveText('2024-03-31')

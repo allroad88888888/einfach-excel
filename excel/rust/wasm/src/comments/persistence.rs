@@ -45,7 +45,7 @@ impl WasmWorkbook {
             }
             present.insert(address.clone(), out.len());
             out.push(CellSnapshotJSON { rich_text: None,
-                sheet, addr: address, display: String::new(), formatted_display: None,
+                sheet, addr: address, display: String::new(), formatted_display: None, formatted_color: None, formatted_fill: None, formatted_pads: None,
                 input_text: String::new(), cell_type: "null".into(), is_error: false,
                 formula: String::new(), hyperlink: target.hyperlink(addr).map(str::to_owned),
                 note_indicator: target.note(addr).map(|_| true), comment_indicator: Some(true),

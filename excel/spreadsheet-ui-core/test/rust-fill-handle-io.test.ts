@@ -4,7 +4,16 @@ import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 
 const sourceRange = { rowStart: 3, rowEnd: 4, colStart: 3, colEnd: 4 }
 function setup() {
-  const apply_auto_fill = vi.fn(() => ({ written: 6 }))
+  const apply_auto_fill = vi.fn((input: Parameters<NonNullable<WasmWorkbook['apply_auto_fill']>>[0]) => {
+    const { sourceRange: source, targetRange: target, direction } = input
+    const writeRange = { ...target,
+      ...(direction === 'down' ? { startRow: source.endRow + 1 } :
+        direction === 'up' ? { endRow: source.startRow - 1 } :
+          direction === 'right' ? { startCol: source.endCol + 1 } : { endCol: source.startCol - 1 }),
+    }
+    return { written: (writeRange.endRow - writeRange.startRow + 1) *
+      (writeRange.endCol - writeRange.startCol + 1), writeRange }
+  })
   const history_begin = vi.fn()
   const history_finish = vi.fn()
   const workbook = { apply_auto_fill, history_begin, history_finish,

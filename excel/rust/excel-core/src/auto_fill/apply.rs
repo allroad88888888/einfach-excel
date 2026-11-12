@@ -27,7 +27,7 @@ impl Workbook {
 
     fn plan_auto_fill(&self, request: &AutoFillRequest) -> Result<FillPlan, AutoFillError> {
         validate_geometry(request)?;
-        let write_range = fill_write_range(request);
+        let mut write_range = fill_write_range(request);
         if self.is_inside_custom_call() {
             return Err(AutoFillError::MutationDuringCustomCall);
         }
@@ -38,7 +38,7 @@ impl Workbook {
         if write_range.is_none() && request.series == AutoFillSeries::Copy {
             return Ok(FillPlan::default());
         }
-        if sheet
+        if !matches!(request.series, AutoFillSeries::Geometric { .. }) && sheet
             .merged_ranges()
             .iter()
             .any(|range| range.intersects(request.target_range))
@@ -48,6 +48,11 @@ impl Workbook {
             ));
         }
         let cells = match request.series {
+            AutoFillSeries::Geometric { stop } => {
+                let (cells, actual) = geometric::plan(sheet, request, write_range, stop)?;
+                write_range = actual;
+                cells
+            }
             AutoFillSeries::Copy => plan_copy(sheet, request, write_range.unwrap())?,
             AutoFillSeries::IntegerStep | AutoFillSeries::DecimalStep => {
                 plan_numeric_series(sheet, request, write_range)?
@@ -214,6 +219,18 @@ impl WorkbookHistory {
         request: &AutoFillRequest,
     ) -> Result<AutoFillReport, AutoFillError> {
         let plan = workbook.plan_auto_fill(request)?;
+        // Stop decides the history range before protection/validation snapshot preflight.
+        // Existing callers may already own a transaction; the geometric wire path does not.
+        if matches!(request.series, AutoFillSeries::Geometric { .. }) && !self.is_pending() {
+            let Some(range) = plan.write_range else {
+                return workbook.apply_fill_plan(request.sheet_idx, plan);
+            };
+            self.begin(workbook, request.sheet_idx, range, "Fill geometric series", true)
+                .map_err(AutoFillError::InvalidGeometry)?;
+            let result = self.apply_planned_fill(workbook, request.sheet_idx, plan);
+            self.finish(workbook, result.is_ok()).map_err(AutoFillError::InvalidGeometry)?;
+            return result;
+        }
         self.apply_planned_fill(workbook, request.sheet_idx, plan)
     }
 

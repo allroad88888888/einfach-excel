@@ -1,5 +1,6 @@
 //! XLSX 字节 → 原生工作簿文件。
 
+mod font_baseline_layers;
 mod archive;
 pub(crate) mod charts;
 mod chartex;
@@ -120,6 +121,8 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         });
         canvases.push(Canvas { row_count: MAX_ROWS, col_count: MAX_COLS });
 
+        let (row_styles, column_styles, unsupported_styles) = font_baseline_layers::read(&data, &xfs);
+        report.add("rowColumnStyles", unsupported_styles);
         let mut cell_styles = Vec::new();
         for cell in data.cells {
             let addr = cell_name(cell.row, cell.col);
@@ -154,10 +157,10 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
                 });
             }
         }
-        if !cell_styles.is_empty() {
+        if !cell_styles.is_empty() || !row_styles.is_empty() || !column_styles.is_empty() {
             workbook.formats.push(FormatRange {
                 sheet: Some(index as u32), start_row: 0, start_col: 0, end_row: u32::MAX, end_col: u32::MAX,
-                cell_styles, ..Default::default()
+                cell_styles, row_styles, column_styles,
             });
         }
         if !data.row_heights.is_empty() || !data.col_widths.is_empty() {

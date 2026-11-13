@@ -4,6 +4,7 @@ mod address;
 mod color;
 mod date_serial;
 mod formula;
+mod font_baseline;
 mod native;
 mod native_rich_text;
 mod native_features;

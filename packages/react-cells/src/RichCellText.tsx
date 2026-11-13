@@ -1,7 +1,8 @@
 import type { DisplayCell, RichTextRun } from '@einfach-excel/spreadsheet-ui-core'
+import { fontBaselineStyle, fontBaselineText } from './font-baseline-text'
 import type { CSSProperties } from 'react'
 
-export function richTextRunStyle(run: RichTextRun, cell?: DisplayCell): CSSProperties {
+export function richTextRunStyle(run: RichTextRun, cell?: Pick<DisplayCell, 'format'>): CSSProperties {
   const format = { ...cell?.format, ...run.format }
   return {
     fontWeight: format.bold === undefined ? undefined : format.bold ? 700 : 400,
@@ -9,6 +10,7 @@ export function richTextRunStyle(run: RichTextRun, cell?: DisplayCell): CSSPrope
     color: run.format.color,
     fontFamily: format.fontFamily,
     fontSize: format.fontSize,
+    ...fontBaselineStyle(format),
     textDecoration:
       format.underline === undefined && format.strikethrough === undefined
         ? undefined
@@ -28,9 +30,10 @@ export function RichCellText({
   text: string
   showFormulas: boolean
 }) {
-  if (showFormulas || !cell?.richText?.length) return text
+  if (showFormulas || !cell?.richText?.length) return fontBaselineText(text, cell?.format)
   return cell.richText.map((run, index) => (
-    <span key={index} style={richTextRunStyle(run, cell)}>
+    <span key={index} data-font-baseline={run.format.fontBaseline ?? cell.format?.fontBaseline}
+      style={richTextRunStyle(run, cell)}>
       {run.text}
     </span>
   ))

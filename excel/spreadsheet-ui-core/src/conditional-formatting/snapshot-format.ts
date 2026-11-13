@@ -232,6 +232,10 @@ export function snapshotFormat(value: unknown): SpreadsheetCellFormat | null {
         result[field] = value[field]
       }
     }
+    if (value.fontBaseline !== undefined) {
+      if (!isOneOf(value.fontBaseline, ['normal', 'superscript', 'subscript'] as const)) return null
+      result.fontBaseline = value.fontBaseline
+    }
     if (value.align !== undefined) {
       if (!isOneOf(value.align, ALIGNMENTS)) return null
       result.align = value.align

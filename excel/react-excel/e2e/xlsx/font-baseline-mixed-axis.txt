@@ -1,0 +1,3 @@
+Independent hand-authored OOXML fixture from the W4 FontBaseline codex exec review, preserved as a regression for FB-R1.
+Column A uses one font with superscript plus bold; row 2 uses subscript; A2 explicitly restores baseline. Shared and inline strings contain inherited, baseline and subscript runs.
+The converter supports the baseline axis property and reports the dropped bold property. This fixture was not produced by this repository's XLSX serializer or by an Excel desktop export.

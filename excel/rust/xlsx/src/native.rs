@@ -186,6 +186,8 @@ pub struct CellFormat {
     pub font_size: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub font_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub font_baseline: Option<crate::font_baseline::FontBaseline>,
     /// `#rrggbb`
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fg_color: Option<String>,

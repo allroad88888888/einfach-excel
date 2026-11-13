@@ -13,7 +13,7 @@ impl Workbook {
         axis: &str,
         default_row: u32,
         default_col: u32,
-        mut measure: impl FnMut(&Value, &CellFormat, f64) -> Result<f64, String>,
+        mut measure: impl FnMut(&Value, &CellFormat, f64, Option<&[crate::rich_text::RichTextRun]>) -> Result<f64, String>,
     ) -> Result<bool, String> {
         self.ensure_sheet_unprotected(sheet_index)?;
         if !matches!(axis, "row" | "column")
@@ -64,7 +64,7 @@ impl Workbook {
             let width: f64 = (start_col..=end_col).filter(|c| !hidden_cols.contains(c))
                 .map(|col| f64::from(sheet.col_width(col).unwrap_or(default_col))).sum();
             let format = sheet.effective_format(&addr.to_string());
-            match measure(&value, &format, width) {
+            match measure(&value, &format, width, sheet.rich_text(addr)) {
                 Ok(pixels) if pixels.is_finite() && pixels >= 0.0 => {
                     let (min, max) = if rows { (16.0, 512.0) } else { (40.0, 1024.0) };
                     let pixels = pixels.ceil().clamp(min, max) as u32;

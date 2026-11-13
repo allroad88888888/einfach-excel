@@ -1,4 +1,4 @@
-use crate::format::{Align, CellBorders, CellFormat, NumberFormat, Rotation, VerticalAlign};
+use crate::format::{Align, CellBorders, CellFormat, FontBaseline, NumberFormat, Rotation, VerticalAlign};
 
 /// 一层稀疏的显示样式；`None` 表示该层不接管这个属性。
 ///
@@ -11,6 +11,7 @@ pub struct CellStyle {
     pub italic: Option<bool>,
     pub align: Option<Align>,
     pub font_size: Option<Option<u32>>,
+    pub font_baseline: Option<FontBaseline>,
     pub color: Option<Option<String>>,
     pub background: Option<Option<String>>,
     pub font_family: Option<Option<String>>,
@@ -45,6 +46,7 @@ impl CellStyle {
             italic: Some(format.italic),
             align: Some(format.align),
             font_size: Some(format.font_size),
+            font_baseline: Some(format.font_baseline),
             color: Some(format.color),
             background: Some(format.background),
             font_family: Some(format.font_family),
@@ -69,6 +71,7 @@ impl CellStyle {
             || (self.italic.is_some() && patch.italic.is_some())
             || (self.align.is_some() && patch.align.is_some())
             || (self.font_size.is_some() && patch.font_size.is_some())
+            || (self.font_baseline.is_some() && patch.font_baseline.is_some())
             || (self.color.is_some() && patch.color.is_some())
             || (self.background.is_some() && patch.background.is_some())
             || (self.font_family.is_some() && patch.font_family.is_some())
@@ -94,6 +97,9 @@ impl CellStyle {
         }
         if patch.align.is_some() {
             self.align = patch.align;
+        }
+        if patch.font_baseline.is_some() {
+            self.font_baseline = patch.font_baseline;
         }
         if patch.font_size.is_some() {
             self.font_size = patch.font_size;
@@ -143,6 +149,9 @@ impl CellStyle {
         }
         if let Some(value) = self.align {
             format.align = value;
+        }
+        if let Some(value) = self.font_baseline {
+            format.font_baseline = value;
         }
         if let Some(value) = self.font_size {
             format.font_size = value;

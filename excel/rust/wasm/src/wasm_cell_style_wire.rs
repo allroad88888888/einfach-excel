@@ -26,6 +26,7 @@ impl CellFormatJSON {
                 Align::CenterAcross => "centerAcross".into(),
             }),
             font_size: style.font_size,
+            font_baseline: style.font_baseline,
             fg_color: style.color.clone(),
             bg_color: style.background.clone(),
             font_family: style.font_family.clone(),

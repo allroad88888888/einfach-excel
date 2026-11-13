@@ -1,7 +1,7 @@
 import { paintRichText } from './rich-text'
 import { paintNumberFormatLine } from './number-format-line'
 import type { Rect } from '@einfach-excel/canvas'
-import { externalHyperlink, type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
+import { externalHyperlink, fontBaselineLayout, fontVerticalMetrics, type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import type { CanvasCellsTheme } from './types'
 
 function ellipsis(ctx: CanvasRenderingContext2D, text: string, width: number) {
@@ -64,12 +64,20 @@ export function paintText(
     if (numberDisplay?.color) ctx.fillStyle = numberDisplay.color
     const wrapping = format?.overflow === 'wrap' || format?.wrap
     const vertical = format?.rotation === 'vertical'
-    let size = fontSize
+    const baseline = fontBaselineLayout(fontSize, format?.fontBaseline)
+    const baselineAware = baseline.shift !== 0
+    const nominalMetrics = fontVerticalMetrics(ctx.measureText('Mg'), fontSize)
+    let size = baseline.size
+    ctx.font = font(size)
     if (format?.shrinkToFit && !wrapping && !vertical) {
       size *= Math.min(1, width / Math.max(1, ctx.measureText(text).width))
       ctx.font = font(size)
     }
-    const lineHeight = size * 1.2
+    const shift = baseline.shift * (size / baseline.size)
+    const glyphMetrics = fontVerticalMetrics(ctx.measureText('Mg'), size)
+    const ascent = Math.max(nominalMetrics.ascent, glyphMetrics.ascent - shift)
+    const descent = Math.max(nominalMetrics.descent, glyphMetrics.descent + shift)
+    const lineHeight = baselineAware ? Math.max(fontSize * 1.2, ascent + descent) : size * 1.2
     const maxLines = Math.max(1, Math.ceil(height / lineHeight))
     const lines = vertical ? Array.from(text).slice(0, maxLines)
       : wrapping ? wrap(ctx, text, width, maxLines)
@@ -82,7 +90,7 @@ export function paintText(
     const blockHeight = lines.length * lineHeight
     const y = bounds.y + 3 + (format?.verticalAlign === 'top' ? 0
       : format?.verticalAlign === 'center' ? (height - blockHeight) / 2 : height - blockHeight)
-    ctx.textBaseline = 'top'
+    ctx.textBaseline = baselineAware ? 'alphabetic' : 'top'
     ctx.textAlign = align === 'right' ? 'right' : align === 'center' || vertical ? 'center' : 'left'
     if (typeof format?.rotation === 'number' && format.rotation) {
       const cx = bounds.x + bounds.width / 2, cy = bounds.y + bounds.height / 2
@@ -91,7 +99,8 @@ export function paintText(
       ctx.translate(-cx, -cy)
     }
     lines.forEach((line, index) => {
-      const top = y + index * lineHeight
+      const top = y + index * lineHeight + (baselineAware
+        ? ascent + (lineHeight - ascent - descent) / 2 + shift : 0)
       const layout = !wrapping && !vertical && numberDisplay
       if (!layout || !paintNumberFormatLine(ctx, line, layout, { left, width, x }, top))
         ctx.fillText(line, x, top)
@@ -102,8 +111,8 @@ export function paintText(
         ctx.strokeStyle = ctx.fillStyle
         ctx.lineWidth = 1
         const decorations = [
-          format?.underline || hyperlink ? size : null,
-          format?.strikethrough ? size * 0.55 : null,
+          format?.underline || hyperlink ? size * (baselineAware ? 0.1 : 1) : null,
+          format?.strikethrough ? size * (baselineAware ? -0.3 : 0.55) : null,
         ]
         for (const offset of decorations) {
           if (offset === null) continue

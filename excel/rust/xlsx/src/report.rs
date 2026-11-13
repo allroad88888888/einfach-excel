@@ -39,6 +39,7 @@ const IMPORT_ORDER: &[(&str, &str)] = &[
     ("hyperlinks", "unsupported hyperlinks"),
     ("richText", "rich text formatting"),
     ("tables", "table filters or totals"),
+    ("rowColumnStyles", "row or column styles"),
     ("sheetProtection", "sheet protection"),
     ("autoFilter", "auto filters"),
     ("outline", "outline grouping"),

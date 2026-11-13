@@ -17,6 +17,8 @@ pub struct SheetInput<'a> {
     pub default_style: u32,
     /// (row, col) → cellXfs 下标
     pub styles: HashMap<(u32, u32), u32>,
+    pub row_styles: BTreeMap<u32, u32>,
+    pub column_styles: BTreeMap<u32, u32>,
     pub row_heights: BTreeMap<u32, u32>,
     pub col_widths: BTreeMap<u32, u32>,
     pub merges: Vec<[u32; 4]>,
@@ -106,7 +108,7 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
     for (&(row, col), &style) in &sheet.styles {
         rows.entry(row).or_default().entry(col).or_insert((None, 0)).1 = style;
     }
-    for &row in sheet.row_heights.keys().chain(&sheet.hidden_rows) {
+    for &row in sheet.row_heights.keys().chain(&sheet.hidden_rows).chain(sheet.row_styles.keys()) {
         rows.entry(row).or_default();
     }
 
@@ -117,7 +119,7 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
         format!(r#" defaultColWidth="{}""#, px_to_column_width(px))).unwrap_or_default();
     xml.push_str(&format!(r#"<sheetFormatPr defaultRowHeight="{}"{default_width}/>"#,
         px_to_row_height(sheet.defaults.row_height.unwrap_or(28))));
-    let columns: BTreeSet<u32> = sheet.col_widths.keys().chain(&sheet.hidden_cols).copied().collect();
+    let columns: BTreeSet<u32> = sheet.col_widths.keys().chain(&sheet.hidden_cols).chain(sheet.column_styles.keys()).copied().collect();
     if !columns.is_empty() || sheet.defaults.font_size.is_some() {
         xml.push_str("<cols>");
         let mut next = 1;
@@ -134,7 +136,9 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
                 None => String::new(),
             };
             let hidden = if sheet.hidden_cols.contains(&col) { r#" hidden="1""# } else { "" };
-            xml.push_str(&format!(r#"<col min="{n}" max="{n}"{width}{hidden}{style}/>"#));
+            let column_style = sheet.column_styles.get(&col)
+                .map(|xf| format!(r#" style="{xf}""#)).unwrap_or_else(|| style.clone());
+            xml.push_str(&format!(r#"<col min="{n}" max="{n}"{width}{hidden}{column_style}/>"#));
         }
         if next <= 16_384 && sheet.defaults.font_size.is_some() {
             xml.push_str(&format!(r#"<col min="{next}" max="16384"{style}/>"#));
@@ -147,7 +151,9 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
             .map(|&px| format!(r#" ht="{}" customHeight="1""#, px_to_row_height(px)))
             .unwrap_or_default();
         let hidden = if sheet.hidden_rows.contains(&row) { r#" hidden="1""# } else { "" };
-        xml.push_str(&format!(r#"<row r="{}"{height}{hidden}>"#, row + 1));
+        let row_style = sheet.row_styles.get(&row)
+            .map(|xf| format!(r#" s="{xf}" customFormat="1""#)).unwrap_or_default();
+        xml.push_str(&format!(r#"<row r="{}"{height}{hidden}{row_style}>"#, row + 1));
         for (col, (cell, style)) in cells {
             xml.push_str(&cell_xml(cell, row, col, style, sheet.default_style, strings, sheet.rich_text.get(&(row, col)).copied()));
         }

@@ -28,6 +28,7 @@ pub struct SheetData {
     pub cells: Vec<RawCell>,
     pub defaults: crate::sheet_defaults::SheetDefaults,
     pub column_styles: Vec<(u32, u32, u32)>,
+    pub row_styles: Vec<(u32, u32)>,
     pub col_widths: Vec<(u32, u32)>,
     pub row_heights: Vec<(u32, u32)>,
     pub merges: Vec<[u32; 4]>,
@@ -138,6 +139,9 @@ pub fn parse(xml: &str, strings: &[String]) -> Result<SheetData, XlsxError> {
                 b"row" => {
                     row = attr_u32(&e, "r").map_or(row.wrapping_add(1), |r| r.saturating_sub(1));
                     next_col = 0;
+                    if attr_bool(&e, "customFormat", false) {
+                        if let Some(style) = attr_u32(&e, "s") { data.row_styles.push((row, style)); }
+                    }
                     if attr_u32(&e, "outlineLevel").is_some_and(|l| l > 0) || attr_bool(&e, "collapsed", false) {
                         data.outline += 1;
                     }

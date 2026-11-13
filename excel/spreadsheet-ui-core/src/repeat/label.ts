@@ -11,6 +11,7 @@ const FORMAT_FIELD_LABELS: Readonly<Record<string, RepeatLabel>> = {
   fgColor: 'text-color',
   fontFamily: 'font-family',
   fontSize: 'font-size',
+  fontBaseline: 'font-baseline',
   align: 'alignment',
   verticalAlign: 'alignment',
   rotation: 'alignment',

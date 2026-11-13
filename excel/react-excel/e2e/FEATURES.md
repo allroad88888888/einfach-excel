@@ -380,6 +380,8 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | FONT-020 | 增大字号原生写入失败后重试 | `format/font-size-controls.spec.ts` | failed Increase stays readable and retries at 390px |
 | FONT-021 | 减小字号原生写入失败后重试 | `format/font-size-controls.spec.ts` | failed Decrease stays readable and retries at 390px |
 | FONT-022 | 字号提交中禁用编辑和取消 | `format/font-size-controls.spec.ts` | pending custom size disables editing and cancellation until the native response |
+| FONT-023 | 整格上标 | `format/font-baseline.spec.ts` | Superscript raises selected cell text without changing values or nominal font size |
+| FONT-024 | 整格下标与恢复正常 | `format/font-baseline.spec.ts` | Subscript replaces superscript and restores normal text in one undoable step |
 | STYLE-001 | 快捷应用填充颜色 | `format/cell-appearance.spec.ts` | Fill color reapplies the last color and No fill clears it explicitly |
 | STYLE-002 | 快捷应用文字颜色 | `format/cell-appearance.spec.ts` | Text color reapplies the last color and Automatic clears it explicitly |
 | STYLE-003 | 水平居中 | `format/cell-appearance.spec.ts` | horizontal center is an independent undoable choice at 1280px |

@@ -1,3 +1,6 @@
+import type { RichTextRun } from '../contracts'
+import { fontBaselineLayout, fontVerticalMetrics } from '../text/font-baseline'
+import { measureAutoFitRichText } from './auto-fit-rich-text'
 import { formatNumberValue } from '../operations/format/numberFormat'
 import { usesNativeNumberDisplay } from './format-projection'
 import type { RustSparseCellStyle } from './wasm-types'
@@ -18,6 +21,7 @@ export interface AutoFitLayout {
 }
 
 export interface AutoFitText {
+  readonly richText?: readonly RichTextRun[]
   readonly text: string
   readonly pads?: readonly { readonly char: string; readonly at: number }[]
   readonly numericValue?: number | null
@@ -77,7 +81,7 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
     }
     return lines
   }
-  return ({ text: raw, pads, numericValue, format, width }: AutoFitText): number => {
+  return ({ text: raw, pads, numericValue, format, width, richText }: AutoFitText): number => {
     const numberFormat = format.numberFormat
     const text =
       numericValue != null && numberFormat &&
@@ -90,7 +94,13 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
         : layout.fontSize
     const family = format.fontFamily?.trim()
     context.font = `${format.italic ? 'italic' : 'normal'} ${format.bold ? 'bold' : 'normal'} ${size}px ${family && /^[A-Za-z0-9, "'\-]+$/.test(family) ? family : layout.fontFamily}`
-    const lineHeight = (size * layout.lineHeight) / layout.fontSize
+    const baseline = fontBaselineLayout(size, format.fontBaseline ?? undefined)
+    const normal = fontVerticalMetrics(context.measureText('Mg'), size)
+    context.font = context.font.replace(`${size}px`, `${baseline.size}px`)
+    const glyph = fontVerticalMetrics(context.measureText('Mg'), baseline.size)
+    const lineHeight = Math.max((size * layout.lineHeight) / layout.fontSize,
+      baseline.shift ? Math.max(normal.ascent, glyph.ascent - baseline.shift) +
+        Math.max(normal.descent, glyph.descent + baseline.shift) : 0)
     const border = (side: 'top' | 'bottom' | 'left' | 'right', fallback: number) => {
       const style = format.borders?.[side]?.style
       if (!style || style === 'none') return fallback
@@ -132,6 +142,14 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
           (axis === 'row' && wrap ? wrappedLines(paragraph, Math.max(1, width - horizontal)) : 1),
         0,
       )
+    if (richText?.length && richText.map(run => run.text).join('') === text) {
+      const rich = measureAutoFitRichText(context, richText, format, {
+        fontSize: size, fontFamily: family ?? layout.fontFamily,
+        lineRatio: layout.lineHeight / layout.fontSize,
+      }, axis === 'row' && wrap ? Math.max(1, width - horizontal) : undefined)
+      textWidth = rich.width
+      textHeight = rich.height
+    }
     if (axis === 'row' && wrap) textWidth = Math.min(textWidth, Math.max(1, width - horizontal))
     if (format.rotation === 'vertical') {
       // mixed writing-mode: CJK upright, latin runs sideways.

@@ -1,4 +1,5 @@
-import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
+import { fontBaselineText } from './font-baseline-text'
+import type { DisplayCell, SpreadsheetCellFormat } from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties, ReactNode } from 'react'
 import './number-format-text.css'
 
@@ -55,17 +56,18 @@ function padded(chars: readonly string[], from: number, to: number,
  * Excel `*x` 填充与 `_x` 留白：填充前的文字贴左、之后的贴右，中间重复填充字符（空格只留间隙）；
  * 留白位置渲染不可见的占位字符。网格单元格与数字格式预览共用这一份排版。
  */
-export function NumberFormatText({ display, text }: {
+export function NumberFormatText({ display, text, format }: {
+  readonly format?: SpreadsheetCellFormat
   readonly display: NumberFormatDisplay
   readonly text: string
 }) {
   const { fill, pads } = display
   const chars = Array.from(text)
-  if (!fill) return <span className="cell-number-text">{padded(chars, 0, chars.length, pads)}</span>
+  if (!fill) return <span className="cell-number-text">{fontBaselineText(padded(chars, 0, chars.length, pads), format)}</span>
   return <span className="cell-fill-text" data-number-fill={fill.char}>
-    <span className="cell-fill-start">{padded(chars, 0, fill.at, pads)}</span>
+    <span className="cell-fill-start">{fontBaselineText(padded(chars, 0, fill.at, pads), format)}</span>
     <span className="cell-fill-repeat" aria-hidden="true">
-      {fill.char === ' ' ? '' : fill.char.repeat(FILL_REPEAT)}</span>
-    <span className="cell-fill-end">{padded(chars, fill.at, chars.length, pads)}</span>
+      {fontBaselineText(fill.char === ' ' ? '' : fill.char.repeat(FILL_REPEAT), format)}</span>
+    <span className="cell-fill-end">{fontBaselineText(padded(chars, fill.at, chars.length, pads), format)}</span>
   </span>
 }

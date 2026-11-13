@@ -23,6 +23,8 @@ pub struct RichTextFormat {
     pub font_family: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub font_size: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub font_baseline: Option<crate::FontBaseline>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

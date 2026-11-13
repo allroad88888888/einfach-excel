@@ -1,3 +1,4 @@
+import { SUMMARY_FONT_BASELINE_CELLS } from './data/font-baseline-seed'
 import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from './data/custom-list-drag-seed'
 import type { RustWorkbookDefinition, RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 import { applySalesOrderMerge, SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
@@ -85,6 +86,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       ...createSalesOrderImportChunks().map((chunk) => chunk.map(applySalesOrderMerge)),
       SALES_ORDER_EXTRA_MERGE_CELLS,
       SALES_ORDER_SUMMARY_CELLS,
+      SUMMARY_FONT_BASELINE_CELLS,
       SALES_ORDER_NUMBER_FORMAT_EXAMPLES,
       SALES_ORDER_SPECIAL_FORMAT_EXAMPLES,
       SUMMARY_VALIDATION_CELLS,

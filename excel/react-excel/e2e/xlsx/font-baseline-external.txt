@@ -1,0 +1,2 @@
+Independent hand-authored SpreadsheetML fixture; not produced by the product serializer or Microsoft Excel.
+A column: superscript, row 2: subscript. A1/B2 omit cell s and inherit. A2 and C1 explicitly use font vertAlign=baseline with nominal size 20. D1 has no style. F1 is a superscript formula. C3 uses shared rich runs (inherit/normal/subscript), E3 inline runs (inherit/normal). Dimension deliberately spans the Excel grid; only 8 content cells are present.

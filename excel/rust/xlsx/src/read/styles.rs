@@ -21,6 +21,7 @@ struct Font {
     size: Option<f64>,
     name: Option<String>,
     color: Option<String>,
+    baseline: Option<crate::font_baseline::FontBaseline>,
 }
 
 #[derive(Default)]
@@ -90,6 +91,7 @@ fn xf_format(e: &BytesStart, parsed: &Parsed) -> CellFormat {
     }
     let default_font = parsed.fonts.first().cloned().unwrap_or_default();
     if let Some(font) = parsed.fonts.get(attr_u32(e, "fontId").unwrap_or(0) as usize) {
+        format.font_baseline = font.baseline;
         if font.bold { format.bold = Some(true); }
         if font.italic { format.italic = Some(true); }
         if font.underline { format.underline = Some(true); }
@@ -190,6 +192,8 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, Xls
                     b"i" => font.italic = attr_bool(&e, "val", true),
                     b"strike" => font.strike = attr_bool(&e, "val", true),
                     b"u" => font.underline = attr(&e, "val").as_deref() != Some("none"),
+                    b"vertAlign" => font.baseline = attr(&e, "val").as_deref()
+                        .and_then(crate::font_baseline::FontBaseline::from_xml),
                     b"sz" => font.size = attr_f64(&e, "val"),
                     b"name" => font.name = attr(&e, "val"),
                     b"color" => font.color = color_of(&e, theme),

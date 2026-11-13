@@ -1,0 +1,15 @@
+:where(.einfach-spreadsheet) .font-baseline-feedback {
+  display: inline-flex;
+  max-width: 220px;
+  align-items: center;
+  color: #a12622;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+:where(.einfach-spreadsheet) [data-ribbon-group='font'] .ribbon-row { gap: 1px; }
+:where(.einfach-spreadsheet) [data-ribbon-group='font'] .font-family-select { width: 88px; }
+/* Two complete rows stay inside the original font-group width; every glyph target remains 24×28. */
+:where(.einfach-spreadsheet) [data-ribbon-group='font'] .tool-button:not(.tool-dropdown-button):not(.color-open) {
+  width: 24px;
+}
+

@@ -7,6 +7,7 @@ import {
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'
+import { fontBaselineText } from './font-baseline-text'
 import { RichCellText } from './RichCellText'
 import {
   NumberFormatText, numberFormatColorStyle, numberFormatLayout, numberFormatSpacingStyle,
@@ -101,7 +102,8 @@ export function SpreadsheetGrid({
         const formatStyle = {
           ...cellFormatStyle(
             cell?.format ? { ...cell.format, borders: undefined,
-              ...(cell.richText?.length && !showFormulas
+              ...((cell.richText?.length && !showFormulas) ||
+                (cell.format?.fontBaseline && cell.format.fontBaseline !== 'normal')
                 ? { underline: false, strikethrough: false } : {}) } : undefined, cell?.valueKind,
           ),
           ...borderStyle(row, col, cell?.format),
@@ -120,7 +122,17 @@ export function SpreadsheetGrid({
         // component fibers otherwise delay buffered viewport replacement on scroll.
         const displayValue = cell?.richText?.length && !showFormulas
           ? <RichCellText cell={cell} text={text} showFormulas={false} />
-          : layout ? <NumberFormatText display={layout} text={text} /> : text
+          : layout ? <NumberFormatText display={layout} text={text} format={cell?.format} />
+            : fontBaselineText(text, cell?.format)
+        const rotated = Boolean(rotationStyle?.transform)
+        const contentHeight = Math.max(0, height - 6 - topBorder - bottomBorder)
+        const textContent = cell?.hyperlink && !showFormulas ? (
+          <CellHyperlink url={cell.hyperlink} color={cell.format?.fgColor}>
+            {rotationStyle ? <span className="cell-rotated-text" style={rotationStyle}>
+              {displayValue}</span> : displayValue}
+          </CellHyperlink>
+        ) : rotationStyle ? <span className="cell-rotated-text" style={rotationStyle}>
+          {displayValue}</span> : displayValue
         const filterTable = tableHeaders.find(({ range }) =>
           col >= range.colStart && col <= range.colEnd)?.table
         const filterHeader = !merged && (filterTable !== undefined || row === filterRange?.rowStart
@@ -141,23 +153,20 @@ export function SpreadsheetGrid({
             {!merged && (cell?.conditionalIcon || cell?.noteIndicator || cell?.commentIndicator ||
               cell?.commentThreadId) && <CellMetadata cell={cell} labels={metadataLabels} />}
             <span
-              className="cell-content"
+              className={`cell-content${rotated ? ' cell-rotation-frame' : ''}`}
               data-conditional-icon-value={!merged && cell?.conditionalIcon
                 ? cell.conditionalIcon.showValue ? 'visible' : 'hidden' : undefined}
               style={{
-                maxHeight: Math.max(0, height - 6 - topBorder - bottomBorder),
+                maxHeight: contentHeight,
+                height: rotated ? contentHeight : undefined,
+                justifyContent: rotated ? cell?.format?.verticalAlign === 'top' ? 'flex-start'
+                  : cell?.format?.verticalAlign === 'center' ? 'center' : 'flex-end' : undefined,
                 visibility: merged ? 'hidden' : undefined,
                 ...numberFormatSpacingStyle(cell),
                 ...across?.content,
               }}
             >
-              {cell?.hyperlink && !showFormulas ? (
-                <CellHyperlink url={cell.hyperlink} color={cell.format?.fgColor}>
-                  {rotationStyle ? <span className="cell-rotated-text" style={rotationStyle}>
-                    {displayValue}</span> : displayValue}
-                </CellHyperlink>
-              ) : rotationStyle ? <span className="cell-rotated-text" style={rotationStyle}>
-                {displayValue}</span> : displayValue}
+              {rotated ? <span className="cell-rotation-line">{textContent}</span> : textContent}
             </span>
             {filterHeader && <CellFilterButton col={col} table={filterTable} />}
           </td>,

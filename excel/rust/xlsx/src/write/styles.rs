@@ -138,6 +138,9 @@ fn font_xml(format: &CellFormat) -> String {
         Some(name) => xml.push_str(&format!(r#"<name val="{}"/>"#, escape(name))),
         None => xml.push_str(r#"<name val="Calibri"/><family val="2"/><scheme val="minor"/>"#),
     }
+    if let Some(baseline) = format.font_baseline {
+        xml.push_str(&format!(r#"<vertAlign val="{}"/>"#, baseline.xml()));
+    }
     xml.push_str("</font>");
     if xml == DEFAULT_FONT { DEFAULT_FONT.into() } else { xml }
 }

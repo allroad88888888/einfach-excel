@@ -79,11 +79,14 @@ impl WorkbookHistory {
             }
             preflight_selection(workbook, target_sheet, targets, &patch)?;
         }
+        let label = if patch.font_baseline.is_some() && patch == (CellStyle {
+            font_baseline: patch.font_baseline, ..Default::default()
+        }) { "Font baseline" } else { "Format selection" };
         self.begin_ranges(
             workbook,
             sheet,
             affected,
-            "Format selection",
+            label,
             &snapshots,
             false,
         )?;

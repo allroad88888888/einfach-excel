@@ -24,6 +24,7 @@ pub mod filter;
 pub mod advanced_filter;
 mod find_text;
 mod find_wildcard;
+mod cell_format;
 pub mod format;
 mod number_format;
 pub mod accounting_format;
@@ -85,6 +86,7 @@ pub use filter::{
     ColumnFilterRule, FilterApplyReport, FilterError, SheetAutoFilter, MAX_FILTER_PREDICATE_CELLS,
 };
 pub use format::{
+    FontBaseline,
     apply_rules, error_display_token, value_to_display, Align, BorderSpec, BorderStyle,
     CellBorders, CellFormat, Condition, ConditionalRule, NumberFormat, Rotation, StyleOverrides,
     VerticalAlign,

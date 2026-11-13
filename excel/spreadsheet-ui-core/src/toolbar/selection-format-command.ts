@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { RangeBorderPatch, SpreadsheetBorders, SpreadsheetCellFormat } from '../contracts'
+import type { FontBaseline, RangeBorderPatch, SpreadsheetBorders, SpreadsheetCellFormat } from '../contracts'
 import { activeCellFormatAtom, projectionSnapshotAtom } from '../projection'
 import {
   runSelectionMutationAtom,
@@ -52,6 +52,7 @@ export type SelectionFormatAction =
   | NumberFormatAction
   | { readonly type: 'font-family'; readonly value: string }
   | { readonly type: 'font-size'; readonly value: number }
+  | { readonly type: 'font-baseline'; readonly value: FontBaseline }
   | { readonly type: 'fill-color'; readonly value: string | null }
   | { readonly type: 'text-color'; readonly value: string | null }
   | TextLayoutAction
@@ -88,6 +89,12 @@ function nextPatch(
       if (action.value === null) return { format: {}, clearFormatFields: [field] }
       const color = action.value.trim()
       return /^#[\da-f]{6}$/i.test(color) ? { format: { [field]: color.toLowerCase() } } : null
+    }
+    if (action.type === 'font-baseline') {
+      if (!['normal', 'superscript', 'subscript'].includes(action.value)) return null
+      const fontBaseline = action.value === (current.fontBaseline ?? 'normal')
+        ? 'normal' : action.value
+      return { format: { fontBaseline } }
     }
     if (action.type === 'font-family') {
       const fontFamily = action.value.trim()

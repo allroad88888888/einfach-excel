@@ -51,6 +51,17 @@ export function MergedCells({ window, anchors, metadataLabels }: {
         }
         const rect = getViewportRangeRectangle(metrics, sizes, range)
         const layout = numberFormatLayout(cell, showFormulas)
+        const rotationStyle = cellTextRotationStyle(cell.format)
+        const rotated = Boolean(rotationStyle?.transform)
+        const textContent = <span style={rotationStyle}>
+          <CellHyperlink url={showFormulas ? undefined : cell.hyperlink}
+            color={cell.format?.fgColor}>
+            {layout ? <NumberFormatText display={layout} format={cell.format}
+              text={formulaViewText(cell, showFormulas)} />
+              : <RichCellText cell={cell} text={formulaViewText(cell, showFormulas)}
+                showFormulas={showFormulas} />}
+          </CellHyperlink>
+        </span>
         if (rect.width === 0 || rect.height === 0) return null
         const selected = selections.some((selection) =>
           selection.rowStart <= range.rowStart && selection.rowEnd >= range.rowEnd &&
@@ -68,7 +79,8 @@ export function MergedCells({ window, anchors, metadataLabels }: {
             className={`cell merged-cell cell-metadata-host${cell.dataBar ? ' cell-data-bar-host' : ''}`}
             style={{
               ...cellFormatStyle({ ...cell.format, borders: undefined,
-              ...(cell.richText?.length && !showFormulas
+              ...((cell.richText?.length && !showFormulas) ||
+                (cell.format?.fontBaseline && cell.format.fontBaseline !== 'normal')
                 ? { underline: false, strikethrough: false } : {}) }, cell.valueKind),
               ...numberFormatColorStyle(cell, showFormulas),
               border: 0,
@@ -88,18 +100,16 @@ export function MergedCells({ window, anchors, metadataLabels }: {
               borderStyle={borderStyle} />
             <CellDataBar bar={cell.dataBar} />
             <CellMetadata cell={cell} labels={metadataLabels} />
-            <span className="cell-content" style={numberFormatSpacingStyle(cell)}
+            <span className={`cell-content${rotated ? ' cell-rotation-frame' : ''}`}
+              style={{
+                height: rotated ? Math.max(0, rect.height - 6) : undefined,
+                justifyContent: rotated ? cell.format?.verticalAlign === 'top' ? 'flex-start'
+                  : cell.format?.verticalAlign === 'center' ? 'center' : 'flex-end' : undefined,
+                ...numberFormatSpacingStyle(cell),
+              }}
               data-conditional-icon-value={cell.conditionalIcon
                 ? cell.conditionalIcon.showValue ? 'visible' : 'hidden' : undefined}>
-              <span style={cellTextRotationStyle(cell.format)}>
-                <CellHyperlink url={showFormulas ? undefined : cell.hyperlink}
-                  color={cell.format?.fgColor}>
-                  {layout ? <NumberFormatText display={layout}
-                    text={formulaViewText(cell, showFormulas)} />
-                    : <RichCellText cell={cell} text={formulaViewText(cell, showFormulas)}
-                      showFormulas={showFormulas} />}
-                </CellHyperlink>
-              </span>
+              {rotated ? <span className="cell-rotation-line">{textContent}</span> : textContent}
             </span>
           </div>
         )

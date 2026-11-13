@@ -20,6 +20,8 @@ fn property(format: &mut RichTextFormat, e: &BytesStart, theme: &[String]) {
         b"u" => format.underline = Some(attr(e, "val").as_deref() != Some("none")),
         b"strike" => format.strikethrough = Some(attr_bool(e, "val", true)),
         b"rFont" => format.font_family = attr(e, "val").filter(|s| !s.is_empty() && s.len() <= 128 && !s.chars().any(char::is_control)),
+        b"vertAlign" => format.font_baseline = attr(e, "val").as_deref()
+            .and_then(crate::font_baseline::FontBaseline::from_xml),
         b"sz" => format.font_size = attr_f64(e, "val").filter(|s| s.is_finite() && (1.0..=512.0).contains(s)),
         b"color" => format.color = if let Some(rgb) = attr(e, "rgb") { crate::color::from_argb(&rgb) }
             else if let Some(index) = attr_u32(e, "theme") { crate::color::from_theme(theme, index as usize, attr_f64(e, "tint").unwrap_or(0.0)) }

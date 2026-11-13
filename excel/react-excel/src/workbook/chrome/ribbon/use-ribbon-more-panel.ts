@@ -108,7 +108,10 @@ export function useRibbonMorePanel(panelRef: RefObject<HTMLElement | null>) {
         if (control instanceof HTMLSelectElement && control.value !== '') return
         const workbook = panel.closest('.einfach-spreadsheet') ?? panel
         const popup = 'dialog[open], [role="dialog"], [role="alertdialog"], [role="menu"]'
-        if (!workbook.querySelector(popup)) {
+        // 快速预检错误可能已被 observer 展开；不能再由这个旧帧把提示藏回去。
+        const error = [...panel.querySelectorAll(`${FOLDED} [role="alert"]`)]
+          .some(alert => Boolean(alert.textContent?.trim()))
+        if (!workbook.querySelector(popup) && !error) {
           const restoreFocus = document.activeElement === control ||
             document.activeElement === document.body
           setExpanded(false)

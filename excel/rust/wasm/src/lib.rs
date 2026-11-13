@@ -6,7 +6,7 @@
 
 use einfach_core::{CellListener, Value, ValueError};
 use einfach_excel_core::{
-    Align, BorderSpec, BorderStyle, CellAddress, CellBorders, CellFormat, CellRange, CellStyle,
+    FontBaseline, Align, BorderSpec, BorderStyle, CellAddress, CellBorders, CellFormat, CellRange, CellStyle,
     CellSubscription, ColumnFilterRule, ConditionalFormatConfigSnapshot,
     ConditionalFormatRuleEntry, CustomFunctionRegistry, DepGraphStats, FilterApplyReport,
     FilterError, FilterSnapshot, FormatRangeSnapshot, HiddenRowsSnapshot, NumberFormat, Rotation,
@@ -31,6 +31,7 @@ include!("wasm_cell_format_wire.rs");
 include!("wasm_number_format_wire.rs");
 include!("wasm_special_number_format_wire.rs");
 include!("wasm_cell_style_wire.rs");
+include!("wasm_font_baseline_tests.rs");
 include!("wasm_style_snapshot_wire.rs");
 include!("wasm_format_snapshot_wire.rs");
 include!("wasm_import_value_wire.rs");

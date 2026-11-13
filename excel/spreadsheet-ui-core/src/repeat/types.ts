@@ -7,7 +7,7 @@ import type { StructureAction } from '../rust-workbook/structure-geometry'
 export type RepeatLabel =
   | 'bold' | 'italic' | 'underline' | 'strikethrough' | 'wrap-text'
   | 'fill-color' | 'text-color' | 'font-family' | 'font-size' | 'alignment'
-  | 'number-format' | 'borders' | 'indent' | 'format'
+  | 'font-baseline' | 'number-format' | 'borders' | 'indent' | 'format'
   | 'clear-contents' | 'clear-formats' | 'clear-all'
   | StructureAction
   | 'merge' | 'center' | 'unmerge'

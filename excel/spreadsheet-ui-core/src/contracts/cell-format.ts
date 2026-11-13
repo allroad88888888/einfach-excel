@@ -1,3 +1,6 @@
+/** Font glyph baseline; independent of alignment within the cell box. */
+export type FontBaseline = 'normal' | 'superscript' | 'subscript'
+
 /** 单元格显示格式的数据契约。 */
 export type SpreadsheetAlignment =
   | 'default'
@@ -147,6 +150,7 @@ export interface SpreadsheetCellFormat {
   italic?: boolean
   align?: SpreadsheetAlignment
   fontSize?: number
+  fontBaseline?: FontBaseline
   fontFamily?: string
   fgColor?: string
   bgColor?: string

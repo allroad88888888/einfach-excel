@@ -23,6 +23,8 @@ struct CellFormatJSON {
         skip_serializing_if = "Option::is_none"
     )]
     font_size: Option<Option<u32>>,
+    #[serde(default, rename = "fontBaseline", skip_serializing_if = "Option::is_none")]
+    font_baseline: Option<FontBaseline>,
     #[serde(
         default,
         rename = "fgColor",
@@ -140,6 +142,7 @@ impl CellFormatJSON {
             italic: self.italic.unwrap_or(false),
             align,
             font_size: self.font_size.flatten(),
+            font_baseline: self.font_baseline.unwrap_or_default(),
             color: self.fg_color.flatten(),
             background: self.bg_color.flatten(),
             font_family: self.font_family.flatten(),
@@ -171,6 +174,7 @@ impl CellFormatJSON {
                 _ => Align::Default,
             }),
             font_size: self.font_size,
+            font_baseline: self.font_baseline,
             color: self.fg_color,
             background: self.bg_color,
             font_family: self.font_family,
@@ -210,6 +214,7 @@ impl CellFormatJSON {
                 Align::CenterAcross => "centerAcross".into(),
             }),
             font_size: fmt.font_size.map(Some),
+            font_baseline: (fmt.font_baseline != FontBaseline::Normal).then_some(fmt.font_baseline),
             fg_color: fmt.color.clone().map(Some),
             bg_color: fmt.background.clone().map(Some),
             font_family: fmt.font_family.clone().map(Some),

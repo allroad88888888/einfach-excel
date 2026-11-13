@@ -28,7 +28,8 @@ describe('public package entry', () => {
     const entry = await import('../../src')
     expect(Object.keys(entry).sort()).toEqual([
       'Spreadsheet', 'WorkbookRibbonItem', 'WorkbookRuntimeProvider', 'WorkbookStoreProvider', 'WorkbookView',
-      'preserveWorkbookToolFocus', 'renderSpreadsheetRangeAsPng', 'workbookRibbonItemIds',
+      'cycleWorkbookDialogFocus', 'preserveWorkbookToolFocus', 'renderSpreadsheetRangeAsPng',
+      'translateWorkbookFeedback', 'workbookRibbonItemIds',
     ])
     for (const [name, component] of Object.entries(entry))
       if (name !== 'workbookRibbonItemIds') expect(component).toBeTypeOf('function')

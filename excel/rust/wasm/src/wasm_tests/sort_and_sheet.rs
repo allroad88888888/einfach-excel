@@ -44,8 +44,10 @@ fn sort_key_wire_direction_and_case_defaults() {
         direction: None,
         case_sensitive: false,
         empty_first: false,
+        list: None,
     }
-    .into_key();
+    .into_key()
+    .unwrap();
     assert_eq!(k.col, 3);
     assert_eq!(k.direction, SortDirection::Ascending);
     assert!(!k.case_sensitive);
@@ -57,8 +59,10 @@ fn sort_key_wire_direction_and_case_defaults() {
             direction: Some(spelling.into()),
             case_sensitive: true,
             empty_first: false,
+            list: None,
         }
-        .into_key();
+        .into_key()
+        .unwrap();
         assert_eq!(k.direction, SortDirection::Descending, "{spelling}");
         assert!(k.case_sensitive);
     }
@@ -69,8 +73,10 @@ fn sort_key_wire_direction_and_case_defaults() {
         direction: Some("sideways".into()),
         case_sensitive: false,
         empty_first: false,
+        list: None,
     }
-    .into_key();
+    .into_key()
+    .unwrap();
     assert_eq!(k.direction, SortDirection::Ascending);
 }
 

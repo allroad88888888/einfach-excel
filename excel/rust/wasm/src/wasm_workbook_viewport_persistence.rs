@@ -131,11 +131,14 @@ impl WasmWorkbook {
             Ok(range) => range,
             Err(msg) => return Ok(sort_error_to_js("invalid-payload", None, Some(&msg))),
         };
-        let keys: Vec<SortKey> = payload
+        let keys: Vec<SortKey> = match payload
             .keys
             .into_iter()
             .map(SortKeyWireJSON::into_key)
-            .collect();
+            .collect::<Result<_, _>>() {
+                Ok(keys) => keys,
+                Err(message) => return Ok(sort_error_to_js("invalid-payload", None, Some(&message))),
+            };
         match self
             .workbook
             .sort_range(sheet_idx as usize, range, &keys, &payload.excluded_rows)

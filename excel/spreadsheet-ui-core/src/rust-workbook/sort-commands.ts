@@ -5,6 +5,8 @@ import type { CellRange } from '../shared'
 export interface RustSortKey {
   readonly col: number
   readonly direction: 'asc' | 'desc'
+  /** A request-local snapshot from the shared named-list directory. */
+  readonly list?: { readonly values: readonly string[]; readonly locale: string }
 }
 export interface SortRangeOptions {
   readonly keys: readonly RustSortKey[]

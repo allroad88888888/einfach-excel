@@ -1,0 +1,46 @@
+import { expect, test } from '@playwright/test'
+import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
+import { start, save, records, cell } from '../support/custom-list-sort'
+
+test('Chinese list sorting keeps keyboard entry and native undo at 390px', async ({ page }, info) => {
+  await start(page, 390); await save(page)
+  await select(page, 'A25:C29', '24:0')
+  await page.getByRole('combobox', { name: 'Interface language' }).selectOption('zh')
+  await showRibbonItem(page, 'data.custom-list-sort')
+  const trigger = page.getByRole('button', { name: '自定义列表排序', exact: true })
+  await trigger.focus(); await page.keyboard.press('Enter')
+  const dialog = page.getByRole('dialog', { name: '自定义列表排序' })
+  await dialog.getByLabel('首行是表头').check()
+  await dialog.getByLabel('排序列表 1', { exact: true }).selectOption('user:Team order')
+  await expect(dialog.getByLabel('排序列 1', { exact: true })).toBeVisible()
+  await page.screenshot({ path: info.outputPath('list-sort-zh-390.png') })
+  await dialog.getByRole('button', { name: '应用排序', exact: true }).focus()
+  await page.keyboard.press('Enter')
+  await expect(dialog).toHaveCount(0)
+  await records(page, ['W20', 'W10', 'E10', 'E30'])
+  await page.getByRole('button', { name: '撤销', exact: true }).click()
+  await records(page, ['W20', 'E10', 'W10', 'E30'])
+})
+
+test('data-sort composes with text-format and remains available when its ordinary sort anchor is hidden', async ({ page }) => {
+  await page.goto('/?plugins=text-format,data-sort&hide=ribbon:data.sort-selected-range')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await save(page); await select(page, 'A25:C29', '24:0')
+  await showRibbonItem(page, 'data.custom-list-sort')
+  await expect(page.locator('[data-ribbon-item="data.sort-selected-range"]')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Custom list sort', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Custom list sort' })
+  await dialog.getByLabel('First row is a header').check()
+  await dialog.getByLabel('Sort list 1', { exact: true }).selectOption('user:Team order')
+  await dialog.getByRole('button', { name: 'Apply sort', exact: true }).click()
+  await records(page, ['W20', 'W10', 'E10', 'E30'])
+  await showRibbonItem(page, 'format.superscript')
+  await page.getByRole('button', { name: 'Superscript', exact: true }).click()
+  await expect(cell(page, '25:2').locator('[data-font-baseline="superscript"]')).toHaveText('W20')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await records(page, ['W20', 'W10', 'E10', 'E30'])
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await records(page, ['W20', 'E10', 'W10', 'E30'])
+})

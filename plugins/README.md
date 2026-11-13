@@ -26,6 +26,8 @@
 
 控件可使用公开的 `WorkbookRibbonItem` 读取宿主显隐配置，并用 `preserveWorkbookToolFocus` 在异步命令完成后恢复被 disabled 移走的焦点；不会抢走用户主动移动的焦点。
 
+插件对话框可复用 `cycleWorkbookDialogFocus` 管理首尾焦点，通过 `translateWorkbookFeedback` 翻译核心命令反馈。
+
 需要新的工作簿数据或 Rust 命令时，先在核心补一条通用、明确的命令，再由插件 Core 调用；
 不要让插件改 `excel/*` 的内部文件。
 
@@ -44,5 +46,6 @@
 - [图片导出](plugin-image-export/README.md)：`imageExportPlugin`。
 - [图表](plugin-chart/README.md)：`chartPlugin`（ECharts；对象层与对象目录在核心，不认识图表）。
 - [文字格式](plugin-text-format/README.md)：`textFormatPlugin`（整格上下标；插件拥有编辑反馈 atom，核心保留格式数据与原生事务）。
+- [列表排序](plugin-data-sort/README.md)：`dataSortPlugin`（复用填充目录；插件拥有排序草稿，核心负责校验、行置换与历史）。
 
 演示：`?plugins=date-picker,image-export,chart`；不传 `plugins` 时不挂载任何插件控件。

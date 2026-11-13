@@ -45,6 +45,8 @@ pub mod custom_formulas;
 pub mod range;
 pub mod sheet;
 pub mod shift;
+mod named_list;
+pub mod sort_custom_list;
 pub mod sort;
 pub mod text_columns;
 pub mod workbook_text_columns;

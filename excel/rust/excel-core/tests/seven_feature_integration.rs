@@ -134,7 +134,7 @@ fn dimension_history_cannot_use_one_editable_cell_to_change_a_whole_axis() {
             book.set_cell(0, "B2", Value::Text("Measure".into()));
             history.begin(&book, 0, target, "Dimension", false).unwrap();
             if auto_fit {
-                book.auto_fit_dimensions(0, target, axis, 28, 96, |_, _, _| Ok(120.)).unwrap();
+                book.auto_fit_dimensions(0, target, axis, 28, 96, |_, _, _, _| Ok(120.)).unwrap();
             } else {
                 book.sheet_mut(0).unwrap().resize_range(target, axis, 120).unwrap();
             }

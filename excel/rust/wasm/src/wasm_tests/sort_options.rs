@@ -1,7 +1,7 @@
 #[test]
 fn sort_options_wire_defaults_and_rejects_invalid_booleans() {
     let default: SortKeyWireJSON = serde_json::from_str(r#"{"col":0}"#).unwrap();
-    let key = default.into_key();
+    let key = default.into_key().unwrap();
     assert!(!key.case_sensitive && !key.empty_first);
     for field in ["caseSensitive", "emptyFirst"] {
         for bad in [serde_json::json!("true"), serde_json::json!(1), serde_json::Value::Null] {
@@ -22,7 +22,11 @@ fn sort_options_wire_reaches_native_permutation_and_undo_redo() {
         "range": "A1:B4", "keys": [{"col": 0, "caseSensitive": true, "emptyFirst": true}],
     })).unwrap();
     let range = payload.range.into_range().unwrap();
-    let keys: Vec<_> = payload.keys.into_iter().map(SortKeyWireJSON::into_key).collect();
+    let keys: Vec<_> = payload
+        .keys
+        .into_iter()
+        .map(|key| SortKeyWireJSON::into_key(key).unwrap())
+        .collect();
     wb.history.begin(&wb.workbook, 0, range, "Sort selection", true).unwrap();
     wb.workbook.sort_range(0, range, &keys, &[]).unwrap();
     wb.history.finish(&mut wb.workbook, true).unwrap();

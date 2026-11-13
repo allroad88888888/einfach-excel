@@ -50,7 +50,12 @@ pub enum SortDirection {
 
 /// One sort key: an absolute (0-based) column that must fall inside the
 /// sorted range's column span.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+///
+/// `custom_list` 是本键的「自定义序列」：有值时先按序列排名比较，两个值
+/// 都不在序列里才回退到普通类型比较（见 [`crate::sort_custom_list`]）。
+/// 序列随键一起提交而不是引用工作簿目录，所以一个 `SortKey` 就能完整描述
+/// 一次排序；`Arc` 只是让 8 个键共用一份排名表而不重复建表。
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SortKey {
     /// Absolute column index (0-based), inside the range's column span.
     pub col: u32,
@@ -59,6 +64,21 @@ pub struct SortKey {
     pub case_sensitive: bool,
     /// True places genuinely empty cells first in either direction; empty text remains text.
     pub empty_first: bool,
+    /// 自定义序列：`None` 等于“按值排序”（历史行为）。
+    pub custom_list: Option<std::sync::Arc<crate::sort_custom_list::CustomList>>,
+}
+
+impl Default for SortKey {
+    /// Ascending value sort on the first column; key bounds are checked on use.
+    fn default() -> Self {
+        SortKey {
+            col: 0,
+            direction: SortDirection::Ascending,
+            case_sensitive: false,
+            empty_first: false,
+            custom_list: None,
+        }
+    }
 }
 
 /// Result witness for a completed `sort_range`.
@@ -186,13 +206,29 @@ pub fn sort_cmp_with_direction(
     case_sensitive: bool,
     direction: SortDirection,
 ) -> Ordering {
+    sort_cmp_with_direction_and_list(a, b, case_sensitive, direction, None)
+}
+
+/// 同 [`sort_cmp_with_direction`]，但可以先按自定义序列排名比较。
+///
+/// 序列排名只在**两个值都不在序列里**时让位给普通类型比较，否则“未知值”
+/// 之间会失去原有顺序。空单元格层完全不变：它独立于方向、也不参与排名。
+pub fn sort_cmp_with_direction_and_list(
+    a: &Value,
+    b: &Value,
+    case_sensitive: bool,
+    direction: SortDirection,
+    list: Option<&crate::sort_custom_list::CustomList>,
+) -> Ordering {
     let (a, b) = (key_scalar(a), key_scalar(b));
     match (matches!(a, Value::Null), matches!(b, Value::Null)) {
         (true, true) => Ordering::Equal,
         (true, false) => Ordering::Greater,
         (false, true) => Ordering::Less,
         (false, false) => {
-            let ord = cmp_non_null(a, b, case_sensitive);
+            let ord = list
+                .and_then(|list| crate::sort_custom_list::compare_by_rank(a, b, list, case_sensitive))
+                .unwrap_or_else(|| cmp_non_null(a, b, case_sensitive));
             match direction {
                 SortDirection::Ascending => ord,
                 SortDirection::Descending => ord.reverse(),
@@ -303,7 +339,13 @@ impl Sheet {
                 let ord = match (key.empty_first, matches!(a, Value::Null), matches!(b, Value::Null)) {
                     (true, true, false) => Ordering::Less,
                     (true, false, true) => Ordering::Greater,
-                    _ => sort_cmp_with_direction(a, b, key.case_sensitive, key.direction),
+                    _ => sort_cmp_with_direction_and_list(
+                        a,
+                        b,
+                        key.case_sensitive,
+                        key.direction,
+                        key.custom_list.as_deref(),
+                    ),
                 };
                 if ord != Ordering::Equal {
                     return ord;
@@ -426,6 +468,7 @@ mod tests {
             direction: SortDirection::Ascending,
             case_sensitive: false,
             empty_first: false,
+            custom_list: None,
         }
     }
 
@@ -435,6 +478,7 @@ mod tests {
             direction: SortDirection::Descending,
             case_sensitive: false,
             empty_first: false,
+            custom_list: None,
         }
     }
 

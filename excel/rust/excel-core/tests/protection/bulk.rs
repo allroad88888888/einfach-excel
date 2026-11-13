@@ -203,10 +203,10 @@ fn sort_and_auto_fit_enforce_native_permissions() {
     book.set_cell(0, "A2", Value::Number(1.0));
     protect(&mut book);
     let keys = [SortKey { col: 0, direction: SortDirection::Ascending,
-        case_sensitive: false, empty_first: false }];
+        case_sensitive: false, empty_first: false, custom_list: None }];
     assert!(book.sort_range(0, range(0, 0, 1, 0), &keys, &[]).is_err());
     assert!(book.auto_fit_dimensions(0, range(0, 0, 1, 0), "column", 28, 120,
-        |_, _, _| Ok(200.0)).is_err());
+        |_, _, _, _| Ok(200.0)).is_err());
     assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(2.0));
     assert_eq!(book.sheet(0).unwrap().col_width(0), None);
 }

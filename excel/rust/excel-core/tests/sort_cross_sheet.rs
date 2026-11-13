@@ -26,6 +26,7 @@ fn asc(col: u32) -> SortKey {
         direction: SortDirection::Ascending,
         case_sensitive: false,
         empty_first: false,
+        custom_list: None,
     }
 }
 

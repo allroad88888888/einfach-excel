@@ -15,7 +15,8 @@ mod geometric;
 mod calendar;
 mod named_series;
 mod named_lists;
-use named_series::{plan_named_series, supported_locale_language, fold_named_value};
+use named_series::plan_named_series;
+use crate::named_list::{supported_locale_language, fold_named_value, MAX_LIST_ITEMS as LIST_MAX_ITEMS};
 pub use named_lists::{AutoFillNamedList, AutoFillNamedLists};
 use calendar::{analyze_dates, plan_date_series, DateSeriesKind};
 pub use types::*;
@@ -30,7 +31,6 @@ const NUMBER_EPSILON: f64 = 1e-10;
 /// 少列一个就是一条「同一次拖拽填充在两个后端结果不同」的分歧。
 const JS_LINE_TERMINATORS: [char; 4] = ['\n', '\r', '\u{2028}', '\u{2029}'];
 const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
-const LIST_MAX_ITEMS: usize = 512;
 /// Fail-closed size budget for one drag-fill: one full Excel column
 /// (1,048,576 rows × 1 column). Bounds the amount of work a single
 /// `apply_auto_fill` call can generate so a runaway target range (e.g. a

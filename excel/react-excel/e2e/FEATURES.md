@@ -778,6 +778,24 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | DATA-096 | 去重预览下一页 | `editing/duplicate-pages.spec.ts` | Next page duplicate preview reads its exact page without changing source history at 1280px |
 | DATA-097 | 去重预览上一页 | `editing/duplicate-pages.spec.ts` | Previous page duplicate preview reads its exact page without changing source history at 1280px |
 | DATA-098 | 切换单列去重比较键 | `editing/duplicate-column-choices.spec.ts` | Compare column duplicate columns invalidates confirmation without losing redo at 1280px |
+| DATA-099 | 自定义列表排序入口及升序 | `editing/sort-custom-list.spec.ts` | saved fill list sorts complete records through the optional plugin at 1280px |
+| DATA-100 | 自定义列表排序降序 | `editing/sort-custom-list.spec.ts` | descending list sort reverses native priority in one undo at 1280px |
+| DATA-101 | 共享列表更新后重新排序 | `editing/sort-custom-list.spec.ts` | edited fill directory is reused by the next sort without a second list registry |
+| DATA-102 | 列表排序缺失选择后纠正 | `editing/sort-custom-list.spec.ts` | missing list choice stays correctable without writing and applies after selection |
+| DATA-103 | 列表排序级别 add | `editing/sort-custom-list-controls.spec.ts` | list sort add changes level priority through the dialog |
+| DATA-104 | 列表排序级别 remove | `editing/sort-custom-list-controls.spec.ts` | list sort remove changes level priority through the dialog |
+| DATA-105 | 列表排序级别 up | `editing/sort-custom-list-controls.spec.ts` | list sort up changes level priority through the dialog |
+| DATA-106 | 列表排序级别 down | `editing/sort-custom-list-controls.spec.ts` | list sort down changes level priority through the dialog |
+| DATA-107 | 列表排序级别 column | `editing/sort-custom-list-controls.spec.ts` | list sort column changes level priority through the dialog |
+| DATA-108 | 列表排序表头选项 | `editing/sort-custom-list-controls.spec.ts` | list sort header option controls first-row movement |
+| DATA-109 | 列表排序 Cancel | `editing/sort-custom-list-controls.spec.ts` | Cancel list-sort dialog preserves data and native redo at 1280px |
+| DATA-110 | 列表排序 Escape | `editing/sort-custom-list-controls.spec.ts` | Escape list-sort dialog preserves data and native redo at 1280px |
+| DATA-111 | 列表排序 Tab | `editing/sort-custom-list-controls.spec.ts` | Tab list-sort dialog preserves data and native redo at 1280px |
+| DATA-112 | 列表排序 Shift+Tab | `editing/sort-custom-list-controls.spec.ts` | Shift+Tab list-sort dialog preserves data and native redo at 1280px |
+| DATA-113 | 列表排序选项 case | `editing/sort-custom-list-options.spec.ts` | list sort case uses native options without trimming cell values |
+| DATA-114 | 列表排序选项 empty-first | `editing/sort-custom-list-options.spec.ts` | list sort empty-first uses native options without trimming cell values |
+| DATA-115 | 列表排序选项 empty-last | `editing/sort-custom-list-options.spec.ts` | list sort empty-last uses native options without trimming cell values |
+| DATA-116 | 键盘打开并应用列表排序 | `plugins/data-sort.spec.ts` | Chinese list sorting keeps keyboard entry and native undo at 390px |
 | FIND-001 | 工作簿查找 | `editing/find-replace.spec.ts` | workbook find navigates offscreen into Summary and previous/next wrap exact occurrences |
 | FIND-002 | 当前替换 | `editing/find-replace.spec.ts` | current replacement changes only the chosen Unicode occurrence and undo restores it |
 | FIND-003 | 全部替换 | `editing/find-replace.spec.ts` | replace all changes every matching order beyond 500 and is one undoable operation |

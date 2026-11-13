@@ -26,3 +26,5 @@ export { RibbonItem as WorkbookRibbonItem } from './workbook/chrome/ribbon/Ribbo
 export { preserveToolFocus as preserveWorkbookToolFocus } from './workbook/chrome/ribbon/tool-focus'
 
 export { renderSpreadsheetRangeAsPng } from './workbook/image-export/render-range'
+export { cycleDialogFocus as cycleWorkbookDialogFocus } from './workbook/chrome/ribbon/dialog-focus'
+export { translateFeedback as translateWorkbookFeedback } from './i18n/translate-feedback'

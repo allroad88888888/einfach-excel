@@ -94,6 +94,7 @@
     "@einfach-excel/plugin-chart": "workspace:*",
     "@einfach-excel/plugin-image": "workspace:*",
     "@einfach-excel/plugin-sparkline": "workspace:*",
-    "@einfach-excel/plugin-text-format": "workspace:*"
+    "@einfach-excel/plugin-text-format": "workspace:*",
+    "@einfach-excel/plugin-data-sort": "workspace:*"
   }
 }

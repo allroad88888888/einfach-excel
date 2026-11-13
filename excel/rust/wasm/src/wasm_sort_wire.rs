@@ -52,20 +52,37 @@ struct SortKeyWireJSON {
     /// 空格位置是原生排序选项，省略时保留历史默认：空格最后。
     #[serde(rename = "emptyFirst", default)]
     empty_first: bool,
+    /// Selected list snapshot; values retain whitespace and use the fill-list locale contract.
+    #[serde(default)]
+    list: Option<SortListWireJSON>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+struct SortListWireJSON {
+    values: Vec<String>,
+    locale: String,
 }
 
 impl SortKeyWireJSON {
-    fn into_key(self) -> SortKey {
+    fn into_key(self) -> Result<SortKey, String> {
         let direction = match self.direction.as_deref() {
             Some("desc") | Some("descending") => SortDirection::Descending,
             _ => SortDirection::Ascending,
         };
-        SortKey {
+        let custom_list = match self.list.as_ref() {
+            None => None,
+            Some(list) => Some(std::sync::Arc::new(
+                einfach_excel_core::sort_custom_list::CustomList::new(&list.values, &list.locale)
+                    .map_err(|err| format!("invalid custom sort list: {err:?}"))?,
+            )),
+        };
+        Ok(SortKey {
             col: self.col,
             direction,
             case_sensitive: self.case_sensitive,
             empty_first: self.empty_first,
-        }
+            custom_list,
+        })
     }
 }
 

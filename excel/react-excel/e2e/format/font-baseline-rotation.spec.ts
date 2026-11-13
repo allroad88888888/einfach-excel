@@ -37,7 +37,7 @@ async function expectUnclippedText(target: Locator) {
 }
 
 test('rotated normal and baseline text fits the actual clip and matches full PNG glyph extents', async ({ page }, info) => {
-  await page.goto('/?plugins=image-export')
+  await page.goto('/?plugins=image-export,text-format')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await openFile(page, fixture())
   const target = cell(page, '1:1')
@@ -82,7 +82,7 @@ test('rotated normal and baseline text fits the actual clip and matches full PNG
 
 for (const effect of ['superscript', 'subscript']) {
   test(`merged rotated ${effect} retains complete glyphs across four frozen fragments`, async ({ page }, info) => {
-    await page.goto('/')
+    await page.goto('/?plugins=text-format')
     await expect(cell(page, '1:0')).toHaveText('SO-10001')
     await openFile(page, fixture(true, effect))
     await select(page, 'E1', '0:4')

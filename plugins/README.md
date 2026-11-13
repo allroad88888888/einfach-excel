@@ -16,12 +16,15 @@
 ## 贡献点（`SpreadsheetPlugin`，类型见 `excel/react-excel/src/plugin/types.ts`）
 
 - `ribbon`：功能区分组，排在内置分组之后，只在声明的 `tab` 分类显示；放不下时与内置分组一样整组收进“更多”。
+- `ribbonItems`：控件进入现有分组，`after` 只能指定 `workbookRibbonItemIds` 中的内置入口，按插件配置顺序排列；继承原组的分类与“更多”布局。宿主可用 `plugin:<插件 id>:<贡献 id>` 隐藏整项贡献，隐藏锚点不影响贡献。同插件的分组与组内贡献 ID 不得重复，未知锚点在挂载时拒绝。
 - `contextMenu`：单元格右键菜单项，排在内置项（`cells.insert`、`cells.delete`）之后；一个菜单项派发一个零参数命令 atom。
 - `editorAdornments`：渲染在当前格内编辑器或公式栏内部，属于同一失焦提交范围；控件间移焦点不会提前提交。
 - `panels`：对话框与面板，挂在工作簿视图根部。
 - `drawings`：按 `kind` 渲染浮动对象内容；框、选中、拖动缩放、删除与撤销由核心负责，
   对象载荷由插件解释（核心只校验 JSON 形状与 64 KiB 上限）。
 - `messages`：已编译的 Lingui 目录，并入工作簿自己的 i18n 实例。
+
+控件可使用公开的 `WorkbookRibbonItem` 读取宿主显隐配置，并用 `preserveWorkbookToolFocus` 在异步命令完成后恢复被 disabled 移走的焦点；不会抢走用户主动移动的焦点。
 
 需要新的工作簿数据或 Rust 命令时，先在核心补一条通用、明确的命令，再由插件 Core 调用；
 不要让插件改 `excel/*` 的内部文件。
@@ -40,5 +43,6 @@
 - [日期选择器](plugin-date-picker/README.md)：`datePickerPlugin`。
 - [图片导出](plugin-image-export/README.md)：`imageExportPlugin`。
 - [图表](plugin-chart/README.md)：`chartPlugin`（ECharts；对象层与对象目录在核心，不认识图表）。
+- [文字格式](plugin-text-format/README.md)：`textFormatPlugin`（整格上下标；插件拥有编辑反馈 atom，核心保留格式数据与原生事务）。
 
 演示：`?plugins=date-picker,image-export,chart`；不传 `plugins` 时不挂载任何插件控件。

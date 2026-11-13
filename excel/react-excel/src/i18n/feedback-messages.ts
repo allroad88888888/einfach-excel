@@ -163,7 +163,6 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'Choose one of the supported time formats.': msg`Choose one of the supported time formats.`,
   'Choose one of the supported date formats.': msg`Choose one of the supported date formats.`,
   'Could not confirm the number format. Check the cells before retrying.': msg`Could not confirm the number format. Check the cells before retrying.`,
-  'Could not confirm the font change. Check the cell before retrying.': msg`Could not confirm the font change. Check the cell before retrying.`,
   'Could not confirm the layout change. Check the cell before retrying.': msg`Could not confirm the layout change. Check the cell before retrying.`,
   'Select one continuous range to merge cells.': msg`Select one continuous range to merge cells.`,
   'Unprotect the worksheet before merging cells.': msg`Unprotect the worksheet before merging cells.`,

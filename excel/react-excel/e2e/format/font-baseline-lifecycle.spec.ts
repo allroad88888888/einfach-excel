@@ -6,7 +6,7 @@ import { baselinePixelFile } from '../support/font-baseline-pixels'
 import { applyBaseline, baselineButton as button, baselineCell as cell } from '../support/font-baseline'
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?plugins=text-format')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await openFile(page, baselinePixelFile)
 })

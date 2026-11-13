@@ -6,7 +6,7 @@ import { applyBaseline, baselineButton as button, baselineCell as cell, startBas
 
 test('protected folded baseline errors stay visible in Chinese and retry as one undoable action', async ({ page }, info) => {
   await page.setViewportSize({ width: 390, height: 850 })
-  await page.goto('/e2e/fixtures/plain-sales-orders/?locale=zh')
+  await page.goto('/e2e/fixtures/plain-sales-orders/?locale=zh&plugins=text-format')
   const target = cell(page, '1:1')
   await expect(target).toHaveText('Acme Co.')
   const name = page.getByRole('textbox', { name: '名称框', exact: true })

@@ -478,10 +478,6 @@ msgstr "正在应用边框…"
 msgid "Applying color…"
 msgstr "正在应用颜色…"
 
-#: src/workbook/chrome/ribbon/FontBaselineTools.tsx
-msgid "Applying font baseline…"
-msgstr "正在应用上下标…"
-
 #: src/workbook/chrome/ribbon/FontSizeTools.tsx
 msgid "Applying font size…"
 msgstr "正在应用字号…"
@@ -1426,10 +1422,6 @@ msgid "Could not confirm the color change. Check the cell before retrying."
 msgstr "无法确认颜色更改，请检查单元格后再重试。"
 
 #: src/i18n/feedback-messages.ts
-msgid "Could not confirm the font change. Check the cell before retrying."
-msgstr "无法确认字体更改。请检查单元格后重试。"
-
-#: src/i18n/feedback-messages.ts
 msgid "Could not confirm the font size. Check the cell before retrying."
 msgstr "无法确认字号更改，请检查单元格后再重试。"
 
@@ -1920,10 +1912,6 @@ msgstr "丢弃本地副本"
 #: src/workbook/comments/CommentTools.tsx
 msgid "Discussion for cell {address}"
 msgstr "单元格 {address} 的讨论"
-
-#: src/workbook/chrome/ribbon/FontBaselineTools.tsx
-msgid "Dismiss font error"
-msgstr "关闭字体错误提示"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Dismiss layout error"
@@ -5920,10 +5908,6 @@ msgstr "样式"
 msgid "Submitting input…"
 msgstr "正在提交输入…"
 
-#: src/workbook/chrome/ribbon/FontBaselineTools.tsx
-msgid "Subscript"
-msgstr "下标"
-
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Subtract"
 msgstr "减"
@@ -5940,10 +5924,6 @@ msgstr "SUM — 求和"
 #: src/i18n/feedback-messages.ts
 msgid "Sums the cells in a range that meet a given criterion."
 msgstr "对区域内满足指定条件的单元格求和。"
-
-#: src/workbook/chrome/ribbon/FontBaselineTools.tsx
-msgid "Superscript"
-msgstr "上标"
 
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Tab"

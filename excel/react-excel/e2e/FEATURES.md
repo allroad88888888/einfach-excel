@@ -1223,6 +1223,8 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | PLUGIN-003 | 插件编辑器挂件跟随编辑会话 | `plugins/sample-plugin.spec.ts` | a plugin editor adornment follows the cell editing session |
 | PLUGIN-004 | 插件词条跟随工作簿语言 | `plugins/sample-plugin.spec.ts` | plugin messages follow the workbook locale |
 | PLUGIN-005 | 未挂插件时不渲染任何插件入口 | `plugins/sample-plugin.spec.ts` | the workbook mounts no plugin contribution without plugins |
+| PLUGIN-006 | 文字格式插件在原字体组执行命令 | `plugins/text-format.spec.ts` | a text-format contribution runs inside the existing font row even when its anchor is hidden |
+| PLUGIN-007 | 宿主隐藏组内贡献或单个插件入口 | `plugins/text-format.spec.ts` | the host can hide a whole text-format contribution or just one of its stable controls |
 | VIEWTGL-001 | 按工作表隐藏／显示网格线 | `view-options/view-options.spec.ts` | hiding gridlines clears the cell grid but keeps it per sheet |
 | VIEWTGL-002 | 隐藏／显示行列标题且命中与编辑器对齐 | `view-options/view-options.spec.ts` | hiding headings removes row and column headers and keeps clicks on the right cell |
 | VIEWTGL-003 | 隐藏／显示公式栏 | `view-options/view-options.spec.ts` | the formula bar can be hidden and shown again |

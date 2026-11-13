@@ -31,6 +31,6 @@ export function baselineGlyphBox(cell: Locator) {
 
 export async function startBaseline(page: Page, width = 1280) {
   await page.setViewportSize({ width, height: 850 })
-  await page.goto('/e2e/fixtures/plain-sales-orders/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/?plugins=text-format')
   await expect(baselineCell(page, '1:0')).toHaveText('SO-10001')
 }

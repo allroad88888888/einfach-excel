@@ -114,6 +114,12 @@
   width: 100px;
 }
 
+/* 字体组自身的两行布局不依赖可选插件；保持 1280px 全部分组可见。 */
+:where(.einfach-spreadsheet) [data-ribbon-group='font'] .ribbon-row { gap: 1px; }
+:where(.einfach-spreadsheet) [data-ribbon-group='font'] .tool-button:not(.tool-dropdown-button):not(.color-open) {
+  width: 24px;
+}
+
 :where(.einfach-spreadsheet) .paste-options-select {
   width: 132px;
 }

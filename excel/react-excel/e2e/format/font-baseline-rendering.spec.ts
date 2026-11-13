@@ -7,7 +7,7 @@ import { select } from '../support/clipboard'
 import { baselinePixelFile, glyphPixels, expectBaselinePixels } from '../support/font-baseline-pixels'
 
 test('DOM glyphs and exported PNG preserve baseline ordering and nominal font size in actual pixels', async ({ page }, info) => {
-  await page.goto('/?plugins=image-export')
+  await page.goto('/?plugins=image-export,text-format')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await openFile(page, baselinePixelFile)
   await expect(cell(page, '0:2')).toHaveText('Hg')
@@ -36,7 +36,7 @@ test('DOM glyphs and exported PNG preserve baseline ordering and nominal font si
 })
 
 test('actual Canvas renderer paints smaller raised and lowered glyphs inside unchanged cells', async ({ page }, info) => {
-  await page.goto('/?renderer=canvas')
+  await page.goto('/?renderer=canvas&plugins=text-format')
   const canvas = page.locator('[data-workbook-grid] canvas')
   await expect(canvas).toBeVisible()
   await openFile(page, baselinePixelFile)
@@ -56,7 +56,7 @@ test('actual Canvas renderer paints smaller raised and lowered glyphs inside unc
 })
 
 test('auto-fit measures the scaled baseline glyphs without changing their nominal font size', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?plugins=text-format')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await openFile(page, baselinePixelFile)
   const widths: number[] = []
@@ -76,7 +76,7 @@ test('auto-fit measures the scaled baseline glyphs without changing their nomina
 })
 
 test('baseline keeps Accounting currency and number anchored to the full content width', async ({ page }) => {
-  await page.goto('/e2e/fixtures/plain-sales-orders/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/?plugins=text-format')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'B19', '18:1')

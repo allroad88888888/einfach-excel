@@ -478,10 +478,6 @@ msgstr "Applying borders…"
 msgid "Applying color…"
 msgstr "Applying color…"
 
-#: src/workbook/chrome/ribbon/FontBaselineTools.tsx
-msgid "Applying font baseline…"
-msgstr "Applying font baseline…"
-
 #: src/workbook/chrome/ribbon/FontSizeTools.tsx
 msgid "Applying font size…"
 msgstr "Applying font size…"
@@ -1426,10 +1422,6 @@ msgid "Could not confirm the color change. Check the cell before retrying."
 msgstr "Could not confirm the color change. Check the cell before retrying."
 
 #: src/i18n/feedback-messages.ts
-msgid "Could not confirm the font change. Check the cell before retrying."
-msgstr "Could not confirm the font change. Check the cell before retrying."
-
-#: src/i18n/feedback-messages.ts
 msgid "Could not confirm the font size. Check the cell before retrying."
 msgstr "Could not confirm the font size. Check the cell before retrying."
 
@@ -1920,10 +1912,6 @@ msgstr "Discard saved copy"
 #: src/workbook/comments/CommentTools.tsx
 msgid "Discussion for cell {address}"
 msgstr "Discussion for cell {address}"
-
-#: src/workbook/chrome/ribbon/FontBaselineTools.tsx
-msgid "Dismiss font error"
-msgstr "Dismiss font error"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Dismiss layout error"
@@ -5920,10 +5908,6 @@ msgstr "Styles"
 msgid "Submitting input…"
 msgstr "Submitting input…"
 
-#: src/workbook/chrome/ribbon/FontBaselineTools.tsx
-msgid "Subscript"
-msgstr "Subscript"
-
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Subtract"
 msgstr "Subtract"
@@ -5940,10 +5924,6 @@ msgstr "SUM — Total"
 #: src/i18n/feedback-messages.ts
 msgid "Sums the cells in a range that meet a given criterion."
 msgstr "Sums the cells in a range that meet a given criterion."
-
-#: src/workbook/chrome/ribbon/FontBaselineTools.tsx
-msgid "Superscript"
-msgstr "Superscript"
 
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Tab"

@@ -6,7 +6,6 @@ import { useLingui } from '@lingui/react/macro'
 import { FontSizeTools } from './FontSizeTools'
 import { BorderTools } from './BorderTools'
 import { ColorTools } from './ColorTools'
-import { FontBaselineTools } from './FontBaselineTools'
 import { ToolButton } from './ToolButton'
 
 const FONT_FAMILIES = ['Arial', 'Calibri', 'Georgia', 'Times New Roman']
@@ -37,7 +36,6 @@ export function FontTools() {
           </select>
         </RibbonItem>
         <FontSizeTools />
-        <FontBaselineTools />
       </div>
       <div className="ribbon-row">
         <RibbonItem id="format.bold">

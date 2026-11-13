@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import {
-  createSpreadsheetUi, runVisibleProjectionAtom, selectCellAtom, runFontBaselineAtom,
-  fontBaselineFeedbackAtom, applySelectionFormatAtom, type SpreadsheetCellFormat,
+  createSpreadsheetUi, runVisibleProjectionAtom, selectCellAtom,
+  applySelectionFormatAtom, type SpreadsheetCellFormat,
   type SetFormatRangeRequest, type VisibleProjectionRequest,
 } from '../src'
 import { lastRepeatRecordAtom } from '../src/repeat/state'
@@ -13,11 +13,9 @@ import { createTestRustWorkbookConnection } from './support/rust-workbook-connec
 async function setup() {
   let format: SpreadsheetCellFormat = { fontSize: 24, bold: true }
   let revision = 1
-  let fail = false
-  let release: (() => void) | undefined
   const writes: SetFormatRangeRequest[] = []
   const projection = (request: VisibleProjectionRequest) => ({
-    kind: 'visible-window' as const, ...request, revision,
+    ...request, revision,
     cells: [{ row: 0, col: 0, displayValue: '12.5', numericValue: 12.5,
       valueKind: 'number' as const, formula: '=25/2', format }],
   })
@@ -25,8 +23,6 @@ async function setup() {
     async readVisibleProjection(request) { return projection(request) },
     async setRangeFormat(request, projected) {
       writes.push(request)
-      if (fail) throw new Error('native rejected')
-      if (release) await new Promise<void>(resolve => { release = resolve })
       format = { ...format, ...request.format }
       revision++
       return { acknowledgement: { sheetId: request.sheetId, requestId: request.requestId,
@@ -37,14 +33,13 @@ async function setup() {
   core.store.setter(selectCellAtom, { sheetId: 'sheet-1', coord: { row: 0, col: 0 } })
   await core.store.setter(runVisibleProjectionAtom, { sheetId: 'sheet-1',
     window: { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 3 }, reason: 'viewport' })
-  return { store: core.store, writes, fail: (value: boolean) => { fail = value },
-    hold: () => { release = () => {} }, release: () => release?.() }
+  return { store: core.store, writes }
 }
 
 test('one definite sparse patch toggles or replaces baseline while repeat retains its resolved value', async () => {
   const { store, writes } = await setup()
   for (const value of ['superscript', 'subscript', 'subscript'] as const)
-    expect(await store.setter(runFontBaselineAtom, value)).toBe(true)
+    expect(await store.setter(applySelectionFormatAtom, { type: 'font-baseline', value })).toBe('completed')
   expect(writes.map(write => write.format)).toEqual([
     { fontBaseline: 'superscript' }, { fontBaseline: 'subscript' }, { fontBaseline: 'normal' },
   ])
@@ -54,24 +49,6 @@ test('one definite sparse patch toggles or replaces baseline while repeat retain
   await expect(store.setter(applySelectionFormatAtom,
     { type: 'font-baseline', value: 'invalid' as never })).resolves.toBe('blocked')
   expect(writes).toHaveLength(3)
-})
-
-test('pending rejects duplicate actions and a native failure remains retryable', async () => {
-  const state = await setup()
-  state.fail(true)
-  await expect(state.store.setter(runFontBaselineAtom, 'superscript')).resolves.toBe(false)
-  expect(state.store.getter(fontBaselineFeedbackAtom))
-    .toMatchObject({ busy: false, error: expect.any(String) })
-  expect(state.store.getter(lastRepeatRecordAtom)).toBeNull()
-  state.fail(false)
-  state.hold()
-  const pending = state.store.setter(runFontBaselineAtom, 'superscript')
-  expect(state.store.getter(fontBaselineFeedbackAtom).busy).toBe(true)
-  await expect(state.store.setter(runFontBaselineAtom, 'subscript')).resolves.toBe(false)
-  state.release()
-  await expect(pending).resolves.toBe(true)
-  expect(state.writes).toHaveLength(2)
-  expect(state.store.getter(fontBaselineFeedbackAtom)).toEqual({ busy: false, error: null })
 })
 
 test('sparse projection keeps explicit normal while missing fields remain absent', () => {

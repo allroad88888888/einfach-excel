@@ -8,7 +8,7 @@ import { baselinePixelFile } from '../support/font-baseline-pixels'
 import { showRibbonItem } from '../support/ribbon'
 
 test('mixed external axis styles retain baseline and visibly report unsupported formatting', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?plugins=text-format')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   const source = await readFile(fileURLToPath(new URL('./font-baseline-mixed-axis.xlsx', import.meta.url)))
   await openFile(page, source, 'xlsx')
@@ -27,7 +27,7 @@ test('mixed external axis styles retain baseline and visibly report unsupported 
 })
 
 test('independent XLSX baseline layers and rich runs survive real reexport and native reopen', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?plugins=text-format')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await openFile(page, await readFile(fileURLToPath(new URL('./font-baseline-external.xlsx', import.meta.url))), 'xlsx')
   for (let pass = 0; pass < 3; pass++) {
@@ -82,7 +82,7 @@ test('independent XLSX baseline layers and rich runs survive real reexport and n
 })
 
 test('invalid native baseline rejects atomically and corrects without replacing the current history', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?plugins=text-format')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await openFile(page, baselinePixelFile)
   await select(page, 'A1', '0:0'); await applyBaseline(page, 'Subscript')
@@ -103,7 +103,7 @@ test('invalid native baseline rejects atomically and corrects without replacing 
 })
 
 test('existing rich-text editor previews inherited baselines and preserves them while applying italic', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?plugins=text-format')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await openFile(page, await readFile(fileURLToPath(new URL('./font-baseline-external.xlsx', import.meta.url))), 'xlsx')
   await select(page, 'C3', '2:2')

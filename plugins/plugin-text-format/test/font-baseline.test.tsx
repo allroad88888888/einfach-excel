@@ -1,9 +1,10 @@
 import { act, fireEvent, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
-import { renderFormattingRibbon } from '../../support/formatting-ribbon-harness'
+import { textFormatPlugin } from '../src'
+import { renderFormattingRibbon } from '../../../excel/react-excel/test/support/formatting-ribbon-harness'
 
 test('native baseline buttons have independent stable IDs and mutually exclusive pressed state', async () => {
-  const { writes } = await renderFormattingRibbon()
+  const { writes } = await renderFormattingRibbon(undefined, [textFormatPlugin])
   const superscript = screen.getByRole('button', { name: 'Superscript' })
   const subscript = screen.getByRole('button', { name: 'Subscript' })
   expect(superscript).toHaveAttribute('data-ribbon-item', 'format.superscript')

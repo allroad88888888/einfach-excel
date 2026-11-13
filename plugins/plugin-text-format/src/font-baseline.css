@@ -1,0 +1,10 @@
+:where(.einfach-spreadsheet) .text-format-tools { display: contents; }
+:where(.einfach-spreadsheet) .font-baseline-feedback {
+  display: inline-flex;
+  max-width: 220px;
+  align-items: center;
+  color: #a12622;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+:where(.einfach-spreadsheet) [data-ribbon-group='font']:has(.text-format-tools) .font-family-select { width: 88px; }

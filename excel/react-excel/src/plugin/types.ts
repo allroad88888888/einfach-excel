@@ -3,12 +3,20 @@ import type { MessageDescriptor, Messages } from '@lingui/core'
 import type { SheetDrawing, WorkbookRibbonTab } from '@einfach-excel/spreadsheet-ui-core'
 import type { ComponentType } from 'react'
 import type { UiLocale } from '../i18n/runtime'
+import type { WorkbookRibbonItemId } from '../page/workbook-ribbon-items'
 
 /** 功能区分组：`tab: 'Start'` 只在全部视图出现，其余分类同时出现在全部视图与该分类。 */
 export interface RibbonContribution {
   readonly id: string
   readonly tab: WorkbookRibbonTab
   readonly Group: ComponentType
+}
+
+/** 组内控件：紧跟一个内置入口，沿插件配置顺序排列；继承该组的分类与溢出行为。 */
+export interface RibbonItemContribution {
+  readonly id: string
+  readonly after: WorkbookRibbonItemId
+  readonly Item: ComponentType
 }
 
 /** 右键菜单项：一个菜单项派发一个零参数公开命令 atom，参数在插件 Core 内取。 */
@@ -45,6 +53,7 @@ export interface DrawingContribution {
 export interface SpreadsheetPlugin {
   readonly id: string
   readonly ribbon?: readonly RibbonContribution[]
+  readonly ribbonItems?: readonly RibbonItemContribution[]
   readonly contextMenu?: readonly ContextMenuContribution[]
   /** 当前格内编辑器或公式栏内部挂件；共享失焦提交范围。 */
   readonly editorAdornments?: readonly ComponentType[]

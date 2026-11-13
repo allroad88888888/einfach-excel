@@ -3,6 +3,7 @@ import { chartPlugin } from '@einfach-excel/plugin-chart'
 import { imagePlugin } from '@einfach-excel/plugin-image'
 import { sparklinePlugin } from '@einfach-excel/plugin-sparkline'
 import { datePickerPlugin } from '@einfach-excel/plugin-date-picker'
+import { textFormatPlugin } from '@einfach-excel/plugin-text-format'
 import { samplePlugin } from '@einfach-excel/plugin-sample'
 import { createWorkbookI18n, supportedUiLocale, type UiLocale } from '../../i18n/runtime'
 import type { SpreadsheetPlugin } from '../../plugin/types'
@@ -59,6 +60,7 @@ async function loadXlsx() {
 const DEMO_PLUGINS: Readonly<Record<string, SpreadsheetPlugin>> = {
   sample: samplePlugin, 'date-picker': datePickerPlugin, 'image-export': imageExportPlugin,
   chart: chartPlugin, image: imagePlugin, sparkline: sparklinePlugin,
+  'text-format': textFormatPlugin,
 }
 
 function demoPlugins(query: string): readonly SpreadsheetPlugin[] {

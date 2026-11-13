@@ -51,8 +51,6 @@ export const workbookRibbonItemIds = [
   'format.percent-format',
   'format.rich-text',
   'format.strikethrough',
-  'format.subscript',
-  'format.superscript',
   'format.text-color',
   'format.text-color-palette',
   'format.text-rotation',

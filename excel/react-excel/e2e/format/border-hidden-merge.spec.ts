@@ -29,8 +29,13 @@ for (const width of [1280, 390]) {
     await showRibbonItem(page, 'view.row-and-column-visibility')
     await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
     await select(page, 'C2:E14')
+    // This geometry fixture must be empty even when the demo gains new examples.
+    await showRibbonItem(page, 'clear.contents')
+    await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
+    await expect(page.locator('td[data-cell="12:3"]')).toHaveText('')
     await showRibbonItem(page, 'data.merge-cells')
     await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
+    await expect(page.locator('[data-merged-cell][data-cell="1:2"]')).toBeVisible()
     await paint(page, 'C2:E14', 'outside', '#c00000')
     await paint(page, 'D1', 'bottom', '#123abc')
     await select(page, 'A2:A10')

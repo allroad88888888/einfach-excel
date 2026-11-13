@@ -159,4 +159,3 @@ export function normalizeFillSeriesLocale(value: unknown): FillSeriesLocaleOptio
     return null
   }
 }
-

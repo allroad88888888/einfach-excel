@@ -114,6 +114,16 @@ fn rule_xml(entry: &ConditionalEntry, priority: usize, styles: &mut StyleTable) 
     let stop = if rule["stopIfTrue"].as_bool() == Some(true) { r#" stopIfTrue="1""# } else { "" };
     let cell = cell_name(entry.scope.range.row_start, entry.scope.range.col_start);
     match rule["kind"].as_str()? {
+        "cell-state" => {
+            let (kind, body) = match rule["condition"].as_str()? {
+                "blank" => ("containsBlanks", format!("LEN(TRIM({cell}))=0")),
+                "not-blank" => ("notContainsBlanks", format!("LEN(TRIM({cell}))>0")),
+                "error" => ("containsErrors", format!("ISERROR({cell})")),
+                "not-error" => ("notContainsErrors", format!("NOT(ISERROR({cell}))")),
+                _ => return None,
+            };
+            Some(format!("{}{}{stop}><formula>{}</formula></cfRule>", head(kind), dxf(styles)?, escape(&body)))
+        }
         "above-average" => {
             let above = match rule["direction"].as_str()? {
                 "above" => 1, "below" => 0, _ => return None,

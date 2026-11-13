@@ -176,6 +176,7 @@ export function cloneConditionalFormatRule(rule: ConditionalFormatRule): Conditi
       return { ...rule, format: cloneFormat(rule.format) }
     case 'top-bottom':
     case 'time-period':
+    case 'cell-state':
     case 'above-average':
       return { ...rule, format: cloneFormat(rule.format) }
     default:
@@ -204,6 +205,7 @@ export function conditionalRuleFormat(
     case 'text':
     case 'duplicate-values':
     case 'time-period':
+    case 'cell-state':
     case 'above-average':
       return normalizeFormat(rule.format)
     case 'data-bar':

@@ -8,6 +8,7 @@ import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from './data/alternating-
 import { SUMMARY_CALENDAR_CELLS } from './data/calendar-seed'
 import { SUMMARY_FILL_CELLS } from './data/fill-seed'
 import { SUMMARY_CONDITIONAL_DATE_CELLS, SUMMARY_CONDITIONAL_DATE_RULE } from './data/conditional-date-seed'
+import { SUMMARY_CONDITIONAL_STATE_CELLS, SUMMARY_CONDITIONAL_STATE_RULES } from './data/conditional-cell-state-seed'
 import { SUMMARY_CONDITIONAL_AVERAGE_CELLS, SUMMARY_CONDITIONAL_AVERAGE_RULE } from './data/conditional-average-seed'
 import { SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
 import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from './data/validation-seed'
@@ -75,6 +76,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
           SUMMARY_BANDING_RULE,
           SUMMARY_CONDITIONAL_DATE_RULE,
           SUMMARY_CONDITIONAL_AVERAGE_RULE,
+          ...SUMMARY_CONDITIONAL_STATE_RULES,
         ],
         dataValidations: SUMMARY_VALIDATIONS,
         outline: SUMMARY_OUTLINE,
@@ -100,6 +102,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       SUMMARY_BANDING_CELLS,
       SUMMARY_CONDITIONAL_DATE_CELLS,
       SUMMARY_CONDITIONAL_AVERAGE_CELLS,
+      SUMMARY_CONDITIONAL_STATE_CELLS,
       [
         { sheet: 1, row: 81, col: 7, kind: 'text', value: 'ORDER_NET', format: { bold: true } },
         { sheet: 1, row: 82, col: 7, kind: 'formula', value: '=ORDER_NET(3,25)' },

@@ -620,6 +620,18 @@ msgstr "低于平均值"
 msgid "Between"
 msgstr "介于"
 
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Blank / error cells"
+msgstr "空值 / 错误值单元格"
+
+#: src/workbook/chrome/ribbon/conditional-cell-state-labels.ts
+msgid "Blank cells"
+msgstr "空值单元格"
+
+#: src/workbook/chrome/ribbon/ConditionalCellStateFields.tsx
+msgid "Blank includes empty results and ordinary spaces. Errors match neither blank nor non-blank."
+msgstr "空值包括空结果与普通空格。错误值既不属于空值，也不属于非空值。"
+
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
 msgid "Blanks"
 msgstr "空白单元格"
@@ -799,6 +811,10 @@ msgstr "单元格操作"
 msgid "Cell comments"
 msgstr "单元格批注"
 
+#: src/workbook/chrome/ribbon/ConditionalCellStateFields.tsx
+msgid "Cell condition"
+msgstr "单元格条件"
+
 #: src/workbook/grid/editor/CellEditor.tsx
 msgid "Cell editor"
 msgstr "单元格编辑器"
@@ -899,6 +915,10 @@ msgstr "请选择 1–16384 之间的源字段编号。"
 #: src/i18n/feedback-messages.ts
 msgid "Choose a supported average comparison and highlight."
 msgstr "请选择支持的平均值比较方式与高亮样式。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a supported blank or error condition and highlight."
+msgstr "请选择支持的空值或错误值条件与高亮样式。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Choose a supported border position and line style."
@@ -2353,6 +2373,10 @@ msgstr "等于"
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Error alert"
 msgstr "错误提示"
+
+#: src/workbook/chrome/ribbon/conditional-cell-state-labels.ts
+msgid "Error cells"
+msgstr "错误值单元格"
 
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Error message"
@@ -4045,6 +4069,14 @@ msgstr "所选区域中没有可见单元格。"
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 msgid "No watched cells yet. Select a cell and click Add Watch."
 msgstr "暂无监视单元格。请选择单元格后点击“添加监视”。"
+
+#: src/workbook/chrome/ribbon/conditional-cell-state-labels.ts
+msgid "Non-blank cells"
+msgstr "非空值单元格"
+
+#: src/workbook/chrome/ribbon/conditional-cell-state-labels.ts
+msgid "Non-error cells"
+msgstr "非错误值单元格"
 
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Nonbreaking space"

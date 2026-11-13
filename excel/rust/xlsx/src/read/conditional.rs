@@ -1,6 +1,6 @@
 //! `<conditionalFormatting>` → 原生条件格式规则。
 //! 能表达：cellIs、expression、文本包含/开头/结尾、重复/唯一、前后 N、色阶、数据条，
-//! 日期周期保留原生类型；带公式的空白/错误判断暂折成公式规则。
+//! 日期、均值、空白/错误预设保留原生类型；expression 保留公式。
 
 use serde_json::{json, Map, Value};
 
@@ -103,7 +103,14 @@ fn highlight_rule(node: &Node, formulas: &[String], format: Value) -> Option<Val
             }
             rule
         }
-        "expression" | "containsBlanks" | "notContainsBlanks" | "containsErrors" | "notContainsErrors" => {
+        "containsBlanks" | "notContainsBlanks" | "containsErrors" | "notContainsErrors" => {
+            let condition = match kind {
+                "containsBlanks" => "blank", "notContainsBlanks" => "not-blank",
+                "containsErrors" => "error", _ => "not-error",
+            };
+            json!({"kind":"cell-state", "condition":condition})
+        }
+        "expression" => {
             json!({"kind": "formula", "formula": formula::from_xlsx(formulas.first()?)})
         }
         "containsText" | "notContainsText" | "beginsWith" | "endsWith" => {

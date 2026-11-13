@@ -534,6 +534,10 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | CF-040 | 发生日期规则 | `format/conditional-time-period.spec.ts` | date occurring today highlights native dates with times and undoes once at 1280px |
 | CF-041 | 高于平均值条件格式 | `format/conditional-average.spec.ts` | above average highlights the complete numeric domain and undoes once |
 | CF-042 | 低于平均值条件格式 | `format/conditional-average.spec.ts` | below average highlights the complete numeric domain and undoes once |
+| CF-043 | 空值条件格式 | `format/conditional-cell-state.spec.ts` | blank conditional formatting distinguishes native cell states and undoes once |
+| CF-044 | 错误值条件格式 | `format/conditional-cell-state.spec.ts` | error conditional formatting distinguishes native cell states and undoes once |
+| CF-045 | 非空值条件格式 | `format/conditional-cell-state.spec.ts` | not-blank conditional formatting distinguishes native cell states and undoes once |
+| CF-046 | 非错误值条件格式 | `format/conditional-cell-state.spec.ts` | not-error conditional formatting distinguishes native cell states and undoes once |
 | CF-047 | 条件格式包含等于平均值 | `format/conditional-average.spec.ts` | include equal average updates the same rule and preserves strict neighbors |
 | PAINT-001 | 单击格式刷后点击目标 | `format/format-painter.spec.ts` | single paint copies seeded bold, retains target content, exits and undoes once |
 | PAINT-002 | 格式刷拖拽平铺异构格式 | `format/format-painter.spec.ts` | drag paints a tiled heterogeneous source range without replacing values |

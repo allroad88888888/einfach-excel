@@ -47,4 +47,3 @@ export const BUILTIN_FILL_SERIES_MONTH_LONG_NAMES = Object.freeze([
   'November',
   'December',
 ]) as readonly string[]
-

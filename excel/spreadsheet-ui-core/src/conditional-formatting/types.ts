@@ -18,6 +18,7 @@ export type ConditionalFormatRuleKind =
   | 'icon-set'
   | 'time-period'
   | 'above-average'
+  | 'cell-state'
 
 interface HighlightOptions {
   enabled?: boolean
@@ -92,6 +93,12 @@ export interface DuplicateValuesRule extends HighlightOptions {
   format: SpreadsheetCellFormat
 }
 
+export interface CellStateRule extends HighlightOptions {
+  kind: 'cell-state'
+  condition: 'blank' | 'not-blank' | 'error' | 'not-error'
+  format: SpreadsheetCellFormat
+}
+
 export interface AverageRule extends HighlightOptions {
   kind: 'above-average'
   direction: 'above' | 'below'
@@ -101,6 +108,7 @@ export interface AverageRule extends HighlightOptions {
 
 /** 已接入 Rust 求值、管理及历史的规则；其余类型只保留旧持久化数据。 */
 export type NativeConditionalFormatRule =
+  | CellStateRule
   | AverageRule
   | TimePeriodRule
   | TextMatchRule
@@ -113,6 +121,7 @@ export type NativeConditionalFormatRule =
   | IconSetRule
 
 export type ConditionalFormatRule =
+  | CellStateRule
   | AverageRule
   | TimePeriodRule
   | TextMatchRule

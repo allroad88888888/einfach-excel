@@ -25,6 +25,13 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
       ...(value.stopIfTrue === undefined ? {} : { stopIfTrue: value.stopIfTrue as boolean }),
     }
     switch (value.kind) {
+      case 'cell-state': {
+        const format = snapshotFormat(value.format)
+        if (format === null || !isOneOf(value.condition, ['blank', 'not-blank', 'error', 'not-error'] as const) ||
+          Object.keys(value).some((key) => !['kind', 'condition', 'enabled', 'stopIfTrue', 'format'].includes(key)))
+          return null
+        return { ...options, kind: value.kind, condition: value.condition, format }
+      }
       case 'above-average': {
         const format = snapshotFormat(value.format)
         if (format === null || !isOneOf(value.direction, ['above', 'below'] as const) ||

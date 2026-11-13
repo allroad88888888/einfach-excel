@@ -35,6 +35,27 @@ async function click(name: string) {
   await act(async () => { fireEvent.click(screen.getByRole('button', { name })) })
 }
 
+test('blank and error fields use one native command and exclude text-match fields', async () => {
+  const request = setup()
+  await click('Conditional formatting')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: 'cell-state' } })
+  })
+  expect(screen.getByLabelText('Cell condition')).toHaveValue('blank')
+  expect(screen.getByLabelText('Cell condition').querySelectorAll('option')).toHaveLength(4)
+  expect(screen.queryByLabelText('Matching text')).toBeNull()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Cell condition'), { target: { value: 'not-error' } })
+    fireEvent.click(screen.getByLabelText('Stop if true'))
+  })
+  expect(request).not.toHaveBeenCalled()
+  await click('Add rule')
+  expect(request).toHaveBeenCalledOnce()
+  expect(request.mock.calls[0][1]).toMatchObject({ action: 'set',
+    rule: { kind: 'cell-state', condition: 'not-error', stopIfTrue: true } })
+  expect(request.mock.calls[0][1]).not.toHaveProperty('rule.text')
+})
+
 test('mean fields dispatch direction and equality without writing before Save', async () => {
   const request = setup()
   await click('Conditional formatting')

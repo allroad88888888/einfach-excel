@@ -23,6 +23,8 @@ impl Workbook {
         self.ensure_sheet_unprotected(sheet_index)
             .map_err(|_| FilterError::ProtectedWorksheet)?;
 
+        criteria.validate()?;
+
         // Phase 1 — scan, behind `&self`, into locals. Nothing is committed
         // yet, so a rejection below leaves the workbook untouched.
         let (hidden, scanned_rows, predicate_cells) = self.scan_filter(sheet_index, criteria)?;
@@ -112,11 +114,11 @@ impl Workbook {
 
         sheet.note_filter_scan();
         let last_row = scanned_rows - 1;
-        let mut values: HashMap<(u32, u32), String> = HashMap::new();
+        let mut values: HashMap<(u32, u32), Value> = HashMap::new();
         for &col in &cols {
             let range = CellRange::new(CellAddress::new(0, col), CellAddress::new(last_row, col));
             self.for_each_sparse_range_cell(sheet_index, range, |addr, value| {
-                values.insert((addr.row, addr.col), crate::value_to_display(&value));
+                values.insert((addr.row, addr.col), value);
             });
         }
         // A read boundary, exactly like `get_cell`'s: settle the derived
@@ -124,17 +126,11 @@ impl Workbook {
         // inherit bookkeeping proportional to the whole scan.
         self.store.settle_pending_reads();
 
-        // Absent cell == empty string, matching `values.get(...) ?? ''` on
-        // the host side. Sparse iteration only visits non-empty cells, so
-        // this is where blank rows acquire the `""` that `Number("")` then
-        // turns into 0 for a `range` rule.
-        let read = |row, col| values.get(&(row, col)).cloned().unwrap_or_default();
-        let last = if crate::filter::is_filter_sort_summary_row(&read(last_row, 0), last_row)
+        let label = values.get(&(last_row, 0)).map(crate::value_to_display).unwrap_or_default();
+        let last = if crate::filter::is_filter_sort_summary_row(&label, last_row)
             { last_row.saturating_sub(1) } else { last_row };
-        let hidden = match criteria {
-            FilterCriteria::Flat(rules) => crate::filter::hidden_rows_for_scan(rules, scanned_rows, read),
-            FilterCriteria::Groups(_) => (1..=last).filter(|row| !criteria.matches(|col| read(*row, col))).collect(),
-        };
+        let prepared = crate::filter::prepared::PreparedFilter::new(criteria, 1..=last, &values);
+        let hidden = (1..=last).filter(|row| !prepared.matches(*row, &values)).collect();
         Ok((hidden, scanned_rows, predicate_cells))
     }
 
@@ -204,6 +200,7 @@ impl Workbook {
                 return Err(FilterError::InvalidGroups);
             }
             crate::advanced_filter::validate_groups(&entry.groups)?;
+            crate::filter::validation::validate_flat_rules(&entry.rules)?;
             if let Some(range) = entry.range {
                 crate::workbook::workbook_filter_range::validate_filter_range(range, &entry.rules)?;
                 for group in &entry.groups {

@@ -1,0 +1,25 @@
+.filter-top-fields {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.filter-top-fields label {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 100px;
+  min-width: 0;
+}
+
+.filter-top-fields input,
+.filter-top-fields select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.filter-top-fields p {
+  flex-basis: 100%;
+}

@@ -10,6 +10,7 @@ import {
   type ColumnFilterRule,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { FilterValueChoices } from './FilterValueChoices'
+import { FilterConditionContributions, SavedFilterConditionOption } from '../../../plugin/FilterConditionContributions'
 
 /** 条件字段只编辑面板草稿，不读取工作簿数据或决定哪些行隐藏。 */
 export function FilterConditionFields({ indices, grouped = false }: {
@@ -70,6 +71,7 @@ export function FilterConditionFields({ indices, grouped = false }: {
             <option value="contains"><Trans>Contains</Trans></option>
             <option value="range"><Trans>Number range</Trans></option>
             <option value="list"><Trans>One of these values</Trans></option>
+            <SavedFilterConditionOption kind={item.kind} />
           </select>
           {panel.browser?.index !== index && (item.kind === 'range' ? (
             <>
@@ -91,7 +93,7 @@ export function FilterConditionFields({ indices, grouped = false }: {
                 </label>
               ))}
             </>
-          ) : (
+          ) : ['equals', 'contains', 'list'].includes(item.kind) ? (
             <>
               <label htmlFor={`${id}-value-${index}`}>
                 {item.kind === 'list' ? t`Values (one per line)` : t`Value`}
@@ -141,7 +143,9 @@ export function FilterConditionFields({ indices, grouped = false }: {
                 </Trans></label>
               )}
             </>
-          ))}
+          ) : null)}
+          {panel.browser?.index !== index &&
+            <FilterConditionContributions index={index} kind={item.kind} />}
           <FilterValueChoices index={index} />
           {panel.browser?.index !== index && item.kind === 'list' && item.values.some((value) => value.includes('\n')) &&
             <p className="size-hint filter-values-hint"><Trans>Multi-line values stay intact. Use Choose values to change them.</Trans></p>}

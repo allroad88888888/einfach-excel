@@ -9,7 +9,7 @@ impl TableEntry {
         let data = self.filter_data_range();
         self.has_headers && filter.has_conditions() && filter.range().is_none()
             && (filter.groups().is_empty() || filter.rules().is_empty())
-            && crate::advanced_filter::validate_groups(filter.groups()).is_ok()
+            && crate::advanced_filter::FilterCriteria::from_filter(filter).validate().is_ok()
             && crate::advanced_filter::FilterCriteria::from_filter(filter).rules().all(|rule|
                 self.range.start.col <= rule.col_index() && rule.col_index() <= self.range.end.col)
             && filter.hidden_set().iter().all(|row|

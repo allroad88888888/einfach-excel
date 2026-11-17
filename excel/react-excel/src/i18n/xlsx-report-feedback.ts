@@ -25,6 +25,10 @@ export const xlsxReportFeedback: Readonly<Record<string, MessageDescriptor>> = {
   'sheet protection': msg`sheet protection`,
   'auto filters': msg`auto filters`,
   filters: msg`filters`,
+  'filter conditions (hidden rows become manual; use Unhide to restore)':
+    msg`filter conditions (hidden rows become manual; use Unhide to restore)`,
+  'filters and filtered-row snapshots (manual hiding preserved)':
+    msg`filters and filtered-row snapshots (manual hiding preserved)`,
   'outline grouping': msg`outline grouping`,
   'print settings': msg`print settings`,
   'custom formulas': msg`custom formulas`,

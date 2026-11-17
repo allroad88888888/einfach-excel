@@ -32,14 +32,10 @@ pub fn is_valid_name(name: &str) -> bool {
     upper != "R" && upper != "C" && !r1c1 && parse_cell(&upper).is_none()
 }
 
-pub fn parse(xml: &str, sheet_name: &str, sheet_index: usize) -> (Option<Table>, usize) {
-    let Some(root) = dom::parse(xml, &[]) else { return (None, 1) };
+pub fn parse(xml: &str, sheet_name: &str, sheet_index: usize) -> (Option<Table>, usize, bool) {
+    let Some(root) = dom::parse(xml, &[]) else { return (None, 1, false) };
     let mut dropped = 0usize;
-    if let Some(af) = root.child("autoFilter") {
-        if !af.children.is_empty() {
-            dropped += 1;
-        }
-    }
+    let filter_dropped = root.child("autoFilter").is_some_and(|af| !af.children.is_empty());
     if let Some(cols) = root.child("tableColumns") {
         for col in cols.each("tableColumn") {
             if col.child("calculatedColumnFormula").is_some()
@@ -71,11 +67,12 @@ pub fn parse(xml: &str, sheet_name: &str, sheet_index: usize) -> (Option<Table>,
             has_totals,
             columns,
             style,
+            auto_filter: None,
         })
     };
     match build() {
-        Some(table) => (Some(table), dropped),
-        None => (None, dropped + 1),
+        Some(table) => (Some(table), dropped, filter_dropped),
+        None => (None, dropped + 1, filter_dropped),
     }
 }
 

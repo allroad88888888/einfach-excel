@@ -61,6 +61,34 @@ async function setup() {
   return { store, filter, request }
 }
 
+test.each([false, true])('old connection completion rejected=%s cannot clear a new pending filter', async (rejected) => {
+  const { store, filter } = await setup()
+  let finish!: (value: ReturnType<typeof result>) => void
+  let fail!: (reason: Error) => void
+  filter.mockImplementationOnce(() => new Promise((resolve, reject) => {
+    finish = resolve; fail = reject
+  }))
+  const old = store.setter(runNativeFilterAtom, { action: 'apply', rules })
+  const oldInput = filter.mock.lastCall![0]
+  let nextFinish!: (value: ReturnType<typeof result>) => void
+  const next = vi.fn((input: Input) => new Promise<ReturnType<typeof result>>(resolve => {
+    void input; nextFinish = resolve
+  }))
+  const request: RustWorkbookConnection['request'] = (async (_command, input) =>
+    next(input as Input)) as RustWorkbookConnection['request']
+  store.setter(setRustWorkbookConnectionAtom, { request, dispose() {} })
+  expect(store.getter(nativeFilterFeedbackAtom).busy).toBe(false)
+  const pending = store.setter(runNativeFilterAtom, { action: 'apply', rules })
+  expect(next).toHaveBeenCalledTimes(1)
+  if (rejected) fail(new Error('Old failure'))
+  else finish(result(oldInput))
+  expect(await old).toBe(false)
+  expect(store.getter(nativeFilterFeedbackAtom)).toMatchObject({ busy: true, error: '' })
+  nextFinish(result(next.mock.lastCall![0]))
+  expect(await pending).toBe(true)
+  expect(store.getter(nativeFilterFeedbackAtom)).toMatchObject({ busy: false, error: '' })
+})
+
 test.each(['apply', 'reapply', 'clear'] as const)(
   '%s makes one request and publishes native conditions',
   async (action) => {

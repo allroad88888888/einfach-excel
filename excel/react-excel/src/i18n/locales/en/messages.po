@@ -2582,6 +2582,10 @@ msgstr "Filter condition {0}"
 msgid "Filter conditions"
 msgstr "Filter conditions"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "filter conditions (hidden rows become manual; use Unhide to restore)"
+msgstr "filter conditions (hidden rows become manual; use Unhide to restore)"
+
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Filter conditions…"
 msgstr "Filter conditions…"
@@ -2627,6 +2631,10 @@ msgstr "Filtering…"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "filters"
 msgstr "filters"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "filters and filtered-row snapshots (manual hiding preserved)"
+msgstr "filters and filtered-row snapshots (manual hiding preserved)"
 
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Filters the worksheet’s used rows, not just the selection. Row 1 stays visible."
@@ -5221,6 +5229,10 @@ msgstr "Save note"
 msgid "Save rule"
 msgstr "Save rule"
 
+#: src/plugin/FilterConditionContributions.tsx
+msgid "Saved condition"
+msgstr "Saved condition"
+
 #: src/workbook/custom-formulas/CustomFormulaTools.tsx
 msgid "Saved formula"
 msgstr "Saved formula"
@@ -6544,6 +6556,10 @@ msgstr "This result changed. Update the preview."
 #: src/i18n/feedback-messages.ts
 msgid "This rule type cannot be edited here yet."
 msgstr "This rule type cannot be edited here yet."
+
+#: src/plugin/FilterConditionContributions.tsx
+msgid "This saved condition is preserved. Enable its plugin to edit it."
+msgstr "This saved condition is preserved. Enable its plugin to edit it."
 
 #: src/i18n/feedback-messages.ts
 msgid "This selection has no unfiltered rows to copy."

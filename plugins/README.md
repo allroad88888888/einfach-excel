@@ -15,6 +15,10 @@
 
 ## 贡献点（`SpreadsheetPlugin`，类型见 `excel/react-excel/src/plugin/types.ts`）
 
+- `filterConditions`：向共享筛选面板贡献条件编辑器，覆盖功能区、普通区域表头与 Table
+  表头入口。每个原生条件 kind 只能有一个编辑器，不能覆盖内置的四类条件。
+  插件组件通过自己的 Core 命令编辑共享草稿；卸载编辑器不会删除条件数据。
+
 - `ribbon`：功能区分组，排在内置分组之后，只在声明的 `tab` 分类显示；放不下时与内置分组一样整组收进“更多”。
 - `ribbonItems`：控件进入现有分组，`after` 只能指定 `workbookRibbonItemIds` 中的内置入口，按插件配置顺序排列；继承原组的分类与“更多”布局。宿主可用 `plugin:<插件 id>:<贡献 id>` 隐藏整项贡献，隐藏锚点不影响贡献。同插件的分组与组内贡献 ID 不得重复，未知锚点在挂载时拒绝。
 - `contextMenu`：单元格右键菜单项，排在内置项（`cells.insert`、`cells.delete`）之后；一个菜单项派发一个零参数命令 atom。
@@ -47,5 +51,6 @@
 - [图表](plugin-chart/README.md)：`chartPlugin`（ECharts；对象层与对象目录在核心，不认识图表）。
 - [文字格式](plugin-text-format/README.md)：`textFormatPlugin`（整格上下标；插件拥有编辑反馈 atom，核心保留格式数据与原生事务）。
 - [列表排序](plugin-data-sort/README.md)：`dataSortPlugin`（复用填充目录；插件拥有排序草稿，核心负责校验、行置换与历史）。
+- [筛选条件](plugin-data-filter/README.md)：`dataFilterPlugin`（插件拥有 Top-N 编辑交互，核心负责类型化排名与筛选快照）。
 
 演示：`?plugins=date-picker,image-export,chart`；不传 `plugins` 时不挂载任何插件控件。

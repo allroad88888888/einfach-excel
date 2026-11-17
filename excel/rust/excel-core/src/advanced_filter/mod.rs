@@ -1,5 +1,5 @@
 //! Two-level advanced filtering; existing flat rules remain one AND clause.
-use crate::filter::{row_matches_rules, ColumnFilterRule, FilterError, SheetAutoFilter};
+use crate::filter::{ColumnFilterRule, FilterError, SheetAutoFilter};
 use std::collections::BTreeSet;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -32,17 +32,15 @@ impl<'a> FilterCriteria<'a> {
         match self { Self::Flat(rules) => rules.is_empty(), Self::Groups(groups) => groups.is_empty() }
     }
 
-    pub(crate) fn columns(self) -> BTreeSet<u32> {
-        self.rules().map(ColumnFilterRule::col_index).collect()
+    pub(crate) fn validate(self) -> Result<(), FilterError> {
+        match self {
+            Self::Flat(rules) => crate::filter::validation::validate_flat_rules(rules),
+            Self::Groups(groups) => validate_groups(groups),
+        }
     }
 
-    pub(crate) fn matches(self, read: impl Fn(u32) -> String) -> bool {
-        match self {
-            Self::Flat(rules) => row_matches_rules(rules, read),
-            // Empty group is never a vacuous match, including untrusted restored data.
-            Self::Groups(groups) => groups.is_empty() || groups.iter()
-                .any(|group| !group.rules.is_empty() && row_matches_rules(&group.rules, &read)),
-        }
+    pub(crate) fn columns(self) -> BTreeSet<u32> {
+        self.rules().map(ColumnFilterRule::col_index).collect()
     }
 
     pub(crate) fn state(self, hidden: BTreeSet<u32>) -> SheetAutoFilter {
@@ -60,17 +58,7 @@ pub fn validate_groups(groups: &[ColumnFilterGroup]) -> Result<(), FilterError> 
         return Err(FilterError::InvalidGroups);
     }
     for rule in groups.iter().flat_map(|group| &group.rules) {
-        let valid = rule.col_index() < crate::sheet::EXCEL_MAX_COLS && match rule {
-            ColumnFilterRule::Equals { value, .. } | ColumnFilterRule::Contains { value, .. } =>
-                value.encode_utf16().count() <= 32767,
-            ColumnFilterRule::List { values, .. } => values.len() <= 1000
-                && values.iter().map(String::len).sum::<usize>() <= MAX_SELECTION_BYTES
-                && values.iter().all(|value| value.encode_utf16().count() <= 32767),
-            ColumnFilterRule::Range { min, max, .. } => (min.is_some() || max.is_some())
-                && min.is_none_or(f64::is_finite) && max.is_none_or(f64::is_finite)
-                && !matches!((min, max), (Some(min), Some(max)) if min > max),
-        };
-        if !valid { return Err(FilterError::InvalidGroups); }
+        crate::filter::validation::validate_rule(rule)?;
     }
     // Before/after snapshots must fit the existing 32 MiB native undo budget.
     if groups.iter().flat_map(|group| &group.rules).map(rule_retained_bytes).sum::<usize>() > 8 * MAX_SELECTION_BYTES {
@@ -96,7 +84,7 @@ pub(crate) fn rule_retained_bytes(rule: &ColumnFilterRule) -> usize {
     std::mem::size_of::<ColumnFilterRule>() + match rule {
         ColumnFilterRule::Equals { value, .. } | ColumnFilterRule::Contains { value, .. } => value.len(),
         ColumnFilterRule::List { values, .. } => values.iter().map(|value| value.len() + 24).sum(),
-        ColumnFilterRule::Range { .. } => 0,
+        ColumnFilterRule::Range { .. } | ColumnFilterRule::Top { .. } => 0,
     }
 }
 

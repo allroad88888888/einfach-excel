@@ -2,6 +2,22 @@ import { expect, test, vi } from 'vitest'
 import { validFilterGroups, filterSelectionWithinBudget } from '../../src/advanced-filter/contracts'
 import { readFilterValues, changeFilter } from '../../src/rust-workbook/filter-io'
 import type { WasmWorkbook } from '../../src/rust-workbook/wasm-types'
+import { validFilterRules } from '../../src/rust-workbook/filter-commands'
+
+test('typed ranks enforce identical flat and grouped amount contracts', () => {
+  const top = { kind: 'top', colIndex: 1, direction: 'top', unit: 'items', value: 10 }
+  for (const rule of [top, { ...top, value: 500 },
+    { ...top, direction: 'bottom', unit: 'percent', value: 100 }]) {
+    expect(validFilterRules([rule])).toBe(true)
+    expect(validFilterGroups([{ rules: [rule] }])).toBe(true)
+  }
+  for (const patch of [{ value: 0 }, { value: 501 }, { value: 1.5 }, { value: NaN },
+    { value: Infinity }, { value: '10' }, { unit: 'percent', value: 101 },
+    { direction: 'sideways' }, { unit: 'rows' }]) {
+    expect(validFilterRules([{ ...top, ...patch }])).toBe(false)
+    expect(validFilterGroups([{ rules: [{ ...top, ...patch }] }])).toBe(false)
+  }
+})
 
 test('two-level groups reject empty, nested, excessive, nonnumeric and oversized criteria', () => {
   const equals = { kind: 'equals', colIndex: 0, value: 'x' }

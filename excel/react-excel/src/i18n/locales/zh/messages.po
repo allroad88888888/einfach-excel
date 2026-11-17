@@ -2582,6 +2582,10 @@ msgstr "筛选条件 {0}"
 msgid "Filter conditions"
 msgstr "筛选条件"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "filter conditions (hidden rows become manual; use Unhide to restore)"
+msgstr "筛选条件（文件中的隐藏行保留为手动隐藏，可用取消隐藏恢复）"
+
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Filter conditions…"
 msgstr "筛选条件…"
@@ -2627,6 +2631,10 @@ msgstr "正在筛选…"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "filters"
 msgstr "筛选"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "filters and filtered-row snapshots (manual hiding preserved)"
+msgstr "筛选条件与筛选隐藏快照（手动隐藏仍保留）"
 
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Filters the worksheet’s used rows, not just the selection. Row 1 stays visible."
@@ -5221,6 +5229,10 @@ msgstr "保存备注"
 msgid "Save rule"
 msgstr "保存规则"
 
+#: src/plugin/FilterConditionContributions.tsx
+msgid "Saved condition"
+msgstr "已保存的条件"
+
 #: src/workbook/custom-formulas/CustomFormulaTools.tsx
 msgid "Saved formula"
 msgstr "已保存的公式"
@@ -6544,6 +6556,10 @@ msgstr "此结果已更改，请更新预览。"
 #: src/i18n/feedback-messages.ts
 msgid "This rule type cannot be edited here yet."
 msgstr "暂不支持在此编辑这种规则。"
+
+#: src/plugin/FilterConditionContributions.tsx
+msgid "This saved condition is preserved. Enable its plugin to edit it."
+msgstr "此已保存条件会保留。启用对应插件后可编辑。"
 
 #: src/i18n/feedback-messages.ts
 msgid "This selection has no unfiltered rows to copy."

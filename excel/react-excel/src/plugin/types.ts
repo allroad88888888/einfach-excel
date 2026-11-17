@@ -1,6 +1,6 @@
 import type { WritableAtom } from '@einfach/core'
 import type { MessageDescriptor, Messages } from '@lingui/core'
-import type { SheetDrawing, WorkbookRibbonTab } from '@einfach-excel/spreadsheet-ui-core'
+import type { ColumnFilterRule, SheetDrawing, WorkbookRibbonTab } from '@einfach-excel/spreadsheet-ui-core'
 import type { ComponentType } from 'react'
 import type { UiLocale } from '../i18n/runtime'
 import type { WorkbookRibbonItemId } from '../page/workbook-ribbon-items'
@@ -46,6 +46,14 @@ export interface DrawingContribution {
   readonly placement?: 'floating' | 'cell'
 }
 
+/** A business condition editor inside the shared filter dialog, including header entry points. */
+export interface FilterConditionContribution {
+  readonly kind: ColumnFilterRule['kind']
+  readonly label: MessageDescriptor
+  /** Renders its activation button or current condition fields; edits via plugin Core commands. */
+  readonly Editor: ComponentType<{ readonly index: number }>
+}
+
 /**
  * 可选功能包向工作簿贡献的界面入口。插件状态与命令放在插件自己的 Core 入口，
  * 这里只声明挂载位置；工作簿核心不 import 任何插件。
@@ -61,6 +69,7 @@ export interface SpreadsheetPlugin {
   readonly panels?: readonly ComponentType[]
   /** 按 `kind` 渲染浮动对象内容；同一 kind 只能由一个插件提供。 */
   readonly drawings?: readonly DrawingContribution[]
+  readonly filterConditions?: readonly FilterConditionContribution[]
   /** 已编译的 Lingui 目录，合并进工作簿自己的 i18n 实例。 */
   readonly messages?: Partial<Record<UiLocale, Messages>>
 }

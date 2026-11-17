@@ -26,15 +26,19 @@ import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
 import { changeNativeTableAtom } from '../tables/native-change'
 import { nativeTableFeedbackAtom } from '../tables/native-feedback'
 import { nativeTableFiltersAtom } from './scope'
+import type { RustWorkbookConnection } from '../rust-workbook/commands'
 
 export { nativeFilterRulesAtom, nativeFilterRangeAtom } from './scope'
 type FilterAction = RustFilterAction & { readonly table?: string }
 
-const feedbackAtom = atom({ busy: false, error: '', message: '' })
-export const nativeFilterFeedbackAtom = atom((get) => ({
-  ...get(feedbackAtom),
-  busy: get(feedbackAtom).busy || get(nativeTableFeedbackAtom).busy,
-}))
+const idle = { busy: false, error: '', message: '' }
+const feedbackAtom = atom({ ...idle, connection: null as RustWorkbookConnection | null })
+export const nativeFilterFeedbackAtom = atom((get) => {
+  const feedback = get(feedbackAtom)
+  const current = feedback.connection === get(rustWorkbookConnectionAtom) ? feedback : idle
+  return { busy: current.busy || get(nativeTableFeedbackAtom).busy,
+    error: current.error, message: current.message }
+})
 
 /** Rust 返回完整隐藏索引，复用 viewport 的可见性投影，不压缩或重排源行号。 */
 export const runNativeFilterAtom = atom(
@@ -45,7 +49,7 @@ export const runNativeFilterAtom = atom(
         ? { action: 'apply', range: get(selectionSnapshotAtom).range, rules: [] }
         : input
     if (
-      get(feedbackAtom).busy ||
+      get(nativeFilterFeedbackAtom).busy ||
       get(nativeTableFeedbackAtom).busy ||
       get(editingSessionAtom).source !== null ||
       get(rustHistoryPanelAtom).busy ||
@@ -60,7 +64,8 @@ export const runNativeFilterAtom = atom(
     if (!connection || !sheet || visible?.kind !== 'visible-window' || visible.sheetId !== sheet.id)
       return false
     const fail = (error: string) => {
-      set(feedbackAtom, { busy: false, error, message: '' })
+      if (get(rustWorkbookConnectionAtom) === connection)
+        set(feedbackAtom, { busy: false, error, message: '', connection })
       return false
     }
     if (input === 'selection' && get(selectionRegionsAtom).length !== 1)
@@ -80,7 +85,7 @@ export const runNativeFilterAtom = atom(
       return fail('Unprotect the worksheet before changing its filter.')
     const selection = get(selectionSnapshotAtom)
     const authority = get(selectionAuthorityWitnessAtom)
-    const busy = { busy: true, error: '', message: 'Filtering…' }
+    const busy = { busy: true, error: '', message: 'Filtering…', connection }
     set(feedbackAtom, busy)
     try {
       let applied: boolean
@@ -96,7 +101,7 @@ export const runNativeFilterAtom = atom(
                 name: action.table,
               },
         )
-        if (get(rustWorkbookConnectionAtom) !== connection ||
+        if (get(rustWorkbookConnectionAtom) !== connection || get(feedbackAtom) !== busy ||
           get(activeWorkbookSheetAtom)?.id !== sheet.id) return false
         if (!projection)
           throw new Error(get(nativeTableFeedbackAtom).error ?? 'The table filter was not applied.')
@@ -118,9 +123,10 @@ export const runNativeFilterAtom = atom(
           projection,
         })
         await Promise.resolve()
-        set(feedbackAtom, busy)
+        if (get(feedbackAtom) === busy) set(feedbackAtom, busy)
         const result = await pending
-        if (get(rustWorkbookConnectionAtom) !== connection) return false
+        if (get(rustWorkbookConnectionAtom) !== connection || get(feedbackAtom) !== busy)
+          return false
         if (
           !validateProjectionResult(result.projection, { request: projection }).ok ||
           !validSheetVisibility(result.projection.visibility) ||
@@ -155,6 +161,7 @@ export const runNativeFilterAtom = atom(
         }
       }
       set(feedbackAtom, {
+        connection,
         busy: false,
         error: '',
         message:
@@ -165,9 +172,10 @@ export const runNativeFilterAtom = atom(
       })
       return true
     } catch (error) {
-      return fail(error instanceof Error ? error.message : String(error))
+      return get(feedbackAtom) === busy
+        ? fail(error instanceof Error ? error.message : String(error)) : false
     } finally {
-      if (get(feedbackAtom).busy) set(feedbackAtom, { busy: false, error: '', message: '' })
+      if (get(feedbackAtom) === busy) set(feedbackAtom, { ...idle, connection })
     }
   },
 )

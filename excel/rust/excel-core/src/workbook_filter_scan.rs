@@ -5,6 +5,7 @@ use crate::advanced_filter::FilterCriteria;
 impl Workbook {
     pub(crate) fn scan_filter_data_criteria(&self, sheet: usize, data: Option<CellRange>,
         criteria: FilterCriteria<'_>) -> Result<FilterApplyReport, FilterError> {
+        criteria.validate()?;
         let source = self.sheet(sheet).ok_or(FilterError::InvalidSheet)?;
         let Some(data) = data.filter(|_| !criteria.is_empty()) else {
             return Ok(FilterApplyReport::default());
@@ -23,14 +24,14 @@ impl Workbook {
             let column = CellRange::new(CellAddress::new(data.start.row, col),
                 CellAddress::new(data.end.row, col));
             self.for_each_sparse_range_cell(sheet, column, |addr, value| {
-                values.insert((addr.row, addr.col), crate::value_to_display(&value));
+                values.insert((addr.row, addr.col), value);
             });
         }
         self.store.settle_pending_reads();
-        let hidden_rows = (data.start.row..=data.end.row).filter(|row| {
-            !criteria.matches(|col|
-                values.get(&(*row, col)).cloned().unwrap_or_default())
-        }).collect();
+        let prepared = crate::filter::prepared::PreparedFilter::new(criteria,
+            data.start.row..=data.end.row, &values);
+        let hidden_rows = (data.start.row..=data.end.row)
+            .filter(|row| !prepared.matches(*row, &values)).collect();
         Ok(FilterApplyReport { hidden_rows, scanned_rows: rows, predicate_cells })
     }
 }

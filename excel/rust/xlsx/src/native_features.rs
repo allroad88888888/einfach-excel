@@ -113,4 +113,7 @@ pub struct Table {
     pub columns: Vec<String>,
     #[serde(default)]
     pub style: TableStyle,
+    /// Retained only to report unsupported filter export, not to interpret rules.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auto_filter: Option<serde_json::Value>,
 }

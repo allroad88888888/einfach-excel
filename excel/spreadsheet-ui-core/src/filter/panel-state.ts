@@ -14,6 +14,8 @@ export interface FilterCondition {
   values: readonly string[]
   min: string
   max: string
+  /** Opaque typed draft for a condition edited by an optional plugin. */
+  nativeRule?: ColumnFilterRule
   caseSensitive: boolean
 }
 export const filterCondition = (col: number): FilterCondition => ({

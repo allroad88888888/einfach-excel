@@ -84,17 +84,7 @@ export const configureNativeFilterAtom = atom(
           ? target.groups.flatMap((group, index) =>
               group.rules.map((rule) => ruleCondition(rule, index)))
           : rules.length
-          ? rules.map((rule) => ({
-              ...condition(rule.colIndex),
-              kind: rule.kind,
-              ...('value' in rule
-                ? { value: rule.value, caseSensitive: !!rule.caseSensitive }
-                : {}),
-              ...(rule.kind === 'range'
-                ? { min: rule.min?.toString() ?? '', max: rule.max?.toString() ?? '' }
-                : {}),
-              ...(rule.kind === 'list' ? { values: rule.values } : {}),
-            }))
+          ? rules.map((rule) => ruleCondition(rule, 0))
           : [
               condition(
                 column ??
@@ -154,7 +144,12 @@ export const configureNativeFilterAtom = atom(
       })
       return true
     }
-    let rules: ColumnFilterRule[] = state.conditions.map(conditionRule)
+    let rules: ColumnFilterRule[]
+    try { rules = state.conditions.map(conditionRule) } catch {
+      set(stateAtom, { ...state,
+        error: 'Choose valid filter conditions in nonempty groups, or up to eight different columns.' })
+      return false
+    }
     if (state.column !== undefined) {
       rules = [
         ...get(nativeFilterPanelAtom).rules.filter((rule) => rule.colIndex !== state.column),

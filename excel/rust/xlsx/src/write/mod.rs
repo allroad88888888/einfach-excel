@@ -60,7 +60,8 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
     let workbook = &file.workbook;
     let mut report = ReportBuilder::default();
     report.add("sheetProtection", workbook.protection.len());
-    report.add("autoFilter", workbook.filters.len());
+    report.add("autoFilter", workbook.filters.len() +
+        workbook.tables.iter().filter(|table| table.auto_filter.is_some()).count());
     report.add("outline", workbook.outlines.len());
     let custom_print = workbook
         .print_configs

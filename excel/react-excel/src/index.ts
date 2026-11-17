@@ -18,7 +18,7 @@ export type {
   DrawingRendererProps,
   RibbonContribution,
   RibbonItemContribution,
-  SpreadsheetPlugin,
+  SpreadsheetPlugin, FilterConditionContribution,
 } from './plugin/types'
 export type { WorkbookUiOptions } from './page/workbook-ui-options'
 export { workbookRibbonItemIds, type WorkbookRibbonItemId } from './page/workbook-ribbon-items'

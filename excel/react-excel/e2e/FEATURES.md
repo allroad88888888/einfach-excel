@@ -1342,3 +1342,28 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CHART-021 | 设置栏「下载 SVG」在浏览器内离屏重画并下载矢量图，文字保持为文本 | `charts/analysis.spec.ts` | the chart downloads as an SVG drawn in the browser |
 | CHART-022 | 由表格选区插入的图表引用表名，表格下方输入新行后图表跟着扩；设置栏可填表格列范围或名称，不存在时报错 | `charts/data-source.spec.ts` | a chart made from a table follows the table as it grows and accepts names |
 | CHART-023 | 选中图表时按系列名 / 类别 / 数值标出数据源，点击柱子标出它的单元格，取消选中后撤掉 | `charts/data-source.spec.ts` | selecting a chart outlines its data and clicking a bar marks its cell |
+
+## Optional rank filter conditions
+
+| ID | Feature | E2E file | Primary test |
+| --- | --- | --- | --- |
+| FILTER-001 | Top items | `editing/filter-top.spec.ts` | `top items filter uses numeric ranks and cutoff ties in one undo at 1280px` |
+| FILTER-002 | Top percent | `editing/filter-top.spec.ts` | `top percent rounds up numeric population and retains ties at 1280px` |
+| FILTER-003 | Bottom items | `editing/filter-bottom.spec.ts` | `bottom items include negative numbers and numeric formulas in one undo` |
+| FILTER-004 | Bottom percent | `editing/filter-bottom.spec.ts` | `bottom percent excludes text and blank cells from the numeric population` |
+| FILTER-005 | Top with another column | `editing/filter-top.spec.ts` | `top ranks the original domain before intersecting another column` |
+| FILTER-006 | Top keyboard entry | `editing/filter-top.spec.ts` | `top condition keyboard activation submits through the header dialog` |
+| FILTER-007 | Rank reapply snapshot | `editing/filter-bottom.spec.ts` | `rank filtering preserves its snapshot until reapply and undo restores the prior result` |
+| FILTER-008 | Rank invalid input and Cancel | `editing/filter-top-controls.spec.ts` | `rank bounds keep the dialog recoverable and Cancel preserves redo at 390px` |
+| FILTER-009 | Rank Escape | `editing/filter-top-controls.spec.ts` | `Escape drops a changed rank draft and restores header focus` |
+| FILTER-010 | Rank OR groups | `editing/filter-top-controls.spec.ts` | `OR groups preserve independent rank thresholds on the same column` |
+| FILTER-011 | Table rank header | `workbook/table-top-filter.spec.ts` | `table top filter excludes its total and undoes once at 1280px` |
+| FILTER-012 | Independent rank scopes | `workbook/table-top-filter.spec.ts` | `ordinary and Table rank filters retain separate snapshots when one is cleared` |
+| FILTER-013 | Native rank without plugin | `editing/filter-top-persistence.spec.ts` | `native rank filters reopen without the plugin and remain intact when editing another column` |
+| FILTER-014 | Table rank native reopen | `editing/filter-top-persistence.spec.ts` | `Table rank native roundtrip preserves rule and committed hidden snapshot` |
+| FILTER-015 | Rank XLSX loss report | `editing/filter-top-persistence.spec.ts` | `XLSX reports lost filter conditions and snapshots while preserving manual hiding` |
+| FILTER-016 | Filter plugin composition | `plugins/data-filter.spec.ts` | `data-filter is absent by default and composes with text-format through the existing header` |
+| FILTER-017 | Chinese rank keyboard | `plugins/data-filter.spec.ts` | `Chinese rank condition supports keyboard submission at 390px` |
+| FILTER-018 | Rank ribbon entry | `plugins/data-filter.spec.ts` | `rank can be configured through the ribbon filter entry` |
+| FILTER-019 | Rank instance isolation | `plugins/data-filter-host.spec.ts` | `rank drafts and native results are isolated between two spreadsheet instances` |
+| FILTER-020 | Filter plugin uninstall | `plugins/data-filter-host.spec.ts` | `uninstalling the condition editor preserves the active typed draft through Apply` |

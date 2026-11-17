@@ -89,6 +89,16 @@ describe('spreadsheet plugins', () => {
       .toThrow('Duplicate spreadsheet plugin id: fake')
   })
 
+  it('rejects duplicate condition editors and replacement of built-in conditions', () => {
+    const top: SpreadsheetPlugin = { id: 'top', filterConditions: [{ kind: 'top',
+      label: { id: 'top' }, Editor: () => null }] }
+    expect(() => assertUniquePluginIds([top, { ...top, id: 'duplicate' }]))
+      .toThrow('Duplicate filter condition editor: top')
+    expect(() => assertUniquePluginIds([{ ...top, filterConditions: [{ kind: 'equals',
+      label: { id: 'override' }, Editor: () => null }] }]))
+      .toThrow('Duplicate filter condition editor: equals')
+  })
+
   it('hides built-in and plugin context menu items by id', async () => {
     const store = renderWith([plugin], 'en', { contextMenu: { hidden: ['cells.delete', 'fake.bump'] } })
     await act(async () => { store.setter(openCellContextMenuAtom, { x: 0, y: 0 }) })

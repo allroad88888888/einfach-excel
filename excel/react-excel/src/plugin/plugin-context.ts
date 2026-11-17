@@ -15,9 +15,15 @@ export function useSpreadsheetPlugins(): readonly SpreadsheetPlugin[] {
 export function assertUniquePluginIds(plugins: readonly SpreadsheetPlugin[]): void {
   const seen = new Set<string>()
   const anchors = new Set<string>(workbookRibbonItemIds)
+  const conditions = new Set<string>(['equals', 'contains', 'range', 'list'])
   for (const plugin of plugins) {
     if (seen.has(plugin.id)) throw new Error(`Duplicate spreadsheet plugin id: ${plugin.id}`)
     seen.add(plugin.id)
+    for (const condition of plugin.filterConditions ?? []) {
+      if (conditions.has(condition.kind))
+        throw new Error(`Duplicate filter condition editor: ${condition.kind}`)
+      conditions.add(condition.kind)
+    }
     const contributions = new Set<string>()
     for (const item of [...(plugin.ribbon ?? []), ...(plugin.ribbonItems ?? [])]) {
       if (contributions.has(item.id))

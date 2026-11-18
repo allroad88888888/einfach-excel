@@ -12,6 +12,7 @@ pub(crate) struct PreparedFilter<'a> {
 struct PreparedRule<'a> {
     rule: &'a ColumnFilterRule,
     cutoff: Option<f64>,
+    date_bounds: Option<(f64, f64)>,
 }
 
 /// Array anchors expose the same top-left scalar as the cell projection.
@@ -25,7 +26,7 @@ fn numeric(value: &Value) -> Option<f64> {
 
 impl<'a> PreparedFilter<'a> {
     pub(crate) fn new(criteria: FilterCriteria<'a>, rows: RangeInclusive<u32>,
-        values: &HashMap<(u32, u32), Value>) -> Self {
+        values: &HashMap<(u32, u32), Value>, today: Option<f64>) -> Self {
         let mut populations: HashMap<u32, Vec<f64>> = HashMap::new();
         for rule in criteria.rules() {
             if let ColumnFilterRule::Top { col_index, .. } = rule {
@@ -49,7 +50,10 @@ impl<'a> PreparedFilter<'a> {
                     numbers.get(index).copied()
                 }
             } else { None };
-            PreparedRule { rule, cutoff }
+            let date_bounds = if let ColumnFilterRule::DatePeriod { period, .. } = rule {
+                today.and_then(|today| period.bounds_at(today))
+            } else { None };
+            PreparedRule { rule, cutoff, date_bounds }
         }).collect();
         let groups = match criteria {
             FilterCriteria::Flat(rules) => vec![prepare(rules)],
@@ -62,6 +66,8 @@ impl<'a> PreparedFilter<'a> {
         self.groups.is_empty() || self.groups.iter().any(|group| group.iter().all(|prepared| {
             let value = values.get(&(row, prepared.rule.col_index())).unwrap_or(&Value::Null);
             match prepared.rule {
+                ColumnFilterRule::DatePeriod { .. } => numeric(value).zip(prepared.date_bounds)
+                    .is_some_and(|(number, (start, end))| number >= start && number < end),
                 ColumnFilterRule::Top { direction, .. } => numeric(value)
                     .zip(prepared.cutoff).is_some_and(|(number, cutoff)| match direction {
                         FilterTopDirection::Top => number >= cutoff,

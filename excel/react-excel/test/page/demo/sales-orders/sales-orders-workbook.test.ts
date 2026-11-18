@@ -1,4 +1,5 @@
 import { SUMMARY_TOP_FILTER_CELLS } from '../../../../src/page/demo/sales-orders/data/top-filter-seed'
+import { SUMMARY_DATE_FILTER_CELLS } from '../../../../src/page/demo/sales-orders/data/date-filter-seed'
 import { SUMMARY_FONT_BASELINE_CELLS } from '../../../../src/page/demo/sales-orders/data/font-baseline-seed'
 import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from '../../../../src/page/demo/sales-orders/data/custom-list-drag-seed'
 import { describe, expect, it } from 'vitest'
@@ -90,6 +91,7 @@ describe('Sales Orders workbook definition', () => {
       SALES_ORDER_SUMMARY_CELLS,
       SUMMARY_FONT_BASELINE_CELLS,
       SUMMARY_TOP_FILTER_CELLS,
+      SUMMARY_DATE_FILTER_CELLS,
       SALES_ORDER_NUMBER_FORMAT_EXAMPLES,
       SALES_ORDER_SPECIAL_FORMAT_EXAMPLES,
       SUMMARY_VALIDATION_CELLS,

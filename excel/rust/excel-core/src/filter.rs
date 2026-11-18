@@ -30,10 +30,12 @@
 use std::collections::BTreeSet;
 
 mod rule;
+pub(crate) mod date_period;
 mod legacy_number;
 pub(crate) mod prepared;
 pub(crate) mod validation;
 pub use rule::{ColumnFilterRule, FilterTopAmount, FilterTopDirection};
+pub use date_period::FilterDatePeriod;
 pub use legacy_number::{js_numeric_value, js_trim};
 
 /// `normalizeFilterText` (`projection-helpers.ts:87-89`).
@@ -91,8 +93,8 @@ pub fn filter_rule_matches_value(rule: &ColumnFilterRule, value: &str) -> bool {
         // note. `Equals` and `List` disagree about case in the product
         // today and the golden parity corpus pins that disagreement.
         ColumnFilterRule::List { values, .. } => values.iter().any(|candidate| candidate == value),
-        // Typed ranks require the whole data domain; never coerce display text.
-        ColumnFilterRule::Top { .. } => false,
+        // Typed criteria use the prepared scan; never coerce display text.
+        ColumnFilterRule::Top { .. } | ColumnFilterRule::DatePeriod { .. } => false,
     }
 }
 

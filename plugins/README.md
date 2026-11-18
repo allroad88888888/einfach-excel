@@ -51,6 +51,6 @@
 - [图表](plugin-chart/README.md)：`chartPlugin`（ECharts；对象层与对象目录在核心，不认识图表）。
 - [文字格式](plugin-text-format/README.md)：`textFormatPlugin`（整格上下标；插件拥有编辑反馈 atom，核心保留格式数据与原生事务）。
 - [列表排序](plugin-data-sort/README.md)：`dataSortPlugin`（复用填充目录；插件拥有排序草稿，核心负责校验、行置换与历史）。
-- [筛选条件](plugin-data-filter/README.md)：`dataFilterPlugin`（插件拥有 Top-N 编辑交互，核心负责类型化排名与筛选快照）。
+- [筛选条件](plugin-data-filter/README.md)：`dataFilterPlugin`（插件拥有 Top-N、日期期间编辑交互，核心负责数值排名、日历区间与筛选快照）。
 
 演示：`?plugins=date-picker,image-export,chart`；不传 `plugins` 时不挂载任何插件控件。

@@ -1,6 +1,12 @@
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "lowercase")]
 enum ColumnFilterRuleJSON {
+    #[serde(rename = "date-period")]
+    DatePeriod {
+        #[serde(rename = "colIndex")]
+        col_index: u32,
+        period: einfach_excel_core::filter::FilterDatePeriod,
+    },
     Top {
         #[serde(rename = "colIndex")]
         col_index: u32,
@@ -52,6 +58,8 @@ fn is_false(value: &bool) -> bool {
 impl ColumnFilterRuleJSON {
     fn from_rule(rule: &ColumnFilterRule) -> Self {
         match rule {
+            ColumnFilterRule::DatePeriod { col_index, period } =>
+                Self::DatePeriod { col_index: *col_index, period: *period },
             ColumnFilterRule::Top { col_index, direction, amount } => {
                 use einfach_excel_core::filter::{FilterTopAmount, FilterTopDirection};
                 let direction = match direction {
@@ -100,6 +108,7 @@ impl ColumnFilterRuleJSON {
 
     fn into_rule(self) -> ColumnFilterRule {
         match self {
+            Self::DatePeriod { col_index, period } => ColumnFilterRule::DatePeriod { col_index, period },
             Self::Top { col_index, direction, unit, value } => {
                 use einfach_excel_core::filter::{FilterTopAmount, FilterTopDirection};
                 let direction = match direction {

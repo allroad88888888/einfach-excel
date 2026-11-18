@@ -1,11 +1,9 @@
 //! Relative dates are resolved once per display projection in the local calendar.
 use super::conditional_format_highlight::{enabled_by_default, Highlight};
 use crate::cell_style::CellStyle;
-use crate::date_serial::{
-    excel_date_parts_to_serial, excel_serial_to_date_parts, valid_date_serial,
-    weekday_sunday_indexed, ExcelDateParts,
-};
-use chrono::{Datelike, Local};
+use crate::date_serial::valid_date_serial;
+use crate::calendar_period::CalendarPeriod;
+pub(super) use crate::calendar_period::local_today_serial;
 use serde::Deserialize;
 
 #[derive(Clone, Copy, Deserialize)]
@@ -40,23 +38,6 @@ pub(crate) struct TimePeriodRule {
     pub(super) style: CellStyle,
 }
 
-pub(super) fn local_today_serial() -> Option<f64> {
-    let date = Local::now().date_naive();
-    excel_date_parts_to_serial(ExcelDateParts {
-        year: date.year(), month: date.month(), day: date.day(), fraction: 0.0,
-    })
-}
-
-fn month_start(today: f64, offset: i32) -> Option<f64> {
-    let date = excel_serial_to_date_parts(today)?;
-    let month = date.month as i32 - 1 + offset;
-    excel_date_parts_to_serial(ExcelDateParts {
-        year: date.year.checked_add(month.div_euclid(12))?,
-        month: (month.rem_euclid(12) + 1) as u32,
-        day: 1, fraction: 0.0,
-    })
-}
-
 impl TimePeriodRule {
     pub(super) fn parse(json: &str) -> Result<Self, &'static str> {
         let rule: TimePeriodJson = serde_json::from_str(json)
@@ -77,19 +58,19 @@ impl TimePeriodRule {
     }
 
     fn bounds_at(&self, today: f64) -> Option<(f64, f64)> {
-        let week = today - weekday_sunday_indexed(today as i64) as f64;
-        Some(match self.period {
-            Period::Today => (today, today + 1.0),
-            Period::Yesterday => (today - 1.0, today),
-            Period::Tomorrow => (today + 1.0, today + 2.0),
-            Period::Last7Days => (today - 6.0, today + 1.0),
-            Period::ThisWeek => (week, week + 7.0),
-            Period::LastWeek => (week - 7.0, week),
-            Period::NextWeek => (week + 7.0, week + 14.0),
-            Period::ThisMonth => (month_start(today, 0)?, month_start(today, 1)?),
-            Period::LastMonth => (month_start(today, -1)?, month_start(today, 0)?),
-            Period::NextMonth => (month_start(today, 1)?, month_start(today, 2)?),
-        })
+        let period = match self.period {
+            Period::Today => CalendarPeriod::Day(0),
+            Period::Yesterday => CalendarPeriod::Day(-1),
+            Period::Tomorrow => CalendarPeriod::Day(1),
+            Period::Last7Days => CalendarPeriod::Last7Days,
+            Period::ThisWeek => CalendarPeriod::Week(0),
+            Period::LastWeek => CalendarPeriod::Week(-1),
+            Period::NextWeek => CalendarPeriod::Week(1),
+            Period::ThisMonth => CalendarPeriod::Month(0),
+            Period::LastMonth => CalendarPeriod::Month(-1),
+            Period::NextMonth => CalendarPeriod::Month(1),
+        };
+        period.bounds_at(today)
     }
 
     pub(super) fn matches(&self, number: f64) -> bool {

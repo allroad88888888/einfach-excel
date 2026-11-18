@@ -7,6 +7,7 @@ impl Workbook {
         criteria: FilterCriteria<'_>) -> Result<FilterApplyReport, FilterError> {
         criteria.validate()?;
         let source = self.sheet(sheet).ok_or(FilterError::InvalidSheet)?;
+        let today = crate::filter::date_period::capture_today(criteria)?;
         let Some(data) = data.filter(|_| !criteria.is_empty()) else {
             return Ok(FilterApplyReport::default());
         };
@@ -29,7 +30,7 @@ impl Workbook {
         }
         self.store.settle_pending_reads();
         let prepared = crate::filter::prepared::PreparedFilter::new(criteria,
-            data.start.row..=data.end.row, &values);
+            data.start.row..=data.end.row, &values, today);
         let hidden_rows = (data.start.row..=data.end.row)
             .filter(|row| !prepared.matches(*row, &values)).collect();
         Ok(FilterApplyReport { hidden_rows, scanned_rows: rows, predicate_cells })

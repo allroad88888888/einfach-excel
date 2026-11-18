@@ -1,4 +1,5 @@
 import { SUMMARY_TOP_FILTER_CELLS } from './data/top-filter-seed'
+import { SUMMARY_DATE_FILTER_CELLS } from './data/date-filter-seed'
 import { SUMMARY_FONT_BASELINE_CELLS } from './data/font-baseline-seed'
 import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from './data/custom-list-drag-seed'
 import type { RustWorkbookDefinition, RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
@@ -91,6 +92,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       SALES_ORDER_SUMMARY_CELLS,
       SUMMARY_FONT_BASELINE_CELLS,
       SUMMARY_TOP_FILTER_CELLS,
+      SUMMARY_DATE_FILTER_CELLS,
       SALES_ORDER_NUMBER_FORMAT_EXAMPLES,
       SALES_ORDER_SPECIAL_FORMAT_EXAMPLES,
       SUMMARY_VALIDATION_CELLS,

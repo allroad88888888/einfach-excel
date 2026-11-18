@@ -3,6 +3,21 @@ import { validFilterGroups, filterSelectionWithinBudget } from '../../src/advanc
 import { readFilterValues, changeFilter } from '../../src/rust-workbook/filter-io'
 import type { WasmWorkbook } from '../../src/rust-workbook/wasm-types'
 import { validFilterRules } from '../../src/rust-workbook/filter-commands'
+import { filterDatePeriods } from '../../src/filter/rule-types'
+
+test('date periods accept only the closed native calendar options in flat and grouped rules', () => {
+  for (const period of filterDatePeriods) {
+    const rule = { kind: 'date-period', colIndex: 1, period }
+    expect(validFilterRules([rule])).toBe(true)
+    expect(validFilterGroups([{ rules: [rule] }])).toBe(true)
+  }
+  for (const period of ['thisMonth', 'quarter-1', '', 1, null, undefined]) {
+    const rule = { kind: 'date-period', colIndex: 1, period }
+    expect(validFilterRules([rule])).toBe(false)
+    expect(validFilterGroups([{ rules: [rule] }])).toBe(false)
+  }
+  expect(validFilterRules([{ kind: 'date-period', colIndex: 16384, period: 'today' }])).toBe(false)
+})
 
 test('typed ranks enforce identical flat and grouped amount contracts', () => {
   const top = { kind: 'top', colIndex: 1, direction: 'top', unit: 'items', value: 10 }

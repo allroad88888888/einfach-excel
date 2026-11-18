@@ -11,7 +11,8 @@ import type { HistoryEntryRecorder } from '../history'
 export type SortDirection = 'asc' | 'desc'
 
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter/rule-types'
-export type { ColumnFilterGroup, ColumnFilterRule } from '../filter/rule-types'
+export type { ColumnFilterGroup, ColumnFilterRule, FilterDatePeriod } from '../filter/rule-types'
+export { filterDatePeriods } from '../filter/rule-types'
 
 /**
  * Column filter visibility only. Sort is NOT part of this state: the display

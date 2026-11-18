@@ -84,6 +84,7 @@ impl Workbook {
         if criteria.is_empty() {
             return Ok((BTreeSet::new(), 0, 0));
         }
+        let today = crate::filter::date_period::capture_today(criteria)?;
 
         let mut cols = match criteria {
             FilterCriteria::Flat(rules) => crate::filter::predicate_columns(rules),
@@ -129,7 +130,7 @@ impl Workbook {
         let label = values.get(&(last_row, 0)).map(crate::value_to_display).unwrap_or_default();
         let last = if crate::filter::is_filter_sort_summary_row(&label, last_row)
             { last_row.saturating_sub(1) } else { last_row };
-        let prepared = crate::filter::prepared::PreparedFilter::new(criteria, 1..=last, &values);
+        let prepared = crate::filter::prepared::PreparedFilter::new(criteria, 1..=last, &values, today);
         let hidden = (1..=last).filter(|row| !prepared.matches(*row, &values)).collect();
         Ok((hidden, scanned_rows, predicate_cells))
     }

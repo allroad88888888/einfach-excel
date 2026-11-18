@@ -31,6 +31,8 @@ pub enum ColumnFilterRule {
     List { col_index: u32, values: Vec<String> },
     /// Rank finite numeric cell results over the complete data body.
     Top { col_index: u32, direction: FilterTopDirection, amount: FilterTopAmount },
+    /// A local calendar period resolved once when the filter is applied.
+    DatePeriod { col_index: u32, period: super::FilterDatePeriod },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -63,6 +65,7 @@ impl ColumnFilterRule {
             | ColumnFilterRule::Contains { col_index, .. }
             | ColumnFilterRule::Range { col_index, .. }
             | ColumnFilterRule::Top { col_index, .. }
+            | ColumnFilterRule::DatePeriod { col_index, .. }
             | ColumnFilterRule::List { col_index, .. } => *col_index,
         }
     }

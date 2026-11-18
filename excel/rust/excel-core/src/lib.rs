@@ -13,6 +13,7 @@ pub mod data_validation;
 pub mod drag_move;
 pub mod outline;
 mod date_serial;
+mod calendar_period;
 mod date_format;
 mod scientific_format;
 mod fraction_format;

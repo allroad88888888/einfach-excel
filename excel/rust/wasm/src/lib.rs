@@ -230,6 +230,7 @@ mod tests {
     include!("wasm_tests/filters_persistence.rs");
     include!("wasm_tests/filters_wire_contract.rs");
     include!("wasm_tests/filter_top.rs");
+    include!("wasm_tests/filter_date_period.rs");
     include!("wasm_tests/filter_values.rs");
     include!("wasm_tests/table_restore.rs");
     include!("wasm_tests/table_style.rs");

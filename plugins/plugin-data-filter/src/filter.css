@@ -23,3 +23,20 @@
 .filter-top-fields p {
   flex-basis: 100%;
 }
+
+.filter-date-fields {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 8px;
+  min-width: 0;
+}
+
+.filter-date-fields label {
+  display: grid;
+  gap: 4px;
+}
+
+.filter-date-fields select {
+  width: 100%;
+  min-width: 0;
+}

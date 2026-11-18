@@ -1367,3 +1367,36 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | FILTER-018 | Rank ribbon entry | `plugins/data-filter.spec.ts` | `rank can be configured through the ribbon filter entry` |
 | FILTER-019 | Rank instance isolation | `plugins/data-filter-host.spec.ts` | `rank drafts and native results are isolated between two spreadsheet instances` |
 | FILTER-020 | Filter plugin uninstall | `plugins/data-filter-host.spec.ts` | `uninstalling the condition editor preserves the active typed draft through Apply` |
+
+## 日期 Date period
+
+| ID | 功能 | E2E | Primary test |
+| --- | --- | --- | --- |
+| FILTER-021 | 日期筛选：选择今天期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter today applies both calendar boundaries through its option` |
+| FILTER-022 | 日期筛选：选择昨天期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter yesterday applies both calendar boundaries through its option` |
+| FILTER-023 | 日期筛选：选择明天期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter tomorrow applies both calendar boundaries through its option` |
+| FILTER-024 | 日期筛选：选择上周期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter last-week applies both calendar boundaries through its option` |
+| FILTER-025 | 日期筛选：选择本周期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter this-week applies both calendar boundaries through its option` |
+| FILTER-026 | 日期筛选：选择下周期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter next-week applies both calendar boundaries through its option` |
+| FILTER-027 | 日期筛选：选择上月期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter last-month applies both calendar boundaries through its option` |
+| FILTER-028 | 日期筛选：选择本月期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter this-month applies both calendar boundaries through its option` |
+| FILTER-029 | 日期筛选：选择下月期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter next-month applies both calendar boundaries through its option` |
+| FILTER-030 | 日期筛选：选择上季度期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter last-quarter applies both calendar boundaries through its option` |
+| FILTER-031 | 日期筛选：选择本季度期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter this-quarter applies both calendar boundaries through its option` |
+| FILTER-032 | 日期筛选：选择下季度期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter next-quarter applies both calendar boundaries through its option` |
+| FILTER-033 | 日期筛选：选择去年期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter last-year applies both calendar boundaries through its option` |
+| FILTER-034 | 日期筛选：选择今年期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter this-year applies both calendar boundaries through its option` |
+| FILTER-035 | 日期筛选：选择明年期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter next-year applies both calendar boundaries through its option` |
+| FILTER-036 | 日期筛选：选择年初至今期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter year-to-date applies both calendar boundaries through its option` |
+| FILTER-037 | 日期筛选：Escape 放弃草稿并保留重做 | `editing/filter-date-controls.spec.ts` | `date filter Escape discards its draft and preserves redo and header focus` |
+| FILTER-038 | 日期筛选：重新应用并撤销隐藏快照 | `editing/filter-date-controls.spec.ts` | `date filter reapply alone updates edited dates and Undo restores the prior snapshot` |
+| FILTER-039 | 日期筛选：同列 OR 期间组合 | `editing/filter-date-controls.spec.ts` | `date periods in OR groups keep their own boundaries on the same column` |
+| FILTER-040 | 日期筛选：浏览候选值 | `editing/filter-date-controls.spec.ts` | `date value candidates omit their own condition and retain other-column date conditions` |
+| FILTER-041 | 日期筛选：与完整域 Top-N 条件求交 | `editing/filter-date-controls.spec.ts` | `date AND rank uses the full score domain before intersecting calendar matches` |
+| FILTER-042 | 日期筛选：表头激活默认今天条件 | `plugins/data-filter-date.spec.ts` | `date filter activation keeps today's native time values at 1280px` |
+| FILTER-043 | 日期筛选：功能区入口 | `plugins/data-filter-date.spec.ts` | `date filter is configured through the existing ribbon entry` |
+| FILTER-044 | 日期筛选：中文窄屏键盘选项与应用 | `plugins/data-filter-date.spec.ts` | `Chinese date period can be selected and applied with the keyboard at 390px` |
+| FILTER-045 | 日期筛选：Canvas 表头点击 | `plugins/data-filter-date.spec.ts` | `Canvas painted header opens the date plugin and applies its native snapshot` |
+| FILTER-046 | 日期筛选：无插件原生重开后继续编辑 | `editing/filter-date-persistence.spec.ts` | `native date rules reopen without the plugin and survive another column edit and reapply` |
+| FILTER-047 | 日期筛选：XLSX 导出损失报告与重开 | `editing/filter-date-persistence.spec.ts` | `XLSX date-filter export reports lost conditions and reopens all filtered data rows` |
+| FILTER-048 | 日期筛选：Table 表头与原生往返 | `workbook/table-date-filter.spec.ts` | `Table date filter excludes totals and preserves its native snapshot at 1280px` |

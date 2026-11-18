@@ -1,0 +1,9 @@
+:where(.einfach-spreadsheet) .cell-diagonal-borders {
+  position: absolute;
+  overflow: hidden;
+  pointer-events: none;
+}
+:where(.einfach-spreadsheet) .cell-diagonal-borders ~ .cell-content {
+  position: relative;
+  z-index: 1;
+}

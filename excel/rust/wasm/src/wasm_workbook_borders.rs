@@ -31,6 +31,10 @@ impl BorderRangeJSON {
             "bottom" => BorderPreset::Bottom,
             "left" => BorderPreset::Left,
             "none" => BorderPreset::None,
+            "diagonal-down" => BorderPreset::DiagonalDown,
+            "diagonal-up" => BorderPreset::DiagonalUp,
+            "diagonal" => BorderPreset::Diagonal,
+            "diagonal-none" => BorderPreset::DiagonalNone,
             _ => return Err("invalid border preset".into()),
         };
         if !matches!(
@@ -107,6 +111,7 @@ mod border_request_tests {
             "bottom",
             "left",
             "none",
+            "diagonal-down", "diagonal-up", "diagonal", "diagonal-none",
         ] {
             for style in ["thin", "medium", "thick", "dashed", "dotted", "double"] {
                 let request = BorderRangeJSON {
@@ -125,7 +130,7 @@ mod border_request_tests {
     #[test]
     fn invalid_input_is_rejected_instead_of_clearing_existing_borders() {
         for (preset, style, color) in [
-            ("diagonal", "thin", "#123abc"),
+            ("diagonal-unknown", "thin", "#123abc"),
             ("all", "unknown", "#123abc"),
             ("all", "none", "#123abc"),
             ("all", "thin", "red"),

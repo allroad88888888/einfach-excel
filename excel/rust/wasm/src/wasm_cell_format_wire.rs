@@ -68,7 +68,7 @@ struct CellFormatJSON {
     rotation: Option<RotationJSON>,
     #[serde(
         default,
-        deserialize_with = "deserialize_optional_override",
+        deserialize_with = "deserialize_border_override",
         skip_serializing_if = "Option::is_none"
     )]
     borders: Option<Option<CellBordersJSON>>,
@@ -101,6 +101,10 @@ struct CellBordersJSON {
     bottom: Option<BorderSpecJSON>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     left: Option<BorderSpecJSON>,
+    #[serde(default, rename = "diagUp", skip_serializing_if = "Option::is_none")]
+    diag_up: Option<BorderSpecJSON>,
+    #[serde(default, rename = "diagDown", skip_serializing_if = "Option::is_none")]
+    diag_down: Option<BorderSpecJSON>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

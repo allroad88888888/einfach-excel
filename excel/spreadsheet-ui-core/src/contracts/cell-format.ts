@@ -127,6 +127,7 @@ export type SpreadsheetNumberFormat =
   | { kind: 'custom'; pattern: string }
 
 export type SpreadsheetBorderSide = 'top' | 'right' | 'bottom' | 'left'
+export type SpreadsheetDiagonalSide = 'diagUp' | 'diagDown'
 
 export type SpreadsheetBorderStyle =
   | 'none'
@@ -142,7 +143,9 @@ export interface SpreadsheetBorderSpec {
   color?: string
 }
 
-export type SpreadsheetBorders = Partial<Record<SpreadsheetBorderSide, SpreadsheetBorderSpec>>
+export type SpreadsheetBorders = Partial<
+  Record<SpreadsheetBorderSide | SpreadsheetDiagonalSide, SpreadsheetBorderSpec>
+>
 
 export interface SpreadsheetCellFormat {
   numberFormat?: SpreadsheetNumberFormat

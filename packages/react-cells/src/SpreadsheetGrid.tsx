@@ -7,6 +7,7 @@ import {
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'
+import { CellDiagonalBorders } from './CellDiagonalBorders'
 import { fontBaselineText } from './font-baseline-text'
 import { shrinkToFitText } from './ShrinkToFitText'
 import { RichCellText } from './RichCellText'
@@ -20,7 +21,7 @@ import { useMemo, type CSSProperties } from 'react'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { centerAcrossSpanWidth, centerAcrossStyles } from './center-across-style'
 import { createGridBorderStyles } from './grid-border-style'
-import { DEFAULT_CELL_ROW_HEIGHT } from './grid-defaults'
+import { DEFAULT_CELL_ROW_HEIGHT, DEFAULT_CELL_COLUMN_WIDTH } from './grid-defaults'
 // 样式随真正渲染表格的模块导入：纯转出的 index.ts 会被生产构建跳过，连同它的 CSS 一起丢失。
 import './cells.css'
 
@@ -151,6 +152,11 @@ export function SpreadsheetGrid({
             style={{ ...formatStyle, ...across?.cell }}
           >
             {!merged && cell?.dataBar && <CellDataBar bar={cell.dataBar} />}
+            {!merged && (cell?.format?.borders?.diagUp || cell?.format?.borders?.diagDown) &&
+              <CellDiagonalBorders borders={cell.format.borders} height={height}
+                width={columnWidths?.[col - window.colStart] ?? DEFAULT_CELL_COLUMN_WIDTH}
+                top={-topBorder}
+                left={-Number.parseFloat(String(formatStyle.borderLeftWidth ?? 0))} />}
             {!merged && (cell?.conditionalIcon || cell?.noteIndicator || cell?.commentIndicator ||
               cell?.commentThreadId) && <CellMetadata cell={cell} labels={metadataLabels} />}
             <span

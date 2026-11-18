@@ -48,7 +48,8 @@ fn has_meaningful_format(f: &CellFormat) -> bool {
         || f.indent.is_some_and(|i| i > 0)
         || f.rotation.is_some_and(|r| r != 0)
         || f.borders.as_ref().is_some_and(|b| {
-            [b.top.as_ref(), b.right.as_ref(), b.bottom.as_ref(), b.left.as_ref()]
+            [b.top.as_ref(), b.right.as_ref(), b.bottom.as_ref(), b.left.as_ref(),
+                b.diag_up.as_ref(), b.diag_down.as_ref()]
                 .into_iter()
                 .flatten()
                 .any(|s| s.style != "none")

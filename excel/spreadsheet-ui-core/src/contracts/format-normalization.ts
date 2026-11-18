@@ -3,6 +3,9 @@ import type { SpreadsheetCellFormat } from './cell-format'
 export function cloneFormat(format: SpreadsheetCellFormat): SpreadsheetCellFormat {
   const clone: SpreadsheetCellFormat = { ...format }
   if (format.numberFormat) clone.numberFormat = { ...format.numberFormat }
+  if (format.borders) clone.borders = Object.fromEntries(
+    Object.entries(format.borders).map(([side, spec]) => [side, spec && { ...spec }]),
+  )
   return clone
 }
 
@@ -11,7 +14,8 @@ export function isDefaultFormat(format: SpreadsheetCellFormat): boolean {
   const numberFormatIsDefault = !numberFormat || numberFormat.kind === 'general'
   const borders = format.borders
   const bordersAreDefault =
-    !borders || (!borders.top && !borders.right && !borders.bottom && !borders.left)
+    !borders || (!borders.top && !borders.right && !borders.bottom && !borders.left
+      && !borders.diagUp && !borders.diagDown)
 
   return (
     !format.bold &&

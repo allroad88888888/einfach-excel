@@ -40,6 +40,7 @@ const IMPORT_ORDER: &[(&str, &str)] = &[
     ("richText", "rich text formatting"),
     ("tables", "table filters or totals"),
     ("rowColumnStyles", "row or column styles"),
+    ("diagonalBorders", "unsupported diagonal border styles"),
     ("sheetProtection", "sheet protection"),
     ("autoFilter", "filter conditions (hidden rows become manual; use Unhide to restore)"),
     ("outline", "outline grouping"),

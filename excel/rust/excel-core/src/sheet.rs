@@ -57,6 +57,8 @@ mod axis_border_clear;
 mod batch;
 #[path = "sheet_borders.rs"]
 mod borders;
+#[path = "sheet_diagonal_borders.rs"]
+mod diagonal_borders;
 #[path = "sheet_bulk_formula.rs"]
 mod bulk_formula;
 #[path = "sheet_bulk_install.rs"]

@@ -10,6 +10,10 @@ import { runSelectionMutationAtom } from './selection-mutation-command'
 export const BORDER_PRESETS = [
   'outside', 'inside', 'all', 'horizontal', 'vertical', 'top', 'right', 'bottom', 'left', 'none',
 ] as const
+export const DIAGONAL_BORDER_PRESETS = ['diagonal-down', 'diagonal-up', 'diagonal', 'diagonal-none'] as const
+const ALL_BORDER_PRESETS: readonly RangeBorderPatch['preset'][] = [
+  ...BORDER_PRESETS, ...DIAGONAL_BORDER_PRESETS,
+]
 export const BORDER_STYLES = ['thin', 'medium', 'thick', 'dashed', 'dotted', 'double'] as const
 interface BorderPanel {
   draft: RangeBorderPatch
@@ -62,10 +66,11 @@ export const runBorderPanelAtom = atom(null, async (get, set, action: Action) =>
     return fail('The selection or workbook changed. Close this dialog and select the target again.')
   if (get(editingSessionAtom).source) return fail('Finish editing the cell before applying borders.')
   const { preset, style, color } = state.draft
-  if (!BORDER_PRESETS.includes(preset) || !BORDER_STYLES.includes(style))
+  if (!ALL_BORDER_PRESETS.includes(preset) || !BORDER_STYLES.includes(style))
     return fail('Choose a supported border position and line style.')
   const validColor = /^#[\da-f]{6}$/i.test(color)
-  if (preset !== 'none' && !validColor) return fail('Enter a color as #RRGGBB, for example #c00000.')
+  if (preset !== 'none' && preset !== 'diagonal-none' && !validColor)
+    return fail('Enter a color as #RRGGBB, for example #c00000.')
   const pending = { ...state, busy: true, error: null }
   set(borderPanelAtom, pending)
   const response = set(runSelectionMutationAtom, {

@@ -21,6 +21,7 @@ export const xlsxReportFeedback: Readonly<Record<string, MessageDescriptor>> = {
   'table filters or totals': msg`table filters or totals`,
   'unsupported tables': msg`unsupported tables`,
   'row or column styles': msg`row or column styles`,
+  'unsupported diagonal border styles': msg`unsupported diagonal border styles`,
   'text rotation': msg`text rotation`,
   'sheet protection': msg`sheet protection`,
   'auto filters': msg`auto filters`,

@@ -46,7 +46,7 @@ fn color_of(e: &BytesStart, theme: &[String]) -> Option<String> {
     attr_u32(e, "indexed").and_then(|index| color::from_indexed(index as usize))
 }
 
-fn border_style(style: &str) -> Option<&'static str> {
+pub(super) fn border_style(style: &str) -> Option<&'static str> {
     Some(match style {
         "thin" | "hair" => "thin",
         "medium" => "medium",
@@ -133,8 +133,9 @@ fn alignment(e: &BytesStart, format: &mut CellFormat) {
     format.indent = attr_u32(e, "indent").filter(|&n| n > 0).map(|n| n.min(15) as u8);
 }
 
-pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, XlsxError> {
-    let Some(xml) = xml else { return Ok(Vec::new()) };
+pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<(Vec<CellFormat>, usize), XlsxError> {
+    let Some(xml) = xml else { return Ok((Vec::new(), 0)) };
+    let (diagonals, unsupported) = super::diagonal_borders::parse(xml, theme);
     let mut parsed = Parsed::default();
     let mut section = Section::None;
     let mut reader = Reader::from_str(xml);
@@ -177,7 +178,7 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, Xls
                 section = if empty { Section::None } else { Section::Fill };
             }
             (b"border", _) => {
-                parsed.borders.push(Borders::default());
+                parsed.borders.push(diagonals.get(parsed.borders.len()).cloned().unwrap_or_default());
                 section = if empty { Section::None } else { Section::Border(None) };
             }
             (b"cellXfs", _) => section = Section::CellXfs,
@@ -217,6 +218,7 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, Xls
                     section = Section::Border(Some(match side {
                         "top" => "top", "bottom" => "bottom", "left" | "start" => "left", _ => "right",
                     }));
+                    if empty { section = Section::Border(None); }
                 }
             }
             (b"color", Section::Border(Some(side))) => {
@@ -228,7 +230,7 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, Xls
             _ => {}
         }
     }
-    Ok(parsed.xfs)
+    Ok((parsed.xfs, unsupported))
 }
 
 /// Actual font size for each XF, including a font equal to the workbook's default font.

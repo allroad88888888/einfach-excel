@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { SpreadsheetPlugin } from './types'
 import { workbookRibbonItemIds } from '../page/workbook-ribbon-items'
+import { BORDER_PRESETS, DIAGONAL_BORDER_PRESETS } from '@einfach-excel/spreadsheet-ui-core'
 
 const NO_PLUGINS: readonly SpreadsheetPlugin[] = []
 
@@ -16,9 +17,17 @@ export function assertUniquePluginIds(plugins: readonly SpreadsheetPlugin[]): vo
   const seen = new Set<string>()
   const anchors = new Set<string>(workbookRibbonItemIds)
   const conditions = new Set<string>(['equals', 'contains', 'range', 'list'])
+  const borderPresets = new Set<string>(BORDER_PRESETS)
   for (const plugin of plugins) {
     if (seen.has(plugin.id)) throw new Error(`Duplicate spreadsheet plugin id: ${plugin.id}`)
     seen.add(plugin.id)
+    for (const item of plugin.borderPresets ?? []) {
+      if (borderPresets.has(item.preset))
+        throw new Error(`Duplicate border preset: ${item.preset}`)
+      if (!(DIAGONAL_BORDER_PRESETS as readonly string[]).includes(item.preset))
+        throw new Error(`Unknown border preset: ${item.preset}`)
+      borderPresets.add(item.preset)
+    }
     for (const condition of plugin.filterConditions ?? []) {
       if (conditions.has(condition.kind))
         throw new Error(`Duplicate filter condition editor: ${condition.kind}`)

@@ -6,6 +6,7 @@ mod date_serial;
 mod formula;
 mod font_baseline;
 mod native;
+mod native_diagonal_borders;
 mod native_rich_text;
 mod native_features;
 mod native_drawings;

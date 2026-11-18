@@ -75,6 +75,8 @@ pub struct CellBorders {
     pub right: Option<BorderSpec>,
     pub bottom: Option<BorderSpec>,
     pub left: Option<BorderSpec>,
+    pub diag_up: Option<BorderSpec>,
+    pub diag_down: Option<BorderSpec>,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

@@ -173,6 +173,7 @@ fn axis_clear_reconciles_inherited_edges_without_expanding_the_whole_axis() {
             bottom: Some(red.clone()),
             left: Some(red.clone()),
             right: Some(red.clone()),
+            ..Default::default()
         };
         let sheet = wb.sheet_mut(0).unwrap();
         sheet.patch_format_range(

@@ -60,6 +60,8 @@ impl CellBordersJSON {
             right: self.right.map(BorderSpecJSON::into_spec),
             bottom: self.bottom.map(BorderSpecJSON::into_spec),
             left: self.left.map(BorderSpecJSON::into_spec),
+            diag_up: self.diag_up.map(BorderSpecJSON::into_spec),
+            diag_down: self.diag_down.map(BorderSpecJSON::into_spec),
         }
     }
 
@@ -69,6 +71,8 @@ impl CellBordersJSON {
             right: borders.right.as_ref().map(BorderSpecJSON::from_spec),
             bottom: borders.bottom.as_ref().map(BorderSpecJSON::from_spec),
             left: borders.left.as_ref().map(BorderSpecJSON::from_spec),
+            diag_up: borders.diag_up.as_ref().map(BorderSpecJSON::from_spec),
+            diag_down: borders.diag_down.as_ref().map(BorderSpecJSON::from_spec),
         })
     }
 }

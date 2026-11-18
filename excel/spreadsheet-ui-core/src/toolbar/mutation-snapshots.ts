@@ -50,6 +50,8 @@ export function snapshotBorders(
     ...(borders.right ? { right: snapshotBorderSpec(borders.right) } : {}),
     ...(borders.bottom ? { bottom: snapshotBorderSpec(borders.bottom) } : {}),
     ...(borders.left ? { left: snapshotBorderSpec(borders.left) } : {}),
+    ...(borders.diagUp ? { diagUp: snapshotBorderSpec(borders.diagUp) } : {}),
+    ...(borders.diagDown ? { diagDown: snapshotBorderSpec(borders.diagDown) } : {}),
   })
 }
 

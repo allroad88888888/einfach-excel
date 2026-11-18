@@ -28,6 +28,7 @@ use wasm_bindgen::JsCast;
 
 include!("wasm_autofill_wire.rs");
 include!("wasm_cell_format_wire.rs");
+include!("wasm_diagonal_border_wire.rs");
 include!("wasm_number_format_wire.rs");
 include!("wasm_special_number_format_wire.rs");
 include!("wasm_cell_style_wire.rs");
@@ -258,4 +259,5 @@ mod tests {
     include!("wasm_tests/center_across.rs");
     include!("wasm_tests/import_rich_text.rs");
     include!("wasm_tests/shrink_to_fit.rs");
+    include!("wasm_tests/diagonal_borders.rs");
 }

@@ -506,6 +506,11 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | BORDER-024 | 打开边框设置回读原生线型与颜色 | `format/border-dialog.spec.ts` | Open border dialog preserves native settings and selection at 1280px |
 | BORDER-025 | 边框弹窗正向焦点循环 | `format/border-dialog.spec.ts` | Tab border dialog preserves native settings and selection at 1280px |
 | BORDER-026 | 边框弹窗反向焦点循环 | `format/border-dialog.spec.ts` | Shift+Tab border dialog preserves native settings and selection at 1280px |
+| BORDER-027 | 下斜线边框 | `format/diagonal-borders.spec.ts` | Diagonal down changes each selected cell and undoes in one step |
+| BORDER-028 | 上斜线边框 | `format/diagonal-borders.spec.ts` | Diagonal up changes each selected cell and undoes in one step |
+| BORDER-029 | 双斜线边框 | `format/diagonal-borders.spec.ts` | Both diagonals changes each selected cell and undoes in one step |
+| BORDER-030 | 只清除斜线边框 | `format/diagonal-borders.spec.ts` | No diagonal borders changes each selected cell and undoes in one step |
+| BORDER-031 | 键盘提交斜线边框及保护恢复 | `format/diagonal-keyboard.spec.ts` | Chinese Enter applies a diagonal after protection is removed |
 | CF-001 | 新增条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | adding a conditional rule changes only its applied cells at 1280px |
 | CF-002 | 修改条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | editing a seeded conditional rule keeps one rule and one undo step at 1280px |
 | CF-003 | 删除条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | deleting a seeded conditional rule preserves other rules at 1280px |

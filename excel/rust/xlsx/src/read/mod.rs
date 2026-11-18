@@ -1,6 +1,7 @@
 //! XLSX 字节 → 原生工作簿文件。
 
 mod text_format_layers;
+mod diagonal_borders;
 mod archive;
 pub(crate) mod charts;
 mod chartex;
@@ -86,7 +87,8 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
     let rich_strings = rich_text::shared(&strings_xml, &theme.colors);
     report.add("themeFonts", theme.custom_fonts);
     let styles_xml = match &parts.styles { Some(path) => archive.read(path)?, None => None };
-    let xfs = styles::parse(styles_xml.as_deref(), &theme.colors)?;
+    let (xfs, diagonal_losses) = styles::parse(styles_xml.as_deref(), &theme.colors)?;
+    report.add("diagonalBorders", diagonal_losses);
     let font_sizes = styles::font_sizes(styles_xml.as_deref());
     let dxfs = dxf::parse(styles_xml.as_deref(), &theme.colors);
     let shared = features::Shared { dxfs: &dxfs, theme: &theme.colors, date1904: parts.date1904 };

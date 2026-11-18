@@ -3,6 +3,7 @@ import { SUMMARY_DATE_FILTER_CELLS } from '../../../../src/page/demo/sales-order
 import { SUMMARY_FONT_BASELINE_CELLS } from '../../../../src/page/demo/sales-orders/data/font-baseline-seed'
 import { SUMMARY_RICH_BASELINE_CELLS } from '../../../../src/page/demo/sales-orders/data/rich-baseline-seed'
 import { SUMMARY_SHRINK_TO_FIT_CELLS } from '../../../../src/page/demo/sales-orders/data/shrink-to-fit-seed'
+import { SUMMARY_DIAGONAL_BORDER_CELLS } from '../../../../src/page/demo/sales-orders/data/diagonal-border-seed'
 import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from '../../../../src/page/demo/sales-orders/data/custom-list-drag-seed'
 import { describe, expect, it } from 'vitest'
 import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
@@ -94,6 +95,7 @@ describe('Sales Orders workbook definition', () => {
       SUMMARY_FONT_BASELINE_CELLS,
       SUMMARY_RICH_BASELINE_CELLS,
       SUMMARY_SHRINK_TO_FIT_CELLS,
+      SUMMARY_DIAGONAL_BORDER_CELLS,
       SUMMARY_TOP_FILTER_CELLS,
       SUMMARY_DATE_FILTER_CELLS,
       SALES_ORDER_NUMBER_FORMAT_EXAMPLES,

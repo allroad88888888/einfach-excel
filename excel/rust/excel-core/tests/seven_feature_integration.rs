@@ -46,6 +46,7 @@ fn multi_area_format_preflights_later_neighbor_before_any_write_and_preserves_re
     let edge = Some(BorderSpec { style: BorderStyle::Thin, color: Some("#123456".into()) });
     let patch = CellStyle { bold: Some(true), borders: Some(CellBorders {
         top: edge.clone(), right: edge.clone(), bottom: edge.clone(), left: edge,
+        ..Default::default()
     }), ..Default::default() };
     let targets = [(range(1, 1, 1, 1), StyleScope::Cell),
         (range(5, 5, 5, 5), StyleScope::Cell)];
@@ -86,7 +87,7 @@ fn sparse_border_history_ignores_locked_corners_for_write_undo_and_redo() {
             let edge = Some(border);
             history.patch_format_selection(&mut book, 0, &[(range(1, 1, 1, 1), StyleScope::Cell)],
                 CellStyle { borders: Some(CellBorders { top: edge.clone(), right: edge.clone(),
-                    bottom: edge.clone(), left: edge }), ..Default::default() }).unwrap();
+                    bottom: edge.clone(), left: edge, ..Default::default() }), ..Default::default() }).unwrap();
         } else {
             history.patch_range_borders(&mut book, 0, range(1, 1, 1, 1), BorderPreset::All, border).unwrap();
         }

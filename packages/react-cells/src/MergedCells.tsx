@@ -12,6 +12,7 @@ import {
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { createMergedBorderStyle, MergedCellBorders } from './MergedCellBorders'
 import { CellDataBar } from './CellDataBar'
+import { CellDiagonalBorders } from './CellDiagonalBorders'
 import { RichCellText } from './RichCellText'
 import { shrinkToFitText } from './ShrinkToFitText'
 import {
@@ -100,6 +101,8 @@ export function MergedCells({ window, anchors, metadataLabels }: {
             <MergedCellBorders range={range} window={window ?? result.window}
               borderStyle={borderStyle} />
             <CellDataBar bar={cell.dataBar} />
+            <CellDiagonalBorders borders={cell.format?.borders}
+              width={rect.width} height={rect.height} />
             <CellMetadata cell={cell} labels={metadataLabels} />
             <span className={`cell-content${rotated ? ' cell-rotation-frame' : ''}`}
               style={{

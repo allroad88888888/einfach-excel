@@ -1,6 +1,7 @@
 import type { WritableAtom } from '@einfach/core'
 import type { MessageDescriptor, Messages } from '@lingui/core'
-import type { ColumnFilterRule, SheetDrawing, WorkbookRibbonTab } from '@einfach-excel/spreadsheet-ui-core'
+import type { ColumnFilterRule, RangeBorderPatch, SheetDrawing,
+  WorkbookRibbonTab } from '@einfach-excel/spreadsheet-ui-core'
 import type { ComponentType } from 'react'
 import type { UiLocale } from '../i18n/runtime'
 import type { WorkbookRibbonItemId } from '../page/workbook-ribbon-items'
@@ -60,6 +61,12 @@ export interface RichTextToolContribution {
   readonly Item: ComponentType<{ readonly restoreSelection: () => void }>
 }
 
+/** Declarative positions share the existing border draft, validation and Apply transaction. */
+export interface BorderPresetContribution {
+  readonly preset: RangeBorderPatch['preset']
+  readonly label: MessageDescriptor
+}
+
 /**
  * 可选功能包向工作簿贡献的界面入口。插件状态与命令放在插件自己的 Core 入口，
  * 这里只声明挂载位置；工作簿核心不 import 任何插件。
@@ -77,6 +84,7 @@ export interface SpreadsheetPlugin {
   readonly drawings?: readonly DrawingContribution[]
   readonly filterConditions?: readonly FilterConditionContribution[]
   readonly richTextTools?: readonly RichTextToolContribution[]
+  readonly borderPresets?: readonly BorderPresetContribution[]
   /** 已编译的 Lingui 目录，合并进工作簿自己的 i18n 实例。 */
   readonly messages?: Partial<Record<UiLocale, Messages>>
 }

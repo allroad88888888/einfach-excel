@@ -12,6 +12,7 @@ import {
 import { useId, useLayoutEffect, useRef } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
 import { COLORS } from './color-swatches'
+import { useSpreadsheetPlugins } from '../../../plugin/plugin-context'
 import './border-panel.css'
 
 /** 选区几何不进入 React；表单只编辑三个原生命令参数。 */
@@ -39,6 +40,13 @@ export function BorderTools() {
   }
 
   const state = useAtomValue(borderPanelAtom)
+  const contributed = useSpreadsheetPlugins().flatMap(plugin => plugin.borderPresets ?? [])
+  const positions = [
+    ...BORDER_PRESETS.map(preset => ({ preset, label: LABELS[preset] })),
+    ...contributed.map(item => ({ preset: item.preset, label: i18n._(item.label) })),
+  ]
+  const savedPosition = !positions.some(item => item.preset === state.draft.preset)
+  const clearing = state.draft.preset === 'none' || state.draft.preset === 'diagonal-none'
   const run = useSetAtom(runBorderPanelAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
   const trigger = useRef<HTMLButtonElement>(null)
@@ -115,9 +123,12 @@ export function BorderTools() {
                 })
               }
             >
-              {BORDER_PRESETS.map((preset) => (
+              {savedPosition && <option value={state.draft.preset}>
+                {t`Saved position: ${state.draft.preset}`}
+              </option>}
+              {positions.map(({ preset, label }) => (
                 <option value={preset} key={preset}>
-                  {LABELS[preset]}
+                  {label}
                 </option>
               ))}
             </select>
@@ -126,7 +137,7 @@ export function BorderTools() {
             </label>
             <select
               id={`${id}-style`}
-              disabled={state.busy || state.draft.preset === 'none'}
+              disabled={state.busy || clearing}
               value={state.draft.style}
               onChange={(event) =>
                 void run({
@@ -143,7 +154,7 @@ export function BorderTools() {
                 </option>
               ))}
             </select>
-            <fieldset disabled={state.busy || state.draft.preset === 'none'}>
+            <fieldset disabled={state.busy || clearing}>
               <legend>
                 <Trans>Border color</Trans>
               </legend>

@@ -5246,6 +5246,11 @@ msgstr "已于 {0} 保存到本浏览器。"
 msgid "Saved lists"
 msgstr "已保存列表"
 
+#. placeholder {0}: state.draft.preset
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Saved position: {0}"
+msgstr "已保留的位置：{0}"
+
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Saving changes…"
 msgstr "正在保存更改…"
@@ -6908,6 +6913,10 @@ msgstr "不支持的数据验证"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "unsupported defined names"
 msgstr "不支持的名称定义"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "unsupported diagonal border styles"
+msgstr "不支持的斜线边框线型"
 
 #: src/i18n/xlsx-report-feedback.ts
 msgid "unsupported hyperlinks"

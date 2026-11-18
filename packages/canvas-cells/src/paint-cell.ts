@@ -2,6 +2,7 @@ import { formulaViewText } from '@einfach-excel/spreadsheet-ui-core'
 import type { BorderSegment, CanvasCellsTheme, CellPaintModel } from './types'
 import { paintText } from './text'
 import { paintCellMetadata } from './cell-metadata/paint-metadata'
+import { paintDiagonalBorders } from './paint-diagonal-borders'
 
 function paintBorder(ctx: CanvasRenderingContext2D, segment: BorderSegment, gridline: string) {
   const { side, bounds: b } = segment
@@ -48,6 +49,7 @@ export function paintCell(
       ctx.fillRect(b.x + 2 + width * bar.axis / 100, b.y + 3, 1, Math.max(0, b.height - 6))
     }
   }
+  paintDiagonalBorders(ctx, b, cell?.format?.borders)
   if (item.across) {
     // 跨列居中：每一格只画整段文字落在自己范围内的那一截。
     paintText(ctx, item.across.bounds, item.across.cell,

@@ -5246,6 +5246,11 @@ msgstr "Saved in this browser at {0}."
 msgid "Saved lists"
 msgstr "Saved lists"
 
+#. placeholder {0}: state.draft.preset
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Saved position: {0}"
+msgstr "Saved position: {0}"
+
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Saving changes…"
 msgstr "Saving changes…"
@@ -6908,6 +6913,10 @@ msgstr "unsupported data validations"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "unsupported defined names"
 msgstr "unsupported defined names"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "unsupported diagonal border styles"
+msgstr "unsupported diagonal border styles"
 
 #: src/i18n/xlsx-report-feedback.ts
 msgid "unsupported hyperlinks"

@@ -207,7 +207,8 @@ pub struct CellFormat {
     pub indent: Option<u8>,
     #[serde(default, skip_serializing)]
     pub rotation: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, deserialize_with = "crate::native_diagonal_borders::deserialize",
+        skip_serializing_if = "Option::is_none")]
     pub borders: Option<Borders>,
 }
 
@@ -233,6 +234,7 @@ pub struct NumberFormat {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Borders {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub top: Option<BorderSide>,
@@ -242,6 +244,10 @@ pub struct Borders {
     pub bottom: Option<BorderSide>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub left: Option<BorderSide>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diag_up: Option<BorderSide>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diag_down: Option<BorderSide>,
 }
 
 /// style：none / thin / medium / thick / dashed / dotted / double

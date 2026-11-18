@@ -37,6 +37,7 @@ export * from './history'
 export * from './repeat'
 export { fontBaselineLayout, fontVerticalMetrics } from './text/font-baseline'
 export { textShrinkBlockedReason, textShrinkScale } from './text/shrink-to-fit'
+export { diagonalBorderLines, type DiagonalBorderLine } from './borders/diagonal-geometry'
 export * from './contracts'
 export * from './clipboard'
 export * from './clipboard/system-clipboard-command'
@@ -108,7 +109,8 @@ export {
 export type { WorkbookRibbonOverflow } from './toolbar/ribbon-overflow'
 export * from './toolbar/selection-format-command'
 export { colorPaletteAtom, runColorPaletteAtom } from './toolbar/color-palette'
-export { borderPanelAtom, runBorderPanelAtom, BORDER_PRESETS, BORDER_STYLES } from './toolbar/border-panel'
+export { borderPanelAtom, runBorderPanelAtom, BORDER_PRESETS, BORDER_STYLES,
+  DIAGONAL_BORDER_PRESETS } from './toolbar/border-panel'
 export { textLayoutFeedbackAtom, runTextLayoutAtom } from './toolbar/text-layout-command'
 export {
   numberFormatPanelAtom, runNumberFormatPanelAtom,

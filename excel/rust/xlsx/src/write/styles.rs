@@ -159,8 +159,14 @@ fn side_xml(tag: &str, side: &Option<BorderSide>) -> String {
 }
 
 fn border_xml(borders: &Borders) -> String {
-    format!("<border>{}{}{}{}<diagonal/></border>", side_xml("left", &borders.left),
-        side_xml("right", &borders.right), side_xml("top", &borders.top), side_xml("bottom", &borders.bottom))
+    let up = borders.diag_up.as_ref().filter(|spec| spec.style != "none");
+    let down = borders.diag_down.as_ref().filter(|spec| spec.style != "none");
+    let flags = if up.is_some() || down.is_some() {
+        format!(r#" diagonalUp="{}" diagonalDown="{}""#, u8::from(up.is_some()), u8::from(down.is_some()))
+    } else { String::new() };
+    format!("<border{flags}>{}{}{}{}{}</border>", side_xml("left", &borders.left),
+        side_xml("right", &borders.right), side_xml("top", &borders.top), side_xml("bottom", &borders.bottom),
+        side_xml("diagonal", &up.or(down).cloned()))
 }
 
 fn alignment_xml(format: &CellFormat) -> Option<String> {

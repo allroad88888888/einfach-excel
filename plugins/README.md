@@ -22,6 +22,9 @@
 - `richTextTools`：向共享富文本对话框贡献选区格式按钮。插件 Core 派生选区摘要并修改共享草稿，
   原对话框统一负责保存、取消、忙碌状态与焦点。工具只接收恢复 DOM 选区的回调；卸载保留草稿。
 
+- `borderPresets`：向共享边框面板声明原生预设及标签；共享面板拥有草稿与提交生命周期。
+  重复或未知预设在挂载时拒绝，卸载保留打开的草稿并显示保存的位置标签。
+
 - `ribbon`：功能区分组，排在内置分组之后，只在声明的 `tab` 分类显示；放不下时与内置分组一样整组收进“更多”。
 - `ribbonItems`：控件进入现有分组，`after` 只能指定 `workbookRibbonItemIds` 中的内置入口，按插件配置顺序排列；继承原组的分类与“更多”布局。宿主可用 `plugin:<插件 id>:<贡献 id>` 隐藏整项贡献，隐藏锚点不影响贡献。同插件的分组与组内贡献 ID 不得重复，未知锚点在挂载时拒绝。
 - `contextMenu`：单元格右键菜单项，排在内置项（`cells.insert`、`cells.delete`）之后；一个菜单项派发一个零参数命令 atom。
@@ -53,6 +56,7 @@
 - [图片导出](plugin-image-export/README.md)：`imageExportPlugin`。
 - [图表](plugin-chart/README.md)：`chartPlugin`（ECharts；对象层与对象目录在核心，不认识图表）。
 - [文字格式](plugin-text-format/README.md)：`textFormatPlugin`（整格与局部上下标、缩小字体填充；插件拥有编辑命令，核心保留格式数据与原生事务）。
+- [单元格外观](plugin-cell-appearance/README.md)：`cellAppearancePlugin`（声明可选斜线边框预设，复用共享草稿；核心拥有格式事实、事务与渲染）。
 - [列表排序](plugin-data-sort/README.md)：`dataSortPlugin`（复用填充目录；插件拥有排序草稿，核心负责校验、行置换与历史）。
 - [筛选条件](plugin-data-filter/README.md)：`dataFilterPlugin`（插件拥有 Top-N、日期期间编辑交互，核心负责数值排名、日历区间与筛选快照）。
 

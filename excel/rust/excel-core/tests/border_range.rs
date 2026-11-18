@@ -41,6 +41,7 @@ fn all_positions_follow_selection_edges_including_reversed_ranges() {
                     Bottom => [false, false, outer[2], false],
                     Left => [false, false, false, outer[3]],
                     None => [false; 4],
+                    _ => unreachable!("this test covers physical edge presets"),
                 };
                 let addr = CellAddress::new(row, col).to_string_repr();
                 assert_eq!(

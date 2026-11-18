@@ -22,6 +22,7 @@ fn validated_fill_history_uses_actual_border_segments_not_locked_bbox_corners() 
                     right: border.clone(),
                     bottom: border.clone(),
                     left: border,
+                    ..Default::default()
                 },
                 ..Default::default()
             },

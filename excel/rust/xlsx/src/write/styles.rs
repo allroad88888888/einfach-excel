@@ -175,8 +175,11 @@ fn alignment_xml(format: &CellFormat) -> Option<String> {
     if let Some(vertical @ ("top" | "center" | "bottom" | "justify" | "distributed")) = format.vertical_align.as_deref() {
         attrs.push_str(&format!(r#" vertical="{vertical}""#));
     }
-    if format.wrap == Some(true) {
-        attrs.push_str(r#" wrapText="1""#);
+    if let Some(wrap) = format.wrap {
+        attrs.push_str(if wrap { r#" wrapText="1""# } else { r#" wrapText="0""# });
+    }
+    if let Some(shrink) = format.shrink_to_fit {
+        attrs.push_str(if shrink { r#" shrinkToFit="1""# } else { r#" shrinkToFit="0""# });
     }
     if let Some(indent) = format.indent.filter(|&n| n > 0) {
         attrs.push_str(&format!(r#" indent="{indent}""#));

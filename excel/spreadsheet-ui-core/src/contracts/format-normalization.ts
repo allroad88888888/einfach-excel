@@ -19,6 +19,7 @@ export function isDefaultFormat(format: SpreadsheetCellFormat): boolean {
     !format.underline &&
     !format.strikethrough &&
     !format.wrap &&
+    format.shrinkToFit === undefined &&
     (format.align === undefined || format.align === 'default') &&
     format.verticalAlign === undefined &&
     format.fontBaseline === undefined &&

@@ -53,6 +53,7 @@ export type SelectionFormatAction =
   | { readonly type: 'font-family'; readonly value: string }
   | { readonly type: 'font-size'; readonly value: number }
   | { readonly type: 'font-baseline'; readonly value: FontBaseline }
+  | { readonly type: 'shrink-to-fit'; readonly value: boolean }
   | { readonly type: 'fill-color'; readonly value: string | null }
   | { readonly type: 'text-color'; readonly value: string | null }
   | TextLayoutAction
@@ -69,6 +70,11 @@ function nextPatch(
   borderPatch?: RangeBorderPatch
 } | null {
   if (typeof action !== 'string') {
+    if (action.type === 'shrink-to-fit') {
+      return typeof action.value === 'boolean'
+        ? { format: { shrinkToFit: action.value, ...(action.value ? { wrap: false } : {}) } }
+        : null
+    }
     if (action.type === 'horizontal-alignment') {
       return ['default', 'left', 'center', 'right', 'centerAcross'].includes(action.value)
         ? { format: { align: action.value } } : null
@@ -113,7 +119,7 @@ function nextPatch(
     return { format: { [action]: !current[action] } }
   }
   if (action === 'wrap-text') {
-    return { format: { wrap: !current.wrap } }
+    return { format: { wrap: !current.wrap, ...(!current.wrap ? { shrinkToFit: false } : {}) } }
   }
   if (action === 'text-color') {
     return current.fgColor === SELECTION_TEXT_COLOR

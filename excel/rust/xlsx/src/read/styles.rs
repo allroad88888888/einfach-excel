@@ -127,9 +127,9 @@ fn alignment(e: &BytesStart, format: &mut CellFormat) {
         // bottom 是 Excel 默认，与引擎默认一致，不必写。
         _ => None,
     };
-    if attr_bool(e, "wrapText", false) {
-        format.wrap = Some(true);
-    }
+    format.wrap = attr(e, "wrapText").map(|_| attr_bool(e, "wrapText", false));
+    // Explicit false must override a row/column's shrink setting after import.
+    format.shrink_to_fit = attr(e, "shrinkToFit").map(|_| attr_bool(e, "shrinkToFit", false));
     format.indent = attr_u32(e, "indent").filter(|&n| n > 0).map(|n| n.min(15) as u8);
 }
 

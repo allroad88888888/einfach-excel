@@ -21,6 +21,8 @@ pub struct CellFormat {
     pub underline: bool,
     pub strikethrough: bool,
     pub wrap_text: bool,
+    /// Display-only scaling; stored font size stays unchanged. Wrapping takes precedence.
+    pub shrink_to_fit: bool,
     /// Indent in Excel indent units (0..=15). Stored verbatim for round-trip.
     pub indent: u8,
     pub vertical_align: VerticalAlign,

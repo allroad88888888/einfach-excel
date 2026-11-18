@@ -257,4 +257,5 @@ mod tests {
     include!("wasm_tests/history_topology.rs");
     include!("wasm_tests/center_across.rs");
     include!("wasm_tests/import_rich_text.rs");
+    include!("wasm_tests/shrink_to_fit.rs");
 }

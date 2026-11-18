@@ -8,6 +8,7 @@ import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'
 import { fontBaselineText } from './font-baseline-text'
+import { shrinkToFitText } from './ShrinkToFitText'
 import { RichCellText } from './RichCellText'
 import {
   NumberFormatText, numberFormatColorStyle, numberFormatLayout, numberFormatSpacingStyle,
@@ -96,9 +97,6 @@ export function SpreadsheetGrid({
         const run = !merged && columnWidths
           ? centerAcrossRun((r, c) => cellsByCoordinate.get(`${r}:${c}`), row, col, window.colEnd)
           : null
-        const across = run && run.colEnd > run.colStart && columnWidths
-          ? centerAcrossStyles(centerAcrossSpanWidth(run, window.colStart, columnWidths))
-          : undefined
         const formatStyle = {
           ...cellFormatStyle(
             cell?.format ? { ...cell.format, borders: undefined,
@@ -108,8 +106,11 @@ export function SpreadsheetGrid({
           ),
           ...borderStyle(row, col, cell?.format),
           ...numberFormatColorStyle(cell, showFormulas),
-          ...across?.cell,
         }
+        const across = run && run.colEnd > run.colStart && columnWidths
+          ? centerAcrossStyles(
+            centerAcrossSpanWidth(run, window.colStart, columnWidths), formatStyle)
+          : undefined
         const height = rowHeights?.[row - window.rowStart] ?? DEFAULT_CELL_ROW_HEIGHT
         // table 的内容上限扣除真实边框；16px 行高也不能被大字或粗边框反向撑开。
         const topBorder = Number.parseFloat(
@@ -147,7 +148,7 @@ export function SpreadsheetGrid({
             aria-hidden={merged || undefined}
             data-selected={isSelected ? 'true' : undefined}
             data-center-across={run && across ? run.colEnd - run.colStart + 1 : undefined}
-            style={formatStyle}
+            style={{ ...formatStyle, ...across?.cell }}
           >
             {!merged && cell?.dataBar && <CellDataBar bar={cell.dataBar} />}
             {!merged && (cell?.conditionalIcon || cell?.noteIndicator || cell?.commentIndicator ||
@@ -166,7 +167,8 @@ export function SpreadsheetGrid({
                 ...across?.content,
               }}
             >
-              {rotated ? <span className="cell-rotation-line">{textContent}</span> : textContent}
+              {shrinkToFitText(rotated ? <span className="cell-rotation-line">{textContent}</span>
+                : textContent, text, cell?.format)}
             </span>
             {filterHeader && <CellFilterButton col={col} table={filterTable} />}
           </td>,

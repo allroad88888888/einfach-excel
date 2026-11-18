@@ -202,6 +202,8 @@ pub struct CellFormat {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wrap: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shrink_to_fit: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub indent: Option<u8>,
     #[serde(default, skip_serializing)]
     pub rotation: Option<i32>,

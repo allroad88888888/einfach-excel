@@ -13,6 +13,7 @@ import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { createMergedBorderStyle, MergedCellBorders } from './MergedCellBorders'
 import { CellDataBar } from './CellDataBar'
 import { RichCellText } from './RichCellText'
+import { shrinkToFitText } from './ShrinkToFitText'
 import {
   NumberFormatText, numberFormatColorStyle, numberFormatLayout, numberFormatSpacingStyle,
 } from './NumberFormatText'
@@ -109,7 +110,8 @@ export function MergedCells({ window, anchors, metadataLabels }: {
               }}
               data-conditional-icon-value={cell.conditionalIcon
                 ? cell.conditionalIcon.showValue ? 'visible' : 'hidden' : undefined}>
-              {rotated ? <span className="cell-rotation-line">{textContent}</span> : textContent}
+              {shrinkToFitText(rotated ? <span className="cell-rotation-line">{textContent}</span>
+                : textContent, formulaViewText(cell, showFormulas), cell.format)}
             </span>
           </div>
         )

@@ -1,6 +1,7 @@
 import type { Rect } from '@einfach-excel/canvas'
 import {
   externalHyperlink, fontBaselineLayout, fontVerticalMetrics,
+  textShrinkBlockedReason, textShrinkScale,
   type DisplayCell,
   type RichTextFormat,
 } from '@einfach-excel/spreadsheet-ui-core'
@@ -80,9 +81,28 @@ export function paintRichText(
         })
       }
     }
-    const fullWidth = glyphs.reduce((sum, glyph) => sum + glyph.width, 0)
-    const scale =
-      base?.shrinkToFit && !wrapping && !vertical ? Math.min(1, width / Math.max(1, fullWidth)) : 1
+    // Use the same style chunks for natural measurement and drawing, preserving kerning.
+    const measuredChunks = (input: Glyph[]) => {
+      const chunks: Glyph[] = []
+      for (const glyph of input) {
+        const previous = chunks.at(-1)
+        if (previous?.format === glyph.format && previous.size === glyph.size)
+          previous.text += glyph.text
+        else chunks.push({ ...glyph })
+      }
+      for (const chunk of chunks) {
+        ctx.font = font(chunk.format, chunk.size)
+        chunk.width = ctx.measureText(chunk.text).width
+      }
+      return chunks
+    }
+    const fullWidth = measuredChunks(glyphs).reduce((sum, glyph) => sum + glyph.width, 0)
+    const originalText = cell.richText!.map(run => run.text).join('')
+    const shrinking = (base?.shrinkToFit || base?.overflow === 'shrink-to-fit') &&
+      !textShrinkBlockedReason(base, originalText)
+    const scale = textShrinkScale(base, originalText, fullWidth, width, factor =>
+      measuredChunks(glyphs.map(glyph => ({ ...glyph, size: glyph.size * factor })))
+        .reduce((sum, glyph) => sum + glyph.width, 0))
     const lines: Line[] = []
     let line: Line = { glyphs: [], width: 0, height: (base?.fontSize ?? 12) * 1.2 * scale,
       ascent: 0, descent: 0 }
@@ -109,7 +129,8 @@ export function paintRichText(
         baselineAware ? line.ascent + line.descent : 0)
     }
     flush()
-    if (!wrapping && !vertical && (base?.overflow === 'ellipsis' || base?.overflow === 'clip')) {
+    if (!shrinking && !wrapping && !vertical &&
+      (base?.overflow === 'ellipsis' || base?.overflow === 'clip')) {
       const first = lines[0]!
       if (first.width > width) {
         const tail = first.glyphs.at(-1)
@@ -127,20 +148,8 @@ export function paintRichText(
     }
     // Paint each contiguous style together so kerning and ligatures survive segmentation.
     for (const item of lines) {
-      const chunks: Glyph[] = []
-      for (const glyph of item.glyphs) {
-        const previous = chunks.at(-1)
-        if (previous?.format === glyph.format && previous.size === glyph.size)
-          previous.text += glyph.text
-        else chunks.push({ ...glyph })
-      }
-      item.width = 0
-      for (const chunk of chunks) {
-        ctx.font = font(chunk.format, chunk.size)
-        chunk.width = ctx.measureText(chunk.text).width
-        item.width += chunk.width
-      }
-      item.glyphs = chunks
+      item.glyphs = measuredChunks(item.glyphs)
+      item.width = item.glyphs.reduce((sum, chunk) => sum + chunk.width, 0)
     }
     const align = base?.align === 'centerAcross' ? 'center' : (base?.align ?? 'left')
     const blockHeight = lines.reduce((sum, item) => sum + item.height, 0)

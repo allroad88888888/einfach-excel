@@ -382,6 +382,10 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | FONT-022 | 字号提交中禁用编辑和取消 | `format/font-size-controls.spec.ts` | pending custom size disables editing and cancellation until the native response |
 | FONT-023 | 整格上标 | `format/font-baseline.spec.ts` | Superscript raises selected cell text without changing values or nominal font size |
 | FONT-024 | 整格下标与恢复正常 | `format/font-baseline.spec.ts` | Subscript replaces superscript and restores normal text in one undoable step |
+| FONT-025 | 缩小字体填充并在同一事务关闭换行 | `format/shrink-to-fit.spec.ts` | Shrink to fit preserves the stored font size and turns off wrapping in one undoable step |
+| FONT-026 | 换行关闭缩小并可撤销恢复 | `format/shrink-to-fit.spec.ts` | Wrap text disables shrink to fit and undo restores the previous layout |
+| FONT-027 | 查看原生缩小字号示例及未缩小参考格 | `format/shrink-to-fit.spec.ts` | native shrink examples retain numeric formulas and mixed run sizes beside plain references |
+| FONT-028 | 中文窄屏键盘操作缩小字号及保护恢复 | `format/shrink-recovery.spec.ts` | Chinese shrink button works by keyboard at 390px and retries after protection is removed |
 | RICH-001 | 所选字符上标 | `rich-text/font-baseline.spec.ts` | Superscript formats only selected characters and survives reopen with one undo at 1280px |
 | RICH-002 | 所选字符下标 | `rich-text/font-baseline.spec.ts` | Subscript replaces selected superscript without changing source text at 1280px |
 | RICH-003 | 中文局部上标键盘入口 | `rich-text/baseline-keyboard.spec.ts` | Chinese inline superscript activates with Enter on a narrow viewport |

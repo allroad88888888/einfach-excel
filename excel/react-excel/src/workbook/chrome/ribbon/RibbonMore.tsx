@@ -2,6 +2,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   setWorkbookRibbonExpandedAtom,
   workbookRibbonOverflowAtom,
+  editingSessionAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { useLingui } from '@lingui/react/macro'
 import { useId } from 'react'
@@ -15,6 +16,7 @@ import type { WorkbookRibbonGroup } from './ribbon-groups'
 export function RibbonMore({ groups }: { readonly groups: readonly WorkbookRibbonGroup[] }) {
   const { i18n, t } = useLingui()
   const { expanded } = useAtomValue(workbookRibbonOverflowAtom)
+  const editing = useAtomValue(editingSessionAtom).source !== null
   const setExpanded = useSetAtom(setWorkbookRibbonExpandedAtom)
   const id = useId()
   if (groups.length === 0) return null
@@ -29,6 +31,7 @@ export function RibbonMore({ groups }: { readonly groups: readonly WorkbookRibbo
         title={label}
         aria-expanded={expanded}
         aria-controls={`${id}-panel`}
+        onPointerDown={event => { if (editing) event.preventDefault() }}
         onClick={() => setExpanded(!expanded)}
       >
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">

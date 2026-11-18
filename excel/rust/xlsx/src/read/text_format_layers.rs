@@ -1,4 +1,4 @@
-//! Preserve explicitly declared row/column baseline layers without materializing default normal.
+//! Preserve sparse axis baseline, wrapping and shrink flags without materializing cells.
 use crate::native::{CellFormat, IndexedStyle, MAX_COLS, MAX_ROWS};
 use super::worksheet::SheetData;
 
@@ -8,21 +8,26 @@ pub fn read(data: &SheetData, xfs: &[CellFormat]) -> (Vec<IndexedStyle>, Vec<Ind
             let Some(format) = xfs.get(style as usize) else { return false };
             let mut remaining = format.clone();
             remaining.font_baseline = None;
+            remaining.wrap = None;
+            remaining.shrink_to_fit = None;
             if remaining.font_size == data.defaults.font_size { remaining.font_size = None; }
             remaining != CellFormat::default()
         }).count();
-    let baseline = |style: u32| xfs.get(style as usize)?.font_baseline;
+    let text_format = |style: u32| {
+        let source = xfs.get(style as usize)?;
+        let format = CellFormat { font_baseline: source.font_baseline,
+            wrap: source.wrap, shrink_to_fit: source.shrink_to_fit, ..Default::default() };
+        (format != CellFormat::default()).then_some(format)
+    };
     let rows = data.row_styles.iter().filter_map(|&(index, style)| {
         if index >= MAX_ROWS { return None; }
-        Some(IndexedStyle { index, format: CellFormat {
-            font_baseline: Some(baseline(style)?), ..Default::default()
-        } })
+        Some(IndexedStyle { index, format: text_format(style)? })
     }).collect();
     let mut columns = std::collections::BTreeMap::new();
     for &(min, max, style) in &data.column_styles {
-        let Some(font_baseline) = baseline(style) else { continue };
+        let Some(format) = text_format(style) else { continue };
         for index in min.saturating_sub(1)..max.min(MAX_COLS) {
-            columns.insert(index, CellFormat { font_baseline: Some(font_baseline), ..Default::default() });
+            columns.insert(index, format.clone());
         }
     }
     (rows, columns.into_iter().map(|(index, format)| IndexedStyle { index, format }).collect(), unsupported)

@@ -1,6 +1,6 @@
 //! XLSX 字节 → 原生工作簿文件。
 
-mod font_baseline_layers;
+mod text_format_layers;
 mod archive;
 pub(crate) mod charts;
 mod chartex;
@@ -121,7 +121,7 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         });
         canvases.push(Canvas { row_count: MAX_ROWS, col_count: MAX_COLS });
 
-        let (row_styles, column_styles, unsupported_styles) = font_baseline_layers::read(&data, &xfs);
+        let (row_styles, column_styles, unsupported_styles) = text_format_layers::read(&data, &xfs);
         report.add("rowColumnStyles", unsupported_styles);
         let mut cell_styles = Vec::new();
         for cell in data.cells {

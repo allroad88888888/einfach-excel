@@ -33,6 +33,7 @@ impl CellFormatJSON {
             underline: style.underline,
             strikethrough: style.strikethrough,
             wrap: style.wrap_text,
+            shrink_to_fit: style.shrink_to_fit,
             indent: style.indent,
             vertical_align: style.vertical_align.map(|value| match value {
                 VerticalAlign::Default => "default".into(),

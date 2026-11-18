@@ -1,5 +1,6 @@
 :where(.einfach-spreadsheet) .text-format-tools { display: contents; }
-:where(.einfach-spreadsheet) .font-baseline-feedback {
+:where(.einfach-spreadsheet) .font-baseline-feedback,
+:where(.einfach-spreadsheet) .shrink-to-fit-feedback {
   display: inline-flex;
   max-width: 220px;
   align-items: center;
@@ -8,3 +9,4 @@
   overflow-wrap: anywhere;
 }
 :where(.einfach-spreadsheet) [data-ribbon-group='font']:has(.text-format-tools) .font-family-select { width: 88px; }
+:where(.einfach-spreadsheet) .shrink-to-fit-feedback[role='note'] { color: inherit; }

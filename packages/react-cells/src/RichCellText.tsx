@@ -1,5 +1,5 @@
 import type { DisplayCell, RichTextRun } from '@einfach-excel/spreadsheet-ui-core'
-import { fontBaselineStyle, fontBaselineText } from './font-baseline-text'
+import { fontBaselineStyle, fontBaselineText, fontGlyphLength } from './font-baseline-text'
 import type { CSSProperties } from 'react'
 
 export function richTextRunStyle(run: RichTextRun, cell?: Pick<DisplayCell, 'format'>): CSSProperties {
@@ -9,7 +9,7 @@ export function richTextRunStyle(run: RichTextRun, cell?: Pick<DisplayCell, 'for
     fontStyle: format.italic === undefined ? undefined : format.italic ? 'italic' : 'normal',
     color: run.format.color,
     fontFamily: format.fontFamily,
-    fontSize: format.fontSize,
+    fontSize: format.fontSize === undefined ? undefined : fontGlyphLength(format.fontSize, format),
     ...fontBaselineStyle(format),
     textDecoration:
       format.underline === undefined && format.strikethrough === undefined

@@ -18,6 +18,7 @@ pub struct CellStyle {
     pub underline: Option<bool>,
     pub strikethrough: Option<bool>,
     pub wrap_text: Option<bool>,
+    pub shrink_to_fit: Option<bool>,
     pub indent: Option<u8>,
     pub vertical_align: Option<VerticalAlign>,
     pub rotation: Option<Rotation>,
@@ -53,6 +54,7 @@ impl CellStyle {
             underline: Some(format.underline),
             strikethrough: Some(format.strikethrough),
             wrap_text: Some(format.wrap_text),
+            shrink_to_fit: Some(format.shrink_to_fit),
             indent: Some(format.indent),
             vertical_align: Some(format.vertical_align),
             rotation: Some(format.rotation),
@@ -78,6 +80,7 @@ impl CellStyle {
             || (self.underline.is_some() && patch.underline.is_some())
             || (self.strikethrough.is_some() && patch.strikethrough.is_some())
             || (self.wrap_text.is_some() && patch.wrap_text.is_some())
+            || (self.shrink_to_fit.is_some() && patch.shrink_to_fit.is_some())
             || (self.indent.is_some() && patch.indent.is_some())
             || (self.vertical_align.is_some() && patch.vertical_align.is_some())
             || (self.rotation.is_some() && patch.rotation.is_some())
@@ -121,6 +124,9 @@ impl CellStyle {
         }
         if patch.wrap_text.is_some() {
             self.wrap_text = patch.wrap_text;
+        }
+        if patch.shrink_to_fit.is_some() {
+            self.shrink_to_fit = patch.shrink_to_fit;
         }
         if patch.indent.is_some() {
             self.indent = patch.indent;
@@ -173,6 +179,9 @@ impl CellStyle {
         }
         if let Some(value) = self.wrap_text {
             format.wrap_text = value;
+        }
+        if let Some(value) = self.shrink_to_fit {
+            format.shrink_to_fit = value;
         }
         if let Some(value) = self.indent {
             format.indent = value;

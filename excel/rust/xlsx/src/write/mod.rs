@@ -1,6 +1,6 @@
 //! 原生工作簿文件 → XLSX 字节。
 
-mod font_baseline_layers;
+mod text_format_layers;
 mod comments;
 mod conditional;
 mod cell_values;
@@ -45,7 +45,6 @@ fn has_meaningful_format(f: &CellFormat) -> bool {
         || f.bg_color.is_some()
         || f.align.as_deref().is_some_and(|a| a != "default")
         || f.vertical_align.as_deref().is_some_and(|a| a != "default")
-        || f.wrap == Some(true)
         || f.indent.is_some_and(|i| i > 0)
         || f.rotation.is_some_and(|r| r != 0)
         || f.borders.as_ref().is_some_and(|b| {
@@ -96,7 +95,7 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
         let row_col_styles = range.row_styles.iter().filter(|s| has_meaningful_format(&s.format)).count()
             + range.column_styles.iter().filter(|s| has_meaningful_format(&s.format)).count();
         report.add("rowColumnStyles", row_col_styles);
-        font_baseline_layers::write(range, target, &mut styles);
+        text_format_layers::write(range, target, &mut styles);
         for style in &range.cell_styles {
             if style.format.rotation.is_some_and(|r| r != 0) {
                 report.add("cellRotation", 1);

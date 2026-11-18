@@ -43,7 +43,7 @@ test('font family, font size, wrap and indent remain independent of alignment', 
     await act(async () => { fireEvent.click(screen.getByRole('button', { name })) })
   }
   expect(writes.map((write) => write.format)).toEqual([
-    { fontFamily: 'Georgia' }, { fontSize: 16 }, { wrap: true },
+    { fontFamily: 'Georgia' }, { fontSize: 16 }, { wrap: true, shrinkToFit: false },
     { indent: 1 }, { indent: 2 }, { indent: 1 },
   ])
   expect(screen.getByRole('button', { name: 'Wrap text' })).toHaveAttribute('aria-pressed', 'true')

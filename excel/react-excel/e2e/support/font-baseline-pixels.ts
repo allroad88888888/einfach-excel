@@ -14,8 +14,8 @@ export const baselinePixelFile = Buffer.from(JSON.stringify({
   },
 }))
 
-export async function glyphPixels(page: Page, bytes: Buffer) {
-  return page.evaluate(async data => {
+export async function glyphPixels(page: Page, bytes: Buffer, includeAntialias = false) {
+  return page.evaluate(async ({ data, includeAntialias }) => {
     const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob())
     const canvas = document.createElement('canvas')
     canvas.width = bitmap.width; canvas.height = bitmap.height
@@ -26,8 +26,14 @@ export async function glyphPixels(page: Page, bytes: Buffer) {
     for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) {
       const i = (y * canvas.width + x) * 4
       const rgb = [pixels[i]!, pixels[i + 1]!, pixels[i + 2]!]
-      const color = [[208, 0, 0], [0, 128, 0], [0, 0, 208]].findIndex(target =>
-        target.every((channel, index) => Math.abs(channel - rgb[index]!) < 10))
+      const color = [[208, 0, 0], [0, 128, 0], [0, 0, 208]].findIndex(target => {
+        if (!includeAntialias) return target.every((channel, index) => Math.abs(channel - rgb[index]!) < 10)
+        // Small glyphs can contain almost no solid-color pixels. Recover coverage
+        // against this fixture's white background and reject grid/selection colors.
+        const coverage = (255 - Math.min(...rgb)) / 255
+        return coverage >= 0.15 && target.every((channel, index) =>
+          Math.abs(255 - coverage * (255 - channel) - rgb[index]!) < 10)
+      })
       if (color < 0 || pixels[i + 3]! < 100) continue
       const box = boxes[color]!
       box.left = Math.min(box.left, x); box.right = Math.max(box.right, x)
@@ -35,7 +41,7 @@ export async function glyphPixels(page: Page, bytes: Buffer) {
     }
     return boxes.map(box => ({ ...box, height: box.bottom - box.top + 1,
       center: (box.top + box.bottom) / 2 }))
-  }, bytes.toString('base64'))
+  }, { data: bytes.toString('base64'), includeAntialias })
 }
 
 export function expectBaselinePixels(boxes: Awaited<ReturnType<typeof glyphPixels>>) {

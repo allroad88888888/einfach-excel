@@ -41,7 +41,8 @@ test('a text-format contribution runs inside the existing font row even when its
 
 test('the host can hide a whole text-format contribution or just one of its stable controls', async ({ page }) => {
   await open(page, 'plugins=text-format&hide=ribbon:plugin:text-format:font-baseline')
-  await expect(page.locator('.text-format-tools')).toHaveCount(0)
+  await expect(page.locator('[data-ribbon-item="format.subscript"]')).toHaveCount(0)
+  await expect(page.locator('[data-ribbon-item="format.shrink-to-fit"]')).toHaveCount(1)
   await expect(page.locator('[data-ribbon-item="format.superscript"]')).toHaveCount(0)
   await showRibbonItem(page, 'format.font-family')
   await expect(page.getByRole('combobox', { name: 'Font family' })).toHaveCSS('width', '100px')

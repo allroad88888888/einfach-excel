@@ -17,6 +17,17 @@ function runWidth(
   return width + ctx.measureText(plain).width
 }
 
+/** Intrinsic glyph width excludes the adaptive fill gap but includes each real pad character. */
+export function numberFormatLineWidth(
+  ctx: CanvasRenderingContext2D, text: string, layout: Layout | undefined,
+): number {
+  const chars = Array.from(text)
+  const fill = layout?.fill
+  if (fill && fill.at <= chars.length) return runWidth(ctx, chars, 0, fill.at, layout?.pads)
+    + runWidth(ctx, chars, fill.at, chars.length, layout?.pads)
+  return runWidth(ctx, chars, 0, chars.length, layout?.pads)
+}
+
 /**
  * 从 edge 起绘制区间：left 向右排、right 从右边缘向左排（文字段右对齐）。
  * `_x` 位置不画字，只让出字符 x 的宽度。

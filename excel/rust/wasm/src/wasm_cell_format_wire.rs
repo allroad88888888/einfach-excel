@@ -54,6 +54,8 @@ struct CellFormatJSON {
     strikethrough: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     wrap: Option<bool>,
+    #[serde(default, rename = "shrinkToFit", skip_serializing_if = "Option::is_none")]
+    shrink_to_fit: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     indent: Option<u8>,
     #[serde(
@@ -149,6 +151,7 @@ impl CellFormatJSON {
             underline: self.underline.unwrap_or(false),
             strikethrough: self.strikethrough.unwrap_or(false),
             wrap_text: self.wrap.unwrap_or(false),
+            shrink_to_fit: self.shrink_to_fit.unwrap_or(false),
             indent: self.indent.unwrap_or(0),
             vertical_align,
             rotation,
@@ -181,6 +184,7 @@ impl CellFormatJSON {
             underline: self.underline,
             strikethrough: self.strikethrough,
             wrap_text: self.wrap,
+            shrink_to_fit: self.shrink_to_fit,
             indent: self.indent,
             vertical_align: self.vertical_align.map(|value| match value.as_str() {
                 "top" => VerticalAlign::Top,
@@ -221,6 +225,7 @@ impl CellFormatJSON {
             underline: if fmt.underline { Some(true) } else { None },
             strikethrough: if fmt.strikethrough { Some(true) } else { None },
             wrap: if fmt.wrap_text { Some(true) } else { None },
+            shrink_to_fit: fmt.shrink_to_fit.then_some(true),
             indent: if fmt.indent > 0 {
                 Some(fmt.indent)
             } else {

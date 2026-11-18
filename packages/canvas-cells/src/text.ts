@@ -1,7 +1,8 @@
 import { paintRichText } from './rich-text'
-import { paintNumberFormatLine } from './number-format-line'
+import { numberFormatLineWidth, paintNumberFormatLine } from './number-format-line'
 import type { Rect } from '@einfach-excel/canvas'
-import { externalHyperlink, fontBaselineLayout, fontVerticalMetrics, type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
+import { externalHyperlink, fontBaselineLayout, fontVerticalMetrics, textShrinkScale,
+  type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import type { CanvasCellsTheme } from './types'
 
 function ellipsis(ctx: CanvasRenderingContext2D, text: string, width: number) {
@@ -67,17 +68,21 @@ export function paintText(
     const baseline = fontBaselineLayout(fontSize, format?.fontBaseline)
     const baselineAware = baseline.shift !== 0
     const nominalMetrics = fontVerticalMetrics(ctx.measureText('Mg'), fontSize)
-    let size = baseline.size
+    ctx.font = font(baseline.size)
+    const naturalWidth = numberFormatLineWidth(ctx, text, numberDisplay)
+    const scale = textShrinkScale(format, text, naturalWidth, width,
+      factor => {
+        ctx.font = font(baseline.size * factor)
+        return numberFormatLineWidth(ctx, text, numberDisplay)
+      })
+    const size = baseline.size * scale
     ctx.font = font(size)
-    if (format?.shrinkToFit && !wrapping && !vertical) {
-      size *= Math.min(1, width / Math.max(1, ctx.measureText(text).width))
-      ctx.font = font(size)
-    }
-    const shift = baseline.shift * (size / baseline.size)
+    const shift = baseline.shift * scale
     const glyphMetrics = fontVerticalMetrics(ctx.measureText('Mg'), size)
-    const ascent = Math.max(nominalMetrics.ascent, glyphMetrics.ascent - shift)
-    const descent = Math.max(nominalMetrics.descent, glyphMetrics.descent + shift)
-    const lineHeight = baselineAware ? Math.max(fontSize * 1.2, ascent + descent) : size * 1.2
+    const ascent = Math.max(nominalMetrics.ascent * scale, glyphMetrics.ascent - shift)
+    const descent = Math.max(nominalMetrics.descent * scale, glyphMetrics.descent + shift)
+    const lineHeight = baselineAware
+      ? Math.max(fontSize * scale * 1.2, ascent + descent) : size * 1.2
     const maxLines = Math.max(1, Math.ceil(height / lineHeight))
     const lines = vertical ? Array.from(text).slice(0, maxLines)
       : wrapping ? wrap(ctx, text, width, maxLines)

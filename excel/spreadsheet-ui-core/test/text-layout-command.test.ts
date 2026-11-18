@@ -70,7 +70,7 @@ describe('selection text layout command', () => {
     expect(writes.map((write) => write.format)).toEqual([
       { fontFamily: 'Georgia' },
       { fontSize: 16 },
-      { wrap: true },
+      { wrap: true, shrinkToFit: false },
       { indent: 1 },
       { indent: 2 },
       { indent: 1 },

@@ -34,6 +34,11 @@ it('formula cells, merged cells and plain-aligned cells end the run', () => {
 it('sums window-relative widths and sizes the text block inside the padding', () => {
   const width = centerAcrossSpanWidth({ colStart: 3, colEnd: 5 }, 2, [10, 100, 0, 80, 60])
   expect(width).toBe(180)
-  expect(centerAcrossStyles(width).content).toMatchObject({ width: 166, textAlign: 'center' })
+  expect(centerAcrossStyles(width).content).toMatchObject({ width: 165, textAlign: 'center' })
   expect(centerAcrossStyles(width).cell).toMatchObject({ overflow: 'visible', position: 'relative' })
+})
+
+it('keeps indented text inside the last column of a span with visible borders', () => {
+  expect(centerAcrossStyles(360, { paddingLeft: '24px', borderLeftWidth: '2px',
+    borderRightWidth: '3px' }).content.width).toBe(324)
 })

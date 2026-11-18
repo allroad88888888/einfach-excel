@@ -71,6 +71,7 @@ export function freezeScope(scope: ConditionalFormatScope): ConditionalFormatSco
 export function freezeFormat(format: SpreadsheetCellFormat): SpreadsheetCellFormat {
   const result = copyFormat(format)
   if (result.numberFormat !== undefined) result.numberFormat = Object.freeze(result.numberFormat)
+  if (result.fill !== undefined) result.fill = Object.freeze(result.fill)
   if (result.borders !== undefined) {
     for (const side of [...BORDER_SIDES, 'diagUp', 'diagDown'] as const) {
       const spec = result.borders[side]

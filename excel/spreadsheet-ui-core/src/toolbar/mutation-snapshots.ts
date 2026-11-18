@@ -60,6 +60,7 @@ export function snapshotFormat(format: SpreadsheetCellFormat | null): Spreadshee
   return Object.freeze({
     ...format,
     ...(format.numberFormat ? { numberFormat: Object.freeze({ ...format.numberFormat }) } : {}),
+    ...(format.fill ? { fill: Object.freeze({ ...format.fill }) } : {}),
     ...(format.borders ? { borders: snapshotBorders(format.borders) } : {}),
   })
 }

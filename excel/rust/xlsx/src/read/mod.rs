@@ -1,6 +1,7 @@
 //! XLSX 字节 → 原生工作簿文件。
 
-mod text_format_layers;
+mod style_layers;
+mod style_fills;
 mod diagonal_borders;
 mod archive;
 pub(crate) mod charts;
@@ -87,8 +88,11 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
     let rich_strings = rich_text::shared(&strings_xml, &theme.colors);
     report.add("themeFonts", theme.custom_fonts);
     let styles_xml = match &parts.styles { Some(path) => archive.read(path)?, None => None };
-    let (xfs, diagonal_losses) = styles::parse(styles_xml.as_deref(), &theme.colors)?;
-    report.add("diagonalBorders", diagonal_losses);
+    let parsed_styles = styles::parse(styles_xml.as_deref(), &theme.colors)?;
+    report.add("diagonalBorders", parsed_styles.diagonal_losses);
+    report.add("unsupportedFills", parsed_styles.fill_losses
+        + style_fills::unsupported_dxf_count(styles_xml.as_deref()));
+    let xfs = parsed_styles.formats;
     let font_sizes = styles::font_sizes(styles_xml.as_deref());
     let dxfs = dxf::parse(styles_xml.as_deref(), &theme.colors);
     let shared = features::Shared { dxfs: &dxfs, theme: &theme.colors, date1904: parts.date1904 };
@@ -123,7 +127,7 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         });
         canvases.push(Canvas { row_count: MAX_ROWS, col_count: MAX_COLS });
 
-        let (row_styles, column_styles, unsupported_styles) = text_format_layers::read(&data, &xfs);
+        let (row_styles, column_styles, unsupported_styles) = style_layers::read(&data, &xfs);
         report.add("rowColumnStyles", unsupported_styles);
         let mut cell_styles = Vec::new();
         for cell in data.cells {

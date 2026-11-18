@@ -191,8 +191,12 @@ pub struct CellFormat {
     /// `#rrggbb`
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fg_color: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub bg_color: Option<String>,
+    #[serde(default, deserialize_with = "crate::native_fill::deserialize_override",
+        skip_serializing_if = "Option::is_none")]
+    pub bg_color: Option<Option<String>>,
+    #[serde(default, deserialize_with = "crate::native_fill::deserialize_override",
+        skip_serializing_if = "Option::is_none")]
+    pub fill: Option<Option<crate::native_fill::CellFill>>,
     /// left / center / right
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub align: Option<String>,

@@ -8,6 +8,7 @@ const FORMAT_FIELD_LABELS: Readonly<Record<string, RepeatLabel>> = {
   strikethrough: 'strikethrough',
   wrap: 'wrap-text',
   bgColor: 'fill-color',
+  fill: 'fill-color',
   fgColor: 'text-color',
   fontFamily: 'font-family',
   fontSize: 'font-size',

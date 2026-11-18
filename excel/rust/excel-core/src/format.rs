@@ -199,6 +199,7 @@ pub fn apply_rules(base: &CellFormat, rules: &[ConditionalRule], v: &Value) -> C
             }
             if rule.overrides.background.is_some() {
                 out.background = rule.overrides.background.clone();
+                out.fill = None;
             }
             break; // first match wins
         }

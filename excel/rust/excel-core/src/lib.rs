@@ -26,6 +26,8 @@ pub mod advanced_filter;
 mod find_text;
 mod find_wildcard;
 mod cell_format;
+mod cell_fill;
+pub use cell_fill::{CellFill, FillPattern};
 pub mod format;
 mod number_format;
 pub mod accounting_format;

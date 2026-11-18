@@ -3,6 +3,7 @@ import type { BorderSegment, CanvasCellsTheme, CellPaintModel } from './types'
 import { paintText } from './text'
 import { paintCellMetadata } from './cell-metadata/paint-metadata'
 import { paintDiagonalBorders } from './paint-diagonal-borders'
+import { paintCellFill } from './paint-cell-fill'
 
 function paintBorder(ctx: CanvasRenderingContext2D, segment: BorderSegment, gridline: string) {
   const { side, bounds: b } = segment
@@ -32,9 +33,7 @@ export function paintCell(
 ) {
   const { item, appearance: a } = model
   const b = item.bounds, cell = item.cell
-  ctx.fillStyle = theme.background
-  if (cell?.format?.bgColor) ctx.fillStyle = cell.format.bgColor
-  ctx.fillRect(b.x, b.y, b.width, b.height)
+  paintCellFill(ctx, b, cell?.format, theme.background)
   if (a.selected) { ctx.fillStyle = theme.selectionFill; ctx.fillRect(b.x, b.y, b.width, b.height) }
   if (a.hovered) { ctx.fillStyle = theme.hover; ctx.fillRect(b.x, b.y, b.width, b.height) }
   const bar = cell?.dataBar

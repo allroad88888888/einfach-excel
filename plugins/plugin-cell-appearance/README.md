@@ -1,6 +1,6 @@
 # 单元格外观插件
 
-`cellAppearancePlugin` 向共享边框面板贡献下斜线、上斜线、双斜线、清除斜线四个预设。
+`cellAppearancePlugin` 提供图案填充面板，并向共享边框面板贡献四个斜线预设。
 当前为工作区插件，尚未发布。
 
 ```tsx
@@ -10,12 +10,12 @@ import { cellAppearancePlugin } from '@einfach-excel/plugin-cell-appearance'
 <Spreadsheet definition={definition} plugins={[cellAppearancePlugin]} />
 ```
 
-演示站使用 `?plugins=cell-appearance`。Summary `F15:F17` 是原生斜线样例；
-不安装插件时仍显示、复制和保存已有斜线，只隐藏这些编辑预设。
+演示站使用 `?plugins=cell-appearance`。Summary `F15:F17` 是原生斜线样例，`H15:H17` 是图案样例。
+不安装插件时仍显示、复制和保存已有格式，只隐藏插件编辑入口。
 
 插件拥有 `borderPresets` 声明与中英文文案。共享面板的 `borderPanelAtom` 保存唯一草稿，
 `runBorderPanelAtom` 复用原有选择格式命令，Rust 校验并提交一次历史。
-当前没有独立可变状态，因此不另建插件 atom、控制器或工作簿副本。
+斜线不另建插件草稿、控制器或工作簿副本。
 卸载插件时，打开的草稿保留原预设并显示“已保存的位置”；仍可应用、取消，重装恢复插件标签。
 多个工作簿的草稿、历史与本地翻译实例各自独立；重复或未知预设在挂载时拒绝。
 
@@ -32,3 +32,21 @@ import { cellAppearancePlugin } from '@einfach-excel/plugin-cell-appearance'
 所以同时启用的两条斜线必须具有相同线型与颜色；不合法原生输入整次拒绝。
 XLSX 未支持的斜线线型计入损失报告；整行、整列样式的 XLSX 转换沿用现有损失报告范围，
 不承诺轴级斜线保真，也不声称与 Excel 的逐像素外观一致。
+
+图案面板的一个选择框提供全部 17 种 SpreadsheetML 图案，图案颜色与底色分别编辑。
+`/core` 导出 `patternFillPanelAtom`、`configurePatternFillAtom`，只保存临时草稿与提交反馈。
+打开时读取当前格式，Apply 校验原连接及选区身份，再通过公开 `applySelectionFormatAtom`
+提交一次双字段补丁。草稿改变不写工作簿；Cancel/Escape 丢弃草稿，失败保留草稿，等待期间禁止重复提交。
+同一 Store 卸载重装插件保留打开的草稿，替换工作簿连接时不继承旧草稿或异步反馈。
+
+Rust 的 `fill: { kind: 'pattern', pattern, foreground }` 保存图案事实，既有 `bgColor` 保存底色。
+固色入口同一事务清除图案；“无填充”同时清除两字段，显式清除可覆盖行列继承。
+背景条件格式仅在命中时隐藏图案，停止命中恢复原事实；文字高亮不清除图案。
+DOM、Canvas、PNG 共用 8 个逻辑像素的重复图块，图块相位基于完整单元格／合并格，
+不随视口裁剪重起，也不改变内容、字号或行列尺寸。Canvas 资源缓存每个上下文最多 64 项。
+
+原生文件保留图案、两色与稀疏样式。XLSX 使用 `patternFill` 的 `fgColor` 和 `bgColor`，
+支持单元格、整行、整列图案及显式清除；主题色、索引色转换为 RGB。
+原生模型的图案与底色能独立继承，XLSX 的单个 fill 记录不能完整表达这种关系：
+单格部分覆盖导出时保留当前外观并报告继承损失，行列部分覆盖的交叉组合报告损失且不展开整行。
+未知填充、非法外部颜色及当前不支持的图案条件格式明确报损。渐变填充仍待下一项实现。

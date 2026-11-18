@@ -16,6 +16,7 @@ pub struct CellFormat {
     /// HTML color string (`#rrggbb` / `red` / etc.); `None` = default.
     pub color: Option<String>,
     pub background: Option<String>,
+    pub fill: Option<crate::CellFill>,
     /// Font family name (CSS-style). `None` = workbook default.
     pub font_family: Option<String>,
     pub underline: bool,

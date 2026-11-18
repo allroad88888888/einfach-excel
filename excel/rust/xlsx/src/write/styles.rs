@@ -45,11 +45,7 @@ impl StyleTable {
         }
         let num_fmt = format.number_format.as_ref().map_or(0, |nf| self.num_fmt(&number_format::to_code(nf)));
         let font = intern(&mut self.fonts, font_xml(format));
-        let fill = match format.bg_color.as_deref().and_then(to_argb) {
-            Some(argb) => intern(&mut self.fills, format!(
-                r#"<fill><patternFill patternType="solid"><fgColor rgb="{argb}"/><bgColor indexed="64"/></patternFill></fill>"#)),
-            None => 0,
-        };
+        let fill = super::style_fills::xml(format).map_or(0, |xml| intern(&mut self.fills, xml));
         let border = match &format.borders {
             Some(borders) if *borders != Borders::default() => intern(&mut self.borders, border_xml(borders)),
             _ => 0,
@@ -57,7 +53,7 @@ impl StyleTable {
         let alignment = alignment_xml(format);
         let mut xf = format!(r#"<xf numFmtId="{num_fmt}" fontId="{font}" fillId="{fill}" borderId="{border}" xfId="0""#);
         for (flag, used) in [("applyNumberFormat", num_fmt != 0), ("applyFont", font != 0),
-            ("applyFill", fill != 0), ("applyBorder", border != 0), ("applyAlignment", alignment.is_some())] {
+            ("applyFill", fill != 0 || format.fill.is_some() || format.bg_color.is_some()), ("applyBorder", border != 0), ("applyAlignment", alignment.is_some())] {
             if used {
                 xf.push_str(&format!(r#" {flag}="1""#));
             }

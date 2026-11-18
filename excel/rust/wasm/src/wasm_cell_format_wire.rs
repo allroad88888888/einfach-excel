@@ -41,6 +41,9 @@ struct CellFormatJSON {
         skip_serializing_if = "Option::is_none"
     )]
     bg_color: Option<Option<String>>,
+    #[serde(default, deserialize_with = "deserialize_optional_override",
+        skip_serializing_if = "Option::is_none")]
+    fill: Option<Option<CellFill>>,
     #[serde(
         default,
         rename = "fontFamily",
@@ -151,6 +154,7 @@ impl CellFormatJSON {
             font_baseline: self.font_baseline.unwrap_or_default(),
             color: self.fg_color.flatten(),
             background: self.bg_color.flatten(),
+            fill: self.fill.flatten(),
             font_family: self.font_family.flatten(),
             underline: self.underline.unwrap_or(false),
             strikethrough: self.strikethrough.unwrap_or(false),
@@ -184,6 +188,7 @@ impl CellFormatJSON {
             font_baseline: self.font_baseline,
             color: self.fg_color,
             background: self.bg_color,
+            fill: self.fill,
             font_family: self.font_family,
             underline: self.underline,
             strikethrough: self.strikethrough,
@@ -225,6 +230,7 @@ impl CellFormatJSON {
             font_baseline: (fmt.font_baseline != FontBaseline::Normal).then_some(fmt.font_baseline),
             fg_color: fmt.color.clone().map(Some),
             bg_color: fmt.background.clone().map(Some),
+            fill: fmt.fill.clone().map(Some),
             font_family: fmt.font_family.clone().map(Some),
             underline: if fmt.underline { Some(true) } else { None },
             strikethrough: if fmt.strikethrough { Some(true) } else { None },

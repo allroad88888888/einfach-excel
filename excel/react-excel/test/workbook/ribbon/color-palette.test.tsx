@@ -50,7 +50,7 @@ test('the native picker is draft-only and reset clears only its own field', asyn
   expect(writes).toHaveLength(0)
   await click('No fill')
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-  expect(writes[0]).toMatchObject({ format: {}, clearFormatFields: ['bgColor'] })
+  expect(writes[0]).toMatchObject({ format: {}, clearFormatFields: ['bgColor', 'fill'] })
   await click('Choose text color')
   await click('Automatic text color')
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())

@@ -37,7 +37,8 @@ fn highlight(dxf: &Node, theme: &[String]) -> Option<Value> {
             format.insert("fgColor".into(), json!(fg));
         }
     }
-    if let Some(pattern) = dxf.child("fill").and_then(|fill| fill.child("patternFill")) {
+    if let Some(pattern) = dxf.child("fill").and_then(|fill| fill.child("patternFill"))
+        .filter(|pattern| matches!(pattern.attr("patternType"), None | Some("solid"))) {
         // dxf 的纯色填充把颜色放在 bgColor；个别写法放 fgColor。
         let bg = pattern.child("bgColor").and_then(|c| color_of(c, theme))
             .or_else(|| pattern.child("fgColor").and_then(|c| color_of(c, theme)));

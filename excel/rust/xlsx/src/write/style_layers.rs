@@ -1,4 +1,4 @@
-//! Export supported sparse axis text formats; unrelated losses retain their existing report.
+//! Export supported sparse axis styles without materializing cells.
 use crate::native::{CellFormat, FormatRange, MAX_COLS, MAX_ROWS};
 use super::{styles::StyleTable, worksheet::SheetInput};
 
@@ -10,10 +10,13 @@ pub fn write(range: &FormatRange, sheet: &mut SheetInput, styles: &mut StyleTabl
         for entry in entries {
             if entry.index >= limit { continue; }
             let source = &entry.format;
-            if source.font_baseline.is_none() && source.wrap.is_none() && source.shrink_to_fit.is_none() {
+            if source.font_baseline.is_none() && source.wrap.is_none() && source.shrink_to_fit.is_none()
+                && source.fill.is_none() && source.bg_color.is_none() {
                 continue;
             }
             let format = CellFormat {
+                fill: source.fill.clone(),
+                bg_color: source.bg_color.clone(),
                 font_baseline: source.font_baseline,
                 wrap: source.wrap,
                 shrink_to_fit: source.shrink_to_fit,

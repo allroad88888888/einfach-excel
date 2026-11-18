@@ -511,6 +511,15 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | BORDER-029 | 双斜线边框 | `format/diagonal-borders.spec.ts` | Both diagonals changes each selected cell and undoes in one step |
 | BORDER-030 | 只清除斜线边框 | `format/diagonal-borders.spec.ts` | No diagonal borders changes each selected cell and undoes in one step |
 | BORDER-031 | 键盘提交斜线边框及保护恢复 | `format/diagonal-keyboard.spec.ts` | Chinese Enter applies a diagonal after protection is removed |
+| PATT-001 | 选择全部 17 种图案并应用 | `format/pattern-fill.spec.ts` | Pattern selector applies all seventeen patterns with distinct geometry and one-step undo |
+| PATT-005 | 修改图案前景色 | `format/pattern-fill.spec.ts` | Pattern color changes only the pattern strokes in one undoable command |
+| PATT-006 | 修改图案底色 | `format/pattern-fill.spec.ts` | Background color changes only the pattern base in one undoable command |
+| PATT-007 | 固色和无填充替换图案 | `format/pattern-recovery.spec.ts` | Solid fill replaces a pattern and No fill removes both colors and the pattern |
+| PATT-008 | 键盘提交图案并恢复焦点 | `format/pattern-keyboard.spec.ts` | Chinese Enter submits a pattern after protection is removed and restores keyboard focus |
+| PATT-009 | 取消图案草稿 | `format/pattern-recovery.spec.ts` | Cancel discards an uncommitted pattern draft and returns focus to its opener |
+| PATT-010 | Escape 关闭图案草稿 | `format/pattern-recovery.spec.ts` | Escape dismisses a pattern draft without changing cell formats or history |
+| PATT-011 | 复制空白图案格后粘贴全部 | `format/pattern-persistence.spec.ts` | copy-all carries both pattern colors without replacing neighboring pattern facts |
+| PATT-012 | 空白图案格仅粘贴格式 | `format/pattern-persistence.spec.ts` | formats carries both pattern colors without replacing neighboring pattern facts |
 | CF-001 | 新增条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | adding a conditional rule changes only its applied cells at 1280px |
 | CF-002 | 修改条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | editing a seeded conditional rule keeps one rule and one undo step at 1280px |
 | CF-003 | 删除条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | deleting a seeded conditional rule preserves other rules at 1280px |

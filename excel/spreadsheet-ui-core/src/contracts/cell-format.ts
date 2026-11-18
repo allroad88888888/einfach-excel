@@ -1,3 +1,5 @@
+import type { SpreadsheetCellFill } from './cell-fill'
+
 /** Font glyph baseline; independent of alignment within the cell box. */
 export type FontBaseline = 'normal' | 'superscript' | 'subscript'
 
@@ -157,6 +159,7 @@ export interface SpreadsheetCellFormat {
   fontFamily?: string
   fgColor?: string
   bgColor?: string
+  fill?: SpreadsheetCellFill
   borders?: SpreadsheetBorders
   underline?: boolean
   strikethrough?: boolean

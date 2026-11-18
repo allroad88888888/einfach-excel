@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Optional cell appearance editors for the Einfach spreadsheet",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./core": "./src/core/index.ts"
   },
   "sideEffects": false,
   "scripts": {

@@ -121,6 +121,20 @@ describe('browser clipboard read boundary', () => {
     await expect(readBrowserClipboard()).resolves.toEqual({ text: '', token: undefined })
   })
 
+  test('a blank native capture remains usable when the browser omits the empty plain-text item', async () => {
+    read.mockResolvedValueOnce([new TestClipboardItem({
+      'text/html': new Blob([`<pre data-einfach-clipboard="${token}"></pre>`]),
+    })])
+    await expect(readBrowserClipboard()).resolves.toEqual({ text: '', token })
+  })
+
+  test.each(['<table><tr><td></td></tr></table>', '<pre data-einfach-clipboard="invalid"></pre>'])(
+    'HTML without an internal token cannot impersonate an empty native capture: %s', async html => {
+      read.mockResolvedValueOnce([new TestClipboardItem({ 'text/html': new Blob([html]) })])
+      await expect(readBrowserClipboard()).rejects.toThrow('does not contain cell text')
+    },
+  )
+
   test.each([{ items: [] }, { items: [new TestClipboardItem({ 'image/png': new Blob(['x']) })] }])('rejects a clipboard without text: %j', async ({ items }) => {
     read.mockResolvedValueOnce(items)
     await expect(readBrowserClipboard()).rejects.toThrow('does not contain cell text')

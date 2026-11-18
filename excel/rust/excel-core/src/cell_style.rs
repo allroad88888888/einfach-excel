@@ -14,6 +14,7 @@ pub struct CellStyle {
     pub font_baseline: Option<FontBaseline>,
     pub color: Option<Option<String>>,
     pub background: Option<Option<String>>,
+    pub fill: Option<Option<crate::CellFill>>,
     pub font_family: Option<Option<String>>,
     pub underline: Option<bool>,
     pub strikethrough: Option<bool>,
@@ -50,6 +51,7 @@ impl CellStyle {
             font_baseline: Some(format.font_baseline),
             color: Some(format.color),
             background: Some(format.background),
+            fill: Some(format.fill),
             font_family: Some(format.font_family),
             underline: Some(format.underline),
             strikethrough: Some(format.strikethrough),
@@ -76,6 +78,7 @@ impl CellStyle {
             || (self.font_baseline.is_some() && patch.font_baseline.is_some())
             || (self.color.is_some() && patch.color.is_some())
             || (self.background.is_some() && patch.background.is_some())
+            || (self.fill.is_some() && patch.fill.is_some())
             || (self.font_family.is_some() && patch.font_family.is_some())
             || (self.underline.is_some() && patch.underline.is_some())
             || (self.strikethrough.is_some() && patch.strikethrough.is_some())
@@ -112,6 +115,9 @@ impl CellStyle {
         }
         if patch.background.is_some() {
             self.background.clone_from(&patch.background);
+        }
+        if patch.fill.is_some() {
+            self.fill.clone_from(&patch.fill);
         }
         if patch.font_family.is_some() {
             self.font_family.clone_from(&patch.font_family);
@@ -167,6 +173,9 @@ impl CellStyle {
         }
         if let Some(value) = &self.background {
             format.background.clone_from(value);
+        }
+        if let Some(value) = &self.fill {
+            format.fill.clone_from(value);
         }
         if let Some(value) = &self.font_family {
             format.font_family.clone_from(value);

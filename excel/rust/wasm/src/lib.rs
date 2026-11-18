@@ -6,7 +6,7 @@
 
 use einfach_core::{CellListener, Value, ValueError};
 use einfach_excel_core::{
-    FontBaseline, Align, BorderSpec, BorderStyle, CellAddress, CellBorders, CellFormat, CellRange, CellStyle,
+    FontBaseline, Align, BorderSpec, BorderStyle, CellAddress, CellBorders, CellFill, CellFormat, CellRange, CellStyle,
     CellSubscription, ColumnFilterRule, ConditionalFormatConfigSnapshot,
     ConditionalFormatRuleEntry, CustomFunctionRegistry, DepGraphStats, FilterApplyReport,
     FilterError, FilterSnapshot, FormatRangeSnapshot, HiddenRowsSnapshot, NumberFormat, Rotation,
@@ -260,4 +260,5 @@ mod tests {
     include!("wasm_tests/import_rich_text.rs");
     include!("wasm_tests/shrink_to_fit.rs");
     include!("wasm_tests/diagonal_borders.rs");
+    include!("wasm_tests/pattern_fill.rs");
 }

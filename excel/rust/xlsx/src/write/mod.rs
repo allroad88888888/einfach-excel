@@ -1,6 +1,8 @@
 //! 原生工作簿文件 → XLSX 字节。
 
-mod text_format_layers;
+mod style_layers;
+mod style_fills;
+mod fill_layers;
 mod comments;
 mod conditional;
 mod cell_values;
@@ -42,7 +44,6 @@ fn has_meaningful_format(f: &CellFormat) -> bool {
         || f.font_size.is_some()
         || f.font_family.is_some()
         || f.fg_color.is_some()
-        || f.bg_color.is_some()
         || f.align.as_deref().is_some_and(|a| a != "default")
         || f.vertical_align.as_deref().is_some_and(|a| a != "default")
         || f.indent.is_some_and(|i| i > 0)
@@ -96,13 +97,14 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
         let row_col_styles = range.row_styles.iter().filter(|s| has_meaningful_format(&s.format)).count()
             + range.column_styles.iter().filter(|s| has_meaningful_format(&s.format)).count();
         report.add("rowColumnStyles", row_col_styles);
-        text_format_layers::write(range, target, &mut styles);
+        style_layers::write(range, target, &mut styles);
+        let fill_layers = fill_layers::FillLayers::new(range, &mut report);
         for style in &range.cell_styles {
             if style.format.rotation.is_some_and(|r| r != 0) {
                 report.add("cellRotation", 1);
             }
             if let Some(coord) = parse_cell(&style.addr) {
-                let mut format = style.format.clone();
+                let mut format = fill_layers.cell(&style.format, coord, &mut report);
                 format.font_size = format.font_size.or(target.defaults.font_size);
                 let xf = styles.xf(&format);
                 if xf != target.default_style {

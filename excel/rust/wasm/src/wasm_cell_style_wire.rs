@@ -29,6 +29,7 @@ impl CellFormatJSON {
             font_baseline: style.font_baseline,
             fg_color: style.color.clone(),
             bg_color: style.background.clone(),
+            fill: style.fill.clone(),
             font_family: style.font_family.clone(),
             underline: style.underline,
             strikethrough: style.strikethrough,

@@ -11,6 +11,7 @@ import {
 } from './constants'
 import type { ConditionalFormatScope } from './types'
 import { snapshotCellBorders } from './snapshot-borders'
+import { snapshotCellFill } from '../contracts/cell-fill'
 
 export function isObjectRecord(value: unknown): value is Record<PropertyKey, unknown> {
   return typeof value === 'object' && value !== null
@@ -243,6 +244,11 @@ export function snapshotFormat(value: unknown): SpreadsheetCellFormat | null {
       )
         return null
       result.rotation = value.rotation
+    }
+    if (value.fill !== undefined) {
+      const fill = snapshotCellFill(value.fill)
+      if (fill === null) return null
+      result.fill = fill
     }
     if (value.borders !== undefined) {
       const borders = snapshotCellBorders(value.borders)

@@ -24,6 +24,12 @@ export function assertUniquePluginIds(plugins: readonly SpreadsheetPlugin[]): vo
         throw new Error(`Duplicate filter condition editor: ${condition.kind}`)
       conditions.add(condition.kind)
     }
+    const richTextTools = new Set<string>()
+    for (const item of plugin.richTextTools ?? []) {
+      if (richTextTools.has(item.id))
+        throw new Error(`Duplicate rich text tool: ${plugin.id}:${item.id}`)
+      richTextTools.add(item.id)
+    }
     const contributions = new Set<string>()
     for (const item of [...(plugin.ribbon ?? []), ...(plugin.ribbonItems ?? [])]) {
       if (contributions.has(item.id))

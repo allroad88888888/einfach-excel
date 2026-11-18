@@ -36,6 +36,7 @@ include!("wasm_style_snapshot_wire.rs");
 include!("wasm_format_snapshot_wire.rs");
 include!("wasm_import_value_wire.rs");
 include!("wasm_import_cells_wire.rs");
+include!("wasm_import_rich_text.rs");
 include!("wasm_bulk_wire.rs");
 include!("wasm_cell_snapshot_wire.rs");
 include!("hyperlink/mod.rs");
@@ -255,4 +256,5 @@ mod tests {
     include!("wasm_tests/diagnostics.rs");
     include!("wasm_tests/history_topology.rs");
     include!("wasm_tests/center_across.rs");
+    include!("wasm_tests/import_rich_text.rs");
 }

@@ -10,6 +10,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../chrome/ribbon/dialog-focus'
 import { translateFeedback } from '../../i18n/translate-feedback'
+import { RichTextContributions } from '../../plugin/RichTextContributions'
 import './rich-text.css'
 
 export function RichTextDialog() {
@@ -34,10 +35,13 @@ export function RichTextDialog() {
       if (opener?.isConnected) opener.focus({ preventScroll: true })
     }
   }, [state.open])
-  const format = (value: RichTextFormat | null) => {
-    void run({ format: value })
+  const restoreSelection = () => {
     inputRef.current?.focus()
     inputRef.current?.setSelectionRange(state.start, state.end)
+  }
+  const format = (value: RichTextFormat | null) => {
+    void run({ format: value })
+    restoreSelection()
   }
   if (!state.open) return null
   return (
@@ -109,6 +113,7 @@ export function RichTextDialog() {
                 {icon}
               </button>
             ))}
+            <RichTextContributions restoreSelection={restoreSelection} />
             <label>
               <Trans>Font family</Trans>
               <select

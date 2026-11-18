@@ -87,7 +87,12 @@ pub(super) fn apply_paste(
                 CellStyle::from_format(CellFormat::default()),
             );
         }
-        for (addr, _, format) in planned {
+        for (addr, value, format) in planned {
+            // Values-only writes plain content even when the text equals the target.
+            // Ordinary text editing rebases runs; that behavior must not leak into this mode.
+            if options.mode == ClipboardPasteMode::Values && value.is_some() {
+                sheet.restore_rich_text(CellRange::single(addr), &[]);
+            }
             // 普通粘贴携带链接；仅值/公式/格式不改变目标的链接元数据。
             // 扩表可额外生成粘贴矩形外的表头；它们没有对应剪贴板源格。
             if options.mode == ClipboardPasteMode::All

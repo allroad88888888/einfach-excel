@@ -54,6 +54,12 @@ export interface FilterConditionContribution {
   readonly Editor: ComponentType<{ readonly index: number }>
 }
 
+/** Character-format tools share the existing rich-text draft and save lifecycle. */
+export interface RichTextToolContribution {
+  readonly id: string
+  readonly Item: ComponentType<{ readonly restoreSelection: () => void }>
+}
+
 /**
  * 可选功能包向工作簿贡献的界面入口。插件状态与命令放在插件自己的 Core 入口，
  * 这里只声明挂载位置；工作簿核心不 import 任何插件。
@@ -70,6 +76,7 @@ export interface SpreadsheetPlugin {
   /** 按 `kind` 渲染浮动对象内容；同一 kind 只能由一个插件提供。 */
   readonly drawings?: readonly DrawingContribution[]
   readonly filterConditions?: readonly FilterConditionContribution[]
+  readonly richTextTools?: readonly RichTextToolContribution[]
   /** 已编译的 Lingui 目录，合并进工作簿自己的 i18n 实例。 */
   readonly messages?: Partial<Record<UiLocale, Messages>>
 }

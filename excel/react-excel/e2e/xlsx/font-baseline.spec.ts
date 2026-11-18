@@ -114,7 +114,7 @@ test('existing rich-text editor previews inherited baselines and preserves them 
   await expect(runs.nth(0)).toHaveCSS('font-size', '7.8px')
   await expect(runs.nth(1)).toHaveCSS('font-size', '12px')
   await expect(runs.nth(2)).toHaveCSS('font-size', '7.8px')
-  await expect(dialog.getByRole('button', { name: 'Superscript', exact: true })).toHaveCount(0)
+  await expect(dialog.getByRole('button', { name: 'Superscript', exact: true })).toBeDisabled()
   const text = dialog.getByRole('textbox', { name: 'Cell text' })
   await text.press('Home'); await text.press('Shift+ArrowRight')
   await dialog.getByRole('button', { name: 'Italic', exact: true }).click()

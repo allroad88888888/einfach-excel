@@ -19,6 +19,7 @@ export type {
   RibbonContribution,
   RibbonItemContribution,
   SpreadsheetPlugin, FilterConditionContribution,
+  RichTextToolContribution,
 } from './plugin/types'
 export type { WorkbookUiOptions } from './page/workbook-ui-options'
 export { workbookRibbonItemIds, type WorkbookRibbonItemId } from './page/workbook-ribbon-items'

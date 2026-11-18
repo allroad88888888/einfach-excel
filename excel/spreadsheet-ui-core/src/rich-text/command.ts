@@ -186,13 +186,18 @@ export const runRichTextAtom = atom(
     const pending = { ...state, busy: true, error: '' }
     set(panelAtom, pending)
     try {
-      const reply = await connection.request('richText.change', {
+      const response = connection.request('richText.change', {
         sheetId: sheet.id,
         ...state.cell,
         runs: state.runs,
         revision: state.revision!,
         projection,
       })
+      // Einfach 0.4 flushes a synchronous write only when its async command settles.
+      // Publish pending after the write boundary, as the existing font commands do.
+      await Promise.resolve()
+      if (get(panelAtom) === pending) set(panelAtom, pending)
+      const reply = await response
       if (get(rustWorkbookConnectionAtom) !== connection || get(panelAtom) !== pending) return false
       if (
         typeof reply.changed !== 'boolean' ||

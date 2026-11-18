@@ -6,8 +6,9 @@ impl WasmWorkbook {
         // dodge a WASM allocator panic on the eager formula-install
         // loop; the Phase 2/3 lazy `bulk_load` makes single-call 5M+
         // payloads finish cleanly. See `CAP_REMOVAL_2026-06-11.md`.
-        let cells: Vec<WorkbookImportCellJSON> = serde_wasm_bindgen::from_value(cells)
+        let mut cells: Vec<WorkbookImportCellJSON> = serde_wasm_bindgen::from_value(cells)
             .map_err(|err| JsValue::from_str(&format!("invalid import cells: {err}")))?;
+        validate_imported_rich_text(&self.workbook, &mut cells).map_err(|error| JsValue::from_str(&error))?;
 
         // 种子可先安装合并矩形；批量装载不能绕过覆盖格保护而生成隐藏内容。
         // 写入前检查整批，拒绝时不留下已导入的前半批数据。
@@ -31,7 +32,7 @@ impl WasmWorkbook {
         let mut formats = Vec::new();
         let sheet_count = self.workbook.sheet_count();
         self.workbook.bulk_load(|loader| {
-            for cell in cells {
+            for mut cell in cells {
                 let kind = match &cell.kind {
                     BulkImportKindJSON::Text(kind) => kind.clone(),
                     BulkImportKindJSON::Invalid => {
@@ -73,8 +74,18 @@ impl WasmWorkbook {
                     },
                     "text" => match &cell.value {
                         Some(BulkImportValueJSON::Text(s)) => {
-                            loader.set_cell_at(cell.sheet, addr, Value::Text(s.clone().into()));
-                            stats.accepted += 1;
+                            if let Some(runs) = cell.rich_text.take() {
+                                match loader.set_text_runs_at(cell.sheet, addr, s.clone(), runs) {
+                                    Ok(()) => stats.accepted += 1,
+                                    Err(error) => {
+                                        stats.errors += 1;
+                                        stats.push_issue(&cell, kind, "INVALID_RICH_TEXT", error);
+                                    }
+                                }
+                            } else {
+                                loader.set_cell_at(cell.sheet, addr, Value::Text(s.clone().into()));
+                                stats.accepted += 1;
+                            }
                         }
                         _ => {
                             stats.errors += 1;

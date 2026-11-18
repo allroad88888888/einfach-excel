@@ -1,6 +1,6 @@
 # 文字格式插件
 
-`textFormatPlugin` 提供整格上标、下标编辑，安装后进入现有字体组。当前为工作区插件，尚未发布。
+`textFormatPlugin` 提供整格上标、下标编辑及富文本选区的局部上下标。当前为工作区插件，尚未发布。
 
 ```tsx
 import { Spreadsheet } from '@einfach-excel/react-excel'
@@ -20,4 +20,10 @@ import { textFormatPlugin } from '@einfach-excel/plugin-text-format'
 隐藏按钮。隐藏锚点不隐藏插件贡献。中英文文案和仅在插件挂载时生效的紧凑布局由插件提供。
 
 整格格式、富文本分段继承、历史、重复、AutoFit、DOM/Canvas 渲染及原生/XLSX 语义归核心所有。
-局部富文本上下标编辑仍待接入本业务域。
+局部按钮通过 `richTextTools` 加入共享富文本对话框；`richTextBaselineAtom` 从相交文本段派生
+选区摘要，`runRichTextBaselineAtom` 修改原有草稿。混合选区应用目标效果；再次点击相同效果写入
+显式正常基线，覆盖整格上下标。原有“重置所选格式”清除覆盖，恢复整格继承。
+空选区与保存期间禁用工具；仅保存产生一次原生历史，取消丢弃草稿，卸载插件保留草稿。
+HTML 复制保留安全的分段字形样式，纯文本仍是原文字，不替换成 Unicode 上下标字符。
+普通复制、剪切与填充保留分段；仅粘贴值移除目标文本段覆盖，即使文字相同也可单步撤销恢复。
+Table 内富文本编辑仍未开放。

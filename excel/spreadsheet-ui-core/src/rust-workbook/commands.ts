@@ -1,9 +1,10 @@
+import type { RustImportCell, RustImportStats } from './import-commands'
+export type { RustImportCell, RustImportStats } from './import-commands'
 import type { SheetDefaults } from '../runtime/sheet-defaults'
 import type { RustNumberFormatPreview } from './native-number-display'
 import type {
   SetCellInputRequest,
   SetFormatRangeRequest,
-  SpreadsheetCellFormat,
   SpreadsheetNumberFormat,
   VisibleProjectionRequest,
   VisibleProjectionResult,
@@ -126,59 +127,6 @@ export interface RustWorkbookSheet {
   /** 视图选项：隐藏网格线／行列标题；缺省为显示。 */
   readonly hideGridlines?: boolean
   readonly hideHeadings?: boolean
-}
-
-/** 导入坐标为零基：row=0、col=0 表示 A1。 */
-type RustImportCellValue =
-  | {
-      readonly sheet: number
-      readonly row: number
-      readonly col: number
-      readonly kind: 'number'
-      readonly value: number
-    }
-  | {
-      readonly sheet: number
-      readonly row: number
-      readonly col: number
-      readonly kind: 'text'
-      readonly value: string
-    }
-  | {
-      readonly sheet: number
-      readonly row: number
-      readonly col: number
-      readonly kind: 'boolean'
-      readonly value: boolean
-    }
-  | {
-      readonly sheet: number
-      readonly row: number
-      readonly col: number
-      readonly kind: 'error'
-      readonly value: string
-    }
-  | {
-      readonly sheet: number
-      readonly row: number
-      readonly col: number
-      readonly kind: 'formula'
-      readonly value: string
-    }
-  | { readonly sheet: number; readonly row: number; readonly col: number; readonly kind: 'null' }
-
-/** Rust 批量导入格；可选格式仍直接写入 Rust，不产生 React 数据副本。 */
-export type RustImportCell = RustImportCellValue & {
-  readonly format?: SpreadsheetCellFormat
-}
-
-export interface RustImportStats {
-  readonly accepted: number
-  readonly formulas: number
-  readonly rejectedFormulas: number
-  readonly cleared: number
-  readonly errors: number
-  readonly issues?: readonly unknown[]
 }
 
 export type RustClearRangeMode = 'contents' | 'formats' | 'all'

@@ -382,6 +382,16 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | FONT-022 | 字号提交中禁用编辑和取消 | `format/font-size-controls.spec.ts` | pending custom size disables editing and cancellation until the native response |
 | FONT-023 | 整格上标 | `format/font-baseline.spec.ts` | Superscript raises selected cell text without changing values or nominal font size |
 | FONT-024 | 整格下标与恢复正常 | `format/font-baseline.spec.ts` | Subscript replaces superscript and restores normal text in one undoable step |
+| RICH-001 | 所选字符上标 | `rich-text/font-baseline.spec.ts` | Superscript formats only selected characters and survives reopen with one undo at 1280px |
+| RICH-002 | 所选字符下标 | `rich-text/font-baseline.spec.ts` | Subscript replaces selected superscript without changing source text at 1280px |
+| RICH-003 | 中文局部上标键盘入口 | `rich-text/baseline-keyboard.spec.ts` | Chinese inline superscript activates with Enter on a narrow viewport |
+| RICH-004 | 中文局部下标键盘入口 | `rich-text/baseline-keyboard.spec.ts` | Chinese inline subscript activates with Space on a narrow viewport |
+| RICH-005 | HTML 复制局部上下标及安全文字 | `rich-text/baseline-html.spec.ts` | HTML clipboard exports edited inline glyph styles while escaping markup and retaining plain text |
+| RICH-006 | HTML 复制显式正常基线 | `rich-text/baseline-html.spec.ts` | HTML clipboard retains explicit normal over a superscript cell |
+| RICH-007 | 保存局部格式时禁用编辑及取消 | `rich-text/baseline-recovery.spec.ts` | pending inline save disables editing and cancellation until the actual Worker response |
+| RICH-008 | 仅粘贴值清除目标局部样式并可撤销 | `rich-text/baseline-persistence.spec.ts` | copy cut fill and values-only preserve the edited inline baseline contract |
+| RICH-009 | 合并锚点显示局部下标并撤销 | `rich-text/baseline-merged.spec.ts` | merged anchor renders its selected subscript and restores the original text in one undo |
+| RICH-010 | 合并格重新保存保留全部文本段 | `rich-text/baseline-merged.spec.ts` | reopening a merged rich-text draft and saving unchanged retains every original run |
 | STYLE-001 | 快捷应用填充颜色 | `format/cell-appearance.spec.ts` | Fill color reapplies the last color and No fill clears it explicitly |
 | STYLE-002 | 快捷应用文字颜色 | `format/cell-appearance.spec.ts` | Text color reapplies the last color and Automatic clears it explicitly |
 | STYLE-003 | 水平居中 | `format/cell-appearance.spec.ts` | horizontal center is an independent undoable choice at 1280px |

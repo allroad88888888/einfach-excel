@@ -9,6 +9,8 @@ struct WorkbookImportCellJSON {
     value: Option<BulkImportValueJSON>,
     #[serde(default)]
     format: Option<CellFormatJSON>,
+    #[serde(default, rename = "richText")]
+    rich_text: Option<Vec<einfach_excel_core::rich_text::RichTextRun>>,
 }
 
 #[derive(Clone, Debug, Serialize)]

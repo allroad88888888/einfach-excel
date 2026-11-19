@@ -5,7 +5,7 @@ import { readSheetMetadata } from './sheet-metadata'
 import { readVisibleProjection } from './visible-projection'
 import { readSizes } from './size-io'
 import {
-  structureSheet,
+  structureSheetAfterEdits,
   structureProjectionRequest,
   structureSizeRange,
 } from './structure-geometry'
@@ -52,14 +52,15 @@ export function applyRustHistory(
     entry.sheetKey ? sheet.key === entry.sheetKey : sheet.index === entry.sheetIndex,
   )
   if (!affected) throw new Error('History worksheet no longer exists.')
+  const edits = entry.structuralEdits ?? (entry.structuralEdit ? [entry.structuralEdit] : [])
   if (
-    (entry.sheetChange || entry.structuralEdit) &&
+    (entry.sheetChange || edits.length) &&
     (!workbook.sheet_key ||
       [...known.values()].some((sheet) => !sheet.key || !sheet.rowCount || !sheet.colCount))
   )
     throw new Error('Worksheet identity or bounds are unavailable.')
-  const restored = entry.structuralEdit
-    ? structureSheet(affected, entry.structuralEdit, input.direction === 'undo')
+  const restored = edits.length
+    ? structureSheetAfterEdits(affected, edits, input.direction === 'undo')
     : undefined
   if (
     restored &&

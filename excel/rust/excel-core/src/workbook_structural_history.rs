@@ -332,6 +332,7 @@ impl StructuralHistoryChange {
                 ));
             }
             workbook.sheets[sheet].outline.clone_from(&snapshot.outline);
+            workbook.sheets[sheet].subtotal_regions.clone_from(&snapshot.subtotal_regions);
             workbook
                 .restore_sheet_visibility(sheet, &snapshot.visibility)
                 .expect("preflight checked workbook state");

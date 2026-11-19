@@ -1,3 +1,4 @@
+import type { NativeSubtotalList, NativeSubtotalListRequest, NativeSubtotalReport, SubtotalAction } from './subtotal-commands'
 import type { RustFillNamedList } from './fill-types'
 import type { SheetDefaults } from '../runtime/sheet-defaults'
 import type {
@@ -115,6 +116,11 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries, WasmAd
   change_table?: (sheet: number, action: NativeTableAction) => boolean
   list_named_ranges?: () => readonly NativeNamedRange[]
   change_named_range?: (sheet: number, action: NativeNamedRangeAction) => boolean
+  inspect_subtotal_list?: (request: NativeSubtotalListRequest) => NativeSubtotalList
+  change_subtotals?: (request: {
+    readonly list: NativeSubtotalListRequest
+    readonly action: SubtotalAction
+  }) => NativeSubtotalReport | undefined
   change_outline?: (sheet: number, axis: 'row' | 'column', action: NativeOutlineAction) => boolean
   getDataValidation?: (sheet: number, row: number, col: number) => NativeDataValidationRule | null
   setDataValidation?: (sheet: number, rowStart: number, colStart: number,

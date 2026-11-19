@@ -29,6 +29,15 @@ export function structureSheet(sheet: RustWorkbookSheet, edit: StructuralEdit, u
   return { ...sheet, rowCount: rows ? next : rowCount, colCount: rows ? colCount : next }
 }
 
+export function structureSheetAfterEdits(
+  sheet: RustWorkbookSheet,
+  edits: readonly StructuralEdit[],
+  undo = false,
+): RustWorkbookSheet {
+  const sequence = undo ? [...edits].reverse() : edits
+  return sequence.reduce((current, edit) => structureSheet(current, edit, undo), sheet)
+}
+
 /** 删除末尾行列后保持窗口大小，窗口整体退回合法区域，而非发布越界投影。 */
 export function structureProjectionRequest(
   request: VisibleProjectionRequest,

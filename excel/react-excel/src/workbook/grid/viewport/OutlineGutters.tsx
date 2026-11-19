@@ -108,10 +108,13 @@ export function OutlineGutters({ focusGrid }: { readonly focusGrid: () => void }
               .filter((group) => !group.hiddenByParent)
               .map((group) => {
                 const cross = group.level * STEP - STEP / 2
-                const end = position(group.end + 1, group.end < frozen)
-                const min = group.end < frozen ? header : frozenEnd
-                const visibleButton = end >= min && end <= extent
-                const buttonPosition = Math.min(Math.max(end - 9, min), extent - STEP)
+                const beforeDetail = vertical && group.subtotal?.summaryAbove
+                const buttonIndex = beforeDetail ? group.start : group.end + 1
+                const fixed = (beforeDetail ? group.start - 1 : group.end) < frozen
+                const anchor = position(buttonIndex, fixed)
+                const min = fixed ? header : frozenEnd
+                const visibleButton = anchor >= min && anchor <= extent
+                const buttonPosition = Math.min(Math.max(anchor - 9, min), extent - STEP)
                 // 冻结前缀和滚动正文分别裁线；跨冻结组不画过被固定内容遮住的部分。
                 const segments = [
                   { start: group.start, end: Math.min(group.end + 1, frozen), fixed: true },

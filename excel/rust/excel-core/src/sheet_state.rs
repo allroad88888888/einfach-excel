@@ -86,6 +86,7 @@ pub struct Sheet {
     pub(crate) merged_ranges: Vec<CellRange>,
     pub(crate) frozen_panes: FrozenPanes,
     pub(crate) outline: crate::outline::SheetOutline,
+    pub(crate) subtotal_regions: Vec<crate::subtotal::SubtotalRegion>,
     /// 验证配置属于工作表，随 Sheet 的移动/归档保留；不进入单元格值 atom。
     pub(crate) data_validations: Vec<crate::data_validation::DataValidationRegion>,
     /// Sheet-wide conditional formatting rules. Applied in order on top of

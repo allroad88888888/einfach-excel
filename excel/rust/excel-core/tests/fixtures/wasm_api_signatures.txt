@@ -113,6 +113,7 @@ impl WasmWorkbook :: [] :: pub fn change_note( &mut self, sheet: u32, row: u32, 
 impl WasmWorkbook :: [] :: pub fn change_outline(&mut self, sheet: u32, axis: &str, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_protection(&mut self, sheet: u32, change: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_rich_text(&mut self, sheet: u32, row: u32, col: u32, runs: JsValue) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn change_subtotals(&mut self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_table(&mut self, sheet: u32, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn clear_cell(&mut self, sheet_idx: u32, addr: &str)
 impl WasmWorkbook :: [] :: pub fn clear_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> u32
@@ -154,6 +155,7 @@ impl WasmWorkbook :: [] :: pub fn host_write_cells(&mut self, cells: JsValue) ->
 impl WasmWorkbook :: [] :: pub fn initialize_sheet_defaults(&mut self, idx: u32, json: &str) -> Result<(), JsValue>
 impl WasmWorkbook :: [] :: pub fn insert_col(&mut self, sheet_idx: u32, at: u32, count: u32)
 impl WasmWorkbook :: [] :: pub fn insert_row(&mut self, sheet_idx: u32, at: u32, count: u32)
+impl WasmWorkbook :: [] :: pub fn inspect_subtotal_list(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn inspect_watched_cells(&self, targets: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn is_error(&self, sheet_idx: u32, addr: &str) -> bool
 impl WasmWorkbook :: [] :: pub fn list_named_ranges(&self) -> Result<JsValue, JsValue>

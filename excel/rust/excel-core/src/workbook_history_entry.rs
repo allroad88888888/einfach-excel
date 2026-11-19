@@ -19,6 +19,14 @@ impl HistoryEntry {
         }
     }
 
+    /// Multi-step native row changes in their original execution order.
+    pub fn structural_edits(&self) -> Vec<crate::shift::ShiftEdit> {
+        match &self.change {
+            HistoryChange::Subtotal(change) => change.edits(),
+            _ => Vec::new(),
+        }
+    }
+
     pub fn removes_sheet(&self, undo: bool) -> bool {
         matches!(&self.change, HistoryChange::Sheet(change)
             if matches!(change.as_ref(), SheetHistoryChange::Presence { created, .. } if *created == undo))
@@ -41,6 +49,7 @@ impl HistoryEntry {
             self.change,
             HistoryChange::Cells { .. }
                 | HistoryChange::Structure(_)
+                | HistoryChange::Subtotal(_)
                 | HistoryChange::Merge(_)
                 | HistoryChange::CellShift(_)
                 | HistoryChange::NamedRange(_)
@@ -95,6 +104,7 @@ impl HistoryEntry {
                 change.apply(workbook, self.sheet, self.sheet_key, undo)
             }
             HistoryChange::Structure(change) => change.apply(workbook, self.sheet, undo),
+            HistoryChange::Subtotal(change) => change.apply(workbook, self.sheet, undo),
             HistoryChange::NamedRange(change) => change.apply(workbook, undo),
             HistoryChange::CustomFormula(change) => change.apply(workbook, undo),
             HistoryChange::TableCreate(change) => change.apply(workbook, undo),
@@ -136,6 +146,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
         HistoryChange::DataValidation(change) => change.retained_bytes(),
         HistoryChange::Drawing(change) => change.retained_bytes(),
         HistoryChange::Structure(change) => change.retained_bytes(),
+        HistoryChange::Subtotal(change) => change.retained_bytes(),
         HistoryChange::NamedRange(change) => change.retained_bytes(),
         HistoryChange::CustomFormula(change) => change.retained_bytes(),
         HistoryChange::TableCreate(change) => change.retained_bytes(),

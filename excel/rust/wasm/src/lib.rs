@@ -172,6 +172,7 @@ include!("wasm_workbook_merge.rs");
 include!("wasm_workbook_shift_cells.rs");
 include!("wasm_workbook_freeze.rs");
 include!("wasm_workbook_outline.rs");
+include!("wasm_workbook_subtotal.rs");
 include!("wasm_workbook_print_config.rs");
 include!("wasm_workbook_conditional_format.rs");
 include!("wasm_workbook_data_validation.rs");

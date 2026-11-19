@@ -11,8 +11,10 @@ pub(super) fn aggregate_basic(
         return run_subtotal(
             function_number as u32,
             data_args,
-            provider,
-            hidden_policy,
+            |arg, output| {
+                let hidden = subtotal_hidden_for_arg(arg, provider, hidden_policy);
+                for_each_subtotal_value(arg, provider, &hidden, output);
+            },
         );
     }
 

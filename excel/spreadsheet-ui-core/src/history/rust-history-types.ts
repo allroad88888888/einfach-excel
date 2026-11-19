@@ -10,6 +10,7 @@ export interface RustHistoryEntry {
   readonly sheetName?: string
   readonly sheetChange?: boolean
   readonly structuralEdit?: StructuralEdit
+  readonly structuralEdits?: readonly StructuralEdit[]
   readonly affectedSheetKeys?: readonly string[]
   readonly affectedSheets?: readonly number[]
   readonly range: CellRange

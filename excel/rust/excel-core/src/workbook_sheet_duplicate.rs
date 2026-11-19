@@ -225,6 +225,7 @@ impl Workbook {
         let merges = self.sheets[source].merged_ranges().to_vec();
         let freeze = self.sheets[source].frozen_panes();
         let outline = self.sheets[source].outline().clone();
+        let subtotal_regions = self.sheets[source].subtotal_regions.clone();
         let validations = self.sheets[source].data_validations().to_vec();
         let rich_text = self.sheets[source].rich_text_in_range(full);
         let drawings = self.sheets[source].drawings().to_vec();
@@ -247,6 +248,7 @@ impl Workbook {
         });
         copy.restore_merged_ranges(merges)?;
         copy.set_frozen_panes(freeze)?;
+        copy.subtotal_regions = subtotal_regions;
         for region in validations {
             copy.set_data_validation(region.range, Some(region.rule.as_ref().clone()))?;
         }

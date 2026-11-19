@@ -142,11 +142,14 @@ export interface RustClearRangeRequest {
   readonly targets?: readonly (CellRange & { readonly scope: 'cell' | 'row' | 'column' })[]
 }
 
+import type { RustSubtotalCommands } from './subtotal-commands'
+
 export interface RustWorkbookCommands
   extends HostCommands, RustFindCommands, RustSelectSpecialCommands,
     RustSortCommands,
     RustFilterCommands,
     AdvancedFilterRangeCommands,
+    RustSubtotalCommands,
     RustTextColumnsCommands,
     RustShiftCellsCommands,
     RustRemoveDuplicatesCommands,

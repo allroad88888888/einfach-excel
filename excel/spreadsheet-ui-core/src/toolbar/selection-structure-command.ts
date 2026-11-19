@@ -3,29 +3,23 @@ import { editingSessionAtom } from '../editing/session-atoms'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { systemClipboardFeedbackAtom } from '../clipboard/system-clipboard-command'
 import {
-  applyVisibleProjectionAtom,
   createVisibleProjectionRequest,
   issueProjectionRequestIdAtom,
   projectionSnapshotAtom,
 } from '../projection'
-import { validateProjectionResult } from '../projection/contracts'
-import { applyProjectionSizes } from '../projection/projection-sizes'
 import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import {
   activeWorkbookSheetAtom,
-  publishWorkbookSheetAtom,
-  syncWorkbookCanvasAtom,
 } from '../runtime/workbook-document'
 import {
   structureSheet,
   structureProjectionRequest,
-  structureSizeRange,
   type StructureAction,
 } from '../rust-workbook/structure-geometry'
+import { publishStructureProjection } from '../rust-workbook/structure-projection'
 import { selectionSnapshotAtom } from '../selection'
 import { sheetTabsAtom } from '../sheet-tabs/state'
-import { validSheetVisibility, applySheetVisibility } from '../viewport/hidden-state'
 import { recordRepeatIntentAtom } from '../repeat/state'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
 import { selectionMergeFeedbackAtom } from './selection-merge-state'
@@ -84,8 +78,7 @@ export const runSelectionStructureAtom = atom(
         viewport: visible.viewport,
         reason: 'toolbar',
       })
-      const request = structureProjectionRequest(projection, expected)
-      const sizeRange = structureSizeRange(sheet, expected)
+      structureProjectionRequest(projection, expected)
       const busy = { busy: true, error: null }
       set(selectionStructureFeedbackAtom, busy)
       const pending = connection.request('sheet.editStructure', {
@@ -97,29 +90,7 @@ export const runSelectionStructureAtom = atom(
       set(selectionStructureFeedbackAtom, busy)
       const result = await pending
       if (get(rustWorkbookConnectionAtom) !== connection) return false
-      if (
-        result.sheet.id !== expected.id ||
-        result.sheet.key !== expected.key ||
-        result.sheet.index !== expected.index ||
-        result.sheet.name !== expected.name ||
-        result.sheet.rowCount !== expected.rowCount ||
-        result.sheet.colCount !== expected.colCount ||
-        !validateProjectionResult(result.projection, { request }).ok ||
-        !validSheetVisibility(result.projection.visibility) ||
-        Object.entries(sizeRange).some(
-          ([key, value]) => result.range[key as keyof typeof sizeRange] !== value,
-        )
-      )
-        throw new Error('Rust returned a mismatched structural result.')
-      applyProjectionSizes(get, set, {
-        ...result.projection,
-        window: result.range,
-        ...result.sizes,
-      })
-      applySheetVisibility(get, set, sheet.id, result.projection.visibility!)
-      set(publishWorkbookSheetAtom, { ...sheet, ...result.sheet })
-      set(applyVisibleProjectionAtom, { witness, request, result: result.projection })
-      set(syncWorkbookCanvasAtom)
+      publishStructureProjection(get, set, { before: sheet, expected, projection, witness, result })
       set(selectionStructureFeedbackAtom, { busy: false, error: null })
       set(recordRepeatIntentAtom, { kind: 'structure', action })
       return true

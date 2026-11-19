@@ -192,3 +192,8 @@ export { nativeProtectionPanelAtom, nativeProtectionOpenAtom,
   runNativeProtectionAtom } from './protection/native/panel'
 export type { SheetDefaults } from './runtime/sheet-defaults'
 export * from './host'
+
+export { subtotalSelectionAtom, inspectSubtotalListAtom, changeSubtotalListAtom,
+  type SubtotalSelection } from './subtotal/command'
+export { SUBTOTAL_FUNCTIONS, type SubtotalFunction, type SubtotalPlacement,
+  type SubtotalList, type SubtotalAction } from './rust-workbook/subtotal-commands'

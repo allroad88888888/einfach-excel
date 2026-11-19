@@ -114,7 +114,10 @@ impl<'a, 'r> AtomFormulaProvider<'a, 'r> {
         }
     }
 
-    fn formula_text_in(ctx: &FacadeCtx, addr: CellAddress) -> Option<String> {
+    fn formula_text_in(&self, ctx: &FacadeCtx, addr: CellAddress) -> Option<String> {
+        // Text consumers must see same-value formula edits. The slot epoch also
+        // tracks writes that change a primitive into a formula or back again.
+        self.args.depend(ctx.epoch_of(addr));
         if let Some(text) = ctx.interior.formula_texts.borrow().get(&addr) {
             return Some(text.clone());
         }
@@ -346,12 +349,13 @@ impl<'a, 'r> EvalProvider for AtomFormulaProvider<'a, 'r> {
     }
 
     fn cell_formula_text(&self, addr: CellAddress) -> Option<String> {
-        Self::formula_text_in(&self.ctx, addr)
+        let context = self.override_ctx();
+        self.formula_text_in(context.as_ref().unwrap_or(&self.ctx), addr)
     }
 
     fn sheet_cell_formula_text(&self, sheet: &str, addr: CellAddress) -> Option<String> {
         let (_, ctx) = self.resolve_sheet(sheet)?;
-        Self::formula_text_in(&ctx, addr)
+        self.formula_text_in(&ctx, addr)
     }
 
     fn call_custom(&self, name: &str, values: &[Value]) -> Option<Value> {

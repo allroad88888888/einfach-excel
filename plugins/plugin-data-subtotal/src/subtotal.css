@@ -1,0 +1,22 @@
+.subtotal-dialog {
+  width: min(27rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 1.5rem);
+  box-sizing: border-box;
+  border: 1px solid var(--ribbon-border, #d4ded8);
+  border-radius: 10px;
+  padding: 1rem;
+  background: var(--workbook-panel, #fff);
+  color: var(--workbook-text, #182b20);
+}
+.subtotal-dialog::backdrop { background: rgb(0 0 0 / 26%); }
+.subtotal-dialog h2 { margin: 0 0 .75rem; font-size: 1.125rem; }
+.subtotal-dialog p { margin: 0; }
+.subtotal-dialog form, .subtotal-dialog fieldset { display: grid; gap: .625rem; }
+.subtotal-dialog fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.subtotal-field { display: grid; gap: .25rem; }
+.subtotal-field :is(input, select) { font: inherit; min-width: 0; width: 100%; box-sizing: border-box; }
+.subtotal-dialog .subtotal-columns { max-height: 9rem; overflow-y: auto; gap: .25rem; }
+.subtotal-dialog input[type='checkbox'] { margin-inline: 0 .4rem; }
+.subtotal-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+.subtotal-actions button { font: inherit; }
+.subtotal-dialog [role='alert'] { color: #9a3412; }

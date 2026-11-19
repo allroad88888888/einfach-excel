@@ -50,6 +50,9 @@ impl HistoryEntry {
             HistoryChange::Structure(change) => {
                 for (sheet, range) in change.mutation_ranges() { add(sheet, range); }
             }
+            HistoryChange::Subtotal(change) => {
+                for (sheet, range) in change.mutation_ranges(self.sheet) { add(sheet, range); }
+            }
             HistoryChange::Sheet(change) => {
                 if let SheetHistoryChange::Presence { mutation, .. } = change.as_ref() {
                     stable_positions.extend(mutation.iter().cloned());
@@ -86,7 +89,7 @@ impl HistoryEntry {
         }
         // 空范围数组明确表示目录/结构元数据变化，不把相同主范围虚构到每张表。
         if matches!(self.change, HistoryChange::Structure(_) | HistoryChange::NamedRange(_)
-            | HistoryChange::TableDefinition(_)) {
+            | HistoryChange::TableDefinition(_) | HistoryChange::Subtotal(_)) {
             metadata_keys.extend(&self.affected_keys);
         }
         // 权限足迹可能包含未修改的整本工作簿，不能直接充当事件修改清单。

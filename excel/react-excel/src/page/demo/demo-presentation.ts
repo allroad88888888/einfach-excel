@@ -4,6 +4,7 @@ import { imagePlugin } from '@einfach-excel/plugin-image'
 import { sparklinePlugin } from '@einfach-excel/plugin-sparkline'
 import { datePickerPlugin } from '@einfach-excel/plugin-date-picker'
 import { dataFilterPlugin } from '@einfach-excel/plugin-data-filter'
+import { dataSubtotalPlugin } from '@einfach-excel/plugin-data-subtotal'
 import { dataSortPlugin } from '@einfach-excel/plugin-data-sort'
 import { textFormatPlugin } from '@einfach-excel/plugin-text-format'
 import { cellAppearancePlugin } from '@einfach-excel/plugin-cell-appearance'
@@ -64,7 +65,7 @@ const DEMO_PLUGINS: Readonly<Record<string, SpreadsheetPlugin>> = {
   sample: samplePlugin, 'date-picker': datePickerPlugin, 'image-export': imageExportPlugin,
   chart: chartPlugin, image: imagePlugin, sparkline: sparklinePlugin,
   'text-format': textFormatPlugin, 'data-sort': dataSortPlugin, 'data-filter': dataFilterPlugin,
-  'cell-appearance': cellAppearancePlugin,
+  'cell-appearance': cellAppearancePlugin, 'data-subtotal': dataSubtotalPlugin,
 }
 
 function demoPlugins(query: string): readonly SpreadsheetPlugin[] {

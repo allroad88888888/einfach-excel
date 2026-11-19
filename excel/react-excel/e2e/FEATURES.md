@@ -1483,3 +1483,17 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | FILTER-065 | 中文窄屏键盘提交条件区域及焦点恢复 | `plugins/worksheet-criteria.spec.ts` | `Chinese worksheet criteria submit by keyboard and restore focus at 390px` |
 | FILTER-066 | Summary 工作簿按示例条件复制唯一匹配记录 | `plugins/worksheet-criteria.spec.ts` | `Summary worksheet criteria copy only the matching native sample record` |
 | FILTER-067 | 删除条件工作表后可保存和重开，保留筛选快照和缺失提示 | `advanced-filter/worksheet-criteria.spec.ts` | `Native download and reopen preserve the filtered snapshot after deleting its criteria sheet` |
+
+### 分类汇总
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| SUBTOTAL-001 | 从当前区域插入真实公式及大纲，单次撤销 | `editing/subtotal-groups.spec.ts` | `Subtotal inserts native formulas and outlines with one undo step` |
+| SUBTOTAL-002 | 替换汇总方式，单次撤销恢复原小计 | `editing/subtotal-lifecycle.spec.ts` | `Replacing subtotals uses the requested function and one undo restores the prior totals` |
+| SUBTOTAL-003 | 追加内层分类，原始明细参与总计 | `editing/subtotal-groups.spec.ts` | `Subtotal appends inner groups and calculates grand totals from detail rows` |
+| SUBTOTAL-004 | 删除生成的汇总行，保护用户手工内容 | `editing/subtotal-lifecycle.spec.ts` | `Remove all protects user content in a generated row and restores the original list` |
+| SUBTOTAL-005 | 汇总置于上方，原生保存重开和无插件折叠 | `editing/subtotal-lifecycle.spec.ts` | `Above-data subtotals reopen and collapse without the optional plugin` |
+| SUBTOTAL-006 | 原生 Table 区域拒绝分类汇总 | `plugins/subtotal.spec.ts` | `Subtotal rejects a worksheet Table through the optional ribbon entry` |
+| SUBTOTAL-007 | 中文窄屏键盘操作与焦点恢复 | `plugins/subtotal.spec.ts` | `Chinese subtotal runs by keyboard at 390px and restores focus` |
+| SUBTOTAL-008 | 删除小计保留生成行上的独立数据验证规则 | `editing/subtotal-metadata.spec.ts` | `Remove all retains data validation that belongs only to a generated row` |
+| SUBTOTAL-009 | 替换小计保留生成行上的独立数据验证规则 | `editing/subtotal-metadata.spec.ts` | `Replacing subtotals retains data validation that belongs only to a generated row` |

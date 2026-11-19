@@ -80,6 +80,8 @@ pub use replace::ReplaceReport;
 mod remove_duplicates;
 #[path = "workbook_history_structure.rs"]
 mod structure;
+#[path = "subtotal/change_history.rs"]
+mod subtotal;
 #[path = "cell_shift/history.rs"]
 mod cell_shift;
 #[path = "workbook_history_text_columns.rs"]
@@ -122,6 +124,7 @@ enum HistoryChange {
     DataValidation(DataValidationChange),
     Drawing(drawings::DrawingChange),
     Structure(Box<StructuralHistoryChange>),
+    Subtotal(Box<crate::subtotal::SubtotalChange>),
     NamedRange(Box<crate::workbook::NamedRangeChange>),
     CustomFormula(Box<crate::custom_formulas::CustomFormulaChange>),
     TableCreate(Box<crate::workbook::TableCreation>),

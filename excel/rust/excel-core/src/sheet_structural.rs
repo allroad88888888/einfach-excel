@@ -192,6 +192,7 @@ impl Sheet {
             sheet.shift_merges(edit);
             sheet.shift_frozen_panes(edit);
             sheet.shift_outline(edit);
+            sheet.shift_subtotal_regions(edit);
             sheet.shift_data_validations(edit);
             sheet.shift_notes(edit);
             sheet.shift_comments(edit);

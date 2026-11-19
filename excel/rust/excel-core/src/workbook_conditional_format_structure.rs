@@ -85,6 +85,13 @@ impl Workbook {
             .collect()
     }
 
+    pub(crate) fn reserve_conditional_format_changes(&self, changes: usize) -> Result<(), &'static str> {
+        if self.conditional_formats.iter().any(|config| config.revision.checked_add(changes as u64).is_none()) {
+            return Err("Conditional-format revision cannot support structural rollback.");
+        }
+        Ok(())
+    }
+
     /// 必须在结构写入之前检查，修订号耗尽不能留下只移动了单元格的半次操作。
     pub(super) fn validate_conditional_format_shift(
         &self,

@@ -12,6 +12,7 @@ pub mod csv;
 pub mod data_validation;
 pub mod drag_move;
 pub mod outline;
+pub mod subtotal;
 mod date_serial;
 mod calendar_period;
 mod date_format;

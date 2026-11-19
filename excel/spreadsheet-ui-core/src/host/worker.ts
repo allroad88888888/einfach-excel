@@ -71,7 +71,9 @@ function historyStructureBlocked(workbook: WasmWorkbook | undefined, payload: un
   if (!history) return false
   const direction = (payload as { direction?: string })?.direction
   const entry = history.entries[history.undoCount - (direction === 'undo' ? 1 : 0)]
-  return !!entry && (!!entry.sheetChange || !!entry.structuralEdit)
+  return !!entry && (
+    !!entry.sheetChange || !!entry.structuralEdit || !!entry.structuralEdits?.length
+  )
 }
 
 /** 门禁、提交事实与消息排队属于工作簿业务；通用 transport 不知道这些语义。 */

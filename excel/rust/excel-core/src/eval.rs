@@ -137,6 +137,9 @@ use eval_engineering_convert_core::*;
 use eval_engineering_convert_eval::*;
 
 use eval_aggregate_hidden::*;
+#[path = "eval_subtotal_reference.rs"]
+mod eval_subtotal_reference;
+use eval_subtotal_reference::for_each_subtotal_argument;
 
 use eval_aggregate_subtotal_engine::*;
 

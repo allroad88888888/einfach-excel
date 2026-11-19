@@ -6,10 +6,13 @@ import { applyAdvancedFilterCopy, previewAdvancedFilterCopy } from '../advanced-
 import { replaceWorkbook } from '../find-io'
 import { readSizes } from '../size-io'
 import { readVisibleProjection } from '../visible-projection'
+import { inspectSubtotals, changeSubtotals } from '../subtotal-io'
 import type { WorkbookHandlers } from './context'
 
 /** 数据工具：删除重复项、分列、筛选、排序与替换。 */
 export const dataToolHandlers: WorkbookHandlers = {
+  'subtotal.inspect': inspectSubtotals,
+  'subtotal.change': changeSubtotals,
   'duplicates.preview': (context, current, input) => previewRemoveDuplicates(
     current, context.sheetsById.get(input.sheetId), input, context.revision),
   'duplicates.apply': (context, current, input) => {

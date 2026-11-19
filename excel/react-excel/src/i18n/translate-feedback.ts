@@ -22,6 +22,8 @@ export function translateFeedback(i18n: I18n, message: string | null | undefined
   }
   match = /^Sorted (\d+) rows\.$/.exec(message)
   if (match) { const rows = match[1]; return t(i18n)`Sorted ${rows} rows.` }
+  match = /^Sorted (\d+) columns\.$/.exec(message)
+  if (match) { const columns = match[1]; return t(i18n)`Sorted ${columns} columns.` }
   match = /^(\d+) rows filtered out\.$/.exec(message)
   if (match) { const rows = match[1]; return t(i18n)`${rows} rows filtered out.` }
   match = /^Table (.+)\. (\d+) rows filtered out in this worksheet\.$/.exec(message)

@@ -5785,6 +5785,10 @@ msgid "Sort was not applied. Try again."
 msgstr "排序未生效，请重试。"
 
 #: src/i18n/translate-feedback.ts
+msgid "Sorted {columns} columns."
+msgstr "已排序 {columns} 列。"
+
+#: src/i18n/translate-feedback.ts
 msgid "Sorted {rows} rows."
 msgstr "已排序 {rows} 行。"
 

@@ -40,7 +40,8 @@ fn sort_range_wire_rejects_garbage_a1() {
 fn sort_key_wire_direction_and_case_defaults() {
     // Missing direction → ascending; caseSensitive default false.
     let k = SortKeyWireJSON {
-        col: 3,
+        col: Some(3),
+        row: None,
         direction: None,
         case_sensitive: false,
         empty_first: false,
@@ -55,7 +56,8 @@ fn sort_key_wire_direction_and_case_defaults() {
     // Both short and long descending spellings map to Descending.
     for spelling in ["desc", "descending"] {
         let k = SortKeyWireJSON {
-            col: 0,
+            col: Some(0),
+            row: None,
             direction: Some(spelling.into()),
             case_sensitive: true,
             empty_first: false,
@@ -69,7 +71,8 @@ fn sort_key_wire_direction_and_case_defaults() {
 
     // Unknown spelling falls back to ascending (never panics).
     let k = SortKeyWireJSON {
-        col: 0,
+        col: Some(0),
+        row: None,
         direction: Some("sideways".into()),
         case_sensitive: false,
         empty_first: false,

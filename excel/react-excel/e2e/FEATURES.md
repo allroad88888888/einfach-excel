@@ -851,6 +851,15 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | DATA-126 | 指定图标置底 | `editing/sort-icons.spec.ts` | On bottom keeps other icon identities stable |
 | DATA-127 | 同列混合图标和颜色排序级别 | `editing/sort-icons.spec.ts` | Icon and color criteria can sort the same column at different levels |
 | DATA-128 | 键盘打开并应用图标排序 | `plugins/icon-sort.spec.ts` | Chinese icon sort submits by keyboard and restores focus at 390px |
+| DATA-129 | 横向按值排序和一次撤销及文件重开 | `editing/sort-columns.spec.ts` | Left-to-right value sort moves complete columns with one undo step |
+| DATA-130 | 横向多个行键和排序方向 | `editing/sort-columns.spec.ts` | Horizontal levels break ties by the selected row and direction |
+| DATA-131 | 隐藏列留位及同键稳定 | `editing/sort-columns.spec.ts` | Horizontal sorting leaves hidden column positions and groups equal values stably |
+| DATA-132 | 横向按图标和颜色左置右置 | `editing/sort-columns.spec.ts` | Displayed icon and fill row keys honor On right and On left in one sort |
+| DATA-133 | 活动筛选范围阻止横向排序 | `editing/sort-columns.spec.ts` | A horizontal sort rejects an active worksheet filter without moving records |
+| DATA-134 | Table 相交阻止横向排序 | `editing/sort-columns.spec.ts` | Horizontal sort rejects a range that intersects a Table |
+| DATA-135 | 中文窄屏键盘横向排序 | `plugins/horizontal-sort.spec.ts` | Chinese horizontal sort submits by keyboard and restores focus at 390px |
+| DATA-136 | 单行区域横向排序 | `editing/sort-columns.spec.ts` | A single selected row can be sorted left to right |
+| DATA-137 | 原生横向排序示例 | `editing/sort-columns.spec.ts` | Summary horizontal sort sample moves only the selected column records |
 | FIND-001 | 工作簿查找 | `editing/find-replace.spec.ts` | workbook find navigates offscreen into Summary and previous/next wrap exact occurrences |
 | FIND-002 | 当前替换 | `editing/find-replace.spec.ts` | current replacement changes only the chosen Unicode occurrence and undo restores it |
 | FIND-003 | 全部替换 | `editing/find-replace.spec.ts` | replace all changes every matching order beyond 500 and is one undoable operation |

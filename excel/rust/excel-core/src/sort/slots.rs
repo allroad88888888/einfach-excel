@@ -6,6 +6,7 @@ use crate::cell::CellAddress;
 use crate::range::CellRange;
 use crate::sheet::{Sheet, EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 
+use super::axis::SortAxis;
 use super::SortRangeError;
 
 fn ranges_intersect(a: CellRange, b: CellRange) -> bool {
@@ -45,22 +46,7 @@ impl Sheet {
         excluded_rows: &[u32],
     ) -> Result<Vec<u32>, SortRangeError> {
         let n = range.normalize();
-        if n.end.row >= EXCEL_MAX_ROWS || n.end.col >= EXCEL_MAX_COLS {
-            return Err(SortRangeError::InvalidRange);
-        }
-        let mut columns = columns.peekable();
-        if columns.peek().is_none() {
-            return Err(SortRangeError::EmptyKeys);
-        }
-        if columns.any(|col| col < n.start.col || col > n.end.col) {
-            return Err(SortRangeError::KeyOutOfRange);
-        }
-        if let Some(anchor) = self.spill_intersecting(n) {
-            return Err(SortRangeError::SpillIntersectsRange { anchor });
-        }
-        if self.merged_ranges().iter().any(|merged| merged.intersects(n)) {
-            return Err(SortRangeError::MergeIntersectsRange);
-        }
+        self.validate_sort_layout(n, SortAxis::Rows, columns)?;
 
         // Visible slots: the range's rows minus the (deduped, clamped)
         // excluded set, ascending.
@@ -75,5 +61,30 @@ impl Sheet {
                 && !self.filter_hidden_set().is_some_and(|rows| rows.contains(r)))
             .collect();
         Ok(visible)
+    }
+
+    pub(super) fn validate_sort_layout(
+        &self,
+        n: CellRange,
+        axis: SortAxis,
+        keys: impl Iterator<Item = u32>,
+    ) -> Result<(), SortRangeError> {
+        if n.end.row >= EXCEL_MAX_ROWS || n.end.col >= EXCEL_MAX_COLS {
+            return Err(SortRangeError::InvalidRange);
+        }
+        let mut keys = keys.peekable();
+        if keys.peek().is_none() {
+            return Err(SortRangeError::EmptyKeys);
+        }
+        if keys.any(|key| !axis.keys(n).contains(&key)) {
+            return Err(SortRangeError::KeyOutOfRange);
+        }
+        if let Some(anchor) = self.spill_intersecting(n) {
+            return Err(SortRangeError::SpillIntersectsRange { anchor });
+        }
+        if self.merged_ranges().iter().any(|merged| merged.intersects(n)) {
+            return Err(SortRangeError::MergeIntersectsRange);
+        }
+        Ok(())
     }
 }

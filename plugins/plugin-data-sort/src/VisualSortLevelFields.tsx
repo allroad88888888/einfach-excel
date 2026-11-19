@@ -6,6 +6,7 @@ import { visualSortPanelAtom, configureVisualSortAtom, newVisualSortLevel,
 import { colorLabels } from './color-messages'
 import { IconSortTargetFields } from './IconSortTargetFields'
 import { iconLabels } from './icon-messages'
+import { horizontalLabels } from './horizontal-messages'
 import { labels } from './messages'
 
 export function VisualSortLevelFields({ index }: { readonly index: number }) {
@@ -16,22 +17,29 @@ export function VisualSortLevelFields({ index }: { readonly index: number }) {
   if (!level || !panel.target) return null
   const values = { level: index + 1 }
   const { colStart, colEnd } = panel.target
-  const columns = Array.from({ length: colEnd - colStart + 1 }, (_, offset) => colStart + offset)
+  const horizontal = 'row' in level
   const update = (key: VisualSortLevel) => void configure({ type: 'key', index, key })
   const mode = 'sortOn' in level ? level.sortOn : 'value'
   const order = i18n._({ ...labels.order, values })
   return <fieldset disabled={panel.busy}>
     <legend>{i18n._({ ...labels.level, values })}</legend>
-    <label>{i18n._({ ...labels.column, values })}
+    {horizontal ? <label>{i18n._({ ...horizontalLabels.row, values })}
+      <input type="number" inputMode="numeric" required step={1}
+        min={panel.target.rowStart + 1} max={panel.target.rowEnd + 1}
+        aria-label={i18n._({ ...horizontalLabels.row, values })}
+        value={Number.isFinite(level.row) ? level.row + 1 : ''}
+        onChange={event => update({ ...level, row: event.currentTarget.valueAsNumber - 1 })} />
+    </label> : <label>{i18n._({ ...labels.column, values })}
       <select aria-label={i18n._({ ...labels.column, values })} value={level.col}
         onChange={event => update({ ...level, col: Number(event.currentTarget.value) })}>
-        {columns.map(col => <option key={col} value={col}>{getColumnLabel(col)}</option>)}
+        {Array.from({ length: colEnd - colStart + 1 }, (_, i) => i + colStart)
+          .map(col => <option key={col} value={col}>{getColumnLabel(col)}</option>)}
       </select>
-    </label>
+    </label>}
     <label>{i18n._(colorLabels.kind)}
       <select aria-label={i18n._(colorLabels.kind)} value={mode} onChange={event => {
         const next = event.currentTarget.value as VisualSortMode
-        update(newVisualSortLevel(level.col, next))
+        update(newVisualSortLevel(horizontal ? { row: level.row } : { col: level.col }, next))
       }}>
         <option value="cell-color">{i18n._(colorLabels.fill)}</option>
         <option value="font-color">{i18n._(colorLabels.font)}</option>
@@ -52,10 +60,17 @@ export function VisualSortLevelFields({ index }: { readonly index: number }) {
             onChange={event => update({ ...level, color: event.currentTarget.value })} />
         </label>}
       </>}
-      <label>{order}<select aria-label={order} value={level.position}
-        onChange={event => update({ ...level, position: event.currentTarget.value as 'top' | 'bottom' })}>
-        <option value="top">{i18n._(colorLabels.top)}</option>
-        <option value="bottom">{i18n._(colorLabels.bottom)}</option>
+      <label>{order}<select aria-label={order} value={level.position} onChange={event => {
+        const position = event.currentTarget.value
+        if (horizontal) update({ ...level, position: position as 'left' | 'right' })
+        else update({ ...level, position: position as 'top' | 'bottom' })
+      }}>
+        <option value={horizontal ? 'left' : 'top'}>
+          {i18n._(horizontal ? horizontalLabels.left : colorLabels.top)}
+        </option>
+        <option value={horizontal ? 'right' : 'bottom'}>
+          {i18n._(horizontal ? horizontalLabels.right : colorLabels.bottom)}
+        </option>
       </select></label>
     </> : <label>{order}<select aria-label={order} value={level.direction}
       onChange={event => update({ ...level, direction: event.currentTarget.value as 'asc' | 'desc' })}>

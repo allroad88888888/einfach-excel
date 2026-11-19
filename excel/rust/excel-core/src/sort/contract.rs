@@ -71,6 +71,8 @@ pub enum SortRangeError {
     KeyOutOfRange,
     /// 合并布局不能跟随普通行置换；先取消合并再排序。
     MergeIntersectsRange,
+    TableIntersectsRange,
+    FilterIntersectsRange,
     /// The range intersects an active spill (anchor or target). Aligned
     /// with Excel's "can't change part of an array" rejection.
     SpillIntersectsRange {

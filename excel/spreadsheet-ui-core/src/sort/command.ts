@@ -42,7 +42,14 @@ export const sortSelectionAtom = atom(null, async (
   }
   const range = selection.range
   if (get(selectionRegionsAtom).length !== 1) return fail('Select one continuous sort range.')
-  if (range.rowEnd <= range.rowStart) return fail('Select at least two data rows. Include all columns to move together.')
+  const settings: SortRangeOptions = typeof options === 'string'
+    ? { keys: [{ col: range.colStart, direction: options }], hasHeader: false } : options
+  if (settings.orientation === 'left-to-right') {
+    if (range.colEnd <= range.colStart)
+      return fail('Select at least two data columns. Include all rows to move together.')
+  } else if (range.rowEnd <= range.rowStart) {
+    return fail('Select at least two data rows. Include all columns to move together.')
+  }
   if (getSheetProtection(get(sheetProtectionAtom), sheetId).mode === 'protected')
     return fail('Unprotect the worksheet before sorting cells.')
   if (set(resolveContentMutationAtom, { kind: 'clear-range', sheetId, range }).status === 'blocked')
@@ -52,8 +59,6 @@ export const sortSelectionAtom = atom(null, async (
   const projection = createVisibleProjectionRequest({
     sheetId, requestId, window: visible.window, viewport: visible.viewport, reason: 'toolbar',
   })
-  const settings = typeof options === 'string'
-    ? { keys: [{ col: range.colStart, direction: options }], hasHeader: false } : options
   const busy = { busy: true, error: '', message: 'Sorting…', connection }
   set(feedbackAtom, busy)
   try {
@@ -65,8 +70,10 @@ export const sortSelectionAtom = atom(null, async (
     if (!validateProjectionResult(result.projection, { request: projection }).ok)
       throw new Error('Rust returned a mismatched sort result.')
     set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
-    set(feedbackAtom, { busy: false, error: '', connection, message: result.movedRows > 0
-      ? `Sorted ${result.movedRows} rows.` : 'Already in order.' })
+    const message = result.movedColumns
+      ? `Sorted ${result.movedColumns} columns.`
+      : result.movedRows > 0 ? `Sorted ${result.movedRows} rows.` : 'Already in order.'
+    set(feedbackAtom, { busy: false, error: '', connection, message })
     return true
   } catch (error) {
     return get(feedbackAtom) === busy

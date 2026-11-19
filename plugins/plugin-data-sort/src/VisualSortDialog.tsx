@@ -4,8 +4,10 @@ import { useLingui } from '@lingui/react'
 import { cycleWorkbookDialogFocus, translateWorkbookFeedback } from '@einfach-excel/react-excel'
 import { visualSortPanelAtom, configureVisualSortAtom } from './core/visual-sort'
 import { VisualSortLevelFields } from './VisualSortLevelFields'
+import { HorizontalSortOptions } from './HorizontalSortOptions'
 import { colorLabels } from './color-messages'
 import { iconLabels } from './icon-messages'
+import { horizontalError, horizontalLabels } from './horizontal-messages'
 import { labels } from './messages'
 import './sort.css'
 
@@ -28,25 +30,29 @@ export function VisualSortDialog() {
     }
   }, [open])
   if (!open) return null
-  const labelsForEntry = panel.entry === 'icon' ? iconLabels : colorLabels
+  const horizontal = panel.entry === 'horizontal'
+  const labelsForEntry = horizontal ? horizontalLabels
+    : panel.entry === 'icon' ? iconLabels : colorLabels
+  const knownError = horizontal ? horizontalError(panel.detail) : undefined
   return <dialog ref={dialogRef} className="list-sort-dialog" aria-labelledby={title}
     onKeyDown={cycleWorkbookDialogFocus}
     onCancel={event => { event.preventDefault(); void configure('close') }}>
     <h2 id={title}>{i18n._(labelsForEntry.title)}</h2>
     <p>{i18n._(labelsForEntry.hint)}</p>
     <form onSubmit={event => { event.preventDefault(); void configure('apply') }}>
-      <label>
+      {horizontal ? <HorizontalSortOptions /> : <label>
         <input type="checkbox" checked={panel.hasHeader} disabled={panel.busy}
           onChange={event => void configure({ type: 'header', value: event.currentTarget.checked })} />
         {i18n._(labels.header)}
-      </label>
+      </label>}
       {panel.keys.map((_, index) => <VisualSortLevelFields key={index} index={index} />)}
       <button type="button" disabled={panel.busy || panel.keys.length === 8}
         onClick={() => void configure('add')}>{i18n._(labels.add)}</button>
       {panel.error && <p role="alert" className="list-sort-error">
         {i18n._(panel.error === 'failed' ? labels.failed : panel.error === 'stale' ? labelsForEntry.stale
           : panel.entry === 'icon' ? iconLabels.chooseIcon : colorLabels.chooseColor)}
-        {panel.detail && <span>{translateWorkbookFeedback(i18n, panel.detail)}</span>}
+        {panel.detail && <span>{knownError ? i18n._(knownError)
+          : translateWorkbookFeedback(i18n, panel.detail)}</span>}
       </p>}
       {panel.busy && <p role="status">{i18n._(labels.applying)}</p>}
       <div className="list-sort-actions">

@@ -1,14 +1,14 @@
 //! Displayed color facts shared by filter predicates and candidate browsing.
 
 use crate::display_color::{effective_color, visit_font_colors, DisplayColor, DisplayColorSource};
-use crate::display_column::DisplayColumn;
+use crate::display_formats::DisplayFormats;
 use crate::sheet::collapse_array_for_eval;
 use crate::{CellAddress, DisplayFormatRangeSnapshot, Sheet};
 
 pub(crate) struct FilterDisplayColumn<'a> {
     sheet: &'a Sheet,
     column: u32,
-    display: DisplayColumn<'a>,
+    display: DisplayFormats<'a>,
 }
 
 impl<'a> FilterDisplayColumn<'a> {
@@ -16,7 +16,7 @@ impl<'a> FilterDisplayColumn<'a> {
         Self {
             sheet,
             column: snapshot.formats.range.start.col,
-            display: DisplayColumn::new(snapshot),
+            display: DisplayFormats::new(snapshot),
         }
     }
 
@@ -28,9 +28,9 @@ impl<'a> FilterDisplayColumn<'a> {
     ) {
         let address = CellAddress::new(row, self.column);
         let cell_color = effective_color(
-            self.display.layers_at(row),
+            self.display.layers_at(address),
             source,
-            source == DisplayColorSource::Font && self.display.has_conditional_font_at(row),
+            source == DisplayColorSource::Font && self.display.has_conditional_font_at(address),
             || collapse_array_for_eval(self.sheet.peek_value(address)),
         );
         match source {

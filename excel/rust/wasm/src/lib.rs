@@ -244,6 +244,7 @@ mod tests {
     include!("wasm_tests/sort_custom_list.rs");
     include!("wasm_tests/sort_colors.rs");
     include!("wasm_tests/sort_icons.rs");
+    include!("wasm_tests/sort_columns.rs");
     include!("wasm_tests/workbook_sparse.rs");
     include!("wasm_tests/persistence_roundtrip.rs");
     include!("wasm_tests/merge_persistence.rs");

@@ -131,19 +131,29 @@ impl WasmWorkbook {
             Ok(range) => range,
             Err(msg) => return Ok(sort_error_to_js("invalid-payload", None, Some(&msg))),
         };
-        let keys: Vec<SortCriterion> = match payload
-            .keys
-            .into_iter()
-            .map(SortCriterionWireJSON::into_criterion)
-            .collect::<Result<_, _>>() {
+        let result = if payload.orientation == SortOrientationWireJSON::LeftToRight {
+            if !payload.excluded_rows.is_empty() {
+                return Ok(sort_error_to_js("invalid-payload", None,
+                    Some("Horizontal sorting uses the worksheet's hidden columns.")));
+            }
+            let keys = match payload.keys.into_iter().map(SortCriterionWireJSON::into_row_criterion)
+                .collect::<Result<Vec<_>, _>>() {
                 Ok(keys) => keys,
                 Err(message) => return Ok(sort_error_to_js("invalid-payload", None, Some(&message))),
             };
-        match self
-            .workbook
-            .sort_range_by_criteria(sheet_idx as usize, range, &keys, &payload.excluded_rows)
-        {
-            Ok(report) => serde_wasm_bindgen::to_value(&SortRangeReportJSON::from_report(&report))
+            self.workbook.sort_columns_by_criteria(sheet_idx as usize, range, &keys)
+                .map(|report| SortRangeReportJSON::from_columns(&report))
+        } else {
+            let keys = match payload.keys.into_iter().map(SortCriterionWireJSON::into_criterion)
+                .collect::<Result<Vec<_>, _>>() {
+                Ok(keys) => keys,
+                Err(message) => return Ok(sort_error_to_js("invalid-payload", None, Some(&message))),
+            };
+            self.workbook.sort_range_by_criteria(sheet_idx as usize, range, &keys, &payload.excluded_rows)
+                .map(|report| SortRangeReportJSON::from_report(&report))
+        };
+        match result {
+            Ok(report) => serde_wasm_bindgen::to_value(&report)
                 .map_err(|err| JsValue::from_str(&format!("serialize sort report: {err}"))),
             Err(err) => Ok(sort_range_error_to_js(err)),
         }

@@ -7,6 +7,7 @@ export { goToSpecialAvailableAtom, goToSpecialPanelAtom, runGoToSpecialAtom } fr
 export { sortFeedbackAtom, sortSelectionAtom } from './sort/command'
 export { sortPanelAtom, configureSortAtom } from './sort/panel'
 export * from './filter-sort'
+export type { RustSortCriterion, RustRowSortCriterion, SortRangeOptions } from './rust-workbook/sort-commands'
 export * from './protection'
 export * from './find-replace'
 export * from './runtime/workbook-lifecycle'

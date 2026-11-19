@@ -28,7 +28,7 @@ mod find_wildcard;
 mod cell_format;
 mod cell_fill;
 mod display_color;
-mod display_column;
+mod display_formats;
 pub use cell_fill::{CellFill, FillPattern, GradientStop};
 pub mod format;
 mod number_format;

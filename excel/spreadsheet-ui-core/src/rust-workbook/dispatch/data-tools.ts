@@ -50,14 +50,14 @@ export const dataToolHandlers: WorkbookHandlers = {
   },
   'range.sort': (context, current, input) => {
     const index = context.sheetIndex(input.sheetId)
-    const movedRows = sortRange(current, index, input)
-    if (movedRows > 0) {
+    const movement = sortRange(current, index, input)
+    if (movement.movedRows > 0 || (movement.movedColumns ?? 0) > 0) {
       context.revision += 1
       // 剪切快照的坐标不再代表原记录；排序后必须重新剪切。
       if (context.clipboard?.cut) context.clipboard.invalidated = true
     }
     return {
-      movedRows,
+      ...movement,
       projection: readVisibleProjection(current, index, input.projection, context.revision),
     }
   },

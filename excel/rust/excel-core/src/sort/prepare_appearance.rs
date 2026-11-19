@@ -1,65 +1,66 @@
-//! Materialize visual matches from the displayed format window before changing row order.
+//! Materialize displayed matches before moving the selected records.
 
 use std::collections::BTreeMap;
 
-use crate::cell::CellAddress;
-use crate::range::CellRange;
+use crate::display_color::effective_color;
+use crate::display_formats::DisplayFormats;
 use crate::sheet::collapse_array_for_eval;
-use crate::workbook::Workbook;
+use crate::{CellRange, Workbook};
 
 use super::appearance_key::SortAppearanceKey;
-use super::color_key::SortColorSource;
-use crate::display_color::effective_color;
-use crate::display_column::DisplayColumn;
-use super::SortRangeError;
+use super::axis::SortAxis;
+use super::{SortColorSource, SortRangeError};
 
-const DISPLAY_WINDOW_ROWS: u32 = 100_000;
+const MAX_DISPLAY_WINDOW_SLOTS: u32 = 100_000;
 
 impl Workbook {
     pub(super) fn prepare_sort_appearance(
         &self,
         sheet: usize,
-        rows: &[u32],
-        keys: &[SortAppearanceKey],
+        axis: SortAxis,
+        slots: &[u32],
+        keys: &[(u32, SortAppearanceKey)],
     ) -> Result<Vec<Vec<bool>>, SortRangeError> {
         let target = self.sheet(sheet).ok_or(SortRangeError::InvalidRange)?;
-        let mut groups: BTreeMap<u32, Vec<(usize, SortAppearanceKey)>> = BTreeMap::new();
-        for (i, key) in keys.iter().copied().enumerate() {
-            groups.entry(key.column()).or_default().push((i, key));
+        let mut levels: BTreeMap<u32, Vec<(usize, SortAppearanceKey)>> = BTreeMap::new();
+        for (index, (coordinate, key)) in keys.iter().copied().enumerate() {
+            levels.entry(coordinate).or_default().push((index, key));
         }
-        let mut matches: Vec<_> = keys.iter().map(|_| Vec::with_capacity(rows.len())).collect();
+        let mut matches: Vec<_> = keys.iter().map(|_| Vec::with_capacity(slots.len())).collect();
         let today = crate::calendar_period::local_today_serial();
 
-        for (col, levels) in groups {
-            let mut remaining = rows;
+        for (coordinate, group) in levels {
+            let mut remaining = slots;
             while let Some(&first) = remaining.first() {
-                let count = remaining.partition_point(|row| *row - first < DISPLAY_WINDOW_ROWS);
+                let count = remaining.partition_point(|slot| *slot - first < MAX_DISPLAY_WINDOW_SLOTS);
                 let (included, tail) = remaining.split_at(count);
                 let last = included[count - 1];
-                let range = CellRange::new(CellAddress::new(first, col), CellAddress::new(last, col));
-                let display = self.snapshot_display_format_range_on(sheet, range, today)
+                let range = CellRange::new(axis.address(first, coordinate), axis.address(last, coordinate));
+                let snapshot = self.snapshot_display_format_range_on(sheet, range, today)
                     .map_err(|_| SortRangeError::InvalidRange)?;
-                let display = DisplayColumn::new(&display);
-                for &row in included {
-                    let addr = CellAddress::new(row, col);
-                    let layers = display.layers_at(row);
-                    let conditional_font = display.has_conditional_font_at(row);
+                let display = DisplayFormats::new(&snapshot);
+                for &slot in included {
+                    let address = axis.address(slot, coordinate);
+                    let layers = display.layers_at(address);
+                    let conditional_font = display.has_conditional_font_at(address);
                     let mut fill = None;
                     let mut font = None;
                     let mut icon = None;
-                    for &(index, key) in &levels {
+                    for &(index, key) in &group {
                         let matched = match key {
                             SortAppearanceKey::Color(key) => {
-                                let fact = match key.source {
+                                let value = match key.source {
                                     SortColorSource::Fill => &mut fill,
                                     SortColorSource::Font => &mut font,
-                                }.get_or_insert_with(|| effective_color(layers, key.source, conditional_font,
-                                    || collapse_array_for_eval(target.peek_value(addr))));
-                                key.matches(*fact)
+                                }.get_or_insert_with(|| effective_color(
+                                    layers, key.source, conditional_font,
+                                    || collapse_array_for_eval(target.peek_value(address)),
+                                ));
+                                key.matches(*value)
                             }
                             SortAppearanceKey::Icon(key) => {
-                                let fact = icon.get_or_insert_with(|| display.icon_at(row));
-                                key.matches(*fact)
+                                let value = icon.get_or_insert_with(|| display.icon_at(address));
+                                key.matches(*value)
                             }
                         };
                         matches[index].push(matched);

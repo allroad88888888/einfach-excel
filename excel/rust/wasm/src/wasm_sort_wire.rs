@@ -1,5 +1,8 @@
 use einfach_excel_core::sort::{SortColorKey, SortColorPosition, SortColorSource, SortCriterion, SortIconKey};
+use einfach_excel_core::sort::{ColumnSortReport, RowSortCriterion};
 use einfach_excel_core::IconSet;
+
+include!("sort/orientation_wire.rs");
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
@@ -48,7 +51,8 @@ impl SortRangeWireJSON {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct SortKeyWireJSON {
-    col: u32,
+    col: Option<u32>,
+    row: Option<u32>,
     #[serde(default)]
     direction: Option<String>,
     #[serde(rename = "caseSensitive", default)]
@@ -69,9 +73,16 @@ struct SortListWireJSON {
 
 impl SortKeyWireJSON {
     fn into_key(self) -> Result<SortKey, String> {
+        self.into_key_for(SortOrientationWireJSON::TopToBottom)
+    }
+
+    fn into_key_for(self, orientation: SortOrientationWireJSON) -> Result<SortKey, String> {
+        let coordinate = orientation.coordinate(self.col, self.row)?;
         let direction = match self.direction.as_deref() {
             Some("desc") | Some("descending") => SortDirection::Descending,
-            _ => SortDirection::Ascending,
+            None | Some("asc") | Some("ascending") => SortDirection::Ascending,
+            _ if orientation == SortOrientationWireJSON::TopToBottom => SortDirection::Ascending,
+            _ => return Err("Choose a valid row sort direction.".into()),
         };
         let custom_list = match self.list.as_ref() {
             None => None,
@@ -81,7 +92,7 @@ impl SortKeyWireJSON {
             )),
         };
         Ok(SortKey {
-            col: self.col,
+            col: coordinate,
             direction,
             case_sensitive: self.case_sensitive,
             empty_first: self.empty_first,
@@ -101,7 +112,8 @@ enum SortCriterionWireJSON {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 struct SortColorWireJSON {
-    col: u32,
+    col: Option<u32>,
+    row: Option<u32>,
     sort_on: SortColorSourceWireJSON,
     #[serde(deserialize_with = "Deserialize::deserialize")]
     color: Option<String>,
@@ -118,7 +130,8 @@ enum SortColorSourceWireJSON {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 struct SortIconWireJSON {
-    col: u32,
+    col: Option<u32>,
+    row: Option<u32>,
     #[serde(rename = "sortOn")]
     _sort_on: SortIconSourceWireJSON,
     #[serde(deserialize_with = "Deserialize::deserialize")]
@@ -144,33 +157,62 @@ struct SortIconTargetWireJSON {
 enum SortColorPositionWireJSON {
     Top,
     Bottom,
+    Left,
+    Right,
 }
 
-impl From<SortColorPositionWireJSON> for SortColorPosition {
-    fn from(position: SortColorPositionWireJSON) -> Self {
-        match position {
-            SortColorPositionWireJSON::Top => Self::Top,
-            SortColorPositionWireJSON::Bottom => Self::Bottom,
+impl SortColorPositionWireJSON {
+    fn for_orientation(self, orientation: SortOrientationWireJSON) -> Result<SortColorPosition, String> {
+        use SortOrientationWireJSON::{LeftToRight, TopToBottom};
+        match (orientation, self) {
+            (TopToBottom, Self::Top) | (LeftToRight, Self::Left) => Ok(SortColorPosition::Top),
+            (TopToBottom, Self::Bottom) | (LeftToRight, Self::Right) => Ok(SortColorPosition::Bottom),
+            _ => Err("Choose a position in the sort direction.".into()),
+        }
+    }
+}
+
+impl From<SortColorSourceWireJSON> for SortColorSource {
+    fn from(source: SortColorSourceWireJSON) -> Self {
+        match source {
+            SortColorSourceWireJSON::CellColor => Self::Fill,
+            SortColorSourceWireJSON::FontColor => Self::Font,
         }
     }
 }
 
 impl SortCriterionWireJSON {
     fn into_criterion(self) -> Result<SortCriterion, String> {
+        let axis = SortOrientationWireJSON::TopToBottom;
         match self {
             Self::Value(key) => key.into_key().map(SortCriterion::Value),
-            Self::Icon(key) => {
-                SortIconKey::new(key.col, key.icon.map(|icon| (icon.set, icon.index)), key.position.into())
-                    .map(SortCriterion::Icon).map_err(str::to_owned)
+            Self::Icon(key) => SortIconKey::new(
+                axis.coordinate(key.col, key.row)?, key.icon.map(|icon| (icon.set, icon.index)),
+                key.position.for_orientation(axis)?,
+            ).map(SortCriterion::Icon).map_err(str::to_owned),
+            Self::Color(key) => SortColorKey::new(
+                axis.coordinate(key.col, key.row)?, key.sort_on.into(), key.color.as_deref(),
+                key.position.for_orientation(axis)?,
+            ).map(SortCriterion::Color).map_err(str::to_owned),
+        }
+    }
+
+    fn into_row_criterion(self) -> Result<RowSortCriterion, String> {
+        let axis = SortOrientationWireJSON::LeftToRight;
+        match self {
+            Self::Value(key) => {
+                let key = key.into_key_for(axis)?;
+                Ok(RowSortCriterion::value(key.col, key.direction, key.case_sensitive,
+                    key.empty_first, key.custom_list))
             }
-            Self::Color(key) => {
-                let source = match key.sort_on {
-                    SortColorSourceWireJSON::CellColor => SortColorSource::Fill,
-                    SortColorSourceWireJSON::FontColor => SortColorSource::Font,
-                };
-                SortColorKey::new(key.col, source, key.color.as_deref(), key.position.into())
-                    .map(SortCriterion::Color).map_err(str::to_owned)
-            }
+            Self::Icon(key) => RowSortCriterion::icon(
+                axis.coordinate(key.col, key.row)?, key.icon.map(|icon| (icon.set, icon.index)),
+                key.position.for_orientation(axis)?,
+            ).map_err(str::to_owned),
+            Self::Color(key) => RowSortCriterion::color(
+                axis.coordinate(key.col, key.row)?, key.sort_on.into(), key.color.as_deref(),
+                key.position.for_orientation(axis)?,
+            ).map_err(str::to_owned),
         }
     }
 }
@@ -178,6 +220,8 @@ impl SortCriterionWireJSON {
 #[derive(Clone, Debug, Deserialize)]
 struct SortRangePayloadJSON {
     range: SortRangeWireJSON,
+    #[serde(default)]
+    orientation: SortOrientationWireJSON,
     #[serde(default)]
     keys: Vec<SortCriterionWireJSON>,
     #[serde(rename = "excludedRows", default)]
@@ -196,6 +240,10 @@ struct SortRangeReportJSON {
     moved_cells: u32,
     #[serde(rename = "rowPermutation")]
     row_permutation: Vec<[u32; 2]>,
+    #[serde(rename = "movedColumns", skip_serializing_if = "Option::is_none")]
+    moved_columns: Option<u32>,
+    #[serde(rename = "columnPermutation", skip_serializing_if = "Option::is_none")]
+    column_permutation: Option<Vec<[u32; 2]>>,
 }
 
 impl SortRangeReportJSON {
@@ -203,6 +251,8 @@ impl SortRangeReportJSON {
         SortRangeReportJSON {
             ok: true,
             moved_rows: report.moved_rows,
+            moved_columns: None,
+            column_permutation: None,
             moved_cells: report.moved_cells,
             row_permutation: report
                 .row_permutation
@@ -211,15 +261,17 @@ impl SortRangeReportJSON {
                 .collect(),
         }
     }
-}
 
-// === Excel Table registry wire (#32) — CRUD DTO for `listTables` /
-// `getTable`. Mirrors `TableEntry`'s public accessors; the range is emitted
-// as an A1 string (`"A1:C10"`) to match how ranges read elsewhere on the JS
-// side, plus the resolved 0-based `sheetIndex` for adapter convenience.
-//
-// Also the wire element of the `snapshotTables` / `restoreTables` undo
-// primitive, hence `Deserialize`: a host round-trips exactly what
-// `listTables` hands it. On the way back IN, `sheetIndex` is ignored — the
-// engine anchors Tables by sheet NAME (so the snapshot survives `moveSheet`
-// and index churn between capture and restore), which is why the field
+    fn from_columns(report: &ColumnSortReport) -> Self {
+        Self {
+            ok: true,
+            moved_rows: 0,
+            moved_cells: report.moved_cells,
+            row_permutation: Vec::new(),
+            moved_columns: Some(report.moved_columns),
+            column_permutation: Some(report.column_permutation.iter().map(
+                |&(destination, source)| [destination, source],
+            ).collect()),
+        }
+    }
+}

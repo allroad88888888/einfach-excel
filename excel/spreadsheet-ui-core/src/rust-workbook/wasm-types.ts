@@ -18,7 +18,7 @@ import type { WasmFindQueries } from './find-commands'
 import type { WasmSelectSpecialQueries } from './select-special-commands'
 import type { CellRange } from '../shared'
 import type { SelectionNumbers } from '../status-bar/types'
-import type { RustAppearanceSortKey, RustSortKey } from './sort-commands'
+import type { WasmSortRange } from './sort-commands'
 import type { RustConditionalFontColors, RustNativeNumberDisplay, RustNumberFormatPreview } from './native-number-display'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import type { RustFilterReport, RustFilterValuesPage, RustFilterValuesQuery } from './filter-commands'
@@ -146,18 +146,7 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   ) => RustFilterReport
   reapplyFilter?: (sheet: number) => RustFilterReport
   clearFilter?: (sheet: number) => RustFilterReport
-  sortRange?: (
-    sheet: number,
-    input: {
-      readonly range: { startRow: number; endRow: number; startCol: number; endCol: number }
-      readonly keys: readonly (RustAppearanceSortKey | RustSortKey & {
-        readonly caseSensitive: boolean; readonly emptyFirst: boolean
-      })[]
-      readonly excludedRows: readonly number[]
-    },
-  ) =>
-    | { readonly ok: true; readonly movedRows: number }
-    | { readonly ok: false; readonly code: string; readonly message?: string }
+  sortRange?: WasmSortRange
   apply_auto_fill?: (input: {
     readonly validationConfirmation?: 'continue'
     readonly sheet: number

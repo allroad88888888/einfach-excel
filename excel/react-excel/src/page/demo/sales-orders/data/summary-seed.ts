@@ -2,6 +2,13 @@ import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 第二张表展示跨表引用：改名后数值应保持，修改订单后仍应重算。 */
 export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
+  // F97:H98 按第 97 行的键调整三个列记录的顺序。
+  { sheet: 1, row: 96, col: 5, kind: 'number', value: 3 },
+  { sheet: 1, row: 96, col: 6, kind: 'number', value: 1 },
+  { sheet: 1, row: 96, col: 7, kind: 'number', value: 2 },
+  { sheet: 1, row: 97, col: 5, kind: 'text', value: '列记录甲' },
+  { sheet: 1, row: 97, col: 6, kind: 'text', value: '列记录乙' },
+  { sheet: 1, row: 97, col: 7, kind: 'text', value: '列记录丙' },
   // H57:H59 原始溢出，F57:F59 算术引用；H57 改成 SEQUENCE(1) 后仍可 SUM(F57#)。
   { sheet: 1, row: 55, col: 7, kind: 'text', value: 'Spill source', format: { bold: true } },
   { sheet: 1, row: 56, col: 7, kind: 'formula', value: '=SEQUENCE(3)' },

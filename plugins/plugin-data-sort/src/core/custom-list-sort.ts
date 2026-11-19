@@ -2,7 +2,7 @@ import { atom } from '@einfach/core'
 import {
   editingSessionAtom, namedListDirectoryAtom, normalizeFillSeriesListWitness, rangeEquals,
   rustWorkbookConnectionAtom, selectionSnapshotAtom, sortFeedbackAtom, sortSelectionAtom,
-  type CellRange, type RustWorkbookCommands, type RustWorkbookConnection,
+  type CellRange, type RustSortCriterion, type RustWorkbookConnection,
 } from '@einfach-excel/spreadsheet-ui-core'
 
 export interface ListSortLevel {
@@ -101,7 +101,7 @@ export const configureCustomListSortAtom = atom(null, async (get, set, action: A
     return fail('selection')
   if (!state.keys.some(key => key.listName)) return fail('chooseList')
   const directory = get(namedListDirectoryAtom)
-  const keys: RustWorkbookCommands['range.sort']['payload']['keys'][number][] = []
+  const keys: RustSortCriterion[] = []
   for (const key of state.keys) {
     if (!key.listName) { keys.push({ col: key.col, direction: key.direction }); continue }
     const selected = directory.find(list => list.listName === key.listName)

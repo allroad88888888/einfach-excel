@@ -12,13 +12,6 @@ pub(super) enum SortAppearanceKey {
 }
 
 impl SortAppearanceKey {
-    pub(super) fn column(self) -> u32 {
-        match self {
-            Self::Color(key) => key.col,
-            Self::Icon(key) => key.col,
-        }
-    }
-
     pub(super) fn compare(self, a: bool, b: bool) -> Ordering {
         match self {
             Self::Color(key) => key.compare(a, b),

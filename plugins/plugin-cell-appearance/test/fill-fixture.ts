@@ -4,7 +4,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { createTestRustWorkbookConnection } from '../../../excel/spreadsheet-ui-core/test/support/rust-workbook-connection'
 
-interface PatternFixture {
+interface FillFixture {
   store: ReturnType<typeof createSpreadsheetUi>['store']
   connection: ReturnType<typeof createTestRustWorkbookConnection>
   writes: SetFormatRangeRequest[]
@@ -13,8 +13,8 @@ interface PatternFixture {
   release: () => void
 }
 
-export async function setup(): Promise<PatternFixture> {
-  let format: SpreadsheetCellFormat = { fgColor: '#123abc', bold: true }
+export async function setup(initial: SpreadsheetCellFormat = { fgColor: '#123abc', bold: true }): Promise<FillFixture> {
+  let format: SpreadsheetCellFormat = initial
   let revision = 1
   let fail = false
   let release: (() => void) | undefined

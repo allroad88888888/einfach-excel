@@ -1,6 +1,7 @@
 import { CELL_PATTERN_TILE_SIZE, patternFillRectangles, snapshotCellFill,
   type SpreadsheetCellFormat } from '@einfach-excel/spreadsheet-ui-core'
 import type { Rect } from '@einfach-excel/canvas'
+import { paintGradientFill } from './paint-gradient-fill'
 
 /** A browser pattern resource cache, bounded per Canvas context and released with that context. */
 const resources = new WeakMap<CanvasRenderingContext2D, Map<string, CanvasPattern>>()
@@ -12,10 +13,11 @@ export function paintCellFill(
 ) {
   const { x, y, width, height } = bounds
   if (width <= 0 || height <= 0) return
-  ctx.fillStyle = format?.bgColor || fallback
-  ctx.fillRect(x, y, width, height)
   const fill = snapshotCellFill(format?.fill)
+  ctx.fillStyle = format?.bgColor || (fill && fill.kind !== 'pattern' && !fill.stops.length ? '#000000' : fallback)
+  ctx.fillRect(x, y, width, height)
   if (!fill) return
+  if (fill.kind !== 'pattern') { paintGradientFill(ctx, bounds, fill); return }
   let cache = resources.get(ctx)
   if (!cache) { cache = new Map(); resources.set(ctx, cache) }
   const key = `${fill.pattern}:${fill.foreground.toLowerCase()}`

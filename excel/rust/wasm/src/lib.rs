@@ -261,4 +261,5 @@ mod tests {
     include!("wasm_tests/shrink_to_fit.rs");
     include!("wasm_tests/diagonal_borders.rs");
     include!("wasm_tests/pattern_fill.rs");
+    include!("wasm_tests/gradient_fill.rs");
 }

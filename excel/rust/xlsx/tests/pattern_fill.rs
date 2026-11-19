@@ -23,7 +23,7 @@ fn xml(bytes: &[u8], path: &str) -> String {
 fn independent_xml_preserves_seventeen_patterns_and_reports_unsupported_fills_without_solid_recoloring() {
     let (text, report) = xlsx_to_native_with_report(include_bytes!(
         "../../../react-excel/e2e/xlsx/pattern-external.xlsx").to_vec(), "Patterns").unwrap();
-    assert_eq!(report.items.iter().find(|item| item.kind == "unsupportedFills").unwrap().count, 3);
+    assert_eq!(report.items.iter().find(|item| item.kind == "unsupportedFills").unwrap().count, 2);
     let file: Value = serde_json::from_str(&text).unwrap();
     for (i, pattern) in PATTERNS.iter().enumerate() {
         let f = format(&file, &format!("A{}", i + 1)).unwrap();

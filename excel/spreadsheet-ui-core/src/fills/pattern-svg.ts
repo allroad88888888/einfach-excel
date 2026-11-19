@@ -4,7 +4,7 @@ import { CELL_PATTERN_TILE_SIZE, patternFillRectangles } from './pattern-geometr
 /** Only typed geometry and validated RGB enter the generated SVG; no caller-supplied markup or URL. */
 export function patternFillImage(value: SpreadsheetCellFill): string | undefined {
   const fill = snapshotCellFill(value)
-  if (!fill) return undefined
+  if (fill?.kind !== 'pattern') return undefined
   const rectangles = patternFillRectangles(fill.pattern).map(([x, y, width, height]) =>
     `<rect x="${x}" y="${y}" width="${width}" height="${height}"/>`).join('')
   const size = CELL_PATTERN_TILE_SIZE

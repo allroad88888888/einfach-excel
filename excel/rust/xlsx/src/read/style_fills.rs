@@ -24,13 +24,24 @@ fn fill_color(node: Option<&Node>, theme: &[String], fallback: &str, losses: &mu
     color_of(node, theme).unwrap_or_else(|| { *losses += 1; fallback.into() })
 }
 
-pub fn parse(xml: &str, theme: &[String]) -> (Vec<Fill>, usize) {
+pub fn parse(xml: &str, theme: &[String]) -> (Vec<Fill>, usize, usize) {
     let Some(root) = dom::parse(xml, &["fonts", "borders", "cellXfs", "dxfs"]) else {
-        return (Vec::new(), 0);
+        return (Vec::new(), 0, 0);
     };
-    let Some(fills) = root.child("fills") else { return (Vec::new(), 0) };
+    let Some(fills) = root.child("fills") else { return (Vec::new(), 0, 0) };
     let mut losses = 0;
+    let mut incomplete = 0;
     let values = fills.each("fill").map(|fill| {
+        if let Some(node) = fill.child("gradientFill") {
+            if let Some(descriptor) = super::gradient_fills::parse(node, theme, &mut losses) {
+                if descriptor.gradient_stops().is_some_and(|stops| stops.is_empty()) { incomplete += 1; }
+                return Fill { background: Some(descriptor.gradient_base().unwrap_or("#000000").into()),
+                    descriptor: Some(descriptor) };
+            }
+            losses += 1;
+            return Fill { background: node.child("stop").and_then(|stop| stop.child("color"))
+                .and_then(|color| color_of(color, theme)), descriptor: None };
+        }
         let Some(pattern) = fill.child("patternFill") else {
             if !fill.children.is_empty() { losses += 1; }
             return Fill::default();
@@ -51,7 +62,7 @@ pub fn parse(xml: &str, theme: &[String]) -> (Vec<Fill>, usize) {
                 foreground: fill_color(pattern.child("fgColor"), theme, "#000000", &mut losses) }),
         }
     }).collect();
-    (values, losses)
+    (values, losses, incomplete)
 }
 
 /// Conditional highlighting currently accepts solid backgrounds only.

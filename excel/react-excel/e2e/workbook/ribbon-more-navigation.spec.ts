@@ -95,6 +95,7 @@ test('Shift+Tab leaves More for an inline command without losing focus', async (
   await open(page)
   await more(page).focus()
   await more(page).press('ArrowDown')
+  await expect(item(page, 'calculation.calculation-mode')).toBeFocused()
   await page.keyboard.press('Shift+Tab')
   await expect(more(page)).toBeFocused()
   await expect(more(page)).toHaveAttribute('aria-expanded', 'true')

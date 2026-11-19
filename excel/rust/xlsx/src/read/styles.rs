@@ -140,14 +140,16 @@ pub struct ParsedStyles {
     pub formats: Vec<CellFormat>,
     pub diagonal_losses: usize,
     pub fill_losses: usize,
+    pub incomplete_gradients: usize,
 }
 
 pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<ParsedStyles, XlsxError> {
     let Some(xml) = xml else {
-        return Ok(ParsedStyles { formats: Vec::new(), diagonal_losses: 0, fill_losses: 0 });
+        return Ok(ParsedStyles { formats: Vec::new(), diagonal_losses: 0,
+            fill_losses: 0, incomplete_gradients: 0 });
     };
     let (diagonals, unsupported) = super::diagonal_borders::parse(xml, theme);
-    let (fills, fill_losses) = super::style_fills::parse(xml, theme);
+    let (fills, fill_losses, incomplete_gradients) = super::style_fills::parse(xml, theme);
     let mut parsed = Parsed { fills, ..Default::default() };
     let mut section = Section::None;
     let mut reader = Reader::from_str(xml);
@@ -232,7 +234,7 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<ParsedStyles, XlsxEr
             _ => {}
         }
     }
-    Ok(ParsedStyles { formats: parsed.xfs, diagonal_losses: unsupported, fill_losses })
+    Ok(ParsedStyles { formats: parsed.xfs, diagonal_losses: unsupported, fill_losses, incomplete_gradients })
 }
 
 /// Actual font size for each XF, including a font equal to the workbook's default font.

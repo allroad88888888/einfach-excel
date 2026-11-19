@@ -5,7 +5,7 @@ import { WorkbookRibbon } from '../../../excel/react-excel/src/workbook/chrome/r
 import { PluginPanels } from '../../../excel/react-excel/src/plugin/PluginMounts'
 import { createWorkbookI18n } from '../../../excel/react-excel/src/i18n/runtime'
 import { cellAppearancePlugin } from '../src'
-import { setup } from './pattern-fixture'
+import { setup } from './fill-fixture'
 
 async function click(name: string) {
   await act(async () => { fireEvent.click(screen.getByRole('button', { name })) })

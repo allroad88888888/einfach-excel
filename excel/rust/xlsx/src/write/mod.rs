@@ -2,6 +2,7 @@
 
 mod style_layers;
 mod style_fills;
+mod gradient_fills;
 mod fill_layers;
 mod comments;
 mod conditional;
@@ -97,6 +98,9 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
         let row_col_styles = range.row_styles.iter().filter(|s| has_meaningful_format(&s.format)).count()
             + range.column_styles.iter().filter(|s| has_meaningful_format(&s.format)).count();
         report.add("rowColumnStyles", row_col_styles);
+        for entry in range.row_styles.iter().chain(&range.column_styles) {
+            gradient_fills::report(&entry.format, &mut report);
+        }
         style_layers::write(range, target, &mut styles);
         let fill_layers = fill_layers::FillLayers::new(range, &mut report);
         for style in &range.cell_styles {
@@ -105,6 +109,7 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
             }
             if let Some(coord) = parse_cell(&style.addr) {
                 let mut format = fill_layers.cell(&style.format, coord, &mut report);
+                gradient_fills::report(&format, &mut report);
                 format.font_size = format.font_size.or(target.defaults.font_size);
                 let xf = styles.xf(&format);
                 if xf != target.default_style {

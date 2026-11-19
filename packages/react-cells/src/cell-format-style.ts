@@ -127,7 +127,7 @@ export function cellFormatStyle(
   if (decorations.length) style.textDecoration = decorations.join(' ')
   if (foreground) style.color = foreground
   if (background) style.backgroundColor = background
-  Object.assign(style, cellFillStyle(format.fill))
+  Object.assign(style, cellFillStyle(format.fill, background))
   if (fontFamily && FONT_FAMILY_RE.test(fontFamily)) style.fontFamily = fontFamily
   if (
     typeof fontSize === 'number' &&

@@ -520,6 +520,21 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | PATT-010 | Escape 关闭图案草稿 | `format/pattern-recovery.spec.ts` | Escape dismisses a pattern draft without changing cell formats or history |
 | PATT-011 | 复制空白图案格后粘贴全部 | `format/pattern-persistence.spec.ts` | copy-all carries both pattern colors without replacing neighboring pattern facts |
 | PATT-012 | 空白图案格仅粘贴格式 | `format/pattern-persistence.spec.ts` | formats carries both pattern colors without replacing neighboring pattern facts |
+| GRAD-001 | 应用线性渐变替换现有填充 | `format/gradient-fill.spec.ts` | Linear gradient replaces a pattern with one native transaction and one-step undo |
+| GRAD-002 | 修改线性渐变角度 | `format/gradient-fill.spec.ts` | Angle preserves the signed unnormalized value and all imported color stops |
+| GRAD-003 | 修改线性渐变起始颜色 | `format/gradient-fill.spec.ts` | Start color edits only its endpoint while preserving the imported middle stop |
+| GRAD-004 | 修改线性渐变结束颜色 | `format/gradient-fill.spec.ts` | End color edits only its endpoint while preserving the imported middle stop |
+| GRAD-005 | 应用矩形渐变 | `format/gradient-fill.spec.ts` | Rectangular gradient commits four coordinates and retains all imported stops |
+| GRAD-006 | 切换渐变类型保留会话参数 | `format/gradient-fill.spec.ts` | Gradient type switching preserves both geometry drafts and every imported stop |
+| GRAD-007 | 修改矩形渐变左边坐标 | `format/gradient-fill.spec.ts` | Left (%) changes its rectangular coordinate in one undoable transaction |
+| GRAD-008 | 修改矩形渐变右边坐标 | `format/gradient-fill.spec.ts` | Right (%) changes its rectangular coordinate in one undoable transaction |
+| GRAD-009 | 修改矩形渐变上边坐标 | `format/gradient-fill.spec.ts` | Top (%) changes its rectangular coordinate in one undoable transaction |
+| GRAD-010 | 修改矩形渐变下边坐标 | `format/gradient-fill.spec.ts` | Bottom (%) changes its rectangular coordinate in one undoable transaction |
+| GRAD-011 | 修改矩形渐变内部颜色 | `format/gradient-fill.spec.ts` | Inner color changes the rectangular endpoint without losing intermediate colors |
+| GRAD-012 | 修改矩形渐变外部颜色 | `format/gradient-fill.spec.ts` | Outer color changes the rectangular endpoint without losing intermediate colors |
+| GRAD-013 | 键盘提交渐变及保护恢复 | `format/gradient-keyboard.spec.ts` | Chinese Enter submits a rectangular gradient after protection recovery and restores focus |
+| GRAD-014 | 取消渐变草稿 | `format/gradient-recovery.spec.ts` | Cancel discards the gradient draft and restores the existing persisted fill |
+| GRAD-015 | Escape关闭渐变草稿 | `format/gradient-recovery.spec.ts` | Escape closes the gradient dialog without a write and returns focus to its trigger |
 | CF-001 | 新增条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | adding a conditional rule changes only its applied cells at 1280px |
 | CF-002 | 修改条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | editing a seeded conditional rule keeps one rule and one undo step at 1280px |
 | CF-003 | 删除条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | deleting a seeded conditional rule preserves other rules at 1280px |

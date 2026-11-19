@@ -27,7 +27,7 @@ mod find_text;
 mod find_wildcard;
 mod cell_format;
 mod cell_fill;
-pub use cell_fill::{CellFill, FillPattern};
+pub use cell_fill::{CellFill, FillPattern, GradientStop};
 pub mod format;
 mod number_format;
 pub mod accounting_format;

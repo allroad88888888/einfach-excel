@@ -5,6 +5,7 @@ import type {
   SpreadsheetCellFormat,
 } from '../contracts/types'
 import type { CellRange } from '../shared'
+import { freezeCellFill } from '../contracts/cell-fill'
 
 export function isProjectionRevision(value: unknown): value is ProjectionRevision {
   return (
@@ -60,7 +61,7 @@ export function snapshotFormat(format: SpreadsheetCellFormat | null): Spreadshee
   return Object.freeze({
     ...format,
     ...(format.numberFormat ? { numberFormat: Object.freeze({ ...format.numberFormat }) } : {}),
-    ...(format.fill ? { fill: Object.freeze({ ...format.fill }) } : {}),
+    ...(format.fill ? { fill: freezeCellFill(format.fill) } : {}),
     ...(format.borders ? { borders: snapshotBorders(format.borders) } : {}),
   })
 }

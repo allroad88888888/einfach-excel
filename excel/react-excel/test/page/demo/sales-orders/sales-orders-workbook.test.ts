@@ -5,6 +5,7 @@ import { SUMMARY_RICH_BASELINE_CELLS } from '../../../../src/page/demo/sales-ord
 import { SUMMARY_SHRINK_TO_FIT_CELLS } from '../../../../src/page/demo/sales-orders/data/shrink-to-fit-seed'
 import { SUMMARY_DIAGONAL_BORDER_CELLS } from '../../../../src/page/demo/sales-orders/data/diagonal-border-seed'
 import { SUMMARY_PATTERN_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/pattern-fill-seed'
+import { SUMMARY_GRADIENT_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/gradient-fill-seed'
 import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from '../../../../src/page/demo/sales-orders/data/custom-list-drag-seed'
 import { describe, expect, it } from 'vitest'
 import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
@@ -41,6 +42,20 @@ import {
 } from '../../../../src/page/demo/sales-orders/data/summary-seed'
 
 describe('Sales Orders workbook definition', () => {
+  it('keeps gradient seed cells outside existing examples, merges and hidden axes', async () => {
+    const existing: RustImportCell[] = []
+    for await (const chunk of SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks())
+      if (chunk !== SUMMARY_GRADIENT_FILL_CELLS) existing.push(...chunk)
+    for (const sample of SUMMARY_GRADIENT_FILL_CELLS) {
+      expect(existing.some(cell => cell.sheet === sample.sheet
+        && cell.row === sample.row && cell.col === sample.col))
+        .toBe(false)
+      expect(SUMMARY_MERGES.some(range => sample.row >= range.rowStart && sample.row <= range.rowEnd
+        && sample.col >= range.colStart && sample.col <= range.colEnd)).toBe(false)
+      expect(sample.row).not.toBe(9)
+      expect(sample.col).not.toBe(6)
+    }
+  })
   it('describes the workbook imported by the page', () => {
     expect(SALES_ORDERS_WORKBOOK_DEFINITION.title).toBe('Sales Orders')
     expect(SALES_ORDERS_WORKBOOK_DEFINITION.customFormulas).toEqual([
@@ -98,6 +113,7 @@ describe('Sales Orders workbook definition', () => {
       SUMMARY_SHRINK_TO_FIT_CELLS,
       SUMMARY_DIAGONAL_BORDER_CELLS,
       SUMMARY_PATTERN_FILL_CELLS,
+      SUMMARY_GRADIENT_FILL_CELLS,
       SUMMARY_TOP_FILTER_CELLS,
       SUMMARY_DATE_FILTER_CELLS,
       SALES_ORDER_NUMBER_FORMAT_EXAMPLES,

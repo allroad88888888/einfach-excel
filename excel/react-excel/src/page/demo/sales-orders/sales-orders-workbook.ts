@@ -5,6 +5,7 @@ import { SUMMARY_RICH_BASELINE_CELLS } from './data/rich-baseline-seed'
 import { SUMMARY_SHRINK_TO_FIT_CELLS } from './data/shrink-to-fit-seed'
 import { SUMMARY_DIAGONAL_BORDER_CELLS } from './data/diagonal-border-seed'
 import { SUMMARY_PATTERN_FILL_CELLS } from './data/pattern-fill-seed'
+import { SUMMARY_GRADIENT_FILL_CELLS } from './data/gradient-fill-seed'
 import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from './data/custom-list-drag-seed'
 import type { RustWorkbookDefinition, RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 import { applySalesOrderMerge, SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
@@ -99,6 +100,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       SUMMARY_SHRINK_TO_FIT_CELLS,
       SUMMARY_DIAGONAL_BORDER_CELLS,
       SUMMARY_PATTERN_FILL_CELLS,
+      SUMMARY_GRADIENT_FILL_CELLS,
       SUMMARY_TOP_FILTER_CELLS,
       SUMMARY_DATE_FILTER_CELLS,
       SALES_ORDER_NUMBER_FORMAT_EXAMPLES,

@@ -3,7 +3,7 @@ import {
   applySelectionFormatAtom, selectCellAtom, setRustWorkbookConnectionAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { configurePatternFillAtom as configure, patternFillPanelAtom as panel } from '../src/core'
-import { setup } from './pattern-fixture'
+import { setup } from './fill-fixture'
 
 test('pattern applies both colors in one native patch; solid and no-fill clear the descriptor', async () => {
   const { store, writes } = await setup()

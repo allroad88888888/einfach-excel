@@ -2,12 +2,17 @@ import type { SpreadsheetPlugin } from '@einfach-excel/react-excel'
 import { labels, messages } from './messages'
 import { PatternFillTools } from './PatternFillTools'
 import { PatternFillDialog } from './PatternFillDialog'
+import { GradientFillTools } from './GradientFillTools'
+import { GradientFillDialog } from './GradientFillDialog'
 
 /** Optional appearance editors; the shared border dialog owns its single command lifecycle. */
 export const cellAppearancePlugin: SpreadsheetPlugin = {
   id: 'cell-appearance',
-  ribbonItems: [{ id: 'pattern-fill', after: 'format.fill-color-palette', Item: PatternFillTools }],
-  panels: [PatternFillDialog],
+  ribbonItems: [
+    { id: 'pattern-fill', after: 'format.fill-color-palette', Item: PatternFillTools },
+    { id: 'gradient-fill', after: 'format.fill-color-palette', Item: GradientFillTools },
+  ],
+  panels: [PatternFillDialog, GradientFillDialog],
   borderPresets: [
     { preset: 'diagonal-down', label: labels.diagonalDown },
     { preset: 'diagonal-up', label: labels.diagonalUp },

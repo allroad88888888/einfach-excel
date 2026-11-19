@@ -2,6 +2,7 @@
 
 mod style_layers;
 mod style_fills;
+mod gradient_fills;
 mod diagonal_borders;
 mod archive;
 pub(crate) mod charts;
@@ -92,6 +93,7 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
     report.add("diagonalBorders", parsed_styles.diagonal_losses);
     report.add("unsupportedFills", parsed_styles.fill_losses
         + style_fills::unsupported_dxf_count(styles_xml.as_deref()));
+    report.add("incompleteGradients", parsed_styles.incomplete_gradients);
     let xfs = parsed_styles.formats;
     let font_sizes = styles::font_sizes(styles_xml.as_deref());
     let dxfs = dxf::parse(styles_xml.as_deref(), &theme.colors);

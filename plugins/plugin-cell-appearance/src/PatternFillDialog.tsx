@@ -5,7 +5,7 @@ import { cycleWorkbookDialogFocus } from '@einfach-excel/react-excel'
 import { CELL_FILL_PATTERNS, patternFillImage, type SpreadsheetFillPattern } from '@einfach-excel/spreadsheet-ui-core'
 import { configurePatternFillAtom, patternFillPanelAtom } from './core'
 import { labels, patternLabels } from './messages'
-import './pattern-fill.css'
+import './fill-dialog.css'
 
 export function PatternFillDialog() {
   const { i18n } = useLingui()
@@ -26,7 +26,7 @@ export function PatternFillDialog() {
   }, [panel.open])
   if (!panel.open) return null
   const preview = patternFillImage({ kind: 'pattern', pattern: panel.pattern, foreground: panel.foreground })
-  return <dialog ref={ref} className="pattern-fill-dialog" aria-labelledby={`${id}-title`}
+  return <dialog ref={ref} className="cell-fill-dialog" aria-labelledby={`${id}-title`}
     onKeyDown={cycleWorkbookDialogFocus}
     onCancel={event => { event.preventDefault(); void configure('close') }}>
     <h2 id={`${id}-title`}>{i18n._(labels.patternTitle)}</h2>
@@ -48,12 +48,12 @@ export function PatternFillDialog() {
         </label>)}
       </fieldset>
       <p id={`${id}-hint`}>{i18n._(labels.colorHint)}</p>
-      <div className="pattern-fill-preview" role="img" aria-label={i18n._(labels.preview)}
+      <div className="cell-fill-preview" role="img" aria-label={i18n._(labels.preview)}
         style={{ backgroundColor: /^#[\da-f]{6}$/i.test(panel.background) ? panel.background : undefined,
           backgroundImage: preview ?? undefined, backgroundSize: '8px 8px' }} />
       {panel.error && <p role="alert">{i18n._(labels[panel.error])}</p>}
       {panel.busy && <p role="status">{i18n._(labels.applying)}</p>}
-      <div className="pattern-fill-actions">
+      <div className="cell-fill-actions">
         <button type="submit" disabled={panel.busy}>{i18n._(labels.apply)}</button>
         <button type="button" disabled={panel.busy}
           onClick={() => void configure('close')}>{i18n._(labels.cancel)}</button>

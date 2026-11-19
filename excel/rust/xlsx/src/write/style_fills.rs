@@ -8,6 +8,7 @@ pub fn xml(format: &CellFormat) -> Option<String> {
             r#"<fill><patternFill patternType="{}"><fgColor rgb="{}"/><bgColor rgb="{}"/></patternFill></fill>"#,
             pattern.xml(), to_argb(foreground).expect("validated foreground"),
             background.unwrap_or_else(|| "FFFFFFFF".into()))),
+        Some(fill) => Some(super::gradient_fills::xml(fill)),
         None => background.map(|argb| format!(
             r#"<fill><patternFill patternType="solid"><fgColor rgb="{argb}"/><bgColor indexed="64"/></patternFill></fill>"#)),
     }

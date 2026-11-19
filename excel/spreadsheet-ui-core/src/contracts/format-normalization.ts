@@ -1,9 +1,10 @@
 import type { SpreadsheetCellFormat } from './cell-format'
+import { cloneCellFill } from './cell-fill'
 
 export function cloneFormat(format: SpreadsheetCellFormat): SpreadsheetCellFormat {
   const clone: SpreadsheetCellFormat = { ...format }
   if (format.numberFormat) clone.numberFormat = { ...format.numberFormat }
-  if (format.fill) clone.fill = { ...format.fill }
+  if (format.fill) clone.fill = cloneCellFill(format.fill)
   if (format.borders) clone.borders = Object.fromEntries(
     Object.entries(format.borders).map(([side, spec]) => [side, spec && { ...spec }]),
   )

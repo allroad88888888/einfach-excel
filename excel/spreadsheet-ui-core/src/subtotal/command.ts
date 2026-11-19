@@ -1,4 +1,5 @@
 import { atom } from '@einfach/core'
+import { systemClipboardFeedbackAtom } from '../clipboard/system-clipboard-command'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { hostControlsAtom } from '../host/state'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
@@ -13,7 +14,11 @@ import type { SubtotalAction, SubtotalList } from '../rust-workbook/subtotal-com
 import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import type { CellRange } from '../shared'
 import { sheetTabsAtom } from '../sheet-tabs/state'
+import { nativeTableFeedbackAtom } from '../tables/native-feedback'
+import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
+import { selectionSizePanelAtom } from '../toolbar/selection-size-command'
 import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-state'
+import { selectionVisibilityFeedbackAtom } from '../toolbar/selection-visibility-command'
 
 export interface SubtotalSelection {
   readonly connection: RustWorkbookConnection
@@ -60,8 +65,11 @@ export const changeSubtotalListAtom = atom(null, async (get, set, input: {
   if (!context || sheet?.id !== input.sheetId || visible?.kind !== 'visible-window' ||
     visible.sheetId !== input.sheetId || witness.status !== 'ready')
     throw new Error('Wait for the worksheet to finish loading.')
-  if (get(editingSessionAtom).source || get(rustHistoryPanelAtom).busy ||
-    get(sheetTabsAtom).mutation || get(selectionStructureFeedbackAtom).busy)
+  if (context.disabled || get(editingSessionAtom).source || get(rustHistoryPanelAtom).busy ||
+    get(sheetTabsAtom).mutation || get(selectionStructureFeedbackAtom).busy ||
+    get(selectionMergeFeedbackAtom).busy || get(systemClipboardFeedbackAtom).busy ||
+    get(selectionVisibilityFeedbackAtom).busy || get(selectionSizePanelAtom).busy ||
+    get(nativeTableFeedbackAtom).busy)
     throw new Error('Finish the current worksheet operation first.')
   if (getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected')
     throw new Error('Unprotect the worksheet before inserting or deleting rows and columns.')
@@ -92,3 +100,6 @@ export const changeSubtotalListAtom = atom(null, async (get, set, input: {
       set(selectionStructureFeedbackAtom, { busy: false, error: null })
   }
 })
+subtotalSelectionAtom.debugLabel = 'spreadsheet.subtotal.selection'
+inspectSubtotalListAtom.debugLabel = 'spreadsheet.subtotal.inspect'
+changeSubtotalListAtom.debugLabel = 'spreadsheet.subtotal.change'

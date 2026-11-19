@@ -272,3 +272,34 @@ fn shifting_criteria_on_another_sheet_keeps_the_range_and_history_in_sync() {
     assert!(history.undo(&mut book).unwrap());
     assert_eq!(book.reapply_filter(0).unwrap().hidden_rows, [2]);
 }
+
+#[test]
+fn criteria_trims_operator_whitespace_and_oversized_shift_marks_criteria_missing() {
+    let mut book = Workbook::new();
+    let mut history = WorkbookHistory::default();
+    book.set_cell(0, "A1", text("Amount"));
+    book.set_cell(0, "A2", Value::Number(5.0));
+    book.set_cell(0, "A3", Value::Number(25.0));
+    book.set_cell(0, "D1", text("Amount"));
+    book.set_cell(0, "D2", text("> 10"));
+    let selection = AdvancedFilterSelection {
+        source: reference(0, "A1", "A3"),
+        criteria: Some(reference(0, "D1", "D2")),
+        unique_only: false,
+    };
+    let report = history
+        .apply_advanced_filter_range(&mut book, selection)
+        .unwrap();
+    assert_eq!(report.hidden_rows, [1]);
+    // Inserting 1025 rows inside D1:D2 would exceed MAX_CRITERIA_CELLS (1024), so link becomes Missing
+    // instead of storing an unrestorable oversized range.
+    assert!(history
+        .edit_structure(&mut book, 0, ShiftEdit::RowInsert { at: 1, count: 1025 })
+        .unwrap());
+    assert_eq!(
+        book.filter_range_criteria(0).unwrap().criteria,
+        Some(PersistedCriteriaRange::Missing)
+    );
+    let snapshot = book.snapshot_filters();
+    book.restore_filters(snapshot).unwrap();
+}

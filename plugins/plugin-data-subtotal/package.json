@@ -12,7 +12,8 @@
     "**/*.css"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "peerDependencies": {
     "@einfach/core": "^0.4.0",

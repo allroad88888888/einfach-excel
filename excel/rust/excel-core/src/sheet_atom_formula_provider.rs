@@ -194,19 +194,32 @@ impl<'a, 'r> EvalProvider for AtomFormulaProvider<'a, 'r> {
         range: CellRange,
         f: &mut dyn FnMut(CellAddress, Value),
     ) -> Option<usize> {
+        self.for_each_sheet_3d_range_cell_with_sheet(start_sheet, end_sheet, range, &mut |_, a, v| {
+            f(a, v);
+        })
+    }
+
+    fn for_each_sheet_3d_range_cell_with_sheet(
+        &self,
+        start_sheet: &str,
+        end_sheet: &str,
+        range: CellRange,
+        f: &mut dyn FnMut(Option<usize>, CellAddress, Value),
+    ) -> Option<usize> {
         let Some(span) = self
             .workbook_context()
             .and_then(|context| context.resolve_sheet_span(start_sheet, end_sheet, self.args))
         else {
             f(
+                None,
                 range.normalize().start,
                 Value::Error(ValueError::InvalidRef),
             );
             return None;
         };
         let count = span.len();
-        for (_, ctx) in &span {
-            self.for_each_range_in(ctx, range, f);
+        for (idx, ctx) in &span {
+            self.for_each_range_in(ctx, range, &mut |addr, value| f(Some(*idx), addr, value));
         }
         Some(count)
     }
@@ -356,6 +369,38 @@ impl<'a, 'r> EvalProvider for AtomFormulaProvider<'a, 'r> {
     fn sheet_cell_formula_text(&self, sheet: &str, addr: CellAddress) -> Option<String> {
         let (_, ctx) = self.resolve_sheet(sheet)?;
         self.formula_text_in(&ctx, addr)
+    }
+
+    fn cell_formula_contains_subtotal(
+        &self,
+        sheet_index: Option<usize>,
+        addr: CellAddress,
+    ) -> bool {
+        let resolved = match sheet_index {
+            Some(idx) => {
+                let Some(context) = self.workbook_context() else {
+                    return false;
+                };
+                context.resolve_sheet_by_index(idx, self.args)
+            }
+            None => self.override_ctx().or_else(|| Some(self.ctx.clone())),
+        };
+        let Some(ctx) = resolved else {
+            return false;
+        };
+        self.args.depend(ctx.epoch_of(addr));
+        if let Some(expr) = ctx.interior.formula_exprs.borrow().get(&addr) {
+            return crate::eval::expr_contains_subtotal(expr);
+        }
+        let found = ctx
+            .interior
+            .formula_source
+            .borrow()
+            .get(&addr)
+            .is_some_and(|source| {
+                crate::eval::formula_source_contains_subtotal(source.source.as_ref())
+            });
+        found
     }
 
     fn call_custom(&self, name: &str, values: &[Value]) -> Option<Value> {

@@ -161,7 +161,11 @@ impl CellShiftChange {
         indices.extend(self.rules.iter().filter_map(|rule| {
             workbook.sheet_keys.iter().position(|key| *key == rule.sheet_key)
         }));
-        indices.extend(self.filter_criteria.iter().map(|change| change.owner));
+        indices.extend(
+            self.filter_criteria
+                .iter()
+                .filter_map(|change| change.resolved_owner(workbook)),
+        );
         indices.into_iter().collect()
     }
 

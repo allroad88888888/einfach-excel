@@ -79,3 +79,17 @@ fn invalid_native_gradient_payloads_reject_before_xlsx_serialization() {
         assert!(native_to_xlsx_with_report(&native(fill, "#ffffff").to_string()).is_err());
     }
 }
+
+#[test]
+fn gradient_without_explicit_background_reports_no_background_loss_and_invalid_gradient_counts_once() {
+    let fill = json!({"kind":"linear-gradient","degree":90.0,"stops":[
+        {"position":0.0,"color":"#123456"},{"position":1.0,"color":"#abcdef"}]});
+    let no_bg = json!({"format":"einfach-workbook","version":1,"title":"Gradient",
+        "canvases":[{"rowCount":10,"colCount":4}],"workbook":{"version":1,
+        "sheets":[{"idx":0,"name":"Sheet1"}],"cells":[],"formats":[{
+            "sheet":0,"startRow":0,"endRow":0,"startCol":0,"endCol":0,
+            "cellStyles":[{"addr":"A1","format":{"fill":fill}}]
+        }]}});
+    let (_, report) = native_to_xlsx_with_report(&no_bg.to_string()).unwrap();
+    assert!(!report.items.iter().any(|item| item.kind == "gradientBackground"));
+}

@@ -92,8 +92,13 @@ pub(crate) fn visit_font_colors(
         visit(cell);
         return;
     };
+    let mut visited = false;
     for run in runs.iter().filter(|run| !run.text.is_empty()) {
+        visited = true;
         visit(run.format.color.as_deref().map_or(cell, |color| base_color(Some(color))));
+    }
+    if !visited {
+        visit(cell);
     }
 }
 

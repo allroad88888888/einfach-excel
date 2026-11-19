@@ -2,14 +2,18 @@
   width: min(32rem, calc(100vw - 1.5rem));
   max-height: calc(100dvh - 1.5rem);
   box-sizing: border-box;
-  border: 1px solid var(--ribbon-border, #d4ded8);
+  border: 1px solid var(--border, #d4ded8);
   border-radius: 10px;
   padding: 1rem;
-  background: var(--workbook-panel, #fff);
-  color: var(--workbook-text, #182b20);
+  background: var(--surface, #fff);
+  color: var(--text, #182b20);
 }
 
 .worksheet-criteria-dialog::backdrop { background: rgb(0 0 0 / 26%); }
+.worksheet-criteria-dialog :is(button, input, textarea):focus-visible {
+  outline: 2px solid var(--primary, #1f6f50);
+  outline-offset: 2px;
+}
 .worksheet-criteria-dialog h2 { margin: 0 0 0.75rem; font-size: 1.125rem; }
 .worksheet-criteria-dialog form,
 .worksheet-criteria-dialog fieldset { display: grid; gap: 0.625rem; }

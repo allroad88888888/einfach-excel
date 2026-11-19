@@ -68,13 +68,22 @@ export const configureWorksheetCriteriaAtom = atom(null, async (get, set, action
     await Promise.resolve()
     if (get(worksheetCriteriaPanelAtom) === pending) set(stateAtom, pending)
     const preview = await request
-    if (get(worksheetCriteriaPanelAtom) !== pending) return false
+    if (get(worksheetCriteriaPanelAtom) !== pending) {
+      if (get(stateAtom) === pending) set(stateAtom, null)
+      return false
+    }
     set(stateAtom, preview ? { ...pending, busy: false, preview, confirmOverwrite: false } : null)
     return true
   } catch (error) {
-    if (get(worksheetCriteriaPanelAtom) !== pending) return false
+    if (get(worksheetCriteriaPanelAtom) !== pending) {
+      if (get(stateAtom) === pending) set(stateAtom, null)
+      return false
+    }
     set(stateAtom, { ...pending, busy: false, preview: null, confirmOverwrite: false,
       error: error instanceof Error ? error.message : 'Could not apply advanced filter.' })
     return false
   }
 })
+stateAtom.debugLabel = 'plugin.dataFilter.worksheetCriteriaState'
+worksheetCriteriaPanelAtom.debugLabel = 'plugin.dataFilter.worksheetCriteriaPanel'
+configureWorksheetCriteriaAtom.debugLabel = 'plugin.dataFilter.configureWorksheetCriteria'

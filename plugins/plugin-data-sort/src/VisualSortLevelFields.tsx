@@ -2,7 +2,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui } from '@lingui/react'
 import { getColumnLabel } from '@einfach-excel/spreadsheet-ui-core'
 import { visualSortPanelAtom, configureVisualSortAtom, newVisualSortLevel,
-  type VisualSortLevel, type VisualSortMode } from './core/visual-sort'
+  type VisualSortLevel, type VisualSortMode } from './core'
 import { colorLabels } from './color-messages'
 import { IconSortTargetFields } from './IconSortTargetFields'
 import { iconLabels } from './icon-messages'
@@ -25,12 +25,14 @@ export function VisualSortLevelFields({ index }: { readonly index: number }) {
     <legend>{i18n._({ ...labels.level, values })}</legend>
     {horizontal ? <label>{i18n._({ ...horizontalLabels.row, values })}
       <input type="number" inputMode="numeric" required step={1}
+        data-visual-sort-axis={index}
         min={panel.target.rowStart + 1} max={panel.target.rowEnd + 1}
         aria-label={i18n._({ ...horizontalLabels.row, values })}
         value={Number.isFinite(level.row) ? level.row + 1 : ''}
         onChange={event => update({ ...level, row: event.currentTarget.valueAsNumber - 1 })} />
     </label> : <label>{i18n._({ ...labels.column, values })}
-      <select aria-label={i18n._({ ...labels.column, values })} value={level.col}
+      <select data-visual-sort-axis={index} aria-label={i18n._({ ...labels.column, values })}
+        value={level.col}
         onChange={event => update({ ...level, col: Number(event.currentTarget.value) })}>
         {Array.from({ length: colEnd - colStart + 1 }, (_, i) => i + colStart)
           .map(col => <option key={col} value={col}>{getColumnLabel(col)}</option>)}
@@ -39,7 +41,9 @@ export function VisualSortLevelFields({ index }: { readonly index: number }) {
     <label>{i18n._(colorLabels.kind)}
       <select aria-label={i18n._(colorLabels.kind)} value={mode} onChange={event => {
         const next = event.currentTarget.value as VisualSortMode
-        update(newVisualSortLevel(horizontal ? { row: level.row } : { col: level.col }, next))
+        const row = horizontal && Number.isSafeInteger(level.row)
+          ? level.row : panel.target!.rowStart
+        update(newVisualSortLevel(horizontal ? { row } : { col: level.col }, next))
       }}>
         <option value="cell-color">{i18n._(colorLabels.fill)}</option>
         <option value="font-color">{i18n._(colorLabels.font)}</option>
@@ -81,7 +85,12 @@ export function VisualSortLevelFields({ index }: { readonly index: number }) {
       {(['up', 'down'] as const).map(direction => <button key={direction} type="button"
         aria-label={i18n._({ ...labels[direction === 'up' ? 'moveUp' : 'moveDown'], values })}
         disabled={direction === 'up' ? index === 0 : index === panel.keys.length - 1}
-        onClick={() => void configure({ type: 'move', index, direction })}>{i18n._(labels[direction])}</button>)}
+        onClick={async event => {
+          const dialog = event.currentTarget.closest('dialog')
+          if (await configure({ type: 'move', index, direction }))
+            dialog?.querySelector<HTMLElement>(
+              `[data-visual-sort-axis="${index + (direction === 'up' ? -1 : 1)}"]`)?.focus()
+        }}>{i18n._(labels[direction])}</button>)}
       <button type="button" aria-label={i18n._({ ...labels.removeLevel, values })}
         disabled={panel.keys.length === 1} onClick={() => void configure({ type: 'remove', index })}>
         {i18n._(labels.remove)}

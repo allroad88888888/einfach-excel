@@ -62,8 +62,17 @@ fn shift_region(region: &mut SubtotalRegion, edit: ShiftEdit) -> bool {
                 valid &= !calculation.columns.is_empty();
             }
         }
+        for calculation in &mut region.grand_total_order {
+            calculation.columns = calculation
+                .columns
+                .iter()
+                .filter_map(|&column| shift_column(column, edit))
+                .collect();
+            valid &= !calculation.columns.is_empty();
+        }
         if !valid {
             region.layers.clear();
+            region.grand_total_order.clear();
         }
     }
     !region.rows.is_empty()
@@ -79,11 +88,23 @@ impl Sheet {
             }
             keep
         });
+        let regions = &self.subtotal_regions;
         self.outline.rows.retain(|group| {
-            group
-                .subtotal
-                .as_ref()
-                .is_none_or(|owner| !removed.contains(&owner.id))
+            let Some(owner) = group.subtotal.as_ref() else {
+                return true;
+            };
+            if removed.contains(&owner.id) {
+                return false;
+            }
+            let Some(region) = regions.iter().find(|r| r.id == owner.id) else {
+                return false;
+            };
+            let summary_row = if owner.summary_above {
+                group.start.checked_sub(1)
+            } else {
+                group.end.checked_add(1)
+            };
+            summary_row.is_some_and(|row| region.rows.iter().any(|summary| summary.row == row))
         });
     }
 }

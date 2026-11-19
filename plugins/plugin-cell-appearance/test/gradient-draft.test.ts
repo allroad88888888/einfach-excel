@@ -55,3 +55,27 @@ test('empty imports stay empty until a color is edited; invalid drafts never bec
   expect(gradientFromDraft({ ...invalidAngle, mode: 'path-gradient' })).not.toBeNull()
   expect(gradientFromDraft(gradientColorInput(draft, 'endColor', 'red'))).toBeNull()
 })
+
+test('duplicate end stops edit the first visible stop at 1.0 and non-hex bgColor falls back safely', () => {
+  const fill: SpreadsheetGradientFill = {
+    kind: 'linear-gradient', degree: 0, stops: [
+      { position: 0, color: '#ff0000' },
+      { position: 1, color: '#00ff00' },
+      { position: 1, color: '#0000ff' },
+    ],
+  }
+  const draft = gradientDraftFromFormat({ fill, bgColor: 'yellow' })
+  expect(draft.endColor).toBe('#00ff00')
+  expect(draft.fallback).toBe('#000000')
+  const edited = gradientColorInput(draft, 'endColor', '#112233')
+  expect(gradientFromDraft(edited)?.stops).toEqual([
+    { position: 0, color: '#ff0000' },
+    { position: 1, color: '#112233' },
+    { position: 1, color: '#0000ff' },
+  ])
+  const emptyWithNonHex = gradientDraftFromFormat({
+    bgColor: 'rgb(10, 20, 30)', fill: { kind: 'linear-gradient', degree: 0, stops: [] },
+  })
+  expect(emptyWithNonHex.fallback).toBe('#000000')
+  expect(gradientFromDraft(emptyWithNonHex)).not.toBeNull()
+})

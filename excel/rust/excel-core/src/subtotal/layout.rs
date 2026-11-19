@@ -1,6 +1,7 @@
 //! Resolve summary-row positions and outline spans from subtotal group runs.
 use super::layout_contract::{
-    SubtotalLabel, SubtotalLayer, SubtotalLayout, SubtotalPlacement, SubtotalRow,
+    SubtotalCalculation, SubtotalLabel, SubtotalLayer, SubtotalLayout, SubtotalPlacement,
+    SubtotalRow,
 };
 use super::layout_groups::{group_records, SubtotalGroup};
 use crate::outline::{MAX_OUTLINE_DEPTH, MAX_OUTLINE_GROUPS};
@@ -8,6 +9,7 @@ use crate::{CellAddress, CellRange};
 use einfach_core::Value;
 use std::collections::{BTreeMap, HashSet};
 
+#[cfg(test)]
 pub(crate) fn plan_subtotal_layout(
     source: CellRange,
     records: &[Vec<Value>],
@@ -16,9 +18,29 @@ pub(crate) fn plan_subtotal_layout(
     row_limit: u32,
     column_limit: u32,
 ) -> Result<SubtotalLayout, &'static str> {
+    plan_subtotal_layout_with_grand_order(
+        source,
+        records,
+        layers,
+        &[],
+        placement,
+        row_limit,
+        column_limit,
+    )
+}
+
+pub(crate) fn plan_subtotal_layout_with_grand_order(
+    source: CellRange,
+    records: &[Vec<Value>],
+    layers: &[SubtotalLayer],
+    grand_total_order: &[SubtotalCalculation],
+    placement: SubtotalPlacement,
+    row_limit: u32,
+    column_limit: u32,
+) -> Result<SubtotalLayout, &'static str> {
     let label_columns = source.start.col..=source.end.col;
     validate_layout(source, records, layers, row_limit, column_limit)?;
-    let grand = group_records(records, source.start.col, layers);
+    let grand = group_records(records, source.start.col, layers, grand_total_order);
     let mut boundaries = BTreeMap::<usize, Vec<&SubtotalGroup<'_>>>::new();
     collect_summaries(&grand, placement, &mut boundaries);
     if boundaries.values().map(Vec::len).sum::<usize>() > MAX_OUTLINE_GROUPS {

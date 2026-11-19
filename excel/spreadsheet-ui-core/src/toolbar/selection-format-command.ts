@@ -136,7 +136,7 @@ function nextPatch(
       : { format: { fgColor: SELECTION_TEXT_COLOR } }
   }
   if (action === 'fill-color') {
-    return current.bgColor === SELECTION_FILL_COLOR
+    return !current.fill && current.bgColor === SELECTION_FILL_COLOR
       ? { format: {}, clearFormatFields: ['bgColor', 'fill'] }
       : { format: { bgColor: SELECTION_FILL_COLOR }, clearFormatFields: ['fill'] }
   }

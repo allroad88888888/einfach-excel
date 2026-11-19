@@ -14,6 +14,8 @@ export interface GradientDraft {
 }
 
 const rgb = (value: string) => /^#[\da-f]{6}$/i.test(value)
+const validHex = (value: string | undefined, fallback: string) =>
+  value && rgb(value) ? value.toLowerCase() : fallback
 const numericField = (value: number, percent = false): NumericDraft => ({
   text: String(value * (percent ? 100 : 1)), value,
 })
@@ -32,16 +34,20 @@ function endpoints(stops: readonly SpreadsheetGradientStop[]) {
   if (start?.position === 0) for (const stop of ordered) {
     if (stop.position === 0) start = stop
   }
-  return { start: start?.index, end: ordered.at(-1)?.index }
+  let end = ordered.at(-1)
+  if (end?.position === 1) for (const stop of ordered) {
+    if (stop.position === 1) { end = stop; break }
+  }
+  return { start: start?.index, end: end?.index }
 }
 
 export function gradientDraftFromFormat(format: SpreadsheetCellFormat): GradientDraft {
   const fill = format.fill?.kind !== 'pattern' ? format.fill : undefined
   const stops = fill ? fill.stops.map(stop => ({ ...stop })) : [
-    { position: 0, color: format.bgColor ?? '#ffffff' }, { position: 1, color: '#4472c4' },
+    { position: 0, color: validHex(format.bgColor, '#ffffff') }, { position: 1, color: '#4472c4' },
   ]
   const { start, end } = endpoints(stops)
-  const fallback = format.bgColor ?? '#000000'
+  const fallback = validHex(format.bgColor, '#000000')
   const rectangle = fill?.kind === 'path-gradient' ? fill : { left: 0.5, right: 0.5, top: 0.5, bottom: 0.5 }
   return { mode: fill?.kind ?? 'linear-gradient',
     angle: numericField(fill?.kind === 'linear-gradient' ? fill.degree : 0),

@@ -15,6 +15,30 @@ pub(super) struct SubtotalDetails {
 }
 
 impl Workbook {
+    pub(super) fn validate_subtotal_bounds_clear(
+        &self,
+        sheet_index: usize,
+        range: CellRange,
+    ) -> Result<(), &'static str> {
+        let sheet = self
+            .sheet(sheet_index)
+            .ok_or("The worksheet no longer exists.")?;
+        if self.list_tables().into_iter().any(|table| {
+            Some(table.sheet_name()) == self.name(sheet_index) && table.range().intersects(range)
+        }) {
+            return Err("Convert the Table to a normal range before inserting subtotals.");
+        }
+        if sheet
+            .merged_ranges()
+            .iter()
+            .any(|merged| merged.intersects(range))
+            || sheet.spill_intersecting(range).is_some()
+        {
+            return Err("Choose a subtotal range without merged cells or spilled formulas.");
+        }
+        Ok(())
+    }
+
     pub(super) fn read_subtotal_details(
         &self,
         sheet_index: usize,
@@ -23,34 +47,20 @@ impl Workbook {
         row_count: u32,
         col_count: u32,
     ) -> Result<SubtotalDetails, &'static str> {
-        let sheet = self
-            .sheet(sheet_index)
-            .ok_or("The worksheet no longer exists.")?;
         if row_count > EXCEL_MAX_ROWS
             || col_count > EXCEL_MAX_COLS
             || current.start.row >= current.end.row
             || current.start.col > current.end.col
             || current.end.row >= row_count
             || current.end.col >= col_count
+            || generated.contains(&current.start.row)
         {
             return Err("Choose a list with headings and detail rows within the worksheet.");
         }
         if current.cell_count() > MAX_SUBTOTAL_CELLS {
             return Err("Choose a subtotal list of at most 100,000 cells.");
         }
-        if self.list_tables().into_iter().any(|table| {
-            Some(table.sheet_name()) == self.name(sheet_index) && table.range().intersects(current)
-        }) {
-            return Err("Convert the Table to a normal range before inserting subtotals.");
-        }
-        if sheet
-            .merged_ranges()
-            .iter()
-            .any(|range| range.intersects(current))
-            || sheet.spill_intersecting(current).is_some()
-        {
-            return Err("Choose a subtotal range without merged cells or spilled formulas.");
-        }
+        self.validate_subtotal_bounds_clear(sheet_index, current)?;
 
         let width = current.cols() as usize;
         let mut values = vec![Value::Null; current.cell_count() as usize];

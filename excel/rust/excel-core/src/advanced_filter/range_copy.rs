@@ -178,7 +178,7 @@ impl Workbook {
                 fields.iter().map(move |&index| {
                     let address = CellAddress::new(row, source.range.start.col + index as u32);
                     let value = record[index].clone();
-                    let format = source_sheet.get_format(&address.to_string()).number_format;
+                    let format = source_sheet.base_format_at(address).number_format;
                     CopyField { value, format }
                 })
             })

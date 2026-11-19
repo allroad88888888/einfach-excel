@@ -19,8 +19,9 @@ pub fn report(format: &CellFormat, report: &mut ReportBuilder) {
     let Some(fill) = format.fill.as_ref().and_then(Option::as_ref) else { return };
     let Some(stops) = fill.gradient_stops() else { return };
     if stops.is_empty() { report.add("incompleteGradients", 1); }
-    let background = format.bg_color.as_ref().and_then(|value| value.as_deref()).and_then(to_argb)
-        .unwrap_or_else(|| "FFFFFFFF".into());
+    let Some(background) = format.bg_color.as_ref().and_then(|value| value.as_deref()).and_then(to_argb) else {
+        return;
+    };
     let fallback = to_argb(fill.gradient_base().unwrap_or("#000000")).expect("validated color");
     if !background.eq_ignore_ascii_case(&fallback) { report.add("gradientBackground", 1); }
 }

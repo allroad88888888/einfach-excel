@@ -50,7 +50,7 @@ export function SubtotalDialog() {
         {panel.list?.placement && <button type="button" disabled={panel.busy}
           onClick={() => void configure('remove')}>{i18n._(labels.remove)}</button>}
         <button type="submit" disabled={!canApply}>{i18n._(labels.apply)}</button>
-        <button type="button" disabled={panel.busy} onClick={() => void configure('close')}>
+        <button type="button" onClick={() => void configure('close')}>
           {i18n._(labels.cancel)}
         </button>
       </div>

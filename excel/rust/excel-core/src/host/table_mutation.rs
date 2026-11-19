@@ -5,7 +5,11 @@ impl TableDefinitionChange {
     pub(crate) fn affected_sheets(&self, workbook: &Workbook) -> Vec<usize> {
         let mut indices = BTreeSet::from([self.sheet]);
         indices.extend(self.formulas.iter().map(|formula| formula.sheet));
-        indices.extend(self.filter_criteria.iter().map(|change| change.owner));
+        indices.extend(
+            self.filter_criteria
+                .iter()
+                .filter_map(|change| change.resolved_owner(workbook)),
+        );
         indices.extend(self.rules.iter().filter_map(|rule| {
             workbook
                 .sheet_keys

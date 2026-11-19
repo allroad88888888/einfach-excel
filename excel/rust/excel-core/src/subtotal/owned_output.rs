@@ -122,17 +122,17 @@ impl OwnedSubtotalRow {
         );
         let current = HistorySnapshot::capture_with_merges(sheet, range, true, true);
         let cells = self.cells();
-        let style = subtotal_cell_style();
         if current.cells.as_deref() != Some(cells.as_slice())
-            || current.formats.cell_styles.len() != cells.len()
             || current
                 .formats
                 .cell_styles
                 .iter()
-                .zip(&cells)
-                .any(|((address, actual), cell)| *address != cell.addr || *actual != style)
-            || !current.formats.row_styles.is_empty()
-            || sheet.row_height(self.row).is_some()
+                .any(|(address, _)| cells.binary_search_by_key(&address.col, |c| c.addr.col).is_err())
+            || current.formats.row_styles.iter().any(|(_, style)| {
+                let mut without_height = style.clone();
+                without_height.height = None;
+                !without_height.is_empty()
+            })
             || !current.rich_text.is_empty()
             || !current.hyperlinks.is_empty()
             || !current.notes.is_empty()

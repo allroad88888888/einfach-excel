@@ -29,3 +29,10 @@ test('shrink and wrap use one write per click without changing the nominal size'
   ])
   expect(screen.getByRole('combobox', { name: 'Font size' })).toHaveValue('12')
 })
+
+test('shrink note stays hidden on multiline cells when shrink to fit is off', async () => {
+  const { store } = await renderFormattingRibbon(undefined, [textFormatPlugin])
+  const { shrinkToFitNoteAtom } = await import('../src/core/shrink-to-fit')
+  expect(store.getter(shrinkToFitNoteAtom)).toBeNull()
+  expect(screen.queryByRole('note')).toBeNull()
+})

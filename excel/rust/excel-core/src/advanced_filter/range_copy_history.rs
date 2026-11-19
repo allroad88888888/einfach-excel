@@ -87,14 +87,14 @@ impl WorkbookHistory {
                 .iter()
                 .zip(plan.fields)
                 .try_for_each(|(address, field)| {
-                    let cell = address.to_string();
                     let sheet = workbook
                         .sheet(request.sheet)
                         .expect("validated output sheet");
-                    let format_changed = sheet.get_format(&cell).number_format != field.format;
+                    let format_changed = sheet.base_format_at(address).number_format != field.format;
                     let value_changed =
                         sheet.has_formula_at(address) || sheet.peek_value(address) != field.value;
                     if value_changed {
+                        let cell = address.to_string();
                         workbook
                             .try_set_cell(request.sheet, &cell, field.value)
                             .map_err(|_| "Could not write filtered output.")?;

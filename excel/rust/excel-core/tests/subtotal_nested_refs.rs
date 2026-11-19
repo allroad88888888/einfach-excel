@@ -53,3 +53,24 @@ fn replacing_a_literal_with_a_same_value_subtotal_updates_its_outer_total() {
     book.set_cell(0, "A3", Value::Number(6.0));
     assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(12.0));
 }
+
+#[test]
+fn subtotal_3d_and_multi_area_respect_per_sheet_hidden_rows_and_skip_nested_subtotals() {
+    let mut book = Workbook::new();
+    let second = book.add_sheet("Sheet2");
+    let summary = book.add_sheet("Summary");
+    book.set_cell(0, "A1", Value::Number(10.0));
+    book.set_cell(0, "A2", Value::Number(20.0));
+    assert!(book.set_formula(0, "A3", "=SUBTOTAL(9,A1:A2)"));
+    book.set_cell(second, "A1", Value::Number(100.0));
+    book.set_cell(second, "A2", Value::Number(200.0));
+    assert!(book.set_formula(second, "A3", "=SUBTOTAL(9,A1:A2)"));
+    // Hide row 1 (A2) on Sheet1 only, and row 0 (A1) on Sheet2 only.
+    book.set_eval_hidden_rows(0, &[1]);
+    book.set_eval_hidden_rows(second, &[0]);
+    assert!(book.set_formula(summary, "B1", "=SUBTOTAL(109,Sheet1:Sheet2!A1:A3)"));
+    assert!(book.set_formula(summary, "B2", "=SUBTOTAL(109,Sheet1!A1:A3,Sheet2!A1:A3)"));
+    // Sheet1 visible non-subtotal = A1 (10), Sheet2 visible non-subtotal = A2 (200) -> 210
+    assert_eq!(book.get_cell("Summary", "B1"), Value::Number(210.0));
+    assert_eq!(book.get_cell("Summary", "B2"), Value::Number(210.0));
+}

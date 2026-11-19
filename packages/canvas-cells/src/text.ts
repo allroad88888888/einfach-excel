@@ -1,8 +1,8 @@
 import { paintRichText } from './rich-text'
 import { numberFormatLineWidth, paintNumberFormatLine } from './number-format-line'
 import type { Rect } from '@einfach-excel/canvas'
-import { externalHyperlink, fontBaselineLayout, fontVerticalMetrics, textShrinkScale,
-  type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
+import { externalHyperlink, fontBaselineLayout, fontVerticalMetrics,
+  textShrinkBlockedReason, textShrinkScale, type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import type { CanvasCellsTheme } from './types'
 
 function ellipsis(ctx: CanvasRenderingContext2D, text: string, width: number) {
@@ -84,9 +84,11 @@ export function paintText(
     const lineHeight = baselineAware
       ? Math.max(fontSize * scale * 1.2, ascent + descent) : size * 1.2
     const maxLines = Math.max(1, Math.ceil(height / lineHeight))
+    const shrinking = Boolean((format?.shrinkToFit || format?.overflow === 'shrink-to-fit') &&
+      !textShrinkBlockedReason(format, text))
     const lines = vertical ? Array.from(text).slice(0, maxLines)
       : wrapping ? wrap(ctx, text, width, maxLines)
-        : [format?.overflow === 'ellipsis' || format?.overflow === 'clip'
+        : [!shrinking && (format?.overflow === 'ellipsis' || format?.overflow === 'clip')
           ? ellipsis(ctx, text.replace(/\n/g, ' '), width) : text.replace(/\n/g, ' ')]
     const align = format?.align === 'centerAcross' ? 'center' : format?.align ?? (cell?.valueKind === 'number' ? 'right'
       : cell?.valueKind === 'boolean' || cell?.valueKind === 'error' ? 'center' : 'left')

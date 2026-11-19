@@ -64,9 +64,12 @@ export const configureColorCandidatesAtom = atom(null, async (get, set, action: 
     const page = await response
     if (get(colorCandidateBrowserAtom) === pending)
       set(browserAtom, { ...pending, status: 'ready', page })
+    else if (get(browserAtom) === pending) set(browserAtom, null)
   } catch {
     if (get(colorCandidateBrowserAtom) === pending)
       set(browserAtom, { ...pending, status: 'error' })
+    else if (get(browserAtom) === pending) set(browserAtom, null)
   }
 })
+browserAtom.debugLabel = 'plugin.dataFilter.colorCandidateBrowserBacking'
 configureColorCandidatesAtom.debugLabel = 'plugin.dataFilter.configureColorCandidates'

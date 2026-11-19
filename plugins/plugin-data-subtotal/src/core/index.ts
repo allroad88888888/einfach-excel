@@ -41,26 +41,31 @@ export const subtotalPanelAtom = atom((get) => {
 
 export const configureSubtotalAtom = atom(null, async (get, set, action: Action) => {
   const panel = get(subtotalPanelAtom)
-  if (panel?.busy) return false
   if (action === 'close') {
     set(stateAtom, null)
     return true
   }
+  if (panel?.busy) return false
   const context = get(subtotalSelectionAtom)
   if (!context || context.disabled) return false
   if (action === 'open' || action === 'refresh') {
     if (action === 'open' && panel) return false
-    const base = panel ?? { context, list: null, draft: initialDraft, busy: false, error: null }
+    const base = panel
+      ? { ...panel, context }
+      : { context, list: null, draft: initialDraft, busy: false, error: null }
     const pending = { ...base, busy: true, error: null }
     set(stateAtom, pending)
     try {
       const query = set(inspectSubtotalListAtom, {
-        sheetId: base.context.sheetId, range: base.context.range,
+        sheetId: context.sheetId, range: context.range,
       })
       await Promise.resolve()
       if (get(subtotalPanelAtom) === pending) set(stateAtom, pending)
       const list = await query
-      if (get(subtotalPanelAtom) !== pending) return false
+      if (get(subtotalPanelAtom) !== pending) {
+        if (get(stateAtom) === pending) set(stateAtom, null)
+        return false
+      }
       const fields = new Set(list.fields.map(field => field.column))
       const groupByColumn = base.list && fields.has(base.draft.groupByColumn)
         ? base.draft.groupByColumn : list.fields[0]?.column ?? 0
@@ -76,6 +81,7 @@ export const configureSubtotalAtom = atom(null, async (get, set, action: Action)
         ...pending, busy: false, list: null,
         error: error instanceof Error ? error.message : String(error),
       })
+      else if (get(stateAtom) === pending) set(stateAtom, null)
       return false
     }
   }
@@ -102,14 +108,27 @@ export const configureSubtotalAtom = atom(null, async (get, set, action: Action)
     })
     await Promise.resolve()
     if (get(subtotalPanelAtom) === pending) set(stateAtom, pending)
-    await result
-    if (get(subtotalPanelAtom) !== pending) return false
+    const changed = await result
+    if (get(subtotalPanelAtom) !== pending) {
+      if (get(stateAtom) === pending) set(stateAtom, null)
+      return false
+    }
+    if (!changed) {
+      set(stateAtom, {
+        ...pending, busy: false, error: 'This subtotal calculation is already included.',
+      })
+      return false
+    }
     set(stateAtom, null)
     return true
   } catch (error) {
     if (get(subtotalPanelAtom) === pending) set(stateAtom, {
       ...pending, busy: false, error: error instanceof Error ? error.message : String(error),
     })
+    else if (get(stateAtom) === pending) set(stateAtom, null)
     return false
   }
 })
+stateAtom.debugLabel = 'plugin.dataSubtotal.state'
+subtotalPanelAtom.debugLabel = 'plugin.dataSubtotal.panel'
+configureSubtotalAtom.debugLabel = 'plugin.dataSubtotal.configure'

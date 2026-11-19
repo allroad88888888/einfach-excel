@@ -6,6 +6,7 @@ use crate::advanced_filter::range_contract::{
 };
 use crate::eval::eval_expr_with_provider;
 use crate::formula::Expr;
+use crate::sheet::collapse_array_for_eval;
 use crate::shift::shift_copy_formula;
 use crate::{parse_formula, value_to_display, CellAddress, FilterError, Workbook};
 use einfach_core::Value;
@@ -36,7 +37,9 @@ impl CriteriaRows {
             .ok_or(FilterError::InvalidSheet)?;
         let fields: Vec<_> = (range.start.col..=range.end.col)
             .map(|column| {
-                let value = sheet.peek_value(CellAddress::new(range.start.row, column));
+                let value = collapse_array_for_eval(
+                    sheet.peek_value(CellAddress::new(range.start.row, column)),
+                );
                 source_columns
                     .get(&value_to_display(&value).to_lowercase())
                     .copied()
@@ -49,21 +52,20 @@ impl CriteriaRows {
             for (offset, field) in fields.iter().enumerate() {
                 let address = CellAddress::new(row, range.start.col + offset as u32);
                 let criterion = if let Some(index) = field {
-                    Predicate::compile(&sheet.peek_value(address))
+                    let value = collapse_array_for_eval(sheet.peek_value(address));
+                    Predicate::compile(&value)
                         .map_err(FilterError::InvalidCriteria)?
                         .map(|test| Criterion::Field {
                             index: *index,
                             test,
                         })
                 } else if let Some(source) = sheet.formula_text_at(address) {
-                    let expression = parse_formula(&source)
-                        .filter(|expression| shift_copy_formula(expression, 0, 0).is_ok())
-                        .ok_or(FilterError::InvalidCriteria(
-                            "Enter a valid formula in the criteria range.",
-                        ))?;
+                    let expression = parse_formula(&source).ok_or(FilterError::InvalidCriteria(
+                        "Enter a valid formula in the criteria range.",
+                    ))?;
                     Some(Criterion::Formula(expression))
                 } else {
-                    let value = sheet.peek_value(address);
+                    let value = collapse_array_for_eval(sheet.peek_value(address));
                     if !matches!(value, Value::Null) && value.as_text() != Some("") {
                         return Err(FilterError::InvalidCriteria(
                             "Match each criteria heading to a source field or use a formula under it.",
@@ -104,7 +106,10 @@ impl CriteriaRows {
                     .ok()
                     .is_some_and(|expression| {
                         matches!(
-                            eval_expr_with_provider(&expression, &provider),
+                            collapse_array_for_eval(eval_expr_with_provider(
+                                &expression,
+                                &provider
+                            )),
                             Value::Boolean(true)
                         )
                     }),

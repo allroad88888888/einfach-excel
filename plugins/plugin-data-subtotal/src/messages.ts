@@ -37,6 +37,17 @@ const pairs = {
   settingsLoss: ['Removing these subtotal rows would delete independent worksheet settings.',
     '移除这些小计行会删除独立的工作表设置。'],
   listError: ['Choose a list with headings and detail rows within the worksheet.', '请选择工作表内含标题和明细行的列表。'],
+  alreadyIncluded: ['This subtotal calculation is already included.', '当前分类汇总已包含此统计项。'],
+  headingsError: ['Use nonempty, distinct headings in the subtotal list.', '分类汇总列表的标题行不能为空且不能重复。'],
+  detailsError: ['Choose a list containing detail records.', '请选择包含明细记录的列表。'],
+  mergeSpillError: ['Choose a subtotal range without merged cells or spilled formulas.', '请选择不含合并单元格或溢出公式的分类汇总区域。'],
+  replacePositionError: ['Replace the current subtotals to change the group fields or summary position.', '请替换当前分类汇总后再更改分类字段或汇总位置。'],
+  groupingChangedError: ['The detail grouping changed. Replace the current subtotals to rebuild the groups.', '明细分组已变化，请替换当前分类汇总以重建分组。'],
+  tableOverlapError: ['A generated subtotal row would change an existing Table.', '生成的小计行会影响现有表格。'],
+  occupiedError: ['A subtotal output cell is occupied.', '分类汇总目标单元格已有内容。'],
+  depthError: ['Subtotals support at most 7 grouping levels.', '分类汇总最多支持 7 层分组。'],
+  overlapRowsError: ['Choose a subtotal list on different rows from the existing subtotals.', '请选择与现有分类汇总不在同一行区间的列表。'],
+  maxCellsError: ['Choose a subtotal list of at most 100,000 cells.', '请选择不超过 100,000 个单元格的分类汇总列表。'],
 } as const
 
 type Label = keyof typeof pairs
@@ -45,7 +56,11 @@ export const subtotalLabels = Object.fromEntries(Object.entries(pairs).map(([id,
   [id, { id: `subtotal.${id}`, message }])) as Record<Label, MessageDescriptor>
 export const subtotalErrors = [subtotalLabels.changed, subtotalLabels.table, subtotalLabels.edited,
   subtotalLabels.listError, subtotalLabels.validationLoss, subtotalLabels.conditionalLoss,
-  subtotalLabels.settingsLoss] as const
+  subtotalLabels.settingsLoss, subtotalLabels.alreadyIncluded, subtotalLabels.headingsError,
+  subtotalLabels.detailsError, subtotalLabels.mergeSpillError, subtotalLabels.replacePositionError,
+  subtotalLabels.groupingChangedError, subtotalLabels.tableOverlapError,
+  subtotalLabels.occupiedError, subtotalLabels.depthError, subtotalLabels.overlapRowsError,
+  subtotalLabels.maxCellsError] as const
 
 function catalog(locale: 0 | 1): Messages {
   return Object.fromEntries(Object.entries(pairs).map(([id, values]) =>

@@ -82,9 +82,12 @@ impl Workbook {
         keys: &[RowSortCriterion],
     ) -> Result<ColumnSortReport, SortRangeError> {
         let range = range.normalize();
+        if self.sheet(sheet).is_none() {
+            return Err(SortRangeError::InvalidRange);
+        }
+        self.ensure_range_editable(sheet, range).map_err(|_| SortRangeError::ProtectedRange)?;
         let keys = keys.iter().map(RowSortCriterion::criterion);
         let slots = self.sort_column_slots(sheet, range, keys.clone().map(SortCriterion::key_index))?;
-        self.ensure_range_editable(sheet, range).map_err(|_| SortRangeError::ProtectedRange)?;
         let result = self.sort_prepared_slots(sheet, range, SortAxis::Columns, &slots, keys)?;
         Ok(ColumnSortReport {
             moved_columns: result.changed_slots.len() as u32,

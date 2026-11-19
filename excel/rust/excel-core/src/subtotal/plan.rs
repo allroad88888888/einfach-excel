@@ -1,7 +1,7 @@
 //! Plan one subtotal edit against the current worksheet facts.
 use super::append_layout::appended_rows;
-use super::layout::plan_subtotal_layout;
-use super::layout_contract::SubtotalLayer;
+use super::layout::plan_subtotal_layout_with_grand_order;
+use super::layout_contract::{SubtotalCalculation, SubtotalLayer};
 use super::owned_output::{OwnedSubtotalRow, SubtotalLabels};
 use super::read_details::{SubtotalDetails, MAX_SUBTOTAL_CELLS};
 use super::region::{region_at, SubtotalRegion};
@@ -77,6 +77,9 @@ impl Workbook {
                     plan.edits.push(ShiftEdit::RowDelete { at: row, count: 1 });
                 }
                 after_deletes -= region.rows.len() as u32;
+                if after_deletes == 0 {
+                    return Err("Keep at least one row in the worksheet.");
+                }
             }
         }
         let SubtotalAction::Apply(settings) = &request.action else {
@@ -114,6 +117,8 @@ impl Workbook {
             request.col_count,
         )?;
         plan.add_layout(
+            self,
+            request.sheet,
             details,
             settings,
             current.filter(|_| append),
@@ -125,8 +130,11 @@ impl Workbook {
 }
 
 impl SubtotalPlan {
+    #[allow(clippy::too_many_arguments)]
     fn add_layout(
         &mut self,
+        workbook: &Workbook,
+        sheet_index: usize,
         details: SubtotalDetails,
         settings: &SubtotalSettings,
         append: Option<&SubtotalRegion>,
@@ -143,6 +151,7 @@ impl SubtotalPlan {
         let mut calculation = settings.calculation.clone();
         calculation.columns.sort_unstable();
         let mut layers = Vec::new();
+        let mut grand_total_order: Vec<SubtotalCalculation> = Vec::new();
         if let Some(current) = append {
             if current.layers.is_empty() || current.placement != settings.placement {
                 return Err(
@@ -151,6 +160,17 @@ impl SubtotalPlan {
             }
             labels = current.labels.clone();
             layers = current.layers.clone();
+            grand_total_order = if current.grand_total_order.is_empty() {
+                let mut existing_order = Vec::new();
+                for calc in current.layers.iter().flat_map(|layer| &layer.calculations) {
+                    if !existing_order.contains(calc) {
+                        existing_order.push(calc.clone());
+                    }
+                }
+                existing_order
+            } else {
+                current.grand_total_order.clone()
+            };
             let layer = layers
                 .iter_mut()
                 .find(|layer| layer.group_by_column == settings.group_by_column);
@@ -160,6 +180,9 @@ impl SubtotalPlan {
                 }
                 layer.calculations.push(calculation.clone());
             }
+        }
+        if !grand_total_order.contains(&calculation) {
+            grand_total_order.push(calculation.clone());
         }
         if !layers
             .iter()
@@ -172,19 +195,21 @@ impl SubtotalPlan {
         }
 
         let source = details.source;
-        let desired = plan_subtotal_layout(
+        let desired = plan_subtotal_layout_with_grand_order(
             source,
             &details.records,
             &layers,
+            &grand_total_order,
             settings.placement,
             EXCEL_MAX_ROWS,
             col_count,
         )?;
         let insertions = if let Some(existing) = append {
-            let previous = plan_subtotal_layout(
+            let previous = plan_subtotal_layout_with_grand_order(
                 source,
                 &details.records,
                 &existing.layers,
+                &existing.grand_total_order,
                 existing.placement,
                 EXCEL_MAX_ROWS,
                 col_count,
@@ -218,8 +243,11 @@ impl SubtotalPlan {
         }
         let mut actual_source = source;
         actual_source.end.row = desired.target.end.row;
-        if actual_source.cell_count() > MAX_SUBTOTAL_CELLS {
+        if desired.target.cell_count() > MAX_SUBTOTAL_CELLS {
             return Err("Choose a smaller list so the subtotal rows fit within 100,000 cells.");
+        }
+        if desired.target.end.col > source.end.col {
+            workbook.validate_subtotal_bounds_clear(sheet_index, desired.target)?;
         }
         self.range = desired.target;
         self.outline = desired.outline;
@@ -239,6 +267,7 @@ impl SubtotalPlan {
                 .map(|row| OwnedSubtotalRow::from_plan(row, &labels))
                 .collect(),
             layers,
+            grand_total_order,
             placement: settings.placement,
             labels,
         });

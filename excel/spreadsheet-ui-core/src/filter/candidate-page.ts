@@ -49,4 +49,4 @@ export const readNativeFilterCandidatePageAtom = atom(null,
       throw new Error('Rust returned an invalid filter colors page.')
     return page
   })
-readNativeFilterCandidatePageAtom.debugLabel = 'filter.readNativeCandidatePage'
+readNativeFilterCandidatePageAtom.debugLabel = 'spreadsheet.filter.readNativeCandidatePage'

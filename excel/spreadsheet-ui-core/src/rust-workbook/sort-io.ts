@@ -28,7 +28,8 @@ export function sortRange(
   const start = horizontal ? range.rowStart : range.colStart
   const end = horizontal ? range.rowEnd : range.colEnd
   const positions = horizontal ? ['left', 'right'] : ['top', 'bottom']
-  const readCoordinates = new Set<number>()
+  const valueCoordinates = new Set<number>()
+  let valueKeyCount = 0
   for (const key of keys) {
     if (!key || typeof key !== 'object' || ('row' in key) === ('col' in key) ||
       ('row' in key) !== horizontal)
@@ -37,7 +38,6 @@ export function sortRange(
     const coordinate = 'row' in key ? key.row : key.col
     if (!Number.isSafeInteger(coordinate) || coordinate < start || coordinate > end)
       throw new Error('Choose 1–8 sort levels inside the selected range.')
-    readCoordinates.add(coordinate)
     if ('sortOn' in key) {
       if (key.sortOn === 'icon') {
         if (!positions.includes(key.position) ||
@@ -53,9 +53,12 @@ export function sortRange(
         throw new Error('Choose a valid color sort target and position.')
     } else if (key.direction !== 'asc' && key.direction !== 'desc') {
       throw new Error('Choose a valid sort direction.')
+    } else {
+      valueKeyCount += 1
+      valueCoordinates.add(coordinate)
     }
   }
-  if (!keys.some(key => 'sortOn' in key) && readCoordinates.size !== keys.length)
+  if (valueCoordinates.size !== valueKeyCount)
     throw new Error(horizontal ? 'Choose 1–8 different rows inside the selected range.'
       : 'Choose 1–8 different columns inside the selected range.')
   if (!workbook.sortRange || !workbook.history_begin || !workbook.history_finish ||

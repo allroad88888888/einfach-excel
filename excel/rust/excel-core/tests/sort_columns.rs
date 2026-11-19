@@ -92,3 +92,30 @@ fn active_filters_and_partial_table_intersections_reject_without_relocation() {
         Err(SortRangeError::TableIntersectsRange));
     records(&book, "Horizontal", &["alpha", "hidden", "first tie", "low", "second tie"]);
 }
+
+#[test]
+fn horizontal_sort_checks_protection_and_dimensions_before_layout_scans() {
+    let mut book = Workbook::new();
+    let sheet = book.add_sheet("Horizontal");
+    write_records(&mut book, sheet);
+    let key = RowSortCriterion::value(0, SortDirection::Ascending, false, false, None);
+    book.merge_cells(sheet, range("A1", "A2"), einfach_excel_core::MergeAction::Merge, true)
+        .unwrap();
+    // 1-column range returns InvalidRange before hitting merge validation.
+    assert_eq!(
+        book.sort_columns_by_criteria(sheet, range("A1", "A2"), std::slice::from_ref(&key)),
+        Err(SortRangeError::InvalidRange)
+    );
+    book.restore_protection(vec![(
+        sheet,
+        einfach_excel_core::protection::SheetProtection {
+            mode: einfach_excel_core::protection::ProtectionMode::Protected,
+            unlocked_ranges: Vec::new(),
+        },
+    )])
+    .unwrap();
+    assert_eq!(
+        book.sort_columns_by_criteria(sheet, range("A1", "E2"), &[key]),
+        Err(SortRangeError::ProtectedRange)
+    );
+}

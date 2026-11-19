@@ -21,6 +21,9 @@ impl Workbook {
         slots: &[u32],
         keys: &[(u32, SortAppearanceKey)],
     ) -> Result<Vec<Vec<bool>>, SortRangeError> {
+        if keys.is_empty() {
+            return Ok(Vec::new());
+        }
         let target = self.sheet(sheet).ok_or(SortRangeError::InvalidRange)?;
         let mut levels: BTreeMap<u32, Vec<(usize, SortAppearanceKey)>> = BTreeMap::new();
         for (index, (coordinate, key)) in keys.iter().copied().enumerate() {

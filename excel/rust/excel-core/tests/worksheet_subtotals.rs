@@ -266,3 +266,75 @@ fn deleting_an_input_heading_does_not_prevent_removing_owned_rows() {
     assert_eq!(book.get_cell("Sheet1", "C4"), Value::Number(4.));
     assert_eq!(book.get_cell("Sheet1", "B1"), Value::Null);
 }
+
+#[test]
+fn formatting_owned_subtotal_cells_and_outer_layer_append_succeed() {
+    let (mut book, mut history) = fixture();
+    book.set_cell(0, "D1", Value::Text("Channel".into()));
+    for (addr, ch) in [("D2", "Web"), ("D3", "Web"), ("D4", "Retail"), ("D5", "Retail")] {
+        book.set_cell(0, addr, Value::Text(ch.into()));
+    }
+    history
+        .change_subtotals(&mut book, &request(sum_below(), "A1:D5", 60))
+        .unwrap();
+    // Apply number format + row height to owned subtotal row 4 (row index 3): removal/append stays allowed.
+    book.sheet_mut(0).unwrap().patch_format_range(
+        range("C4:C4"),
+        einfach_excel_core::StyleScope::Cell,
+        einfach_excel_core::CellStyle {
+            number_format: Some(einfach_excel_core::NumberFormat::Percent { digits: 1 }),
+            ..Default::default()
+        },
+    );
+    book.sheet_mut(0).unwrap().set_row_height(3, 30);
+    // Append layer 1 (Product, Average) then layer 2 (Channel, Count), then outer layer 0 (Region, Count).
+    let avg_b = apply(1, SubtotalFunction::Average, SubtotalPlacement::Below, false);
+    let cnt_d = apply(3, SubtotalFunction::Count, SubtotalPlacement::Below, false);
+    let cnt_a = apply(0, SubtotalFunction::Count, SubtotalPlacement::Below, false);
+    history
+        .change_subtotals(&mut book, &request(avg_b, "A1", 63))
+        .unwrap()
+        .unwrap();
+    history
+        .change_subtotals(&mut book, &request(cnt_d, "A1", 70))
+        .unwrap()
+        .unwrap();
+    history
+        .change_subtotals(&mut book, &request(cnt_a, "A1", 80))
+        .unwrap()
+        .unwrap();
+    // Removing all subtotals restores the original list cleanly even after owned-cell formatting.
+    history
+        .change_subtotals(&mut book, &request(SubtotalAction::Remove, "A1", 90))
+        .unwrap()
+        .unwrap();
+    assert!(book.subtotal_regions(0).unwrap().is_empty());
+    assert_eq!(book.get_cell("Sheet1", "C4"), Value::Number(4.));
+}
+
+#[test]
+fn deleting_one_summary_row_prunes_its_outline_and_cell_shift_rejects_subtotal_list() {
+    use einfach_excel_core::shift::ShiftEdit;
+    let (mut book, mut history) = fixture();
+    history
+        .change_subtotals(&mut book, &request(sum_below(), "A1:C5", 60))
+        .unwrap();
+    // Cell shift inside the subtotal region is rejected cleanly.
+    assert!(history
+        .shift_cells(
+            &mut book,
+            0,
+            range("B2:B2"),
+            einfach_excel_core::workbook::CellShiftDirection::InsertDown,
+        )
+        .is_err());
+    let before_outlines = book.sheet(0).unwrap().outline().rows.len();
+    // Delete East Total (row index 3); its outline group must also be pruned.
+    history
+        .edit_structure(&mut book, 0, ShiftEdit::RowDelete { at: 3, count: 1 })
+        .unwrap();
+    assert_eq!(
+        book.sheet(0).unwrap().outline().rows.len(),
+        before_outlines - 1
+    );
+}

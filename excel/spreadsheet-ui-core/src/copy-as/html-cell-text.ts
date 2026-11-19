@@ -10,14 +10,18 @@ export function hasRichText(cell: DisplayCell): boolean {
     cell.richText.map(run => run.text).join('') === cell.displayValue)
 }
 
+function roundPt(value: number): number {
+  return Math.round(value * 100) / 100
+}
+
 function glyphStyle(format: SpreadsheetCellFormat): string[] {
   const baseline = format.fontBaseline
   if (baseline !== 'superscript' && baseline !== 'subscript') return []
   const size = typeof format.fontSize === 'number' && Number.isFinite(format.fontSize)
     ? format.fontSize : 12
   const glyph = fontBaselineLayout(size, baseline)
-  return [`font-size: ${sanitizeFontSize(glyph.size)}`,
-    `vertical-align: ${-glyph.shift}pt`, 'line-height: 1']
+  return [`font-size: ${sanitizeFontSize(roundPt(glyph.size))}`,
+    `vertical-align: ${roundPt(-glyph.shift)}pt`, 'line-height: 1']
 }
 
 function runStyle(run: RichTextRun, base: SpreadsheetCellFormat = {}): string {

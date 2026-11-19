@@ -115,19 +115,17 @@ impl WasmWorkbook {
             .sheet(sheet_idx_usize)
             .and_then(|sheet| sheet.get_formula(addr))
             .unwrap_or_default();
-        let addr = CellAddress::parse(addr)
+        let parsed = CellAddress::parse(addr);
+        let addr = parsed
             .map(|addr| addr.to_string())
             .unwrap_or_else(|| addr.to_ascii_uppercase());
         let addr_copy = addr.clone();
+        let sheet = self.workbook.sheet(sheet_idx_usize);
         serde_wasm_bindgen::to_value(&CellSnapshotJSON {
-            rich_text: CellAddress::parse(&addr).and_then(|addr|
-                self.workbook.sheet(sheet_idx_usize)?.rich_text(addr).map(<[_]>::to_vec)),
-            comment_indicator: CellAddress::parse(&addr).and_then(|addr|
-                self.workbook.sheet(sheet_idx_usize)?.comment(addr).map(|_| true)),
-            note_indicator: CellAddress::parse(&addr).and_then(|addr|
-                self.workbook.sheet(sheet_idx_usize)?.note(addr).map(|_| true)),
-            hyperlink: CellAddress::parse(&addr).and_then(|addr|
-                self.workbook.sheet(sheet_idx_usize)?.hyperlink(addr).map(str::to_owned)),
+            rich_text: parsed.and_then(|addr| sheet?.rich_text(addr).map(<[_]>::to_vec)),
+            comment_indicator: parsed.and_then(|addr| sheet?.comment(addr).map(|_| true)),
+            note_indicator: parsed.and_then(|addr| sheet?.note(addr).map(|_| true)),
+            hyperlink: parsed.and_then(|addr| sheet?.hyperlink(addr).map(str::to_owned)),
             formatted_display: None, formatted_color: None, formatted_fill: None, formatted_pads: None,
             sheet: sheet_idx_usize,
             addr,

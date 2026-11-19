@@ -87,6 +87,7 @@ export const configureVisualSortAtom = atom(null, async (get, set, action: Actio
   }
   if (typeof action === 'object') {
     if (action.type === 'header' || action.type === 'case' || action.type === 'empty') {
+      if (horizontal && action.type === 'header') return false
       const option = action.type === 'header' ? 'hasHeader'
         : action.type === 'case' ? 'caseSensitive' : 'emptyFirst'
       set(stateAtom, { ...draft, [option]: action.value })
@@ -116,6 +117,12 @@ export const configureVisualSortAtom = atom(null, async (get, set, action: Actio
     set(stateAtom, { ...draft, error: 'stale' })
     return false
   }
+  if (horizontal && keys.some(key => !byRow(key) || !Number.isSafeInteger(key.row) ||
+    key.row < panel.target!.rowStart || key.row > panel.target!.rowEnd)) {
+    set(stateAtom, { ...draft, error: 'failed',
+      detail: 'Choose 1–8 different rows inside the selected range.' })
+    return false
+  }
   if (!horizontal && !keys.some(key => 'sortOn' in key)) {
     set(stateAtom, { ...draft, error: 'chooseColor' })
     return false
@@ -123,7 +130,9 @@ export const configureVisualSortAtom = atom(null, async (get, set, action: Actio
   const settings: SortRangeOptions = horizontal
     ? { orientation: 'left-to-right', keys: keys.filter(byRow), hasHeader: false,
       caseSensitive: draft.caseSensitive, emptyFirst: draft.emptyFirst }
-    : { keys: keys.filter(byColumn), hasHeader: draft.hasHeader }
+    : { keys: keys.filter(byColumn), hasHeader: draft.hasHeader,
+      caseSensitive: draft.caseSensitive, emptyFirst: draft.emptyFirst }
+  const previousFeedback = get(sortFeedbackAtom)
   const pending = { ...draft, busy: true }
   set(stateAtom, pending)
   const request = set(sortSelectionAtom, settings)
@@ -131,9 +140,11 @@ export const configureVisualSortAtom = atom(null, async (get, set, action: Actio
   if (get(stateAtom) === pending) set(stateAtom, pending)
   const sorted = await request
   if (get(stateAtom) !== pending || get(rustWorkbookConnectionAtom) !== connection) return false
+  const nextFeedback = get(sortFeedbackAtom)
+  const detail = nextFeedback === previousFeedback ? '' : nextFeedback.error
   set(stateAtom, sorted
     ? { ...idle, connection, selection: null }
-    : { ...draft, error: 'failed', detail: get(sortFeedbackAtom).error })
+    : { ...draft, error: 'failed', detail })
   return sorted
 })
 

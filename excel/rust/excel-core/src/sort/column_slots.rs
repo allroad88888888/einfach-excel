@@ -15,11 +15,11 @@ impl Workbook {
         rows: impl Iterator<Item = u32>,
     ) -> Result<Vec<u32>, SortRangeError> {
         let source = self.sheet(sheet).ok_or(SortRangeError::InvalidRange)?;
-        let axis = SortAxis::Columns;
-        source.validate_sort_layout(range, axis, rows)?;
         if range.cols() < 2 || u64::from(range.rows()) * u64::from(range.cols()) > 1_048_576 {
             return Err(SortRangeError::InvalidRange);
         }
+        let axis = SortAxis::Columns;
+        source.validate_sort_layout(range, axis, rows)?;
         if self.tables.values().any(|table| {
             Some(table.sheet_name()) == self.name(sheet) && table.range().intersects(range)
         }) {

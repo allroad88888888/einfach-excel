@@ -1,4 +1,5 @@
 //! Move committed criteria coordinates with worksheet structural edits.
+use crate::advanced_filter::range_contract::{validate_data_range, MAX_CRITERIA_CELLS};
 use crate::advanced_filter::range_state::CriteriaLink;
 use crate::formula::RangeBounds;
 use crate::shift::{shift_structural_range, ShiftEdit};
@@ -13,6 +14,10 @@ pub(in crate::workbook) struct CriteriaShift {
 }
 
 impl CriteriaShift {
+    pub(in crate::workbook) fn resolved_owner(&self, workbook: &Workbook) -> Option<usize> {
+        workbook.sheet_index_by_key(self.owner_key)
+    }
+
     pub(in crate::workbook) fn apply(&self, workbook: &mut Workbook, undo: bool) {
         let Some(owner) = workbook.sheet_index_by_key(self.owner_key) else {
             return;
@@ -93,6 +98,7 @@ fn shifted_range(
         return None;
     }
     let valid = shift_structural_range(&mut range.start, &mut range.end, RangeBounds::None, edit)
-        && range.start.row < range.end.row;
+        && range.start.row < range.end.row
+        && validate_data_range(range, MAX_CRITERIA_CELLS).is_ok();
     valid.then_some(range)
 }

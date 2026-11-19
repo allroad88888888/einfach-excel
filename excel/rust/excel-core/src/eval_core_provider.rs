@@ -328,6 +328,31 @@ pub trait EvalProvider {
         None
     }
 
+    /// Sheet-indexed 3D span iteration so callers like `SUBTOTAL` can check
+    /// each traversed sheet's hidden rows and nested subtotal formulas.
+    fn for_each_sheet_3d_range_cell_with_sheet(
+        &self,
+        start_sheet: &str,
+        end_sheet: &str,
+        range: CellRange,
+        f: &mut dyn FnMut(Option<usize>, CellAddress, Value),
+    ) -> Option<usize> {
+        self.for_each_sheet_3d_range_cell(start_sheet, end_sheet, range, &mut |addr, v| {
+            f(None, addr, v);
+        })
+    }
+
+    /// True when the formula at `addr` on `sheet_index` (or the current sheet
+    /// when `None`) contains a `SUBTOTAL(...)` call in its parsed AST.
+    fn cell_formula_contains_subtotal(
+        &self,
+        _sheet_index: Option<usize>,
+        addr: CellAddress,
+    ) -> bool {
+        self.cell_formula_text(addr)
+            .is_some_and(|source| crate::eval::formula_source_contains_subtotal(&source))
+    }
+
     // ===== EVAL_PROVIDER TRAIT METHODS: ADD NEW METHODS BEFORE THIS LINE =====
     // Sentinel for parallel-agent merges — when a new feature needs a new
     // EvalProvider hook, add it BEFORE this marker (with a sensible default)

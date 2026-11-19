@@ -125,7 +125,10 @@ impl SubtotalChange {
         workbook
             .reserve_conditional_format_changes(self.structure.edits().len().saturating_mul(2))?;
         with_sheet_batch(workbook, |book| {
-            self.structure.replay(book, sheet, undo)?;
+            if let Err(error) = self.structure.replay(book, sheet, undo) {
+                expected.restore(book, sheet);
+                return Err(error);
+            }
             if !undo {
                 if let Err(error) =
                     write_subtotal_cells(book, sheet, &self.cells, self.range, false)

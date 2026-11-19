@@ -19,9 +19,11 @@ export const shrinkToFitFeedbackAtom = atom<ShrinkToFitFeedback>((get) => {
     ? { busy: feedback.busy, error: feedback.error } : IDLE
 })
 
-/** Enabling shrink clears wrapping; only the other inapplicable layouts need a note. */
+/** Enabling shrink clears wrapping; only active shrink cells with blocked layouts need a note. */
 export const shrinkToFitNoteAtom = atom((get) => {
   const cell = get(activeCellFactAtom)
+  const active = Boolean(cell?.format?.shrinkToFit || cell?.format?.overflow === 'shrink-to-fit')
+  if (!active) return null
   return textShrinkBlockedReason({ ...cell?.format, wrap: false, overflow: undefined },
     cell?.displayValue ?? '')
 })

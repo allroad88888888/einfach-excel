@@ -49,7 +49,8 @@ export const configurePatternFillAtom = atom(null, async (get, set, action: Acti
       selection: get(selectionAuthorityWitnessAtom),
       pattern: fill?.kind === 'pattern' ? fill.pattern : initial.pattern,
       foreground: fill?.kind === 'pattern' ? fill.foreground : initial.foreground,
-      background: format.bgColor ?? initial.background,
+      background: format.bgColor && /^#[\da-f]{6}$/i.test(format.bgColor)
+        ? format.bgColor.toLowerCase() : initial.background,
     })
     return true
   }

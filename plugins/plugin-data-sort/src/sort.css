@@ -4,10 +4,10 @@
   max-height: calc(100dvh - 24px);
   overflow-y: auto;
   padding: 20px;
-  border: 1px solid var(--border-color, #d1d5db);
+  border: 1px solid var(--border, #d1d5db);
   border-radius: 10px;
-  background: var(--background, white);
-  color: var(--text-color, #1f2937);
+  background: var(--surface, white);
+  color: var(--text, #1f2937);
   font: 14px/1.45 system-ui, sans-serif;
 }
 .list-sort-dialog::backdrop { background: rgb(0 0 0 / 24%); }

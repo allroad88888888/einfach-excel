@@ -13,7 +13,6 @@ mod region;
 mod region_shift;
 mod removal_metadata;
 pub use region::{SubtotalBounds, SubtotalRegion};
-mod layout_identities;
 mod plan;
 mod request;
 mod state;

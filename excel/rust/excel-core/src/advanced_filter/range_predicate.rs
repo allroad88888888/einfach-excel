@@ -80,16 +80,17 @@ impl Predicate {
         if !explicit {
             return ScalarTest::Prefix(operand.to_lowercase());
         }
-        if let Ok(number) = operand.parse::<f64>() {
+        let trimmed = operand.trim();
+        if let Ok(number) = trimmed.parse::<f64>() {
             if number.is_finite() {
                 return ScalarTest::Number(comparison, number);
             }
         }
         if comparison.is_equality() {
-            if operand.eq_ignore_ascii_case("true") {
+            if trimmed.eq_ignore_ascii_case("true") {
                 return ScalarTest::Boolean(comparison, true);
             }
-            if operand.eq_ignore_ascii_case("false") {
+            if trimmed.eq_ignore_ascii_case("false") {
                 return ScalarTest::Boolean(comparison, false);
             }
         }

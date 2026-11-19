@@ -152,8 +152,21 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
         range: CellRange,
         f: &mut dyn FnMut(CellAddress, Value),
     ) -> Option<usize> {
+        self.for_each_sheet_3d_range_cell_with_sheet(start_sheet, end_sheet, range, &mut |_, a, v| {
+            f(a, v);
+        })
+    }
+
+    fn for_each_sheet_3d_range_cell_with_sheet(
+        &self,
+        start_sheet: &str,
+        end_sheet: &str,
+        range: CellRange,
+        f: &mut dyn FnMut(Option<usize>, CellAddress, Value),
+    ) -> Option<usize> {
         let Some(span) = self.wb.resolve_sheet_span_indices(start_sheet, end_sheet) else {
             f(
+                None,
                 range.normalize().start,
                 Value::Error(ValueError::InvalidRef),
             );
@@ -170,7 +183,7 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
                             sheet.peek_value_with_provider(addr, self),
                         )
                     },
-                    f,
+                    &mut |addr, value| f(Some(idx), addr, value),
                 );
             });
         }
@@ -288,6 +301,23 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
         let idx = self.wb.sheet_index_ci(sheet)?;
         let target = self.wb.sheets.get(idx)?;
         target.formula_text_at(addr)
+    }
+
+    fn cell_formula_contains_subtotal(
+        &self,
+        sheet_index: Option<usize>,
+        addr: CellAddress,
+    ) -> bool {
+        let idx = sheet_index.unwrap_or_else(|| self.effective_sheet());
+        let Some(sheet) = self.wb.sheets.get(idx) else {
+            return false;
+        };
+        if let Some(expr) = sheet.interior.formula_exprs.borrow().get(&addr) {
+            return crate::eval::expr_contains_subtotal(expr);
+        }
+        sheet
+            .formula_text_at(addr)
+            .is_some_and(|source| crate::eval::formula_source_contains_subtotal(&source))
     }
 
     fn current_sheet_index(&self) -> Option<usize> {

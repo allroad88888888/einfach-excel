@@ -15,8 +15,20 @@ pub(super) fn group_records<'a>(
     records: &[Vec<Value>],
     first_column: u32,
     layers: &'a [SubtotalLayer],
+    grand_total_order: &'a [SubtotalCalculation],
 ) -> SubtotalGroup<'a> {
     let mut calculations = Vec::new();
+    for preferred in grand_total_order {
+        if let Some(found) = layers
+            .iter()
+            .flat_map(|layer| &layer.calculations)
+            .find(|calculation| *calculation == preferred)
+        {
+            if !calculations.contains(&found) {
+                calculations.push(found);
+            }
+        }
+    }
     for calculation in layers.iter().flat_map(|layer| &layer.calculations) {
         if !calculations.contains(&calculation) {
             calculations.push(calculation);

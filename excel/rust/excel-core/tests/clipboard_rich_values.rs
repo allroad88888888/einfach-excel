@@ -54,3 +54,28 @@ fn skipped_blank_and_formats_only_do_not_replace_target_character_ranges() {
     book.paste_clipboard(&rich, 0, &options).unwrap();
     assert_eq!(book.sheet(0).unwrap().rich_text(addr("B1")).unwrap(), runs(FontBaseline::Subscript));
 }
+
+#[test]
+fn other_content_paste_modes_clear_or_copy_rich_text_consistently() {
+    for mode in [
+        ClipboardPasteMode::ValuesAndNumberFormats,
+        ClipboardPasteMode::Formulas,
+        ClipboardPasteMode::FormulasAndNumberFormats,
+    ] {
+        let mut book = setup();
+        let clip = book.capture_clipboard(0, CellRange::single(addr("A1")), false).unwrap();
+        let mut options = ClipboardPasteOptions::new(CellRange::single(addr("B1")));
+        options.mode = mode;
+        book.paste_clipboard(&clip, 0, &options).unwrap();
+        assert!(book.sheet(0).unwrap().rich_text(addr("B1")).is_none());
+    }
+    let mut book = setup();
+    let clip = book.capture_clipboard(0, CellRange::single(addr("A1")), false).unwrap();
+    let mut options = ClipboardPasteOptions::new(CellRange::single(addr("B1")));
+    options.mode = ClipboardPasteMode::ValuesAndFormats;
+    book.paste_clipboard(&clip, 0, &options).unwrap();
+    assert_eq!(
+        book.sheet(0).unwrap().rich_text(addr("B1")).unwrap(),
+        runs(FontBaseline::Superscript)
+    );
+}

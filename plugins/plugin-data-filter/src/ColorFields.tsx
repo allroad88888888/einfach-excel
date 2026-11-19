@@ -39,7 +39,7 @@ export function ColorFields({ index }: { readonly index: number }) {
       <label>{i18n._({ ...labels.hex, values })}
         <input type="text" autoComplete="off" spellCheck={false} maxLength={7}
           placeholder="#RRGGBB" aria-invalid={invalid} value={automatic ? '' : rule.color}
-          onChange={event => setColor(event.currentTarget.value || 'automatic')} />
+          onChange={event => setColor(event.currentTarget.value.trim() || 'automatic')} />
       </label>
       {invalid && <p className="size-error" role="status">{i18n._(labels.invalid)}</p>}
     </div>

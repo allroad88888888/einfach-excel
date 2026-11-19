@@ -19,6 +19,8 @@ export function paintPathGradient(ctx: CanvasRenderingContext2D,
   const left = Math.min(fill.left, fill.right), right = Math.max(fill.left, fill.right)
   const top = Math.min(fill.top, fill.bottom), bottom = Math.max(fill.top, fill.bottom)
   const transform = ctx.getTransform(), scale = transform.d, offset = transform.f
+  if (!(scale > 0)) return
+  const clampStop = (position: number) => Math.max(0, Math.min(1, position))
   const firstRow = Math.max(0, Math.floor(y * scale + offset))
   const lastRow = Math.min(ctx.canvas.height, Math.ceil((y + height) * scale + offset))
   const reverseStops = [...stops].reverse()
@@ -34,13 +36,14 @@ export function paintPathGradient(ctx: CanvasRenderingContext2D,
       const middle = gradientColorAt(stops, distance)
       paint.addColorStop(0, left > 0 ? outer : middle)
       if (left > 0) for (const stop of reverseStops) {
-        if (stop.position > distance) paint.addColorStop(left * (1 - stop.position), stop.color)
+        if (stop.position > distance)
+          paint.addColorStop(clampStop(left * (1 - stop.position)), stop.color)
       }
-      paint.addColorStop(left * (1 - distance), middle)
-      paint.addColorStop(right + (1 - right) * distance, middle)
+      paint.addColorStop(clampStop(left * (1 - distance)), middle)
+      paint.addColorStop(clampStop(right + (1 - right) * distance), middle)
       if (right < 1) for (const stop of stops) {
         if (stop.position > distance)
-          paint.addColorStop(right + (1 - right) * stop.position, stop.color)
+          paint.addColorStop(clampStop(right + (1 - right) * stop.position), stop.color)
       }
       paint.addColorStop(1, right < 1 ? outer : middle)
       ctx.fillStyle = paint

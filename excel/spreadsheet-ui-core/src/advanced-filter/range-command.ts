@@ -39,3 +39,4 @@ export const runWorksheetCriteriaAtom = atom(null, async (get, set, action: {
   const preview = await context.connection.request('advancedFilter.previewCopy', request)
   return { ...preview, request }
 })
+runWorksheetCriteriaAtom.debugLabel = 'spreadsheet.advancedFilter.run'

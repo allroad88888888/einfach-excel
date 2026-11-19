@@ -2,7 +2,7 @@ import { useEffect, useId, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui } from '@lingui/react'
 import { cycleWorkbookDialogFocus, translateWorkbookFeedback } from '@einfach-excel/react-excel'
-import { visualSortPanelAtom, configureVisualSortAtom } from './core/visual-sort'
+import { visualSortPanelAtom, configureVisualSortAtom } from './core'
 import { VisualSortLevelFields } from './VisualSortLevelFields'
 import { HorizontalSortOptions } from './HorizontalSortOptions'
 import { colorLabels } from './color-messages'
@@ -17,6 +17,7 @@ export function VisualSortDialog() {
   const configure = useSetAtom(configureVisualSortAtom)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const title = useId()
+  const hint = useId()
   const open = panel.target !== null
   useEffect(() => {
     const dialog = dialogRef.current
@@ -35,10 +36,11 @@ export function VisualSortDialog() {
     : panel.entry === 'icon' ? iconLabels : colorLabels
   const knownError = horizontal ? horizontalError(panel.detail) : undefined
   return <dialog ref={dialogRef} className="list-sort-dialog" aria-labelledby={title}
+    aria-describedby={hint}
     onKeyDown={cycleWorkbookDialogFocus}
     onCancel={event => { event.preventDefault(); void configure('close') }}>
     <h2 id={title}>{i18n._(labelsForEntry.title)}</h2>
-    <p>{i18n._(labelsForEntry.hint)}</p>
+    <p id={hint}>{i18n._(labelsForEntry.hint)}</p>
     <form onSubmit={event => { event.preventDefault(); void configure('apply') }}>
       {horizontal ? <HorizontalSortOptions /> : <label>
         <input type="checkbox" checked={panel.hasHeader} disabled={panel.busy}

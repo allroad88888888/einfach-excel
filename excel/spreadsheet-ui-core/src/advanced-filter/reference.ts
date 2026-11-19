@@ -36,6 +36,7 @@ export const worksheetCriteriaContextAtom = atom((get): WorksheetCriteriaContext
     source: get(selectionRegionsAtom).length === 1 ? rangeToA1(selection.range) : '',
   }
 })
+worksheetCriteriaContextAtom.debugLabel = 'spreadsheet.advancedFilter.context'
 
 export function readWorksheetReference(
   get: Getter, value: string,

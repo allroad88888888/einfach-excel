@@ -1497,3 +1497,12 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | SUBTOTAL-007 | 中文窄屏键盘操作与焦点恢复 | `plugins/subtotal.spec.ts` | `Chinese subtotal runs by keyboard at 390px and restores focus` |
 | SUBTOTAL-008 | 删除小计保留生成行上的独立数据验证规则 | `editing/subtotal-metadata.spec.ts` | `Remove all retains data validation that belongs only to a generated row` |
 | SUBTOTAL-009 | 替换小计保留生成行上的独立数据验证规则 | `editing/subtotal-metadata.spec.ts` | `Replacing subtotals retains data validation that belongs only to a generated row` |
+
+### 合并计算
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| CONSOLIDATE-001 | 跨表二维按分类合并计算并支持单次撤销/重做 | `editing/consolidate.spec.ts` | `Consolidate combines 2D categories across sheets with one undo step` |
+| CONSOLIDATE-002 | 按位置合并计算切换统计函数并门控覆盖确认 | `editing/consolidate.spec.ts` | `Consolidate by position previews alternate functions and gates overwrite confirmation` |
+| CONSOLIDATE-003 | 创建源数据链接生成跨表公式、可折叠行大纲与原子撤销 | `editing/consolidate.spec.ts` | `Linked consolidate creates live cross-sheet formulas, row outlines, and atomic undo` |
+| CONSOLIDATE-004 | 同表链接拒绝保护与无插件核心界面保持洁净 | `editing/consolidate.spec.ts` | `Consolidate rejects same-sheet links and stays absent without the optional plugin` |

@@ -27,6 +27,8 @@ import type { RustSortCommands } from './sort-commands'
 import type { RustFilterCommands } from './filter-commands'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import type { AdvancedFilterRangeCommands } from './advanced-filter-range-commands'
+import type { RustSubtotalCommands } from './subtotal-commands'
+import type { RustConsolidateCommands } from './consolidate-commands'
 import type { RustTextColumnsCommands } from './text-columns-commands'
 import type { RustShiftCellsCommands } from './shift-cells-commands'
 import type { RustRemoveDuplicatesCommands } from './remove-duplicates-commands'
@@ -142,14 +144,13 @@ export interface RustClearRangeRequest {
   readonly targets?: readonly (CellRange & { readonly scope: 'cell' | 'row' | 'column' })[]
 }
 
-import type { RustSubtotalCommands } from './subtotal-commands'
-
 export interface RustWorkbookCommands
   extends HostCommands, RustFindCommands, RustSelectSpecialCommands,
     RustSortCommands,
     RustFilterCommands,
     AdvancedFilterRangeCommands,
     RustSubtotalCommands,
+    RustConsolidateCommands,
     RustTextColumnsCommands,
     RustShiftCellsCommands,
     RustRemoveDuplicatesCommands,

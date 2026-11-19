@@ -197,3 +197,12 @@ export { subtotalSelectionAtom, inspectSubtotalListAtom, changeSubtotalListAtom,
   type SubtotalSelection } from './subtotal/command'
 export { SUBTOTAL_FUNCTIONS, type SubtotalFunction, type SubtotalPlacement,
   type SubtotalList, type SubtotalAction } from './rust-workbook/subtotal-commands'
+export {
+  consolidateContextAtom, previewConsolidateAtom, applyConsolidateAtom,
+  type ConsolidateContext, type ConsolidatePreviewInput, type ConsolidatePreviewResult,
+} from './consolidate/command'
+export {
+  CONSOLIDATE_FUNCTIONS,
+  type ConsolidateFunction, type ConsolidatePreview, type ConsolidateReport,
+  type ConsolidateRequest, type ConsolidateSourceRef,
+} from './rust-workbook/consolidate-commands'

@@ -762,6 +762,10 @@ msgstr "无法移动表格中的单元格。请改为插入或删除表格行或
 msgid "Cannot shift cells inside a filtered range."
 msgstr "无法在筛选区域内移动单元格。"
 
+#: src/i18n/feedback-messages.ts
+msgid "Cannot shift cells inside a subtotal list. Insert or delete rows or columns instead."
+msgstr "无法在分类汇总列表内移动单元格，请改为插入或删除整行或整列。"
+
 #: src/i18n/shift-cells-feedback.ts
 msgid "Cannot shift cells through part of a merged cell."
 msgstr "无法移动合并单元格的一部分。"
@@ -891,6 +895,10 @@ msgstr "中文（中国）"
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 msgid "Choose {0}"
 msgstr "选择{0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose 1–8 different rows inside the selected range."
+msgstr "请在所选区域内选择 1–8 个不同的行。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Choose a column and a total function."
@@ -1072,6 +1080,10 @@ msgstr "清除格式"
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Clear selection"
 msgstr "清除选择"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clear the active filter before sorting this range left to right."
+msgstr "从左到右排序前，请先清除该区域的活动筛选。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Clear the filter before cutting this range. No cells were moved."
@@ -1296,6 +1308,10 @@ msgstr "已配置的字段类型"
 msgid "Confirm overwriting the occupied destination cells before applying."
 msgstr "应用前，请确认覆盖目标区域中已有内容的单元格。"
 
+#: src/i18n/feedback-messages.ts
+msgid "Consolidate"
+msgstr "合并计算"
+
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
 msgid "Constants"
 msgstr "常量"
@@ -1321,6 +1337,10 @@ msgstr "是否继续使用此输入？"
 #: src/i18n/feedback-messages.ts
 msgid "Convert table to range"
 msgstr "转换表格为普通区域"
+
+#: src/i18n/feedback-messages.ts
+msgid "Convert the table to a range before sorting left to right."
+msgstr "从左到右排序前，请先将表格转换为普通区域。"
 
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Convert to range"
@@ -1379,6 +1399,10 @@ msgstr "复制为纯文本"
 #: src/i18n/feedback-messages.ts
 msgid "Copy conditional format"
 msgstr "复制条件格式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Copy filtered records"
+msgstr "复制筛选记录"
 
 #: src/i18n/feedback-messages.ts
 msgid "Copy one continuous range before pasting validation."
@@ -3011,6 +3035,10 @@ msgstr "定位条件"
 msgid "Go to table {0}"
 msgstr "定位到表格 {0}"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "gradients with no color stops"
+msgstr "无色标的渐变填充"
+
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Gray"
 msgstr "灰色"
@@ -3216,6 +3244,14 @@ msgstr "增加缩进"
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Indent"
 msgstr "缩进"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "independent gradient fallback backgrounds"
+msgstr "独立的渐变兜底背景色"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "independent pattern/background inheritance"
+msgstr "独立的图案与底色跨层继承"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
@@ -4727,6 +4763,10 @@ msgid "Remove sort level {0}"
 msgstr "移除排序级别 {0}"
 
 #: src/i18n/feedback-messages.ts
+msgid "Remove subtotals"
+msgstr "删除分类汇总"
+
+#: src/i18n/feedback-messages.ts
 msgid "Removes extra spaces from a text string."
 msgstr "删除文本字符串中的多余空格。"
 
@@ -5373,6 +5413,18 @@ msgid "Select an editable range and wait for the worksheet to finish loading."
 msgstr "请选择可编辑区域，并等待工作表加载完成。"
 
 #: src/i18n/feedback-messages.ts
+msgid "Select at least two data columns, up to 1,048,576 cells."
+msgstr "请至少选择两列数据，且总数不超过 1,048,576 个单元格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select at least two data columns. Include all rows to move together."
+msgstr "请至少选择两列数据，并包含所有需要一起移动的行。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select at least two data rows, up to 1,048,576 cells."
+msgstr "请至少选择两行数据，且总数不超过 1,048,576 个单元格。"
+
+#: src/i18n/feedback-messages.ts
 msgid "Select at least two data rows. Include all columns to move together."
 msgstr "请至少选择两行数据，并包含所有需要一起移动的列。"
 
@@ -5929,6 +5981,10 @@ msgstr "样式"
 msgid "Submitting input…"
 msgstr "正在提交输入…"
 
+#: src/i18n/feedback-messages.ts
+msgid "Subtotal"
+msgstr "分类汇总"
+
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Subtract"
 msgstr "减"
@@ -6105,6 +6161,10 @@ msgid "The comment worksheet no longer exists."
 msgstr "批注所在工作表已不存在。"
 
 #: src/i18n/feedback-messages.ts
+msgid "The consolidated outline changed outside history."
+msgstr "合并计算的分级大纲已在历史记录之外被修改。"
+
+#: src/i18n/feedback-messages.ts
 msgid "The copied worksheet was deleted. Copy cells again before pasting."
 msgstr "复制来源工作表已删除，请重新复制后再粘贴。"
 
@@ -6127,6 +6187,10 @@ msgstr "剪切来源单元格已更改，请重新剪切后再粘贴。"
 #: src/i18n/next-version-feedback.ts
 msgid "The cut cells overlap a named range. Change or remove that name in Name manager before moving cells between sheets. No cells were moved."
 msgstr "剪切区域与命名范围重叠。请先在名称管理器中修改或删除该名称，再跨表移动单元格。未移动任何单元格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The data was consolidated. Refresh the worksheet before trying again."
+msgstr "已完成合并计算，请刷新工作表后再试。"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "The editable range is outside the worksheet."
@@ -6224,6 +6288,10 @@ msgstr "原引用区域已删除，请输入新区域以修复此名称。"
 msgid "The paste would hide cell content. Unmerge the destination or change the selection first."
 msgstr "此次粘贴会隐藏单元格内容，请先取消目标区域的合并，或修改选区。"
 
+#: src/i18n/feedback-messages.ts
+msgid "The range contains an array spill. Remove the array before sorting."
+msgstr "该区域包含溢出数组，请先移除数组再排序。"
+
 #: src/i18n/rich-text-feedback.ts
 msgid "The rich text cell is outside the worksheet."
 msgstr "富文本单元格超出工作表范围。"
@@ -6304,6 +6372,10 @@ msgstr "来源或目标区域包含锁定单元格。"
 #: src/i18n/feedback-messages.ts
 msgid "The split was applied, but the view could not be updated. Check the sheet before retrying."
 msgstr "分列已应用，但视图更新失败。请检查工作表后再重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The subtotal rows or outline changed outside history."
+msgstr "分类汇总行或大纲已在历史之外被修改。"
 
 #: src/i18n/feedback-messages.ts
 msgid "The table change was not applied."
@@ -6834,6 +6906,10 @@ msgstr "唯一值"
 msgid "Unmerge cells"
 msgstr "取消合并单元格"
 
+#: src/i18n/feedback-messages.ts
+msgid "Unmerge cells before sorting this range."
+msgstr "排序该区域前，请先取消合并单元格。"
+
 #: src/i18n/next-version-feedback.ts
 msgid "Unmerge the source and destination before moving cells between sheets. No cells were moved."
 msgstr "跨表移动前，请取消源区域和目标区域的合并。未移动任何单元格。"
@@ -6921,6 +6997,10 @@ msgstr "不支持的名称定义"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "unsupported diagonal border styles"
 msgstr "不支持的斜线边框线型"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "unsupported fills or fill colors"
+msgstr "不支持的填充或填充颜色"
 
 #: src/i18n/xlsx-report-feedback.ts
 msgid "unsupported hyperlinks"

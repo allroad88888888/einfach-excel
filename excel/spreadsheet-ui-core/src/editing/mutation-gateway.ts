@@ -48,6 +48,7 @@ export type ContentMutationKind =
   | 'import-cell-chunks'
   | 'split-text-columns'
   | 'copy-filtered-records'
+  | 'consolidate'
   | 'remove-duplicates'
   | 'remove-rows'
   | 'set-format-range'

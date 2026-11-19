@@ -173,6 +173,7 @@ include!("wasm_workbook_shift_cells.rs");
 include!("wasm_workbook_freeze.rs");
 include!("wasm_workbook_outline.rs");
 include!("wasm_workbook_subtotal.rs");
+include!("wasm_workbook_consolidate.rs");
 include!("wasm_workbook_print_config.rs");
 include!("wasm_workbook_conditional_format.rs");
 include!("wasm_workbook_data_validation.rs");
@@ -270,4 +271,5 @@ mod tests {
     include!("wasm_tests/diagonal_borders.rs");
     include!("wasm_tests/pattern_fill.rs");
     include!("wasm_tests/gradient_fill.rs");
+    include!("wasm_tests/consolidate.rs");
 }

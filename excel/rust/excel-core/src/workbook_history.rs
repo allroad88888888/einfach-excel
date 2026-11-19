@@ -82,6 +82,8 @@ mod remove_duplicates;
 mod structure;
 #[path = "subtotal/change_history.rs"]
 mod subtotal;
+#[path = "workbook_history_consolidate.rs"]
+mod consolidate;
 #[path = "cell_shift/history.rs"]
 mod cell_shift;
 #[path = "workbook_history_text_columns.rs"]
@@ -125,6 +127,7 @@ enum HistoryChange {
     Drawing(drawings::DrawingChange),
     Structure(Box<StructuralHistoryChange>),
     Subtotal(Box<crate::subtotal::SubtotalChange>),
+    Consolidate(Box<crate::consolidate::ConsolidateChange>),
     NamedRange(Box<crate::workbook::NamedRangeChange>),
     CustomFormula(Box<crate::custom_formulas::CustomFormulaChange>),
     TableCreate(Box<crate::workbook::TableCreation>),

@@ -98,6 +98,7 @@
     "@einfach-excel/plugin-cell-appearance": "workspace:*",
     "@einfach-excel/plugin-data-sort": "workspace:*",
     "@einfach-excel/plugin-data-filter": "workspace:*",
-    "@einfach-excel/plugin-data-subtotal": "workspace:*"
+    "@einfach-excel/plugin-data-subtotal": "workspace:*",
+    "@einfach-excel/plugin-data-consolidate": "workspace:*"
   }
 }

@@ -466,6 +466,22 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'Resize row': msg`Resize row`,
   'Resize column': msg`Resize column`,
   'Filter cleared. Manually hidden rows are unchanged.': msg`Filter cleared. Manually hidden rows are unchanged.`,
+  'Convert the table to a range before sorting left to right.': msg`Convert the table to a range before sorting left to right.`,
+  'Clear the active filter before sorting this range left to right.': msg`Clear the active filter before sorting this range left to right.`,
+  'Select at least two data columns. Include all rows to move together.': msg`Select at least two data columns. Include all rows to move together.`,
+  'Select at least two data columns, up to 1,048,576 cells.': msg`Select at least two data columns, up to 1,048,576 cells.`,
+  'Select at least two data rows, up to 1,048,576 cells.': msg`Select at least two data rows, up to 1,048,576 cells.`,
+  'Choose 1–8 different rows inside the selected range.': msg`Choose 1–8 different rows inside the selected range.`,
+  'Unmerge cells before sorting this range.': msg`Unmerge cells before sorting this range.`,
+  'The range contains an array spill. Remove the array before sorting.': msg`The range contains an array spill. Remove the array before sorting.`,
+  'Subtotal': msg`Subtotal`,
+  'Remove subtotals': msg`Remove subtotals`,
+  'The subtotal rows or outline changed outside history.': msg`The subtotal rows or outline changed outside history.`,
+  'Copy filtered records': msg`Copy filtered records`,
+  'Cannot shift cells inside a subtotal list. Insert or delete rows or columns instead.': msg`Cannot shift cells inside a subtotal list. Insert or delete rows or columns instead.`,
+  'Consolidate': msg`Consolidate`,
+  'The consolidated outline changed outside history.': msg`The consolidated outline changed outside history.`,
+  'The data was consolidated. Refresh the worksheet before trying again.': msg`The data was consolidated. Refresh the worksheet before trying again.`,
 }
 
 

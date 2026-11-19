@@ -56,8 +56,10 @@
 - [图片导出](plugin-image-export/README.md)：`imageExportPlugin`。
 - [图表](plugin-chart/README.md)：`chartPlugin`（ECharts；对象层与对象目录在核心，不认识图表）。
 - [文字格式](plugin-text-format/README.md)：`textFormatPlugin`（整格与局部上下标、缩小字体填充；插件拥有编辑命令，核心保留格式数据与原生事务）。
-- [单元格外观](plugin-cell-appearance/README.md)：`cellAppearancePlugin`（斜线预设复用共享边框草稿；17 种图案编辑草稿归插件 `/core`；格式事实、事务与渲染归核心）。
-- [列表排序](plugin-data-sort/README.md)：`dataSortPlugin`（复用填充目录；插件拥有排序草稿，核心负责校验、行置换与历史）。
-- [筛选条件](plugin-data-filter/README.md)：`dataFilterPlugin`（插件拥有 Top-N、日期期间编辑交互，核心负责数值排名、日历区间与筛选快照）。
+- [单元格外观](plugin-cell-appearance/README.md)：`cellAppearancePlugin`（斜线预设复用共享边框草稿；17 种图案与线性/矩形渐变编辑草稿归插件 `/core`；格式事实、事务与渲染归核心）。
+- [列表排序](plugin-data-sort/README.md)：`dataSortPlugin`（自定义序列、单元格/字体颜色、条件图标及从左到右横向排序；插件拥有排序草稿，核心负责校验、行列置换与历史）。
+- [筛选条件](plugin-data-filter/README.md)：`dataFilterPlugin`（Top-N、相对日期期间、按颜色筛选与工作表条件高级筛选/复制输出；核心负责排名、日历区间、颜色解析与筛选快照）。
+- [分类汇总](plugin-data-subtotal/README.md)：`dataSubtotalPlugin`（普通列表按字段分组插入/追加/替换/删除 `SUBTOTAL` 与分级大纲；插件拥有表单草稿，核心负责事务、公式与历史）。
+- [合并计算](plugin-data-consolidate/README.md)：`dataConsolidatePlugin`（跨表/命名区域按位置或首行/最左列二维标签合并，支持全部 11 种函数、创建指向源数据的跨表链接与可折叠行大纲、预览与覆盖确认、单次原子撤销）。
 
 演示：`?plugins=date-picker,image-export,chart`；不传 `plugins` 时不挂载任何插件控件。

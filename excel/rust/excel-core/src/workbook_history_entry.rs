@@ -50,6 +50,7 @@ impl HistoryEntry {
             HistoryChange::Cells { .. }
                 | HistoryChange::Structure(_)
                 | HistoryChange::Subtotal(_)
+                | HistoryChange::Consolidate(_)
                 | HistoryChange::Merge(_)
                 | HistoryChange::CellShift(_)
                 | HistoryChange::NamedRange(_)
@@ -105,6 +106,7 @@ impl HistoryEntry {
             }
             HistoryChange::Structure(change) => change.apply(workbook, self.sheet, undo),
             HistoryChange::Subtotal(change) => change.apply(workbook, self.sheet, undo),
+            HistoryChange::Consolidate(change) => change.apply(workbook, self.sheet, undo),
             HistoryChange::NamedRange(change) => change.apply(workbook, undo),
             HistoryChange::CustomFormula(change) => change.apply(workbook, undo),
             HistoryChange::TableCreate(change) => change.apply(workbook, undo),
@@ -147,6 +149,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
         HistoryChange::Drawing(change) => change.retained_bytes(),
         HistoryChange::Structure(change) => change.retained_bytes(),
         HistoryChange::Subtotal(change) => change.retained_bytes(),
+        HistoryChange::Consolidate(change) => change.retained_bytes(),
         HistoryChange::NamedRange(change) => change.retained_bytes(),
         HistoryChange::CustomFormula(change) => change.retained_bytes(),
         HistoryChange::TableCreate(change) => change.retained_bytes(),

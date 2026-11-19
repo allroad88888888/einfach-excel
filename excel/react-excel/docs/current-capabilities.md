@@ -610,6 +610,11 @@ FETCHJSON只允许同源JSON，不执行文件脚本，须手填而非伪装原�
 高/低/首/尾/负点、标记与坐标轴，随数据编辑与撤销刷新；XLSX 读写 `x14:sparklineGroups`。
 详见[图片插件](../../../plugins/plugin-image/README.md)与[迷你图插件](../../../plugins/plugin-sparkline/README.md)。
 
+`?plugins=data-subtotal,data-consolidate` 可启用分类汇总与合并计算插件。
+合并计算支持 1–32 个跨表或命名区域来源、11 种 Excel 汇总函数、按位置及首行/最左列二维分类对齐、预览抽样与覆盖确认，
+以及“创建指向源数据的链接”（生成跨表明细引用公式、汇总公式与可折叠行分级大纲，源数据修改后自动重算，单次撤销恢复单元格与大纲）。
+详见[合并计算插件](../../../plugins/plugin-data-consolidate/README.md)。
+
 ## 初始尺寸与字号
 
 宿主可传入 `<Spreadsheet defaults={{ rowHeight: 36, colWidth: 160, fontSize: 18 }} ... />`。

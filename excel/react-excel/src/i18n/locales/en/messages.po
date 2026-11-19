@@ -762,6 +762,10 @@ msgstr "Cannot shift cells in a table. Insert or delete table rows or columns in
 msgid "Cannot shift cells inside a filtered range."
 msgstr "Cannot shift cells inside a filtered range."
 
+#: src/i18n/feedback-messages.ts
+msgid "Cannot shift cells inside a subtotal list. Insert or delete rows or columns instead."
+msgstr "Cannot shift cells inside a subtotal list. Insert or delete rows or columns instead."
+
 #: src/i18n/shift-cells-feedback.ts
 msgid "Cannot shift cells through part of a merged cell."
 msgstr "Cannot shift cells through part of a merged cell."
@@ -891,6 +895,10 @@ msgstr "Chinese (China)"
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 msgid "Choose {0}"
 msgstr "Choose {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose 1–8 different rows inside the selected range."
+msgstr "Choose 1–8 different rows inside the selected range."
 
 #: src/i18n/feedback-messages.ts
 msgid "Choose a column and a total function."
@@ -1072,6 +1080,10 @@ msgstr "Clear formatting"
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Clear selection"
 msgstr "Clear selection"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clear the active filter before sorting this range left to right."
+msgstr "Clear the active filter before sorting this range left to right."
 
 #: src/i18n/feedback-messages.ts
 msgid "Clear the filter before cutting this range. No cells were moved."
@@ -1296,6 +1308,10 @@ msgstr "Configured field types"
 msgid "Confirm overwriting the occupied destination cells before applying."
 msgstr "Confirm overwriting the occupied destination cells before applying."
 
+#: src/i18n/feedback-messages.ts
+msgid "Consolidate"
+msgstr "Consolidate"
+
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
 msgid "Constants"
 msgstr "Constants"
@@ -1321,6 +1337,10 @@ msgstr "Continue with this input?"
 #: src/i18n/feedback-messages.ts
 msgid "Convert table to range"
 msgstr "Convert table to range"
+
+#: src/i18n/feedback-messages.ts
+msgid "Convert the table to a range before sorting left to right."
+msgstr "Convert the table to a range before sorting left to right."
 
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Convert to range"
@@ -1379,6 +1399,10 @@ msgstr "Copy as plain text"
 #: src/i18n/feedback-messages.ts
 msgid "Copy conditional format"
 msgstr "Copy conditional format"
+
+#: src/i18n/feedback-messages.ts
+msgid "Copy filtered records"
+msgstr "Copy filtered records"
 
 #: src/i18n/feedback-messages.ts
 msgid "Copy one continuous range before pasting validation."
@@ -3011,6 +3035,10 @@ msgstr "Go to special"
 msgid "Go to table {0}"
 msgstr "Go to table {0}"
 
+#: src/i18n/xlsx-report-feedback.ts
+msgid "gradients with no color stops"
+msgstr "gradients with no color stops"
+
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Gray"
 msgstr "Gray"
@@ -3216,6 +3244,14 @@ msgstr "Increase indent"
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Indent"
 msgstr "Indent"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "independent gradient fallback backgrounds"
+msgstr "independent gradient fallback backgrounds"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "independent pattern/background inheritance"
+msgstr "independent pattern/background inheritance"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
@@ -4727,6 +4763,10 @@ msgid "Remove sort level {0}"
 msgstr "Remove sort level {0}"
 
 #: src/i18n/feedback-messages.ts
+msgid "Remove subtotals"
+msgstr "Remove subtotals"
+
+#: src/i18n/feedback-messages.ts
 msgid "Removes extra spaces from a text string."
 msgstr "Removes extra spaces from a text string."
 
@@ -5373,6 +5413,18 @@ msgid "Select an editable range and wait for the worksheet to finish loading."
 msgstr "Select an editable range and wait for the worksheet to finish loading."
 
 #: src/i18n/feedback-messages.ts
+msgid "Select at least two data columns, up to 1,048,576 cells."
+msgstr "Select at least two data columns, up to 1,048,576 cells."
+
+#: src/i18n/feedback-messages.ts
+msgid "Select at least two data columns. Include all rows to move together."
+msgstr "Select at least two data columns. Include all rows to move together."
+
+#: src/i18n/feedback-messages.ts
+msgid "Select at least two data rows, up to 1,048,576 cells."
+msgstr "Select at least two data rows, up to 1,048,576 cells."
+
+#: src/i18n/feedback-messages.ts
 msgid "Select at least two data rows. Include all columns to move together."
 msgstr "Select at least two data rows. Include all columns to move together."
 
@@ -5929,6 +5981,10 @@ msgstr "Styles"
 msgid "Submitting input…"
 msgstr "Submitting input…"
 
+#: src/i18n/feedback-messages.ts
+msgid "Subtotal"
+msgstr "Subtotal"
+
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Subtract"
 msgstr "Subtract"
@@ -6105,6 +6161,10 @@ msgid "The comment worksheet no longer exists."
 msgstr "The comment worksheet no longer exists."
 
 #: src/i18n/feedback-messages.ts
+msgid "The consolidated outline changed outside history."
+msgstr "The consolidated outline changed outside history."
+
+#: src/i18n/feedback-messages.ts
 msgid "The copied worksheet was deleted. Copy cells again before pasting."
 msgstr "The copied worksheet was deleted. Copy cells again before pasting."
 
@@ -6127,6 +6187,10 @@ msgstr "The cut cells changed. Cut the range again before pasting."
 #: src/i18n/next-version-feedback.ts
 msgid "The cut cells overlap a named range. Change or remove that name in Name manager before moving cells between sheets. No cells were moved."
 msgstr "The cut cells overlap a named range. Change or remove that name in Name manager before moving cells between sheets. No cells were moved."
+
+#: src/i18n/feedback-messages.ts
+msgid "The data was consolidated. Refresh the worksheet before trying again."
+msgstr "The data was consolidated. Refresh the worksheet before trying again."
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "The editable range is outside the worksheet."
@@ -6224,6 +6288,10 @@ msgstr "The original range was deleted. Enter a new range to repair this name."
 msgid "The paste would hide cell content. Unmerge the destination or change the selection first."
 msgstr "The paste would hide cell content. Unmerge the destination or change the selection first."
 
+#: src/i18n/feedback-messages.ts
+msgid "The range contains an array spill. Remove the array before sorting."
+msgstr "The range contains an array spill. Remove the array before sorting."
+
 #: src/i18n/rich-text-feedback.ts
 msgid "The rich text cell is outside the worksheet."
 msgstr "The rich text cell is outside the worksheet."
@@ -6304,6 +6372,10 @@ msgstr "The source or destination includes locked cells."
 #: src/i18n/feedback-messages.ts
 msgid "The split was applied, but the view could not be updated. Check the sheet before retrying."
 msgstr "The split was applied, but the view could not be updated. Check the sheet before retrying."
+
+#: src/i18n/feedback-messages.ts
+msgid "The subtotal rows or outline changed outside history."
+msgstr "The subtotal rows or outline changed outside history."
 
 #: src/i18n/feedback-messages.ts
 msgid "The table change was not applied."
@@ -6834,6 +6906,10 @@ msgstr "Unique values"
 msgid "Unmerge cells"
 msgstr "Unmerge cells"
 
+#: src/i18n/feedback-messages.ts
+msgid "Unmerge cells before sorting this range."
+msgstr "Unmerge cells before sorting this range."
+
 #: src/i18n/next-version-feedback.ts
 msgid "Unmerge the source and destination before moving cells between sheets. No cells were moved."
 msgstr "Unmerge the source and destination before moving cells between sheets. No cells were moved."
@@ -6921,6 +6997,10 @@ msgstr "unsupported defined names"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "unsupported diagonal border styles"
 msgstr "unsupported diagonal border styles"
+
+#: src/i18n/xlsx-report-feedback.ts
+msgid "unsupported fills or fill colors"
+msgstr "unsupported fills or fill colors"
 
 #: src/i18n/xlsx-report-feedback.ts
 msgid "unsupported hyperlinks"

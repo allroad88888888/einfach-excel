@@ -53,6 +53,9 @@ impl HistoryEntry {
             HistoryChange::Subtotal(change) => {
                 for (sheet, range) in change.mutation_ranges(self.sheet) { add(sheet, range); }
             }
+            HistoryChange::Consolidate(change) => {
+                for (sheet, range) in change.mutation_ranges(self.sheet) { add(sheet, range); }
+            }
             HistoryChange::Sheet(change) => {
                 if let SheetHistoryChange::Presence { mutation, .. } = change.as_ref() {
                     stable_positions.extend(mutation.iter().cloned());

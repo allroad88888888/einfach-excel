@@ -26,6 +26,7 @@ import type { RustFilterReport, RustFilterValuesPage, RustFilterValuesQuery } fr
 import type {
   NativeFilterRangeCriteria, WasmAdvancedFilterCopy,
 } from './advanced-filter-range-commands'
+import type { WasmConsolidate } from './consolidate-commands'
 import type { NativeTextColumnsRequest, RustTextColumnsPreview, RustTextColumnsReport } from './text-columns-commands'
 import type { NativeRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from './remove-duplicates-commands'
 import type { NativeQuickFormulaRequest, QuickFormulaSuggestion } from './quick-formula-commands'
@@ -88,6 +89,7 @@ export interface RustFormatRangeSnapshot extends RustConditionalFontColors {
 }
 
 export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries, WasmAdvancedFilterCopy,
+  WasmConsolidate,
   WasmFindQueries, WasmSelectSpecialQueries, WasmCustomFormulaQueries,
   WasmNoteQueries, WasmDrawingQueries, WasmMediaQueries,
   WasmCommentQueries, WasmProtectionQueries, WasmAsyncFormulaQueries,

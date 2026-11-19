@@ -99,6 +99,7 @@ impl WasmWorkbook :: [#[wasm_bindgen]] :: pub fn function_catalog() -> Result<Js
 impl WasmWorkbook :: [] :: pub fn add_sheet(&mut self, name: &str) -> u32
 impl WasmWorkbook :: [] :: pub fn aggregate_selection(&self, targets: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn apply_auto_fill(&mut self, payload: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn apply_consolidate( &mut self, request: JsValue, approval: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn auto_fit_dimensions( &mut self, sheet: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, axis: &str, default_row: u32, default_col: u32, measure: &js_sys::Function, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn bulk_import_cells(&mut self, cells: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn bulk_install_workbook(&mut self, payload: JsValue) -> Result<JsValue, JsValue>
@@ -173,6 +174,7 @@ impl WasmWorkbook :: [] :: pub fn patch_range_borders( &mut self, sheet_idx: u32
 impl WasmWorkbook :: [] :: pub fn prepare_clipboard( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, cut: bool, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn prepare_clipboard_blocks(&mut self, sheet_idx: u32, blocks: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_advanced_filter_copy(&self, request: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn preview_consolidate(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_number_format( &self, sheet_idx: u32, addr: &str, format: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_remove_duplicates(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_text_columns(&self, request: JsValue) -> Result<JsValue, JsValue>

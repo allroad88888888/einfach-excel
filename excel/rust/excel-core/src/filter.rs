@@ -30,6 +30,11 @@
 use std::collections::BTreeSet;
 
 mod rule;
+mod color_key;
+pub(crate) mod display_column;
+pub(crate) mod prepared_colors;
+pub(crate) mod scan_day;
+pub use color_key::{FilterColorSource, FilterColorTarget};
 pub(crate) mod date_period;
 mod legacy_number;
 pub(crate) mod prepared;
@@ -94,7 +99,8 @@ pub fn filter_rule_matches_value(rule: &ColumnFilterRule, value: &str) -> bool {
         // today and the golden parity corpus pins that disagreement.
         ColumnFilterRule::List { values, .. } => values.iter().any(|candidate| candidate == value),
         // Typed criteria use the prepared scan; never coerce display text.
-        ColumnFilterRule::Top { .. } | ColumnFilterRule::DatePeriod { .. } => false,
+        ColumnFilterRule::Top { .. } | ColumnFilterRule::DatePeriod { .. }
+        | ColumnFilterRule::Color { .. } => false,
     }
 }
 

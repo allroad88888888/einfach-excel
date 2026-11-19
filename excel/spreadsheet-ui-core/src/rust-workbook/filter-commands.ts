@@ -1,3 +1,4 @@
+import type { FilterColorSource } from '../filter/rule-types'
 import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
 import type { WorkerCommand } from '../rust-worker'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
@@ -23,6 +24,7 @@ export interface RustFilterValuesQuery {
   readonly offset: number
   readonly limit: number
   readonly allMatches?: boolean
+  readonly colorSource?: FilterColorSource
 }
 export interface RustFilterValuesPage {
   readonly values: readonly { readonly value: string; readonly count: number }[]

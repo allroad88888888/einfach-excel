@@ -2,11 +2,9 @@
 
 use std::cmp::Ordering;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum SortColorSource {
-    Fill,
-    Font,
-}
+use crate::display_color::{parse_color_target, DisplayColor};
+
+pub use crate::display_color::DisplayColorSource as SortColorSource;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SortColorPosition {
@@ -15,18 +13,11 @@ pub enum SortColorPosition {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum DisplaySortColor {
-    Automatic,
-    Opaque(u32),
-    Other,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SortColorKey {
     pub col: u32,
     pub source: SortColorSource,
     pub position: SortColorPosition,
-    target: DisplaySortColor,
+    target: DisplayColor,
 }
 
 impl SortColorKey {
@@ -36,23 +27,11 @@ impl SortColorKey {
         color: Option<&str>,
         position: SortColorPosition,
     ) -> Result<Self, &'static str> {
-        let target = match color {
-            None => DisplaySortColor::Automatic,
-            Some(color) => {
-                let hex = color.strip_prefix('#').filter(|hex| hex.len() == 6)
-                    .ok_or("Sort colors must use #RRGGBB.")?;
-                if !hex.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-                    return Err("Sort colors must use #RRGGBB.");
-                }
-                DisplaySortColor::Opaque(
-                    u32::from_str_radix(hex, 16).map_err(|_| "Sort colors must use #RRGGBB.")?,
-                )
-            }
-        };
+        let target = parse_color_target(color).map_err(|_| "Sort colors must use #RRGGBB.")?;
         Ok(Self { col, source, position, target })
     }
 
-    pub(super) fn matches(self, displayed: DisplaySortColor) -> bool {
+    pub(super) fn matches(self, displayed: DisplayColor) -> bool {
         self.target == displayed
     }
 

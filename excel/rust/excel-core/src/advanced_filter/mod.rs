@@ -85,7 +85,7 @@ pub(crate) fn rule_retained_bytes(rule: &ColumnFilterRule) -> usize {
         ColumnFilterRule::Equals { value, .. } | ColumnFilterRule::Contains { value, .. } => value.len(),
         ColumnFilterRule::List { values, .. } => values.iter().map(|value| value.len() + 24).sum(),
         ColumnFilterRule::Range { .. } | ColumnFilterRule::Top { .. }
-        | ColumnFilterRule::DatePeriod { .. } => 0,
+        | ColumnFilterRule::DatePeriod { .. } | ColumnFilterRule::Color { .. } => 0,
     }
 }
 

@@ -13,7 +13,7 @@ pub(crate) fn validate_rule(rule: &ColumnFilterRule) -> Result<(), FilterError> 
             && min.is_none_or(f64::is_finite) && max.is_none_or(f64::is_finite)
             && !matches!((min, max), (Some(min), Some(max)) if min > max),
         ColumnFilterRule::Top { amount, .. } => amount.is_valid(),
-        ColumnFilterRule::DatePeriod { .. } => true,
+        ColumnFilterRule::DatePeriod { .. } | ColumnFilterRule::Color { .. } => true,
     };
     if valid { Ok(()) } else { Err(FilterError::InvalidGroups) }
 }
@@ -22,7 +22,8 @@ pub(crate) fn validate_flat_rules(rules: &[ColumnFilterRule]) -> Result<(), Filt
     // Existing flat rules predate grouped payload budgets. Preserve their shape
     // compatibility; every newly supported typed criterion uses the common gate.
     for rule in rules {
-        if matches!(rule, ColumnFilterRule::Top { .. } | ColumnFilterRule::DatePeriod { .. }) {
+        if matches!(rule, ColumnFilterRule::Top { .. } | ColumnFilterRule::DatePeriod { .. }
+            | ColumnFilterRule::Color { .. }) {
             validate_rule(rule)?;
         }
     }

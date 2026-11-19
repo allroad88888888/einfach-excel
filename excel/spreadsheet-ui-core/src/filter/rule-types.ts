@@ -5,6 +5,17 @@ export const filterDatePeriods = [
 ] as const
 export type FilterDatePeriod = typeof filterDatePeriods[number]
 
+export type FilterColorSource = 'fill' | 'font'
+
+export function validFilterColorSource(value: unknown): value is FilterColorSource {
+  return value === 'fill' || value === 'font'
+}
+
+export function validFilterColorValue(value: unknown): value is string {
+  return typeof value === 'string' &&
+    (value === 'automatic' || (value.length === 7 && /^#[0-9a-f]{6}$/i.test(value)))
+}
+
 export type ColumnFilterRule =
   | { kind: 'equals'; colIndex: number; value: string; caseSensitive?: boolean }
   | { kind: 'contains'; colIndex: number; value: string; caseSensitive?: boolean }
@@ -13,6 +24,7 @@ export type ColumnFilterRule =
   | { kind: 'top'; colIndex: number; direction: 'top' | 'bottom';
       unit: 'items' | 'percent'; value: number }
   | { kind: 'date-period'; colIndex: number; period: FilterDatePeriod }
+  | { kind: 'color'; colIndex: number; source: FilterColorSource; color: string }
 
 export interface ColumnFilterGroup {
   readonly rules: readonly ColumnFilterRule[]

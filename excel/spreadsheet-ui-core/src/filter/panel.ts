@@ -71,6 +71,7 @@ export const configureNativeFilterAtom = atom(
         (rule) => column === undefined || rule.colIndex === column,
       )
       set(stateAtom, {
+        session: Symbol('filter-panel'),
         sheetId: sheet.id,
         connection: get(rustWorkbookConnectionAtom),
         table,

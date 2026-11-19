@@ -1,4 +1,5 @@
 //! One immutable predicate preparation per scan, before any visibility is committed.
+use super::prepared_colors::PreparedColors;
 use super::{filter_rule_matches_value, ColumnFilterRule, FilterTopDirection};
 use crate::advanced_filter::FilterCriteria;
 use einfach_core::Value;
@@ -7,6 +8,7 @@ use std::ops::RangeInclusive;
 
 pub(crate) struct PreparedFilter<'a> {
     groups: Vec<Vec<PreparedRule<'a>>>,
+    colors: PreparedColors,
 }
 
 struct PreparedRule<'a> {
@@ -59,13 +61,20 @@ impl<'a> PreparedFilter<'a> {
             FilterCriteria::Flat(rules) => vec![prepare(rules)],
             FilterCriteria::Groups(groups) => groups.iter().map(|group| prepare(&group.rules)).collect(),
         };
-        Self { groups }
+        Self { groups, colors: PreparedColors::default() }
+    }
+
+    pub(crate) fn with_colors(mut self, colors: PreparedColors) -> Self {
+        self.colors = colors;
+        self
     }
 
     pub(crate) fn matches(&self, row: u32, values: &HashMap<(u32, u32), Value>) -> bool {
         self.groups.is_empty() || self.groups.iter().any(|group| group.iter().all(|prepared| {
             let value = values.get(&(row, prepared.rule.col_index())).unwrap_or(&Value::Null);
             match prepared.rule {
+                ColumnFilterRule::Color { col_index, source, color } =>
+                    self.colors.matches(row, *col_index, *source, *color),
                 ColumnFilterRule::DatePeriod { .. } => numeric(value).zip(prepared.date_bounds)
                     .is_some_and(|(number, (start, end))| number >= start && number < end),
                 ColumnFilterRule::Top { direction, .. } => numeric(value)

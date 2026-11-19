@@ -15,14 +15,22 @@ struct FilterValuesRequestJSON {
     limit: u32,
     #[serde(default)]
     all_matches: bool,
+    #[serde(default)]
+    color_source: Option<einfach_excel_core::filter::FilterColorSource>,
 }
 
 impl FilterValuesRequestJSON {
     fn query(&self, workbook: &Workbook) -> Result<FilterValuesPage, String> {
         let query = FilterValuesQuery { column: self.column, table: self.table.as_deref(),
             search: &self.search, offset: self.offset, limit: self.limit };
-        if self.all_matches { workbook.filter_all_values(self.sheet, query) }
-        else { workbook.filter_values(self.sheet, query) }
+        if let Some(source) = self.color_source {
+            if self.all_matches { return Err("Choose a single filter color.".into()); }
+            workbook.filter_colors(self.sheet, query, source)
+        } else if self.all_matches {
+            workbook.filter_all_values(self.sheet, query)
+        } else {
+            workbook.filter_values(self.sheet, query)
+        }
     }
 }
 

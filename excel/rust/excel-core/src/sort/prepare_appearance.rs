@@ -9,7 +9,8 @@ use crate::workbook::Workbook;
 
 use super::appearance_key::SortAppearanceKey;
 use super::color_key::SortColorSource;
-use super::display_colors::effective_color;
+use crate::display_color::effective_color;
+use crate::display_column::DisplayColumn;
 use super::SortRangeError;
 
 const DISPLAY_WINDOW_ROWS: u32 = 100_000;
@@ -38,18 +39,11 @@ impl Workbook {
                 let range = CellRange::new(CellAddress::new(first, col), CellAddress::new(last, col));
                 let display = self.snapshot_display_format_range_on(sheet, range, today)
                     .map_err(|_| SortRangeError::InvalidRange)?;
-                let snapshot = &display.formats;
-
-                let column = snapshot.column_styles.first().map(|(_, style)| style);
+                let display = DisplayColumn::new(&display);
                 for &row in included {
                     let addr = CellAddress::new(row, col);
-                    let underlying = snapshot.row_styles.binary_search_by_key(&row, |(i, _)| *i)
-                        .ok().map(|i| &snapshot.row_styles[i].1.format);
-                    let cell = snapshot.cell_styles.binary_search_by_key(&row, |(a, _)| a.row)
-                        .ok().map(|i| &snapshot.cell_styles[i].1);
-                    let layers = [cell, underlying, column];
-                    let conditional_font = display.conditional_font_colors
-                        .binary_search_by_key(&row, |a| a.row).is_ok();
+                    let layers = display.layers_at(row);
+                    let conditional_font = display.has_conditional_font_at(row);
                     let mut fill = None;
                     let mut font = None;
                     let mut icon = None;
@@ -64,9 +58,7 @@ impl Workbook {
                                 key.matches(*fact)
                             }
                             SortAppearanceKey::Icon(key) => {
-                                let fact = icon.get_or_insert_with(|| display.conditional_icons
-                                    .binary_search_by_key(&row, |(pos, _)| pos.row).ok()
-                                    .map(|i| &display.conditional_icons[i].1));
+                                let fact = icon.get_or_insert_with(|| display.icon_at(row));
                                 key.matches(*fact)
                             }
                         };

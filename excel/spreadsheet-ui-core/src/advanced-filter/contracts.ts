@@ -1,5 +1,5 @@
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
-import { filterDatePeriods } from '../filter/rule-types'
+import { filterDatePeriods, validFilterColorSource, validFilterColorValue } from '../filter/rule-types'
 
 export const maxFilterSelectionBytes = 1_048_576
 const bytes = new TextEncoder()
@@ -21,6 +21,7 @@ export function validFilterCondition(rule: ColumnFilterRule, columns: number): b
     ['items', 'percent'].includes(rule.unit) && Number.isSafeInteger(rule.value) &&
     rule.value >= 1 && rule.value <= (rule.unit === 'items' ? 500 : 100)
   if (rule.kind === 'date-period') return filterDatePeriods.includes(rule.period)
+  if (rule.kind === 'color') return validFilterColorSource(rule.source) && validFilterColorValue(rule.color)
   // Persisted flat lists predate selection byte budgets; keep their original shape limit.
   if (rule.kind === 'list') return Array.isArray(rule.values) && rule.values.length <= 1000 &&
     rule.values.every((value: unknown) => typeof value === 'string' && value.length <= 32767)

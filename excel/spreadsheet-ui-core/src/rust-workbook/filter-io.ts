@@ -1,3 +1,4 @@
+import { validFilterColorSource } from '../filter/rule-types'
 import type { RustFilterCommands } from './filter-commands'
 import { validFilterRange, validFilterRules } from './filter-commands'
 import type { WasmWorkbook } from './wasm-types'
@@ -17,12 +18,15 @@ export function readFilterValues(workbook: WasmWorkbook, sheet: RustWorkbookShee
     typeof input.search !== 'string' || input.search.length > 32767 ||
     (input.allMatches !== undefined && typeof input.allMatches !== 'boolean') ||
     (input.allMatches === true && input.offset !== 0) ||
+    (input.colorSource !== undefined &&
+      (!validFilterColorSource(input.colorSource) || input.allMatches === true)) ||
     (input.table !== undefined && (typeof input.table !== 'string' || !input.table)))
     throw new Error('Choose a valid filter column, search text and page.')
   if (!workbook.filter_values) throw new Error('Rust filter values are unavailable.')
   const page = workbook.filter_values({ sheet: sheet.index, column: input.column,
     search: input.search, offset: input.offset, limit: input.limit,
     ...(input.allMatches ? { allMatches: true } : {}),
+    ...(input.colorSource === undefined ? {} : { colorSource: input.colorSource }),
     ...(input.table === undefined ? {} : { table: input.table }) })
   return { ...page, revision }
 }

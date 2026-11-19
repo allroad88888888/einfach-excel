@@ -1,23 +1,64 @@
-//! Resolve sortable colors from the same native style layers as the grid.
+//! Resolve displayed colors from the native style layers used by the grid.
 
 use crate::cell_style::CellStyle;
 use crate::format::NumberFormat;
 use einfach_core::Value;
 
-use super::color_key::{DisplaySortColor, SortColorSource};
+use crate::rich_text::RichTextRun;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DisplayColorSource {
+    Fill,
+    Font,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub(crate) enum DisplayColor {
+    Automatic,
+    Opaque(u32),
+    Other,
+}
+
+pub(crate) const AUTOMATIC_COLOR: &str = "automatic";
+
+impl DisplayColor {
+    pub(crate) fn selection_value(self) -> Option<String> {
+        match self {
+            Self::Automatic => Some(AUTOMATIC_COLOR.into()),
+            Self::Opaque(rgb) => Some(format!("#{rgb:06x}")),
+            Self::Other => None,
+        }
+    }
+}
+
+pub(crate) fn parse_color_target(color: Option<&str>) -> Result<DisplayColor, &'static str> {
+    match color {
+        None => Ok(DisplayColor::Automatic),
+        Some(color) => {
+            let hex = color.strip_prefix('#').filter(|hex| hex.len() == 6)
+                .ok_or("Colors must use #RRGGBB.")?;
+            if !hex.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+                return Err("Colors must use #RRGGBB.");
+            }
+            u32::from_str_radix(hex, 16).map(DisplayColor::Opaque)
+                .map_err(|_| "Colors must use #RRGGBB.")
+        }
+    }
+}
 
 /// Styles are ordered from most specific (cell) to least specific (column).
 /// A present empty value stops inheritance even if a lower layer has a color.
-pub(super) fn effective_color(
+pub(crate) fn effective_color(
     layers: [Option<&CellStyle>; 3],
-    source: SortColorSource,
+    source: DisplayColorSource,
     has_conditional_font: bool,
     value: impl FnOnce() -> Value,
-) -> DisplaySortColor {
-    if source == SortColorSource::Fill {
+) -> DisplayColor {
+    if source == DisplayColorSource::Fill {
         let fill = layers.into_iter().flatten().find_map(|style| style.fill.as_ref());
         if fill.is_some_and(Option::is_some) {
-            return DisplaySortColor::Other;
+            return DisplayColor::Other;
         }
         return base_color(layers.into_iter().flatten()
             .find_map(|style| style.background.as_ref()).and_then(Option::as_deref));
@@ -40,10 +81,26 @@ pub(super) fn effective_color(
         .find_map(|style| style.color.as_ref()).and_then(Option::as_deref))
 }
 
-fn base_color(color: Option<&str>) -> DisplaySortColor {
+/// Explicit rich text run colors override inheritance. A nonempty inherited run
+/// uses the cell font. Filtering may match any rendered run, while sorting is cell-level.
+pub(crate) fn visit_font_colors(
+    cell: DisplayColor,
+    runs: Option<&[RichTextRun]>,
+    mut visit: impl FnMut(DisplayColor),
+) {
+    let Some(runs) = runs.filter(|runs| !runs.is_empty()) else {
+        visit(cell);
+        return;
+    };
+    for run in runs.iter().filter(|run| !run.text.is_empty()) {
+        visit(run.format.color.as_deref().map_or(cell, |color| base_color(Some(color))));
+    }
+}
+
+fn base_color(color: Option<&str>) -> DisplayColor {
     match color {
-        None => DisplaySortColor::Automatic,
-        Some(color) => opaque_rgb(color).map_or(DisplaySortColor::Other, DisplaySortColor::Opaque),
+        None => DisplayColor::Automatic,
+        Some(color) => opaque_rgb(color).map_or(DisplayColor::Other, DisplayColor::Opaque),
     }
 }
 

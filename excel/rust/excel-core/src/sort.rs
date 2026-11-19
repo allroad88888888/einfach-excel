@@ -41,7 +41,6 @@ mod appearance_key;
 mod color_key;
 mod compare;
 mod contract;
-mod display_colors;
 mod icon_key;
 mod prepare_appearance;
 mod reorder;

@@ -1,4 +1,6 @@
 use super::*;
+use crate::advanced_filter::FilterCriteria;
+use crate::filter::ColumnFilterRule;
 use crate::filter::prepared::PreparedFilter;
 use crate::date_serial::{excel_date_parts_to_serial, ExcelDateParts};
 use einfach_core::Value;

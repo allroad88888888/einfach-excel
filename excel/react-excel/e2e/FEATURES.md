@@ -1455,3 +1455,12 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | FILTER-046 | 日期筛选：无插件原生重开后继续编辑 | `editing/filter-date-persistence.spec.ts` | `native date rules reopen without the plugin and survive another column edit and reapply` |
 | FILTER-047 | 日期筛选：XLSX 导出损失报告与重开 | `editing/filter-date-persistence.spec.ts` | `XLSX date-filter export reports lost conditions and reopens all filtered data rows` |
 | FILTER-048 | 日期筛选：Table 表头与原生往返 | `workbook/table-date-filter.spec.ts` | `Table date filter excludes totals and preserves its native snapshot at 1280px` |
+| FILTER-049 | 颜色筛选：填充色及有色空白行与一次撤销 | `editing/filter-colors.spec.ts` | `Cell color filter keeps solid matches including blanks in one undo step` |
+| FILTER-050 | 颜色筛选：无填充与图案、显式白色 | `editing/filter-colors.spec.ts` | `No fill excludes explicit white and patterned cells` |
+| FILTER-051 | 颜色筛选：字体色：富文本与数字格式的显示色 | `editing/filter-colors.spec.ts` | `Font color matches rich-text runs and number-section colors` |
+| FILTER-052 | 颜色筛选：按条件格式的当前颜色筛选和重新应用 | `editing/filter-colors.spec.ts` | `Conditional color is sampled when Apply or Reapply runs` |
+| FILTER-053 | 颜色筛选：原生颜色规则与隐藏快照脱离插件恢复 | `editing/filter-colors.spec.ts` | `Native file keeps the color rule and visibility with the plugin absent` |
+| FILTER-054 | 颜色筛选：候选分页含离屏样式 | `plugins/data-filter-color.spec.ts` | `Color candidates page through offscreen rows without applying a rule` |
+| FILTER-055 | 颜色筛选：中文窄屏键盘输入 RGB | `plugins/data-filter-color.spec.ts` | `Chinese color filter applies an RGB color with the keyboard at 390px` |
+| FILTER-056 | 颜色筛选：表格条纹与汇总行 | `workbook/table-color-filter.spec.ts` | `Table banded fill filters data independently of the total row` |
+| FILTER-057 | 颜色候选请求期间可关闭并丢弃迟到结果 | `plugins/data-filter-color-async.spec.ts` | `Pending color candidates can be closed without a late update` |

@@ -1,8 +1,6 @@
 //! Relative-date filter semantics over the native 1900 serial calendar.
-use crate::advanced_filter::FilterCriteria;
-use crate::calendar_period::{local_today_serial, CalendarPeriod};
-use crate::date_serial::{valid_date_serial, MAX_DATE_SERIAL};
-use super::{ColumnFilterRule, FilterError};
+use crate::calendar_period::CalendarPeriod;
+use crate::date_serial::MAX_DATE_SERIAL;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -39,15 +37,6 @@ impl FilterDatePeriod {
         Some((start.clamp(1.0, MAX_DATE_SERIAL + 1.0),
             end.clamp(1.0, MAX_DATE_SERIAL + 1.0)))
     }
-}
-
-/// Capture once before reading predicates; no clock read for non-date operations.
-pub(crate) fn capture_today(criteria: FilterCriteria<'_>) -> Result<Option<f64>, FilterError> {
-    if !criteria.rules().any(|rule| matches!(rule, ColumnFilterRule::DatePeriod { .. })) {
-        return Ok(None);
-    }
-    local_today_serial().filter(|today| *today >= 1.0 && valid_date_serial(*today))
-        .map(Some).ok_or(FilterError::InvalidGroups)
 }
 
 #[cfg(test)]

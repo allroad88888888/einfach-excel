@@ -1,4 +1,4 @@
-//! Prepare mixed value and color criteria for a single row placement.
+//! Prepare mixed value and visual criteria for a single row placement.
 
 use std::cmp::Ordering;
 
@@ -9,7 +9,9 @@ use crate::range::CellRange;
 use crate::sheet::collapse_array_for_eval;
 use crate::workbook::Workbook;
 
+use super::appearance_key::SortAppearanceKey;
 use super::color_key::SortColorKey;
+use super::icon_key::SortIconKey;
 use super::compare::compare_key_values;
 use super::{SortKey, SortRangeError, SortRangeReport};
 
@@ -17,6 +19,7 @@ use super::{SortKey, SortRangeError, SortRangeReport};
 pub enum SortCriterion {
     Value(SortKey),
     Color(SortColorKey),
+    Icon(SortIconKey),
 }
 
 impl SortCriterion {
@@ -24,20 +27,29 @@ impl SortCriterion {
         match self {
             Self::Value(key) => key.col,
             Self::Color(key) => key.col,
+            Self::Icon(key) => key.col,
+        }
+    }
+
+    fn appearance(&self) -> Option<SortAppearanceKey> {
+        match self {
+            Self::Value(_) => None,
+            Self::Color(color) => Some(SortAppearanceKey::Color(*color)),
+            Self::Icon(icon) => Some(SortAppearanceKey::Icon(*icon)),
         }
     }
 }
 
 enum PreparedColumn<'a> {
     Value(&'a SortKey, Vec<Value>),
-    Color(SortColorKey, Vec<bool>),
+    Appearance(SortAppearanceKey, Vec<bool>),
 }
 
 impl PreparedColumn<'_> {
     fn compare(&self, a: usize, b: usize) -> Ordering {
         match self {
             Self::Value(key, values) => compare_key_values(key, &values[a], &values[b]),
-            Self::Color(key, matches) => key.compare(matches[a], matches[b]),
+            Self::Appearance(key, matches) => key.compare(matches[a], matches[b]),
         }
     }
 }
@@ -58,16 +70,13 @@ impl Workbook {
             return Ok(SortRangeReport::default());
         }
 
-        let color_keys: Vec<_> = keys.iter().filter_map(|key| match key {
-            SortCriterion::Value(_) => None,
-            SortCriterion::Color(color) => Some(*color),
-        }).collect();
-        let mut color_columns = self.prepare_sort_colors(sheet, &slots, &color_keys)?.into_iter();
+        let appearance: Vec<_> = keys.iter().filter_map(SortCriterion::appearance).collect();
+        let mut columns = self.prepare_sort_appearance(sheet, &slots, &appearance)?.into_iter();
         let prepared: Vec<_> = keys.iter().map(|key| match key {
             SortCriterion::Value(key) => PreparedColumn::Value(key, slots.iter().map(|&row|
                 collapse_array_for_eval(target.peek_value(CellAddress::new(row, key.col)))).collect()),
-            SortCriterion::Color(key) => PreparedColumn::Color(*key,
-                color_columns.next().expect("one prepared column per color key")),
+            criterion => PreparedColumn::Appearance(criterion.appearance().expect("visual criterion"),
+                columns.next().expect("one prepared column per visual key")),
         }).collect();
         target.store.settle_pending_reads();
 

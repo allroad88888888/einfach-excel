@@ -7,42 +7,44 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 
 type Options = Pick<RustWorkbookCommands['range.sort']['payload'], 'hasHeader' | 'keys'>
-export type ColorSortLevel = Options['keys'][number]
-export type ColorSortMode = 'value' | 'cell-color' | 'font-color'
+export type VisualSortLevel = Options['keys'][number]
+export type VisualSortMode = 'value' | 'cell-color' | 'font-color' | 'icon'
+export type VisualSortEntry = 'color' | 'icon'
 interface ColorSortPanel extends Options {
   readonly target: CellRange | null
+  readonly entry: VisualSortEntry
   readonly busy: boolean
   readonly error: 'stale' | 'chooseColor' | 'failed' | null
   readonly detail: string
 }
 const idle: ColorSortPanel = {
-  target: null, hasHeader: false, keys: [], busy: false, error: null, detail: '',
+  target: null, entry: 'color', hasHeader: false, keys: [], busy: false, error: null, detail: '',
 }
 const stateAtom = atom<ColorSortPanel & {
   readonly connection: RustWorkbookConnection | null
   readonly selection: SelectionAuthorityWitness | null
 }>({ ...idle, connection: null, selection: null })
 
-export const colorSortPanelAtom = atom<ColorSortPanel>(get => {
+export const visualSortPanelAtom = atom<ColorSortPanel>(get => {
   const state = get(stateAtom)
   return state.connection === get(rustWorkbookConnectionAtom) ? state : idle
 })
 
-type Action = 'open' | 'close' | 'add' | 'apply'
+type Action = 'open' | 'open-icon' | 'close' | 'add' | 'apply'
   | { type: 'header'; value: boolean }
-  | { type: 'key'; index: number; key: ColorSortLevel }
+  | { type: 'key'; index: number; key: VisualSortLevel }
   | { type: 'remove'; index: number }
   | { type: 'move'; index: number; direction: 'up' | 'down' }
 
-export function newColorSortLevel(col: number, mode: ColorSortMode): ColorSortLevel {
-  return mode === 'value'
-    ? { col, direction: 'asc' }
-    : { col, sortOn: mode, color: '#ff0000', position: 'top' }
+export function newVisualSortLevel(col: number, mode: VisualSortMode): VisualSortLevel {
+  if (mode === 'value') return { col, direction: 'asc' }
+  if (mode === 'icon') return { col, sortOn: mode, icon: null, position: 'top' }
+  return { col, sortOn: mode, color: '#ff0000', position: 'top' }
 }
 
 /** Capture only the editor's selection authority; effective colors stay in Rust. */
-export const configureColorSortAtom = atom(null, async (get, set, action: Action) => {
-  const panel = get(colorSortPanelAtom)
+export const configureVisualSortAtom = atom(null, async (get, set, action: Action) => {
+  const panel = get(visualSortPanelAtom)
   const connection = get(rustWorkbookConnectionAtom)
   if (panel.busy) return false
   if (action === 'close') {
@@ -51,10 +53,12 @@ export const configureColorSortAtom = atom(null, async (get, set, action: Action
   }
   if (!connection || get(sortFeedbackAtom).busy || get(editingSessionAtom).source !== null)
     return false
-  if (action === 'open') {
+  if (action === 'open' || action === 'open-icon') {
+    const entry = action === 'open-icon' ? 'icon' : 'color'
     const range = get(selectionSnapshotAtom).range
     set(stateAtom, { ...idle, connection, selection: get(selectionAuthorityWitnessAtom),
-      target: { ...range }, keys: [newColorSortLevel(range.colStart, 'cell-color')] })
+      entry, target: { ...range },
+      keys: [newVisualSortLevel(range.colStart, entry === 'icon' ? 'icon' : 'cell-color')] })
     return true
   }
   if (!panel.target) return false
@@ -62,7 +66,8 @@ export const configureColorSortAtom = atom(null, async (get, set, action: Action
   const keys = [...panel.keys]
   if (action === 'add') {
     if (keys.length === 8) return false
-    set(stateAtom, { ...draft, keys: [...keys, newColorSortLevel(panel.target.colStart, 'cell-color')] })
+    const key = newVisualSortLevel(panel.target.colStart, panel.entry === 'icon' ? 'icon' : 'cell-color')
+    set(stateAtom, { ...draft, keys: [...keys, key] })
     return true
   }
   if (typeof action === 'object') {
@@ -109,6 +114,6 @@ export const configureColorSortAtom = atom(null, async (get, set, action: Action
   return sorted
 })
 
-stateAtom.debugLabel = 'plugin.dataSort.colorState'
-colorSortPanelAtom.debugLabel = 'plugin.dataSort.colorPanel'
-configureColorSortAtom.debugLabel = 'plugin.dataSort.configureColor'
+stateAtom.debugLabel = 'plugin.dataSort.visualState'
+visualSortPanelAtom.debugLabel = 'plugin.dataSort.visualPanel'
+configureVisualSortAtom.debugLabel = 'plugin.dataSort.configureVisual'

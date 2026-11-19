@@ -1,4 +1,5 @@
-use einfach_excel_core::sort::{SortColorKey, SortColorPosition, SortColorSource, SortCriterion};
+use einfach_excel_core::sort::{SortColorKey, SortColorPosition, SortColorSource, SortCriterion, SortIconKey};
+use einfach_excel_core::IconSet;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
@@ -92,6 +93,7 @@ impl SortKeyWireJSON {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
 enum SortCriterionWireJSON {
+    Icon(SortIconWireJSON),
     Color(SortColorWireJSON),
     Value(SortKeyWireJSON),
 }
@@ -114,26 +116,59 @@ enum SortColorSourceWireJSON {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct SortIconWireJSON {
+    col: u32,
+    #[serde(rename = "sortOn")]
+    _sort_on: SortIconSourceWireJSON,
+    #[serde(deserialize_with = "Deserialize::deserialize")]
+    icon: Option<SortIconTargetWireJSON>,
+    position: SortColorPositionWireJSON,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum SortIconSourceWireJSON {
+    Icon,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SortIconTargetWireJSON {
+    set: IconSet,
+    index: u8,
+}
+
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum SortColorPositionWireJSON {
     Top,
     Bottom,
 }
 
+impl From<SortColorPositionWireJSON> for SortColorPosition {
+    fn from(position: SortColorPositionWireJSON) -> Self {
+        match position {
+            SortColorPositionWireJSON::Top => Self::Top,
+            SortColorPositionWireJSON::Bottom => Self::Bottom,
+        }
+    }
+}
+
 impl SortCriterionWireJSON {
     fn into_criterion(self) -> Result<SortCriterion, String> {
         match self {
             Self::Value(key) => key.into_key().map(SortCriterion::Value),
+            Self::Icon(key) => {
+                SortIconKey::new(key.col, key.icon.map(|icon| (icon.set, icon.index)), key.position.into())
+                    .map(SortCriterion::Icon).map_err(str::to_owned)
+            }
             Self::Color(key) => {
                 let source = match key.sort_on {
                     SortColorSourceWireJSON::CellColor => SortColorSource::Fill,
                     SortColorSourceWireJSON::FontColor => SortColorSource::Font,
                 };
-                let position = match key.position {
-                    SortColorPositionWireJSON::Top => SortColorPosition::Top,
-                    SortColorPositionWireJSON::Bottom => SortColorPosition::Bottom,
-                };
-                SortColorKey::new(key.col, source, key.color.as_deref(), position)
+                SortColorKey::new(key.col, source, key.color.as_deref(), key.position.into())
                     .map(SortCriterion::Color).map_err(str::to_owned)
             }
         }

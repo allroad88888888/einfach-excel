@@ -28,7 +28,7 @@ use crate::sheet::{
 pub(crate) mod advanced_conditional_format;
 #[path = "advanced_formatting/mod.rs"]
 pub(crate) mod advanced_formatting;
-pub use advanced_conditional_format::ConditionalIconDisplay;
+pub use advanced_conditional_format::{ConditionalIconDisplay, IconSet};
 #[path = "advanced_validation/mod.rs"]
 pub mod advanced_validation;
 

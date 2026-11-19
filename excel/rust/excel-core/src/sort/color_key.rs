@@ -57,9 +57,15 @@ impl SortColorKey {
     }
 
     pub(super) fn compare(self, left_matches: bool, right_matches: bool) -> Ordering {
-        match self.position {
-            SortColorPosition::Top => right_matches.cmp(&left_matches),
-            SortColorPosition::Bottom => left_matches.cmp(&right_matches),
+        self.position.compare_match(left_matches, right_matches)
+    }
+}
+
+impl SortColorPosition {
+    pub(super) fn compare_match(self, left_matches: bool, right_matches: bool) -> Ordering {
+        match self {
+            Self::Top => right_matches.cmp(&left_matches),
+            Self::Bottom => left_matches.cmp(&right_matches),
         }
     }
 }

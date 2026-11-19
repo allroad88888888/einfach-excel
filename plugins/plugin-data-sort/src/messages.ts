@@ -1,5 +1,6 @@
 import type { Messages } from '@lingui/core'
 import { colorMessages } from './color-messages'
+import { iconMessages } from './icon-messages'
 
 export const labels = {
   title: { id: 'plugin.dataSort.title', message: 'Custom list sort' },
@@ -38,6 +39,7 @@ export const labels = {
 export const messages: Partial<Record<'en' | 'zh', Messages>> = {
   en: {
     ...colorMessages('en'),
+    ...iconMessages('en'),
     ...Object.fromEntries(Object.values(labels).map(({ id, message }) => [id, message])),
     [labels.level.id]: ['Sort level ', ['level']],
     [labels.column.id]: ['Sort column ', ['level']],
@@ -49,6 +51,7 @@ export const messages: Partial<Record<'en' | 'zh', Messages>> = {
   },
   zh: {
     ...colorMessages('zh'),
+    ...iconMessages('zh'),
     [labels.title.id]: '自定义列表排序',
     [labels.hint.id]: '按已保存列表对选中矩形区域排序。筛选隐藏行保持原位；手动隐藏行参与排序。排序级别从上到下依次应用。',
     [labels.directory.id]: '列表与填充序列共享。请先在填充序列中保存自定义列表。',

@@ -4,7 +4,7 @@ use crate::workbook::{conditional_format_highlight::enabled_by_default, Workbook
 use crate::CellAddress;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Clone, Copy, Deserialize, Serialize, Debug, PartialEq, Eq)]
 pub enum IconSet {
     #[serde(rename = "three-arrows")]
     Arrows,

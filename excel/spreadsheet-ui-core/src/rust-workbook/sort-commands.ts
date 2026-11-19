@@ -1,4 +1,4 @@
-import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
+import type { DisplayCell, VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
 import type { WorkerCommand } from '../rust-worker'
 import type { CellRange } from '../shared'
 
@@ -14,7 +14,14 @@ export interface RustColorSortKey {
   readonly color: string | null
   readonly position: 'top' | 'bottom'
 }
-export type RustSortCriterion = RustSortKey | RustColorSortKey
+export interface RustIconSortKey {
+  readonly col: number
+  readonly sortOn: 'icon'
+  readonly icon: Pick<NonNullable<DisplayCell['conditionalIcon']>, 'set' | 'index'> | null
+  readonly position: 'top' | 'bottom'
+}
+export type RustAppearanceSortKey = RustColorSortKey | RustIconSortKey
+export type RustSortCriterion = RustSortKey | RustAppearanceSortKey
 
 export interface SortRangeOptions {
   readonly keys: readonly RustSortCriterion[]

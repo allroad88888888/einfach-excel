@@ -1,8 +1,8 @@
 import type { SpreadsheetPlugin } from '@einfach-excel/react-excel'
 import { CustomListSortTools } from './CustomListSortTools'
 import { CustomListSortDialog } from './CustomListSortDialog'
-import { ColorSortDialog } from './ColorSortDialog'
-import { ColorSortTools } from './ColorSortTools'
+import { VisualSortDialog } from './VisualSortDialog'
+import { ColorSortTools, IconSortTools } from './VisualSortTools'
 import { messages } from './messages'
 
 export const dataSortPlugin: SpreadsheetPlugin = {
@@ -10,7 +10,8 @@ export const dataSortPlugin: SpreadsheetPlugin = {
   ribbonItems: [
     { id: 'custom-list', after: 'data.sort-selected-range', Item: CustomListSortTools },
     { id: 'color-sort', after: 'data.sort-selected-range', Item: ColorSortTools },
+    { id: 'icon-sort', after: 'data.sort-selected-range', Item: IconSortTools },
   ],
-  panels: [CustomListSortDialog, ColorSortDialog],
+  panels: [CustomListSortDialog, VisualSortDialog],
   messages,
 }

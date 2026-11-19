@@ -26,6 +26,14 @@ export function sortRange(
     throw new Error('Choose 1–8 different columns inside the selected range.')
   for (const key of keys) {
     if ('sortOn' in key) {
+      if (key.sortOn === 'icon') {
+        if ((key.position !== 'top' && key.position !== 'bottom') ||
+          (key.icon !== null && (!key.icon || typeof key.icon !== 'object' ||
+            !['three-arrows', 'three-traffic-lights', 'three-flags'].includes(key.icon.set) ||
+            ![0, 1, 2].includes(key.icon.index))))
+          throw new Error('Choose a valid icon sort target and position.')
+        continue
+      }
       if ((key.sortOn !== 'cell-color' && key.sortOn !== 'font-color') ||
         (key.position !== 'top' && key.position !== 'bottom') ||
         (key.color !== null && (typeof key.color !== 'string' || !/^#[\da-f]{6}$/i.test(key.color))))

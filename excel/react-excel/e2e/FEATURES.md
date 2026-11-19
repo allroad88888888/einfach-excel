@@ -846,6 +846,11 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | DATA-121 | 同列多颜色排序及级别上移 | `editing/sort-colors.spec.ts` | Same-column color levels apply their configured priority stably |
 | DATA-122 | 填充色置底并保留文件中的行顺序 | `editing/sort-colors.spec.ts` | Sorted color records reopen in native and XLSX files |
 | DATA-123 | 键盘打开并应用颜色排序 | `plugins/color-sort.spec.ts` | Chinese color sort works by keyboard at 390px and restores its opener |
+| DATA-124 | 按显示图标排序 | `editing/sort-icons.spec.ts` | Displayed reversed icons sort before equal indices from a different set |
+| DATA-125 | 按无图标排序 | `editing/sort-icons.spec.ts` | No icon moves only iconless records and keeps icon groups stable |
+| DATA-126 | 指定图标置底 | `editing/sort-icons.spec.ts` | On bottom keeps other icon identities stable |
+| DATA-127 | 同列混合图标和颜色排序级别 | `editing/sort-icons.spec.ts` | Icon and color criteria can sort the same column at different levels |
+| DATA-128 | 键盘打开并应用图标排序 | `plugins/icon-sort.spec.ts` | Chinese icon sort submits by keyboard and restores focus at 390px |
 | FIND-001 | 工作簿查找 | `editing/find-replace.spec.ts` | workbook find navigates offscreen into Summary and previous/next wrap exact occurrences |
 | FIND-002 | 当前替换 | `editing/find-replace.spec.ts` | current replacement changes only the chosen Unicode occurrence and undo restores it |
 | FIND-003 | 全部替换 | `editing/find-replace.spec.ts` | replace all changes every matching order beyond 500 and is one undoable operation |

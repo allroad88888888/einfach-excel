@@ -1,21 +1,23 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui } from '@lingui/react'
 import { getColumnLabel } from '@einfach-excel/spreadsheet-ui-core'
-import { colorSortPanelAtom, configureColorSortAtom, newColorSortLevel,
-  type ColorSortLevel, type ColorSortMode } from './core/color-sort'
+import { visualSortPanelAtom, configureVisualSortAtom, newVisualSortLevel,
+  type VisualSortLevel, type VisualSortMode } from './core/visual-sort'
 import { colorLabels } from './color-messages'
+import { IconSortTargetFields } from './IconSortTargetFields'
+import { iconLabels } from './icon-messages'
 import { labels } from './messages'
 
-export function ColorSortLevelFields({ index }: { readonly index: number }) {
+export function VisualSortLevelFields({ index }: { readonly index: number }) {
   const { i18n } = useLingui()
-  const panel = useAtomValue(colorSortPanelAtom)
-  const configure = useSetAtom(configureColorSortAtom)
+  const panel = useAtomValue(visualSortPanelAtom)
+  const configure = useSetAtom(configureVisualSortAtom)
   const level = panel.keys[index]
   if (!level || !panel.target) return null
   const values = { level: index + 1 }
   const { colStart, colEnd } = panel.target
   const columns = Array.from({ length: colEnd - colStart + 1 }, (_, offset) => colStart + offset)
-  const update = (key: ColorSortLevel) => void configure({ type: 'key', index, key })
+  const update = (key: VisualSortLevel) => void configure({ type: 'key', index, key })
   const mode = 'sortOn' in level ? level.sortOn : 'value'
   const order = i18n._({ ...labels.order, values })
   return <fieldset disabled={panel.busy}>
@@ -28,24 +30,28 @@ export function ColorSortLevelFields({ index }: { readonly index: number }) {
     </label>
     <label>{i18n._(colorLabels.kind)}
       <select aria-label={i18n._(colorLabels.kind)} value={mode} onChange={event => {
-        const next = event.currentTarget.value as ColorSortMode
-        update(newColorSortLevel(level.col, next))
+        const next = event.currentTarget.value as VisualSortMode
+        update(newVisualSortLevel(level.col, next))
       }}>
         <option value="cell-color">{i18n._(colorLabels.fill)}</option>
         <option value="font-color">{i18n._(colorLabels.font)}</option>
+        <option value="icon">{i18n._(iconLabels.criterion)}</option>
         <option value="value">{i18n._(labels.values)}</option>
       </select>
     </label>
     {'sortOn' in level ? <>
-      <label>
-        <input type="checkbox" checked={level.color === null}
-          onChange={event => update({ ...level, color: event.currentTarget.checked ? null : '#ff0000' })} />
-        {i18n._(level.sortOn === 'cell-color' ? colorLabels.noFill : colorLabels.automatic)}
-      </label>
-      {level.color !== null && <label>{i18n._(colorLabels.target)}
-        <input type="color" value={level.color}
-          onChange={event => update({ ...level, color: event.currentTarget.value })} />
-      </label>}
+      {level.sortOn === 'icon' ? <IconSortTargetFields index={index} /> : <>
+        <label>
+          <input type="checkbox" checked={level.color === null} onChange={event => update({
+            ...level, color: event.currentTarget.checked ? null : '#ff0000',
+          })} />
+          {i18n._(level.sortOn === 'cell-color' ? colorLabels.noFill : colorLabels.automatic)}
+        </label>
+        {level.color !== null && <label>{i18n._(colorLabels.target)}
+          <input type="color" value={level.color}
+            onChange={event => update({ ...level, color: event.currentTarget.value })} />
+        </label>}
+      </>}
       <label>{order}<select aria-label={order} value={level.position}
         onChange={event => update({ ...level, position: event.currentTarget.value as 'top' | 'bottom' })}>
         <option value="top">{i18n._(colorLabels.top)}</option>

@@ -37,16 +37,19 @@ use crate::range::CellRange;
 use crate::sheet::{collapse_array_for_eval, Sheet};
 use crate::workbook::Workbook;
 
+mod appearance_key;
 mod color_key;
 mod compare;
 mod contract;
 mod display_colors;
-mod prepare_colors;
+mod icon_key;
+mod prepare_appearance;
 mod reorder;
 mod slots;
 mod visual;
 
 pub use color_key::{SortColorKey, SortColorPosition, SortColorSource};
+pub use icon_key::SortIconKey;
 pub use visual::SortCriterion;
 pub use compare::{sort_cmp, sort_cmp_with_direction, sort_cmp_with_direction_and_list};
 pub use contract::{SortDirection, SortKey, SortRangeError, SortRangeReport};

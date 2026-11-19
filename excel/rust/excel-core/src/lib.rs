@@ -110,7 +110,7 @@ pub use sort::{
 pub use undo::CellSnapshot;
 pub use workbook::{
     BulkInstallStats, CalculationMode, CellShiftDirection, ConditionalFormatConfigSnapshot,
-    ConditionalFormatError, ConditionalIconDisplay, DataBarDisplay, DisplayFormatRangeSnapshot,
+    ConditionalFormatError, ConditionalIconDisplay, DataBarDisplay, DisplayFormatRangeSnapshot, IconSet,
     ConditionalFormatRuleEntry, FilterSnapshot, HeaderFooterFields, HiddenRowsError,
     HiddenRowsSnapshot, InstallError, IterativeConfig, ManualPageBreak, ManualPageBreakAxis,
     MergeAction, PrintConfig, PrintConfigError, PrintConfigSnapshot, PrintOrientation, PrintScale,

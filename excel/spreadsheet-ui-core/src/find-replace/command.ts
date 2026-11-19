@@ -12,7 +12,13 @@ import {
 } from '../projection'
 import { validateProjectionResult } from '../projection/contracts'
 import { applyProjectionSizes } from '../projection/projection-sizes'
-import { findReplaceStateAtom, type FindReplaceForm } from './state'
+import {
+  cleanFindFormat,
+  extractFormatFromCell,
+  findReplaceStateAtom,
+  hasFindFormatCriteria,
+  type FindReplaceForm,
+} from './state'
 import { navigateFindMatchAtom } from './navigation'
 
 export type FindReplaceAction =
@@ -22,6 +28,8 @@ export type FindReplaceAction =
   | 'replace-current'
   | 'replace-all'
   | 'find-all'
+  | 'sample-find-format'
+  | 'sample-replace-format'
   | { readonly page: number }
   | { readonly match: number }
   | { readonly open: 'find' | 'replace' }
@@ -71,8 +79,41 @@ export const runFindReplaceAtom = atom(
       return true
     }
     if (!state.open || !state.origin) return false
+    if (action === 'sample-find-format' || action === 'sample-replace-format') {
+      const activeCell = get(selectionSnapshotAtom).activeCell
+      const projected = get(projectionSnapshotAtom).result
+      const cell =
+        projected?.sheetId === active.id
+          ? projected.cells.find(
+              (entry) => entry.row === activeCell.row && entry.col === activeCell.col,
+            )
+          : undefined
+      const sampled = extractFormatFromCell(cell?.format)
+      if (!sampled) {
+        set(findReplaceStateAtom, {
+          ...state,
+          error: null,
+          notice: 'The active cell has no explicit format to sample.',
+        })
+        return false
+      }
+      const isFind = action === 'sample-find-format'
+      set(findReplaceStateAtom, {
+        ...state,
+        form: isFind
+          ? { ...state.form, format: sampled }
+          : { ...state.form, replaceFormat: sampled },
+        busy: null,
+        result: isFind ? null : state.result,
+        error: null,
+        notice: null,
+      })
+      return true
+    }
     if (typeof action === 'object' && 'form' in action) {
-      const onlyReplacement = Object.keys(action.form).every((key) => key === 'replacement')
+      const onlyReplacement = Object.keys(action.form).every(
+        (key) => key === 'replacement' || key === 'replaceFormat',
+      )
       set(findReplaceStateAtom, {
         ...state,
         form: { ...state.form, ...action.form },
@@ -94,8 +135,20 @@ export const runFindReplaceAtom = atom(
       })
       return false
     }
-    const { needle, replacement, caseSensitive, wholeCell, lookIn, scope, wildcards } = state.form
-    if (!needle.length) return fail('Enter text to find.')
+    const {
+      needle,
+      replacement,
+      caseSensitive,
+      wholeCell,
+      lookIn,
+      scope,
+      wildcards,
+      format: rawFindFormat,
+      replaceFormat: rawReplaceFormat,
+    } = state.form
+    const findFormat = cleanFindFormat(rawFindFormat)
+    const replaceFormat = cleanFindFormat(rawReplaceFormat)
+    if (!needle.length && !findFormat) return fail('Enter text to find.')
     const workbook = get(workbookDocumentAtom)
     const sheets =
       scope === 'workbook'
@@ -116,7 +169,14 @@ export const runFindReplaceAtom = atom(
               colEnd: sheet.colCount - 1,
             },
     }))
-    const query = { needle, caseSensitive, wholeCell, lookIn, wildcards }
+    const query = {
+      needle,
+      caseSensitive,
+      wholeCell,
+      lookIn,
+      wildcards,
+      ...(findFormat ? { format: findFormat } : {}),
+    }
     const requested =
       typeof action === 'object' ? ('page' in action ? action.page : action.match) : null
     if (requested !== null && (!Number.isSafeInteger(requested) || requested < 0))
@@ -126,6 +186,9 @@ export const runFindReplaceAtom = atom(
     if (picking && (!state.result?.page || requested! >= state.result.total))
       return fail('Find all before choosing a result.')
     const writing = action === 'replace-current' || action === 'replace-all'
+    if (writing && !needle.length && !hasFindFormatCriteria(replaceFormat)) {
+      return fail('Choose a replacement format or enter text to find.')
+    }
     if (
       writing &&
       sheets.some(
@@ -221,6 +284,7 @@ export const runFindReplaceAtom = atom(
         targets,
         query,
         replacement,
+        ...(replaceFormat ? { replaceFormat } : {}),
         expectedRevision: revision,
         projection,
         ...(action === 'replace-current' ? { current: state.result!.current! } : {}),

@@ -133,3 +133,59 @@
     grid-template-columns: 1fr;
   }
 }
+
+:where(.einfach-spreadsheet) .find-format-details {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+:where(.einfach-spreadsheet) .find-format-details summary {
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+:where(.einfach-spreadsheet) .find-format-badge {
+  color: var(--primary-strong);
+  font-size: 10px;
+}
+:where(.einfach-spreadsheet) .find-format-body {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+:where(.einfach-spreadsheet) .find-format-group {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+:where(.einfach-spreadsheet) .find-format-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+:where(.einfach-spreadsheet) .find-format-header legend {
+  padding: 0;
+  font-weight: 600;
+}
+:where(.einfach-spreadsheet) .find-format-buttons {
+  display: flex;
+  gap: 6px;
+}
+:where(.einfach-spreadsheet) .find-format-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+:where(.einfach-spreadsheet) .find-format-grid label {
+  display: grid;
+  gap: 3px;
+  font-size: 12px;
+  min-width: 0;
+}

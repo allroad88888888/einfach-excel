@@ -9,6 +9,7 @@ fn query(pattern: &str) -> FindQuery {
         whole_cell: false,
         wildcards: true,
         look_in: FindLookIn::Formulas,
+        format: None,
     }
 }
 fn scope() -> [(usize, CellRange); 1] {

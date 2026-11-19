@@ -7,12 +7,43 @@ import type {
 import type { WorkerCommand } from '../rust-worker'
 import type { CellRange } from '../shared'
 
+export type FindNumberFormatKind =
+  | 'general'
+  | 'text'
+  | 'number'
+  | 'percent'
+  | 'currency'
+  | 'accounting'
+  | 'date'
+  | 'time'
+  | 'scientific'
+  | 'fraction'
+  | 'special'
+  | 'custom'
+
+export type FindAlign = 'default' | 'left' | 'center' | 'right' | 'center-across'
+
+export interface RustFindFormatFilter {
+  readonly bold?: boolean
+  readonly italic?: boolean
+  readonly underline?: boolean
+  readonly strikethrough?: boolean
+  readonly textColor?: string
+  readonly bgColor?: string
+  readonly fontSize?: number
+  readonly fontFamily?: string
+  readonly align?: FindAlign
+  readonly wrapText?: boolean
+  readonly numberFormat?: FindNumberFormatKind
+}
+
 export interface RustFindQuery {
   readonly needle: string
   readonly caseSensitive: boolean
   readonly wholeCell: boolean
   readonly wildcards?: boolean
   readonly lookIn: 'values' | 'formulas'
+  readonly format?: RustFindFormatFilter
 }
 
 export interface RustFindMatch {
@@ -33,6 +64,7 @@ export interface RustFindRequest {
 
 export interface RustReplaceRequest extends Pick<RustFindRequest, 'targets' | 'query'> {
   readonly replacement: string
+  readonly replaceFormat?: RustFindFormatFilter
   readonly current?: RustFindMatch
   readonly expectedRevision: number
   readonly projection: VisibleProjectionRequest
@@ -75,6 +107,7 @@ export interface NativeFindMatch extends Omit<RustFindMatch, 'sheetId'> {
 }
 export interface NativeReplaceRequest extends Pick<NativeFindRequest, 'targets' | 'query'> {
   readonly replacement: string
+  readonly replaceFormat?: RustFindFormatFilter
   readonly current?: NativeFindMatch
 }
 

@@ -482,6 +482,11 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'Consolidate': msg`Consolidate`,
   'The consolidated outline changed outside history.': msg`The consolidated outline changed outside history.`,
   'The data was consolidated. Refresh the worksheet before trying again.': msg`The data was consolidated. Refresh the worksheet before trying again.`,
+  'Enter text or choose a format to find.': msg`Enter text or choose a format to find.`,
+  'Choose a replacement format or enter text to find.': msg`Choose a replacement format or enter text to find.`,
+  'The active cell has no explicit format to sample.': msg`The active cell has no explicit format to sample.`,
+  'Choose a font size between 1 and 512.': msg`Choose a font size between 1 and 512.`,
+  'Choose a valid font family.': msg`Choose a valid font family.`,
 }
 
 

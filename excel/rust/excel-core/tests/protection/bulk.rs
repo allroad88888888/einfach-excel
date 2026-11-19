@@ -220,7 +220,7 @@ fn replace_and_multiarea_clear_do_not_partially_write_an_editable_prefix() {
     protect(&mut book);
     let mut history = WorkbookHistory::default();
     let query = FindQuery { needle: "old".into(), case_sensitive: false, whole_cell: true,
-        wildcards: false, look_in: FindLookIn::Formulas };
+        wildcards: false, look_in: FindLookIn::Formulas, format: None };
     assert!(history.replace_by_query(&mut book, &[(0, range(0, 0, 0, 1))],
         &query, "new", None).is_err());
     assert!(history.clear_selection(&mut book, 0, &[(range(0, 0, 0, 0), StyleScope::Cell),

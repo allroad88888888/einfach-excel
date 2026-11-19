@@ -1,7 +1,9 @@
 //! 一次替换先冻结匹配计划，再复用原生历史提交；错误时在同一 batch 内回滚。
 use super::*;
+use crate::cell_style::StyleScope;
+use crate::find_format::FindFormatFilter;
 use crate::find_text::utf16_span;
-use crate::{FindLookIn, FindMatch, FindQuery};
+use crate::{CellAddress, FindLookIn, FindMatch, FindQuery};
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct ReplaceReport {
@@ -20,13 +22,34 @@ impl WorkbookHistory {
         replacement: &str,
         current: Option<&FindMatch>,
     ) -> Result<ReplaceReport, &'static str> {
+        self.replace_by_query_with_format(workbook, targets, query, replacement, None, current)
+    }
+
+    pub fn replace_by_query_with_format(
+        &mut self,
+        workbook: &mut Workbook,
+        targets: &[(usize, CellRange)],
+        query: &FindQuery,
+        replacement: &str,
+        replace_format: Option<&FindFormatFilter>,
+        current: Option<&FindMatch>,
+    ) -> Result<ReplaceReport, &'static str> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another mutation is in progress.");
         }
         if replacement.len() > 1_048_576 {
             return Err("Replacement text is too large.");
         }
-        let mut writes = Vec::new();
+        let format_patch = match replace_format.filter(|spec| !spec.is_empty()) {
+            Some(spec) => Some(spec.to_style_patch()?),
+            None => None,
+        };
+        let format_only = query.needle.is_empty();
+        if format_only && format_patch.is_none() {
+            return Err("Choose a replacement format or enter text to find.");
+        }
+
+        let mut writes: Vec<(usize, CellAddress, Option<String>)> = Vec::new();
         let mut report = ReplaceReport::default();
         let mut error = None;
         let mut found_current = false;
@@ -52,7 +75,19 @@ impl WorkbookHistory {
                 return;
             }
             found_current = true;
+            if writes.len() >= 100_000 {
+                error = Some(
+                    "Replace exceeds 100,000 changed cells or 32 MiB. Choose a smaller range.",
+                );
+                return;
+            }
             let source = workbook.sheet(cell.sheet).unwrap();
+            if format_only {
+                report.cells += 1;
+                report.occurrences += 1;
+                writes.push((cell.sheet, cell.address, None));
+                return;
+            }
             if source
                 .spill_anchor_for(cell.address)
                 .is_some_and(|anchor| anchor != cell.address)
@@ -75,8 +110,7 @@ impl WorkbookHistory {
                 error = Some("A replacement cell would exceed 16 MiB.");
                 return;
             };
-            if retained_bytes.saturating_add(expanded) > 32 * 1024 * 1024 || writes.len() >= 100_000
-            {
+            if retained_bytes.saturating_add(expanded) > 32 * 1024 * 1024 {
                 error = Some(
                     "Replace exceeds 100,000 changed cells or 32 MiB. Choose a smaller range.",
                 );
@@ -90,23 +124,29 @@ impl WorkbookHistory {
                 previous = span.end;
             }
             result.push_str(&cell.text[previous..]);
-            if result == cell.text {
+            let text_changed = result != cell.text;
+            if !text_changed && format_patch.is_none() {
                 return;
             }
             // 与普通编辑共用类型解析；原文字格保持文字，避免 00123 或 =... 被误识别。
-            if !cell.formula
-                && !result.is_empty()
-                && matches!(
-                    source.peek_value(cell.address),
-                    einfach_core::Value::Text(_)
-                )
-            {
-                result.insert(0, '\'');
-            }
+            let next_input = if text_changed {
+                if !cell.formula
+                    && !result.is_empty()
+                    && matches!(
+                        source.peek_value(cell.address),
+                        einfach_core::Value::Text(_)
+                    )
+                {
+                    result.insert(0, '\'');
+                }
+                retained_bytes += result.len();
+                Some(result)
+            } else {
+                None
+            };
             report.cells += 1;
             report.occurrences += spans.len();
-            retained_bytes += result.len();
-            writes.push((cell.sheet, cell.address, result));
+            writes.push((cell.sheet, cell.address, next_input));
         })?;
         if let Some(error) = error {
             return Err(error);
@@ -132,7 +172,19 @@ impl WorkbookHistory {
         let mut outcome = Ok(());
         store.batch(|_| {
             outcome = writes.iter().try_for_each(|(sheet, addr, input)| {
-                workbook.set_cell_input(*sheet, &addr.to_string(), input)
+                if let Some(input) = input {
+                    workbook.set_cell_input(*sheet, &addr.to_string(), input)?;
+                }
+                if let Some(patch) = &format_patch {
+                    if let Some(target_sheet) = workbook.sheet_mut(*sheet) {
+                        target_sheet.patch_format_range(
+                            CellRange::single(*addr),
+                            StyleScope::Cell,
+                            patch.clone(),
+                        );
+                    }
+                }
+                Ok(())
             });
             let restored = self.finish(workbook, outcome.is_ok());
             if let Err(error) = restored {

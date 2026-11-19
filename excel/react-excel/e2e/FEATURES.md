@@ -1514,3 +1514,11 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | VALCIRCLE-001 | 圈释已有违规单元格（忽略空白格），修复后自动消除并支持一键清除 | `advanced-validation/circle-invalid-data.spec.ts` | `Circle invalid data highlights pre-existing violations, updates on edit, and clears` |
 | VALCIRCLE-002 | 自定义公式验证在依赖变更时动态更新标识圈并兼容 Canvas 渲染 | `advanced-validation/circle-invalid-data.spec.ts` | `Circle invalid data tracks dynamic custom formula rules in DOM and Canvas renderers` |
 | VALCIRCLE-003 | 受保护工作表可执行只读圈释与清除，不写入撤销历史 | `advanced-validation/circle-invalid-data.spec.ts` | `Circle invalid data works on a protected worksheet without mutating undo history` |
+
+### 按格式查找与替换
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| FINDFMT-001 | 按格式查找定位粗体/填充色单元格（含从活动格提取与已设样式空白格） | `editing/find-by-format.spec.ts` | `Find by format locates bold and fill-colored cells including styled blanks` |
+| FINDFMT-002 | 仅替换格式原子更新匹配单元格样式（保留公式与值）并支持单步撤销 | `editing/find-by-format.spec.ts` | `Replace format updates matched cells atomically with one undo step` |
+| FINDFMT-003 | 文本与格式组合查找替换同时更新内容与样式并支持单步撤销 | `editing/find-by-format.spec.ts` | `Combined text and format find-replace filters matches and replaces both atomically` |

@@ -7,10 +7,12 @@ import {
   coordToA1,
   editingSessionAtom,
   findReplacePanelAtom,
+  hasFindFormatCriteria,
   runFindReplaceAtom,
   workbookDocumentAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import './find-replace.css'
+import { FindFormatSection } from './FindFormatSection'
 import { FindResults } from './FindResults'
 import { cycleDialogFocus } from './dialog-focus'
 
@@ -43,6 +45,8 @@ export function FindReplaceTools() {
   }, [state.open])
   const { form, result } = state
   const busy = state.busy !== null
+  const hasFindCriteria = Boolean(form.needle) || hasFindFormatCriteria(form.format)
+  const canReplace = Boolean(form.needle) || hasFindFormatCriteria(form.replaceFormat)
   const match = result?.current
   const matchSheet = workbook.sheets.find((sheet) => sheet.id === match?.sheetId)
   return (
@@ -215,6 +219,7 @@ export function FindReplaceTools() {
                 Match entire cell
               </Trans></label>
             </div>
+            <FindFormatSection />
             {match && (
               <p className="find-match" role="status"><Trans>
                 {result!.index + 1} of {result!.total} · {matchSheet?.name}!{coordToA1(match)}
@@ -231,12 +236,12 @@ export function FindReplaceTools() {
               <button type="button" disabled={busy || !match} onClick={() => void run('previous')}><Trans>
                 Previous
               </Trans></button>
-              <button type="submit" className="find-primary" disabled={busy || !form.needle}><Trans>
+              <button type="submit" className="find-primary" disabled={busy || !hasFindCriteria}><Trans>
                 Find next
               </Trans></button>
               <button
                 type="button"
-                disabled={busy || !form.needle}
+                disabled={busy || !hasFindCriteria}
                 onClick={() => void run('find-all')}
               ><Trans>
                 Find all
@@ -245,14 +250,14 @@ export function FindReplaceTools() {
                 <>
                   <button
                     type="button"
-                    disabled={busy || !match}
+                    disabled={busy || !match || !canReplace}
                     onClick={() => void run('replace-current')}
                   ><Trans>
                     Replace current
                   </Trans></button>
                   <button
                     type="button"
-                    disabled={busy || !form.needle}
+                    disabled={busy || !hasFindCriteria || !canReplace}
                     onClick={() => void run('replace-all')}
                   ><Trans>
                     Replace all

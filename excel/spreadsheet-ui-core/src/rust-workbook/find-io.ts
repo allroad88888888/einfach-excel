@@ -66,6 +66,7 @@ export function replaceWorkbook(
     targets: nativeTargets(sheets, request),
     query: request.query,
     replacement: request.replacement,
+    ...(request.replaceFormat ? { replaceFormat: request.replaceFormat } : {}),
     ...(current
       ? {
           current: {

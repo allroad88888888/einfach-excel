@@ -27,6 +27,7 @@ pub mod filter;
 pub mod advanced_filter;
 mod find_text;
 mod find_wildcard;
+pub mod find_format;
 mod cell_format;
 mod cell_fill;
 mod display_color;
@@ -72,6 +73,7 @@ mod workbook_current_region;
 pub use workbook_visible_blocks::VisibleBlocks;
 mod workbook_aggregate;
 pub use workbook_aggregate::SelectionNumbers;
+pub use find_format::{FindAlign, FindFormatFilter, FindNumberFormatKind};
 pub use workbook_find::{FindLookIn, FindMatch, FindPage, FindQuery};
 
 pub use auto_fill::{

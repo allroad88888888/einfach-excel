@@ -24,6 +24,7 @@ export const workbookRibbonItemIds = [
   'data.remove-duplicates',
   'data.sort-selected-range',
   'data.text-to-columns',
+  'data.validation-circles',
   'data.worksheet-filter',
   'data.worksheet-protection',
   'format.alternating-colors',

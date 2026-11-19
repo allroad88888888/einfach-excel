@@ -1506,3 +1506,11 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CONSOLIDATE-002 | 按位置合并计算切换统计函数并门控覆盖确认 | `editing/consolidate.spec.ts` | `Consolidate by position previews alternate functions and gates overwrite confirmation` |
 | CONSOLIDATE-003 | 创建源数据链接生成跨表公式、可折叠行大纲与原子撤销 | `editing/consolidate.spec.ts` | `Linked consolidate creates live cross-sheet formulas, row outlines, and atomic undo` |
 | CONSOLIDATE-004 | 同表链接拒绝保护与无插件核心界面保持洁净 | `editing/consolidate.spec.ts` | `Consolidate rejects same-sheet links and stays absent without the optional plugin` |
+
+### 圈释无效数据
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| VALCIRCLE-001 | 圈释已有违规单元格（忽略空白格），修复后自动消除并支持一键清除 | `advanced-validation/circle-invalid-data.spec.ts` | `Circle invalid data highlights pre-existing violations, updates on edit, and clears` |
+| VALCIRCLE-002 | 自定义公式验证在依赖变更时动态更新标识圈并兼容 Canvas 渲染 | `advanced-validation/circle-invalid-data.spec.ts` | `Circle invalid data tracks dynamic custom formula rules in DOM and Canvas renderers` |
+| VALCIRCLE-003 | 受保护工作表可执行只读圈释与清除，不写入撤销历史 | `advanced-validation/circle-invalid-data.spec.ts` | `Circle invalid data works on a protected worksheet without mutating undo history` |

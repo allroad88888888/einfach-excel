@@ -13,8 +13,18 @@ pub(super) fn accepts(
     let Some(expression) = parse_formula(source.trim()) else {
         return false;
     };
+    accepts_parsed(book, sheet, target, anchor, &expression)
+}
+
+pub(super) fn accepts_parsed(
+    book: &Workbook,
+    sheet: usize,
+    target: CellAddress,
+    anchor: CellAddress,
+    expression: &crate::formula::Expr,
+) -> bool {
     let Ok(expression) = shift_copy_formula(
-        &expression,
+        expression,
         i64::from(target.row) - i64::from(anchor.row),
         i64::from(target.col) - i64::from(anchor.col),
     ) else {

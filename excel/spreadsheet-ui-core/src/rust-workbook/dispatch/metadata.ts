@@ -6,7 +6,10 @@ import { readNote, changeNote } from '../notes/command'
 import { readProtection, changeProtection } from '../protection/commands'
 import { changeNamedRange } from '../named-range-commands'
 import { changeTable } from '../table-commands'
-import { changeDataValidation } from '../data-validation-commands'
+import {
+  changeDataValidation,
+  listInvalidValidationCells,
+} from '../data-validation-commands'
 import { changeConditionalFormat } from '../conditional-format-io'
 import { changeOutline } from '../outline-io'
 import { readVisibleProjection } from '../visible-projection'
@@ -63,6 +66,13 @@ export const metadataHandlers: WorkbookHandlers = {
     if (!current.getDataValidation) throw new Error('Rust data validation is unavailable.')
     return current.getDataValidation(context.sheetIndex(input.sheetId), input.row, input.col)
   },
+  'validation.listInvalid': (context, current, input) =>
+    listInvalidValidationCells(
+      current,
+      context.sheetIndex(input.sheetId),
+      input.maxCount,
+      context.revision,
+    ),
   'validation.change': (context, current, input) => {
     const sheet = context.sheetsById.get(input.sheetId)
     const index = context.sheetIndex(input.sheetId)

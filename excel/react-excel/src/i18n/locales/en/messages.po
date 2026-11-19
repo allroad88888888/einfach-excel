@@ -138,6 +138,10 @@ msgstr "{0} worksheet"
 msgid "{category}. Argument help is not available yet."
 msgstr "{category}. Argument help is not available yet."
 
+#: src/workbook/advanced-validation/ValidationCirclesOverlay.tsx
+msgid "{count} invalid cells circled."
+msgstr "{count} invalid cells circled."
+
 #: src/i18n/translate-feedback.ts
 msgid "{detail} Current workbook kept."
 msgstr "{detail} Current workbook kept."
@@ -1033,6 +1037,10 @@ msgstr "Choose values to show. Other column filters still apply."
 msgid "Choose values…"
 msgstr "Choose values…"
 
+#: src/workbook/chrome/ribbon/ValidationCirclesTools.tsx
+msgid "Circle invalid data"
+msgstr "Circle invalid data"
+
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Clear {table} filter"
 msgstr "Clear {table} filter"
@@ -1092,6 +1100,10 @@ msgstr "Clear the filter before cutting this range. No cells were moved."
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Clear validation"
 msgstr "Clear validation"
+
+#: src/workbook/chrome/ribbon/ValidationCirclesTools.tsx
+msgid "Clear validation circles"
+msgstr "Clear validation circles"
 
 #: src/workbook/chrome/ribbon/ribbon-groups.tsx
 msgid "Clipboard"
@@ -4050,6 +4062,10 @@ msgstr "No editable ranges."
 msgid "No fill"
 msgstr "No fill"
 
+#: src/workbook/advanced-validation/ValidationCirclesOverlay.tsx
+msgid "No invalid cells found."
+msgstr "No invalid cells found."
+
 #: src/i18n/feedback-messages.ts
 msgid "No matches found."
 msgstr "No matches found."
@@ -5762,6 +5778,10 @@ msgstr "Show totals row"
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Showing {0}–{1} of {2} duplicate records"
 msgstr "Showing {0}–{1} of {2} duplicate records"
+
+#: src/workbook/advanced-validation/ValidationCirclesOverlay.tsx
+msgid "Showing first {count} invalid cells."
+msgstr "Showing first {count} invalid cells."
 
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Single quote (')"

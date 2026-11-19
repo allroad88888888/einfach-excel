@@ -32,6 +32,7 @@ import type { NativeRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from 
 import type { NativeQuickFormulaRequest, QuickFormulaSuggestion } from './quick-formula-commands'
 import type { ConditionalFormatChange, NativeConditionalFormats } from './conditional-format-commands'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
+import type { InvalidValidationReport } from './data-validation-commands'
 import type { NativeOutlineAction } from '../outline/native-state'
 import type { NativeNamedRange, NativeNamedRangeAction } from '../named-ranges/native-types'
 import type { NativeTable, NativeTableAction } from '../tables/native-types'
@@ -125,6 +126,7 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries, WasmAd
   }) => NativeSubtotalReport | undefined
   change_outline?: (sheet: number, axis: 'row' | 'column', action: NativeOutlineAction) => boolean
   getDataValidation?: (sheet: number, row: number, col: number) => NativeDataValidationRule | null
+  listInvalidValidationCells?: (sheet: number, maxCount: number) => InvalidValidationReport
   setDataValidation?: (sheet: number, rowStart: number, colStart: number,
     rowEnd: number, colEnd: number, rule: NativeDataValidationRule | null) => void
   listConditionalFormats?: (sheet: number) => NativeConditionalFormats

@@ -24,6 +24,7 @@ import { CellEditor } from '../editor/CellEditor'
 import { CellValidationList } from '../editor/CellValidationList'
 import { ValidationInputMessage } from '../../advanced-validation/ValidationInputMessage'
 import { ValidationErrorAlert } from '../../advanced-validation/ValidationErrorAlert'
+import { ValidationCirclesOverlay } from '../../advanced-validation/ValidationCirclesOverlay'
 import { ResizeGuide } from './ResizeGuide'
 import { useWorkbookGridEvents } from './use-workbook-grid-events'
 import { useGridClipboard } from '../../clipboard/use-grid-clipboard'
@@ -231,6 +232,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           </div>
           <FrozenGrid focusGrid={events.focusGrid} />
           <HostHighlights />
+          <ValidationCirclesOverlay mergedRanges={viewport.mergedRanges} />
           <DrawingLayer focusGrid={events.focusGrid} />
           <FormulaReferenceOverlay />
           <FormulaAuditingOverlay />

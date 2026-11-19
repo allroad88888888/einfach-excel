@@ -11,7 +11,7 @@ const NON_PERSISTENT = new Set([
   'host.configure', 'host.readRanges', 'workbook.initialize', 'workbook.openFile',
   'workbook.importCells', 'formula.catalog', 'formula.awaitAsync', 'formula.recalculate', 'formula.setCalculationMode', 'formula.setIterativeCalculation',
   'customFormula.read', 'notes.read', 'drawings.read', 'media.read', 'media.put', 'comments.read', 'protection.read', 'formula.inspectSpill',
-  'workbook.exportFile', 'validation.read', 'formula.suggest', 'duplicates.preview',
+  'workbook.exportFile', 'validation.read', 'validation.listInvalid', 'formula.suggest', 'duplicates.preview',
   'textColumns.preview', 'subtotal.inspect', 'consolidate.preview', 'advancedFilter.previewCopy', 'format.preview', 'sheet.filterValues', 'selection.aggregate',
   'workbook.locate', 'workbook.find', 'selection.visibleBlocks', 'selection.currentRegion', 'clipboard.export', 'clipboard.capture',
   'clipboard.finishCapture', 'projection.readVisible',

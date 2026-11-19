@@ -202,6 +202,14 @@ export {
   type ConsolidateContext, type ConsolidatePreviewInput, type ConsolidatePreviewResult,
 } from './consolidate/command'
 export {
+  validationCirclesAtom, runValidationCirclesAtom,
+  type ValidationCirclesAction, type ValidationCirclesView,
+} from './data-validation/validation-circles'
+export {
+  DEFAULT_MAX_VALIDATION_CIRCLES,
+  type InvalidValidationCell, type InvalidValidationReport,
+} from './rust-workbook/data-validation-commands'
+export {
   CONSOLIDATE_FUNCTIONS,
   type ConsolidateFunction, type ConsolidatePreview, type ConsolidateReport,
   type ConsolidateRequest, type ConsolidateSourceRef,

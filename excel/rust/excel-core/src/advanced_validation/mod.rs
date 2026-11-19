@@ -4,9 +4,13 @@ use crate::data_validation::DataValidationKind;
 
 mod formula;
 mod input_transaction;
+mod invalid_cells;
 pub mod options;
 mod references;
 mod sources;
+pub use invalid_cells::{
+    InvalidValidationCell, InvalidValidationReport, MAX_INVALID_VALIDATION_CIRCLES,
+};
 pub use options::{
     AdvancedValidationOptions, ValidationErrorAlert, ValidationErrorStyle, ValidationMessage,
 };

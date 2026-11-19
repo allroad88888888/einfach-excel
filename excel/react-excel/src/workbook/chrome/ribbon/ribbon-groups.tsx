@@ -29,6 +29,7 @@ import { FilterTools } from './FilterTools'
 import { TextColumnsTools } from './TextColumnsTools'
 import { RemoveDuplicatesTools } from './RemoveDuplicatesTools'
 import { DataValidationTools } from './DataValidationTools'
+import { ValidationCirclesTools } from './ValidationCirclesTools'
 import { ProtectionTools } from '../../protection/ProtectionTools'
 import { VisibilityTools } from './VisibilityTools'
 import { OutlineTools } from './OutlineTools'
@@ -85,7 +86,7 @@ export const BUILT_IN_RIBBON_GROUPS: readonly WorkbookRibbonGroup[] = [
   group('fill', 'Data', msg`Fill`, tools(FillTools, FillSeriesTools)),
   group('sort-filter', 'Data', msg`Sort and filter`, tools(SortTools, FilterTools)),
   group('data-tools', 'Data', msg`Data tools`,
-    tools(TextColumnsTools, RemoveDuplicatesTools, DataValidationTools)),
+    tools(TextColumnsTools, RemoveDuplicatesTools, DataValidationTools, ValidationCirclesTools)),
   group('protection', 'Data', msg`Protect`, ProtectionTools),
   group('rows-columns', 'View', msg`Rows and columns`,
     tools(VisibilityTools, OutlineTools, FreezeTools, SelectionSizeTools)),

@@ -138,6 +138,10 @@ msgstr "{0} 工作表"
 msgid "{category}. Argument help is not available yet."
 msgstr "{category}。暂未提供参数说明。"
 
+#: src/workbook/advanced-validation/ValidationCirclesOverlay.tsx
+msgid "{count} invalid cells circled."
+msgstr "已圈释 {count} 个无效单元格。"
+
 #: src/i18n/translate-feedback.ts
 msgid "{detail} Current workbook kept."
 msgstr "{detail} 当前工作簿已保留。"
@@ -1033,6 +1037,10 @@ msgstr "选择要显示的值。其他列的筛选条件仍然生效。"
 msgid "Choose values…"
 msgstr "选择值…"
 
+#: src/workbook/chrome/ribbon/ValidationCirclesTools.tsx
+msgid "Circle invalid data"
+msgstr "圈释无效数据"
+
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Clear {table} filter"
 msgstr "清除 {table} 筛选"
@@ -1092,6 +1100,10 @@ msgstr "请先清除筛选再剪切此区域，未移动任何单元格。"
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Clear validation"
 msgstr "清除数据验证"
+
+#: src/workbook/chrome/ribbon/ValidationCirclesTools.tsx
+msgid "Clear validation circles"
+msgstr "清除无效数据标识圈"
 
 #: src/workbook/chrome/ribbon/ribbon-groups.tsx
 msgid "Clipboard"
@@ -4050,6 +4062,10 @@ msgstr "尚无可编辑区域。"
 msgid "No fill"
 msgstr "无填充颜色"
 
+#: src/workbook/advanced-validation/ValidationCirclesOverlay.tsx
+msgid "No invalid cells found."
+msgstr "未发现无效单元格。"
+
 #: src/i18n/feedback-messages.ts
 msgid "No matches found."
 msgstr "未找到匹配项。"
@@ -5762,6 +5778,10 @@ msgstr "显示汇总行"
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Showing {0}–{1} of {2} duplicate records"
 msgstr "显示第 {0}–{1} 条，共 {2} 条重复记录"
+
+#: src/workbook/advanced-validation/ValidationCirclesOverlay.tsx
+msgid "Showing first {count} invalid cells."
+msgstr "已显示前 {count} 个无效单元格。"
 
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Single quote (')"

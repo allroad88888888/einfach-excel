@@ -19,10 +19,21 @@ export function sortRange(
     range.colEnd >= 16_384 || rows * cols > 1_048_576 || typeof hasHeader !== 'boolean')
     throw new Error('Select at least two data rows, up to 1,048,576 cells.')
   if (!Array.isArray(keys) || keys.length < 1 || keys.length > 8 ||
-    new Set(keys.map((key) => key.col)).size !== keys.length ||
-    keys.some((key) => !Number.isSafeInteger(key.col) || key.col < range.colStart ||
-      key.col > range.colEnd || !['asc', 'desc'].includes(key.direction)))
+    keys.some((key) => !key || typeof key !== 'object' || !Number.isSafeInteger(key.col) ||
+      key.col < range.colStart || key.col > range.colEnd))
+    throw new Error('Choose 1–8 sort levels inside the selected range.')
+  if (!keys.some(key => 'sortOn' in key) && new Set(keys.map(key => key.col)).size !== keys.length)
     throw new Error('Choose 1–8 different columns inside the selected range.')
+  for (const key of keys) {
+    if ('sortOn' in key) {
+      if ((key.sortOn !== 'cell-color' && key.sortOn !== 'font-color') ||
+        (key.position !== 'top' && key.position !== 'bottom') ||
+        (key.color !== null && (typeof key.color !== 'string' || !/^#[\da-f]{6}$/i.test(key.color))))
+        throw new Error('Choose a valid color sort target and position.')
+    } else if (key.direction !== 'asc' && key.direction !== 'desc') {
+      throw new Error('Choose a valid sort direction.')
+    }
+  }
   if (!workbook.sortRange || !workbook.history_begin || !workbook.history_finish ||
     !workbook.read_sparse_range || !workbook.snapshot_format_range)
     throw new Error('Rust sort command is unavailable.')
@@ -31,7 +42,8 @@ export function sortRange(
     const result = workbook.sortRange!(sheet, {
       range: { startRow: data.rowStart, endRow: data.rowEnd,
         startCol: data.colStart, endCol: data.colEnd },
-      keys: keys.map((key) => ({ ...key, caseSensitive, emptyFirst })), excludedRows: [],
+      keys: keys.map((key) => 'sortOn' in key ? key : { ...key, caseSensitive, emptyFirst }),
+      excludedRows: [],
     })
     // 原生拒绝是 ok:false 返回值，不是异常；必须让历史分组取消。
     if (!result.ok) throw new Error(result.code === 'spill-in-range'

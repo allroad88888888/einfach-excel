@@ -1,3 +1,5 @@
+use einfach_excel_core::sort::{SortColorKey, SortColorPosition, SortColorSource, SortCriterion};
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
 enum SortRangeWireJSON {
@@ -43,6 +45,7 @@ impl SortRangeWireJSON {
 /// spellings; anything else — including a missing field — defaults to
 /// ascending. `caseSensitive` defaults to `false` (Excel default).
 #[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct SortKeyWireJSON {
     col: u32,
     #[serde(default)]
@@ -87,10 +90,61 @@ impl SortKeyWireJSON {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[serde(untagged)]
+enum SortCriterionWireJSON {
+    Color(SortColorWireJSON),
+    Value(SortKeyWireJSON),
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct SortColorWireJSON {
+    col: u32,
+    sort_on: SortColorSourceWireJSON,
+    #[serde(deserialize_with = "Deserialize::deserialize")]
+    color: Option<String>,
+    position: SortColorPositionWireJSON,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+enum SortColorSourceWireJSON {
+    CellColor,
+    FontColor,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum SortColorPositionWireJSON {
+    Top,
+    Bottom,
+}
+
+impl SortCriterionWireJSON {
+    fn into_criterion(self) -> Result<SortCriterion, String> {
+        match self {
+            Self::Value(key) => key.into_key().map(SortCriterion::Value),
+            Self::Color(key) => {
+                let source = match key.sort_on {
+                    SortColorSourceWireJSON::CellColor => SortColorSource::Fill,
+                    SortColorSourceWireJSON::FontColor => SortColorSource::Font,
+                };
+                let position = match key.position {
+                    SortColorPositionWireJSON::Top => SortColorPosition::Top,
+                    SortColorPositionWireJSON::Bottom => SortColorPosition::Bottom,
+                };
+                SortColorKey::new(key.col, source, key.color.as_deref(), position)
+                    .map(SortCriterion::Color).map_err(str::to_owned)
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
 struct SortRangePayloadJSON {
     range: SortRangeWireJSON,
     #[serde(default)]
-    keys: Vec<SortKeyWireJSON>,
+    keys: Vec<SortCriterionWireJSON>,
     #[serde(rename = "excludedRows", default)]
     excluded_rows: Vec<u32>,
 }

@@ -21,6 +21,15 @@ impl Workbook {
         sheet: usize,
         range: CellRange,
     ) -> Result<DisplayFormatRangeSnapshot, &'static str> {
+        self.snapshot_display_format_range_on(sheet, range, super::conditional_format_time_period::local_today_serial())
+    }
+
+    pub(crate) fn snapshot_display_format_range_on(
+        &self,
+        sheet: usize,
+        range: CellRange,
+        today: Option<f64>,
+    ) -> Result<DisplayFormatRangeSnapshot, &'static str> {
         let range = range.normalize();
         if range.end.row >= EXCEL_MAX_ROWS
             || range.end.col >= EXCEL_MAX_COLS
@@ -31,7 +40,6 @@ impl Workbook {
         let target = self.sheet(sheet).ok_or("The worksheet no longer exists.")?;
         let mut snapshot = target.snapshot_format_range(range);
         self.project_table_styles(sheet, &mut snapshot);
-        let today = super::conditional_format_time_period::local_today_serial();
         let mut rules: Vec<_> = self.conditional_formats[sheet]
             .rules
             .iter()

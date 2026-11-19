@@ -26,10 +26,10 @@ fn custom_sort_list_wire_reaches_native_history_and_preserves_formula_records() 
         "range": "A1:B4", "keys": [{"col": 0, "list": {"values": ["I", "İ"], "locale": "tr"}}],
     })).unwrap();
     let range = payload.range.into_range().unwrap();
-    let keys = payload.keys.into_iter().map(SortKeyWireJSON::into_key)
+    let keys = payload.keys.into_iter().map(SortCriterionWireJSON::into_criterion)
         .collect::<Result<Vec<_>, _>>().unwrap();
     wb.history.begin(&wb.workbook, 0, range, "Sort selection", true).unwrap();
-    wb.workbook.sort_range(0, range, &keys, &[]).unwrap();
+    wb.workbook.sort_range_by_criteria(0, range, &keys, &[]).unwrap();
     wb.history.finish(&mut wb.workbook, true).unwrap();
     assert_eq!(wb.workbook.sheet(0).unwrap().get_cell("A1"), einfach_core::Value::Text("ı".into()));
     assert_eq!(wb.workbook.sheet(0).unwrap().get_cell("B1"), einfach_core::Value::Number(20.));

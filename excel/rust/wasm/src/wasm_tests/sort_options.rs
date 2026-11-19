@@ -25,10 +25,10 @@ fn sort_options_wire_reaches_native_permutation_and_undo_redo() {
     let keys: Vec<_> = payload
         .keys
         .into_iter()
-        .map(|key| SortKeyWireJSON::into_key(key).unwrap())
+        .map(|key| key.into_criterion().unwrap())
         .collect();
     wb.history.begin(&wb.workbook, 0, range, "Sort selection", true).unwrap();
-    wb.workbook.sort_range(0, range, &keys, &[]).unwrap();
+    wb.workbook.sort_range_by_criteria(0, range, &keys, &[]).unwrap();
     wb.history.finish(&mut wb.workbook, true).unwrap();
     assert_eq!(wb.workbook.sheet(0).unwrap().get_cell("B1"), einfach_core::Value::Number(4.));
     assert_eq!(wb.workbook.sheet(0).unwrap().get_cell("B3"), einfach_core::Value::Number(3.));

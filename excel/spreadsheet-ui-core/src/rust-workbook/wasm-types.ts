@@ -18,7 +18,7 @@ import type { WasmFindQueries } from './find-commands'
 import type { WasmSelectSpecialQueries } from './select-special-commands'
 import type { CellRange } from '../shared'
 import type { SelectionNumbers } from '../status-bar/types'
-import type { RustSortKey } from './sort-commands'
+import type { RustColorSortKey, RustSortKey } from './sort-commands'
 import type { RustConditionalFontColors, RustNativeNumberDisplay, RustNumberFormatPreview } from './native-number-display'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import type { RustFilterReport, RustFilterValuesPage, RustFilterValuesQuery } from './filter-commands'
@@ -150,7 +150,7 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
     sheet: number,
     input: {
       readonly range: { startRow: number; endRow: number; startCol: number; endCol: number }
-      readonly keys: readonly (RustSortKey & {
+      readonly keys: readonly (RustColorSortKey | RustSortKey & {
         readonly caseSensitive: boolean; readonly emptyFirst: boolean
       })[]
       readonly excludedRows: readonly number[]

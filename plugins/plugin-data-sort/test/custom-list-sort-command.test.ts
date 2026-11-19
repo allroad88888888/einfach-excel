@@ -64,7 +64,8 @@ test('host whitespace and locale are snapshotted; a locale collision invalidates
   store.setter(setFillSeriesLocaleAtom, { locale: 'az', customLists: { Unique: [' I ', 'İ'] } })
   await choose(store, 'host:Unique')
   expect(await store.setter(configure, 'apply')).toBe(true)
-  expect(sort.mock.lastCall![0].keys[0]!.list).toEqual({ values: [' I ', 'İ'], locale: 'az' })
+  const key = sort.mock.lastCall![0].keys[0]!
+  expect('list' in key ? key.list : undefined).toEqual({ values: [' I ', 'İ'], locale: 'az' })
 })
 
 test('missing choice, changed selection and native refusal retain drafts without fabricating a result', async () => {

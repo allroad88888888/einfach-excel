@@ -131,17 +131,17 @@ impl WasmWorkbook {
             Ok(range) => range,
             Err(msg) => return Ok(sort_error_to_js("invalid-payload", None, Some(&msg))),
         };
-        let keys: Vec<SortKey> = match payload
+        let keys: Vec<SortCriterion> = match payload
             .keys
             .into_iter()
-            .map(SortKeyWireJSON::into_key)
+            .map(SortCriterionWireJSON::into_criterion)
             .collect::<Result<_, _>>() {
                 Ok(keys) => keys,
                 Err(message) => return Ok(sort_error_to_js("invalid-payload", None, Some(&message))),
             };
         match self
             .workbook
-            .sort_range(sheet_idx as usize, range, &keys, &payload.excluded_rows)
+            .sort_range_by_criteria(sheet_idx as usize, range, &keys, &payload.excluded_rows)
         {
             Ok(report) => serde_wasm_bindgen::to_value(&SortRangeReportJSON::from_report(&report))
                 .map_err(|err| JsValue::from_str(&format!("serialize sort report: {err}"))),

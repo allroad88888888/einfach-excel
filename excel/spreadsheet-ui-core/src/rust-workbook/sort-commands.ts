@@ -8,8 +8,16 @@ export interface RustSortKey {
   /** A request-local snapshot from the shared named-list directory. */
   readonly list?: { readonly values: readonly string[]; readonly locale: string }
 }
+export interface RustColorSortKey {
+  readonly col: number
+  readonly sortOn: 'cell-color' | 'font-color'
+  readonly color: string | null
+  readonly position: 'top' | 'bottom'
+}
+export type RustSortCriterion = RustSortKey | RustColorSortKey
+
 export interface SortRangeOptions {
-  readonly keys: readonly RustSortKey[]
+  readonly keys: readonly RustSortCriterion[]
   readonly hasHeader: boolean
   readonly caseSensitive?: boolean
   readonly emptyFirst?: boolean

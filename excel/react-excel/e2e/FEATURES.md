@@ -839,6 +839,13 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | DATA-114 | 列表排序选项 empty-first | `editing/sort-custom-list-options.spec.ts` | list sort empty-first uses native options without trimming cell values |
 | DATA-115 | 列表排序选项 empty-last | `editing/sort-custom-list-options.spec.ts` | list sort empty-last uses native options without trimming cell values |
 | DATA-116 | 键盘打开并应用列表排序 | `plugins/data-sort.spec.ts` | Chinese list sorting keeps keyboard entry and native undo at 390px |
+| DATA-117 | 按单元格填充色排序 | `editing/sort-colors.spec.ts` | Cell fill color moves complete solid-color records in one undo step |
+| DATA-118 | 按实际字体颜色排序 | `editing/sort-colors.spec.ts` | Font color uses rendered number-section colors when moving records |
+| DATA-119 | 按无填充排序 | `editing/sort-colors.spec.ts` | No fill is distinct from explicit white and patterned cells |
+| DATA-120 | 自动字体颜色置底 | `editing/sort-colors.spec.ts` | On bottom moves automatic font-color records after explicit black |
+| DATA-121 | 同列多颜色排序及级别上移 | `editing/sort-colors.spec.ts` | Same-column color levels apply their configured priority stably |
+| DATA-122 | 填充色置底并保留文件中的行顺序 | `editing/sort-colors.spec.ts` | Sorted color records reopen in native and XLSX files |
+| DATA-123 | 键盘打开并应用颜色排序 | `plugins/color-sort.spec.ts` | Chinese color sort works by keyboard at 390px and restores its opener |
 | FIND-001 | 工作簿查找 | `editing/find-replace.spec.ts` | workbook find navigates offscreen into Summary and previous/next wrap exact occurrences |
 | FIND-002 | 当前替换 | `editing/find-replace.spec.ts` | current replacement changes only the chosen Unicode occurrence and undo restores it |
 | FIND-003 | 全部替换 | `editing/find-replace.spec.ts` | replace all changes every matching order beyond 500 and is one undoable operation |

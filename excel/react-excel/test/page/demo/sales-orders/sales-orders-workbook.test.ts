@@ -6,6 +6,7 @@ import { SUMMARY_SHRINK_TO_FIT_CELLS } from '../../../../src/page/demo/sales-ord
 import { SUMMARY_DIAGONAL_BORDER_CELLS } from '../../../../src/page/demo/sales-orders/data/diagonal-border-seed'
 import { SUMMARY_PATTERN_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/pattern-fill-seed'
 import { SUMMARY_GRADIENT_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/gradient-fill-seed'
+import { SUMMARY_COLOR_SORT_CELLS } from '../../../../src/page/demo/sales-orders/data/color-sort-seed'
 import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from '../../../../src/page/demo/sales-orders/data/custom-list-drag-seed'
 import { describe, expect, it } from 'vitest'
 import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
@@ -42,11 +43,14 @@ import {
 } from '../../../../src/page/demo/sales-orders/data/summary-seed'
 
 describe('Sales Orders workbook definition', () => {
-  it('keeps gradient seed cells outside existing examples, merges and hidden axes', async () => {
+  it.each([
+    ['gradient fill', SUMMARY_GRADIENT_FILL_CELLS],
+    ['color sort', SUMMARY_COLOR_SORT_CELLS],
+  ] as const)('keeps %s seed cells outside existing examples, merges and hidden axes', async (_, examples) => {
     const existing: RustImportCell[] = []
     for await (const chunk of SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks())
-      if (chunk !== SUMMARY_GRADIENT_FILL_CELLS) existing.push(...chunk)
-    for (const sample of SUMMARY_GRADIENT_FILL_CELLS) {
+      if (chunk !== examples) existing.push(...chunk)
+    for (const sample of examples) {
       expect(existing.some(cell => cell.sheet === sample.sheet
         && cell.row === sample.row && cell.col === sample.col))
         .toBe(false)
@@ -114,6 +118,7 @@ describe('Sales Orders workbook definition', () => {
       SUMMARY_DIAGONAL_BORDER_CELLS,
       SUMMARY_PATTERN_FILL_CELLS,
       SUMMARY_GRADIENT_FILL_CELLS,
+      SUMMARY_COLOR_SORT_CELLS,
       SUMMARY_TOP_FILTER_CELLS,
       SUMMARY_DATE_FILTER_CELLS,
       SALES_ORDER_NUMBER_FORMAT_EXAMPLES,

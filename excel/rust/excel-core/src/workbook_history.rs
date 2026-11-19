@@ -27,6 +27,8 @@ use freeze::FreezeChange;
 #[path = "workbook_history_outline.rs"]
 mod outline;
 use outline::OutlineChange;
+#[path = "advanced_filter/range_copy_history.rs"]
+mod range_copy_history;
 #[path = "workbook_history_filter.rs"]
 mod filter;
 use filter::FilterChange;

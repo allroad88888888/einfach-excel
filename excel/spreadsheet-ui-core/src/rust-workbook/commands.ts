@@ -26,6 +26,7 @@ import type { RustSelectSpecialCommands } from './select-special-commands'
 import type { RustSortCommands } from './sort-commands'
 import type { RustFilterCommands } from './filter-commands'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
+import type { AdvancedFilterRangeCommands } from './advanced-filter-range-commands'
 import type { RustTextColumnsCommands } from './text-columns-commands'
 import type { RustShiftCellsCommands } from './shift-cells-commands'
 import type { RustRemoveDuplicatesCommands } from './remove-duplicates-commands'
@@ -145,6 +146,7 @@ export interface RustWorkbookCommands
   extends HostCommands, RustFindCommands, RustSelectSpecialCommands,
     RustSortCommands,
     RustFilterCommands,
+    AdvancedFilterRangeCommands,
     RustTextColumnsCommands,
     RustShiftCellsCommands,
     RustRemoveDuplicatesCommands,

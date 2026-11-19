@@ -30,6 +30,17 @@ test('file wraps the unchanged native snapshot plus view canvas and a safe filen
   expect(JSON.parse(exported.text)).toEqual(JSON.parse(file({ title: 'Q1/你好' })))
 })
 
+test('export keeps a canvas only for the active sheet when history retains a deleted sheet', () => {
+  const { book } = setup()
+  const sheets = [
+    { id: 'removed', index: -1, name: 'Removed', rowCount: 24, colCount: 10 },
+    { id: 'live', index: 0, name: 'Restored', ...canvas },
+  ]
+  const { text } = exportWorkbookFile(book, sheets, 'My book')
+  expect(JSON.parse(text)).toEqual(JSON.parse(file()))
+  expect(sheets[0].index).toBe(-1)
+})
+
 test('restore delegates workbook validation once and gets names/keys from Rust, not UI metadata', () => {
   const { wasm, restore, free } = setup()
   const opened = openWorkbookFile(wasm, file(), 'session-2')

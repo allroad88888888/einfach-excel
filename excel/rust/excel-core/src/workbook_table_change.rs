@@ -49,6 +49,7 @@ pub(crate) struct TableDefinitionChange {
     rules: Vec<FormulaRuleChange>,
     lambdas: Vec<FormulaLambdaChange>,
     named_ranges: Vec<NamedRangeShift>,
+    filter_criteria: Vec<super::workbook_filter_engine::CriteriaShift>,
     shifted_tables: Vec<(TableEntry, TableEntry)>,
     validations: ValidationShift,
     // 范围调整可同时触及表头与远处汇总行，只保存这些不相交的局部区域。
@@ -98,21 +99,10 @@ impl TableDefinitionChange {
             cells: Vec::new(),
             filter: None,
             named_ranges: Vec::new(),
+            filter_criteria: Vec::new(),
             shifted_tables: Vec::new(),
             validations: ValidationShift::default(),
         }))
-    }
-
-    pub(crate) fn affected_sheets(&self, workbook: &Workbook) -> Vec<usize> {
-        let mut indices = BTreeSet::from([self.sheet]);
-        indices.extend(self.formulas.iter().map(|formula| formula.sheet));
-        indices.extend(self.rules.iter().filter_map(|rule| {
-            workbook
-                .sheet_keys
-                .iter()
-                .position(|key| *key == rule.sheet_key)
-        }));
-        indices.into_iter().collect()
     }
 
     pub(crate) fn apply(&self, workbook: &mut Workbook, undo: bool) -> Result<(), &'static str> {
@@ -203,6 +193,7 @@ impl TableDefinitionChange {
                 workbook.sheets[self.sheet].data_validations = validations;
             }
             for change in &self.named_ranges { change.apply(workbook, undo); }
+            for change in &self.filter_criteria { change.apply(workbook, undo); }
             for lambda in &self.lambdas { lambda.apply(workbook, undo); }
             if !self.named_ranges.is_empty() || !self.lambdas.is_empty() {
                 workbook.publish_atom_names();
@@ -271,6 +262,7 @@ impl TableDefinitionChange {
             + crate::sheet::metadata_bytes(&self.shifted_tables)
             + self.validations.retained_bytes()
             + self.named_ranges.iter().map(NamedRangeShift::retained_bytes).sum::<usize>()
+            + self.filter_criteria.len() * std::mem::size_of::<super::workbook_filter_engine::CriteriaShift>()
             + self.cells.iter().map(|(before, after)| {
                 before.retained_bytes() + after.retained_bytes()
             }).sum::<usize>()

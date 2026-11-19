@@ -7,6 +7,7 @@ export interface SheetVisibilityProjection extends NativeOutlineProjection {
   readonly manualRows: readonly number[]
   readonly manualColumns: readonly number[]
   readonly filterRows: readonly number[]
+  readonly rangeFilterActive?: true
 }
 
 export const sheetHiddenRowsBackingAtom = atom<Record<string, number[]>>({})
@@ -19,6 +20,7 @@ viewportFilterHiddenBackingAtom.debugLabel = 'spreadsheet.viewport.filterHiddenB
 export function validSheetVisibility(value: unknown): value is SheetVisibilityProjection {
   if (typeof value !== 'object' || value === null) return false
   const source = value as SheetVisibilityProjection
+  if (source.rangeFilterActive !== undefined && source.rangeFilterActive !== true) return false
   if (source.outline !== undefined && !validNativeOutline(source.outline)) return false
   return (
     [

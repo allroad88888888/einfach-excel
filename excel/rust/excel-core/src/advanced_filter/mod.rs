@@ -90,3 +90,9 @@ pub(crate) fn rule_retained_bytes(rule: &ColumnFilterRule) -> usize {
 }
 
 mod workbook;
+pub(crate) mod range_contract;
+pub(crate) mod range_state;
+
+pub use range_contract::{AdvancedFilterCopy, AdvancedFilterCopyPreview, AdvancedFilterCopyReport,
+    AdvancedFilterSelection, FilterOverwriteApproval, FilterRangeRef};
+pub use range_state::{PersistedCriteriaRange, PersistedFilterCriteria};

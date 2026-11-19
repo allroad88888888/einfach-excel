@@ -76,6 +76,9 @@ impl Workbook {
     ///
     /// A sheet with no committed filter reapplies to nothing.
     pub fn reapply_filter(&mut self, sheet_index: usize) -> Result<FilterApplyReport, FilterError> {
+        if let Some(selection) = self.current_advanced_filter_range(sheet_index)? {
+            return self.apply_advanced_filter_range(selection);
+        }
         let groups = self.sheets.get(sheet_index).ok_or(FilterError::InvalidSheet)?
             .filter().map(|filter| filter.groups().to_vec()).unwrap_or_default();
         if !groups.is_empty() {

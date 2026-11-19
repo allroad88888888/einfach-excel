@@ -25,13 +25,6 @@ impl From<CellRange> for TextColumnsRangeJSON {
 }
 
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct TextColumnsDestinationJSON {
-    row: u32,
-    col: u32,
-}
-
-#[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 enum TextColumnsModeJSON {
     Delimited {
@@ -50,7 +43,7 @@ enum TextColumnsModeJSON {
 struct TextColumnsRequestJSON {
     sheet: usize,
     source: TextColumnsRangeJSON,
-    destination: TextColumnsDestinationJSON,
+    destination: CellCoordinateJSON,
     mode: TextColumnsModeJSON,
     #[serde(default)]
     column_types: Vec<TextColumnRuleJSON>,

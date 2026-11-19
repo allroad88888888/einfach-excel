@@ -30,6 +30,8 @@ struct ApplyFilterPayloadJSON {
     groups: Vec<ColumnFilterGroupJSON>,
     #[serde(default)]
     range: Option<FilterRangeJSON>,
+    #[serde(default, rename = "rangeCriteria")]
+    range_criteria: Option<FilterRangeCriteriaJSON>,
 }
 
 /// Success shape of the three filter commands, mirroring
@@ -61,6 +63,8 @@ struct SheetFilterStateJSON {
     rules: Vec<ColumnFilterRuleJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     groups: Vec<ColumnFilterGroupJSON>,
+    #[serde(default, rename = "rangeCriteria", skip_serializing_if = "Option::is_none")]
+    range_criteria: Option<StoredFilterCriteriaJSON>,
     /// The rows those rules hid. Carried alongside the rules, not re-derived
     /// on restore: re-deriving would evaluate against whatever the cells say
     /// at restore time, which is live evaluation wearing an undo costume.
@@ -69,7 +73,7 @@ struct SheetFilterStateJSON {
 }
 
 impl SheetFilterStateJSON {
-    fn from_entry(entry: &SheetFilterState) -> Self {
+    fn from_entry(entry: &SheetFilterState, range_criteria: Option<PersistedFilterCriteria>) -> Self {
         SheetFilterStateJSON {
             sheet: entry.sheet_index as u32,
             range: entry.range.map(FilterRangeJSON::from_range),
@@ -79,6 +83,7 @@ impl SheetFilterStateJSON {
                 .map(ColumnFilterRuleJSON::from_rule)
                 .collect(),
             groups: entry.groups.iter().map(ColumnFilterGroupJSON::from_group).collect(),
+            range_criteria: range_criteria.map(StoredFilterCriteriaJSON::from),
             hidden_rows: entry.hidden_rows.clone(),
         }
     }
@@ -116,6 +121,7 @@ fn filter_error_to_js(err: FilterError) -> JsValue {
             Some("Use nonempty groups with valid filter conditions.")),
         FilterError::InvalidRange => sort_error_to_js("invalid-range", None,
             Some("Choose a header and at least one data row; filter columns must be inside the range.")),
+        FilterError::InvalidCriteria(message) => sort_error_to_js("invalid-criteria", None, Some(message)),
         FilterError::HistoryPending => sort_error_to_js("history-pending", None, None),
         FilterError::InvalidSheet => sort_error_to_js("invalid-sheet", None, None),
         FilterError::ProtectedWorksheet => sort_error_to_js("protected-sheet", None,

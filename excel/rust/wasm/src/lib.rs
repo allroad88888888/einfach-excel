@@ -28,6 +28,7 @@ use wasm_bindgen::JsCast;
 
 include!("wasm_autofill_wire.rs");
 include!("wasm_cell_format_wire.rs");
+include!("wasm_cell_coordinate_wire.rs");
 include!("wasm_diagonal_border_wire.rs");
 include!("wasm_number_format_wire.rs");
 include!("wasm_special_number_format_wire.rs");
@@ -134,6 +135,8 @@ include!("wasm_workbook_defaults.rs");
 include!("wasm_workbook_tables.rs");
 include!("wasm_workbook_table_commands.rs");
 include!("wasm_workbook_visibility.rs");
+include!("advanced_filter/range_wire.rs");
+include!("wasm_workbook_advanced_filter_copy.rs");
 include!("wasm_workbook_filter_values.rs");
 include!("wasm_workbook_manual_visibility.rs");
 include!("wasm_workbook_table_totals.rs");

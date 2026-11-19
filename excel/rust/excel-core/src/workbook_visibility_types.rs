@@ -47,17 +47,24 @@ pub struct SheetFilterState {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct FilterSnapshot {
     pub(super) sheets: Vec<SheetFilterState>,
+    range_criteria: std::collections::BTreeMap<usize, crate::advanced_filter::PersistedFilterCriteria>,
 }
 
 impl FilterSnapshot {
     pub fn from_sheets(sheets: Vec<SheetFilterState>) -> Self {
-        Self { sheets }
+        Self { sheets, ..Self::default() }
+    }
+    pub fn with_range_criteria(mut self,
+        criteria: impl IntoIterator<Item = (usize, crate::advanced_filter::PersistedFilterCriteria)>,
+    ) -> Self {
+        self.range_criteria.extend(criteria);
+        self
+    }
+    pub fn range_criteria(&self, sheet: usize) -> Option<crate::advanced_filter::PersistedFilterCriteria> {
+        self.range_criteria.get(&sheet).copied()
     }
     pub fn sheets(&self) -> &[SheetFilterState] {
         &self.sheets
-    }
-    pub(crate) fn into_sheets(self) -> Vec<SheetFilterState> {
-        self.sheets
     }
     pub fn len(&self) -> usize {
         self.sheets.len()

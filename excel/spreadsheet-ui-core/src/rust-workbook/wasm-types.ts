@@ -22,6 +22,9 @@ import type { WasmSortRange } from './sort-commands'
 import type { RustConditionalFontColors, RustNativeNumberDisplay, RustNumberFormatPreview } from './native-number-display'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import type { RustFilterReport, RustFilterValuesPage, RustFilterValuesQuery } from './filter-commands'
+import type {
+  NativeFilterRangeCriteria, WasmAdvancedFilterCopy,
+} from './advanced-filter-range-commands'
 import type { NativeTextColumnsRequest, RustTextColumnsPreview, RustTextColumnsReport } from './text-columns-commands'
 import type { NativeRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from './remove-duplicates-commands'
 import type { NativeQuickFormulaRequest, QuickFormulaSuggestion } from './quick-formula-commands'
@@ -83,7 +86,7 @@ export interface RustFormatRangeSnapshot extends RustConditionalFontColors {
   readonly conditionalIcons?: readonly ({ readonly addr: string } & NonNullable<DisplayCell['conditionalIcon']>)[]
 }
 
-export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
+export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries, WasmAdvancedFilterCopy,
   WasmFindQueries, WasmSelectSpecialQueries, WasmCustomFormulaQueries,
   WasmNoteQueries, WasmDrawingQueries, WasmMediaQueries,
   WasmCommentQueries, WasmProtectionQueries, WasmAsyncFormulaQueries,
@@ -142,7 +145,11 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
     sheet: number, addr: string, format: SpreadsheetNumberFormat) => RustNumberFormatPreview
   applyFilter?: (
     sheet: number,
-    input: { rules: readonly ColumnFilterRule[]; range?: CellRange },
+    input: {
+      rules: readonly ColumnFilterRule[]
+      range?: CellRange
+      rangeCriteria?: NativeFilterRangeCriteria
+    },
   ) => RustFilterReport
   reapplyFilter?: (sheet: number) => RustFilterReport
   clearFilter?: (sheet: number) => RustFilterReport

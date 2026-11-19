@@ -117,6 +117,7 @@ impl WasmWorkbook :: [] :: pub fn change_table(&mut self, sheet: u32, action: Js
 impl WasmWorkbook :: [] :: pub fn clear_cell(&mut self, sheet_idx: u32, addr: &str)
 impl WasmWorkbook :: [] :: pub fn clear_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> u32
 impl WasmWorkbook :: [] :: pub fn clear_selection(&mut self, request: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn copy_advanced_filter( &mut self, request: JsValue, approval: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn debug_cross_sheet_dependents_count(&self) -> u32
 impl WasmWorkbook :: [] :: pub fn debug_formula_cache_state(&self, sheet_idx: u32, addr: &str) -> String
 impl WasmWorkbook :: [] :: pub fn debug_formula_count(&self) -> u32
@@ -169,6 +170,7 @@ impl WasmWorkbook :: [] :: pub fn patch_format_selection(&mut self, request: JsV
 impl WasmWorkbook :: [] :: pub fn patch_range_borders( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, input: JsValue, ) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn prepare_clipboard( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, cut: bool, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn prepare_clipboard_blocks(&mut self, sheet_idx: u32, blocks: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn preview_advanced_filter_copy(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_number_format( &self, sheet_idx: u32, addr: &str, format: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_remove_duplicates(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_text_columns(&self, request: JsValue) -> Result<JsValue, JsValue>

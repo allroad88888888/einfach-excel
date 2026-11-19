@@ -4,10 +4,12 @@ import type { WorkerCommand } from '../rust-worker'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import { validFilterCondition } from '../advanced-filter/contracts'
 import type { CellRange } from '../shared'
+import type { AdvancedFilterRangeCriteria } from './advanced-filter-range-commands'
 
 export type RustFilterAction =
   | { readonly action: 'apply'; readonly rules: readonly ColumnFilterRule[];
-      readonly groups?: readonly ColumnFilterGroup[]; readonly range?: CellRange }
+      readonly groups?: readonly ColumnFilterGroup[]; readonly range?: CellRange;
+      readonly rangeCriteria?: AdvancedFilterRangeCriteria }
   | { readonly action: 'reapply' | 'clear' }
 export type RustFilterReport =
   | {

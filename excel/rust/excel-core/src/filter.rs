@@ -27,6 +27,7 @@
 //! what makes the port behaviour-preserving on the worker path: same bytes
 //! in, same predicate, same answer.
 
+use crate::advanced_filter::range_state::FilterCriteriaState;
 use std::collections::BTreeSet;
 
 mod rule;
@@ -141,20 +142,36 @@ pub struct SheetAutoFilter {
     rules: Vec<ColumnFilterRule>,
     groups: Vec<crate::advanced_filter::ColumnFilterGroup>,
     hidden: BTreeSet<u32>,
+    range_criteria: Option<FilterCriteriaState>,
     pub(crate) range: Option<crate::CellRange>,
 }
 
 impl SheetAutoFilter {
     pub(crate) fn new(rules: Vec<ColumnFilterRule>, hidden: BTreeSet<u32>) -> Self {
-        SheetAutoFilter { rules, groups: Vec::new(), hidden, range: None }
+        SheetAutoFilter { rules, groups: Vec::new(), hidden, range_criteria: None, range: None }
     }
 
     pub(crate) fn new_grouped(groups: Vec<crate::advanced_filter::ColumnFilterGroup>, hidden: BTreeSet<u32>) -> Self {
-        Self { rules: Vec::new(), groups, hidden, range: None }
+        Self { rules: Vec::new(), groups, hidden, range_criteria: None, range: None }
+    }
+
+    pub(crate) fn new_range_criteria(range: crate::CellRange, criteria: FilterCriteriaState,
+        hidden: BTreeSet<u32>) -> Self {
+        Self { range: Some(range), range_criteria: Some(criteria), hidden, ..Default::default() }
+    }
+
+    pub(crate) fn range_criteria(&self) -> Option<FilterCriteriaState> { self.range_criteria }
+
+    pub(crate) fn set_criteria_link(&mut self, link: crate::advanced_filter::range_state::CriteriaLink) {
+        if let Some(criteria) = self.range_criteria.as_mut() {
+            criteria.link = Some(link);
+        }
     }
 
     pub fn groups(&self) -> &[crate::advanced_filter::ColumnFilterGroup] { &self.groups }
-    pub fn has_conditions(&self) -> bool { !self.rules.is_empty() || !self.groups.is_empty() }
+    pub fn has_conditions(&self) -> bool {
+        !self.rules.is_empty() || !self.groups.is_empty() || self.range_criteria.is_some()
+    }
     pub(crate) fn groups_mut(&mut self) -> &mut Vec<crate::advanced_filter::ColumnFilterGroup> { &mut self.groups }
 
     pub fn range(&self) -> Option<crate::CellRange> { self.range }
@@ -210,6 +227,8 @@ pub enum FilterError {
     InvalidGroups,
     /// 区域必须包含表头与数据，条件列必须属于此区域。
     InvalidRange,
+    /// The criteria reference, contents, or requested copy area cannot be used.
+    InvalidCriteria(&'static str),
     /// A history transaction already owns the workbook mutation boundary.
     HistoryPending,
     /// `sheet_index` is not a sheet.

@@ -111,6 +111,20 @@ impl WasmWorkbook {
                 ))
             }
         };
+        if let Some(input) = payload.range_criteria {
+            let Some(range) = payload.range.filter(|_| payload.rules.is_empty() && payload.groups.is_empty()) else {
+                return Ok(sort_error_to_js("invalid-payload", None,
+                    Some("Choose a worksheet range with a single condition source.")));
+            };
+            return Self::filter_result_to_js(self.history.apply_advanced_filter_range(
+                &mut self.workbook,
+                AdvancedFilterSelection {
+                    source: FilterRangeRef { sheet: sheet_idx as usize, range: range.into_range() },
+                    criteria: input.criteria.map(FilterRangeRef::from),
+                    unique_only: input.unique_only,
+                },
+            ));
+        }
         let rules: Vec<ColumnFilterRule> = payload
             .rules
             .into_iter()
@@ -177,6 +191,7 @@ impl WasmWorkbook {
                 .collect(),
             groups: self.workbook.filter_groups(sheet_idx).iter()
                 .map(ColumnFilterGroupJSON::from_group).collect(),
+            range_criteria: self.workbook.filter_range_criteria(sheet_idx).map(StoredFilterCriteriaJSON::from),
             hidden_rows: self.workbook.filter_hidden_rows(sheet_idx),
         };
         serde_wasm_bindgen::to_value(&entry)

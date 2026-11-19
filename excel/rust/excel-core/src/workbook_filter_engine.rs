@@ -1,7 +1,11 @@
 //! workbook filter engine operations.
 
 use super::*;
-use crate::advanced_filter::FilterCriteria;
+
+#[path = "advanced_filter/range_workbook.rs"]
+mod range_workbook;
+pub(super) use range_workbook::CriteriaShift;
+use crate::advanced_filter::{FilterCriteria, range_state::FilterCriteriaState};
 use crate::filter::{prepared_colors::PreparedColors, scan_day::FilterScanDay};
 
 impl Workbook {
@@ -173,7 +177,9 @@ impl Workbook {
                     })
                 })
                 .collect(),
-        )
+        ).with_range_criteria((0..self.sheets.len()).filter_map(|sheet| {
+            self.filter_range_criteria(sheet).map(|criteria| (sheet, criteria))
+        }))
     }
 
     /// Replace every sheet's filter state with `snapshot`, returning how
@@ -195,8 +201,8 @@ impl Workbook {
             return Err(FilterError::MutationDuringCustomCall);
         }
         let sheet_count = self.sheets.len();
-        let mut wanted: Vec<Option<SheetFilterState>> = (0..sheet_count).map(|_| None).collect();
-        for entry in snapshot.into_sheets() {
+        let mut wanted = vec![None; sheet_count];
+        for entry in snapshot.sheets() {
             if entry.sheet_index >= sheet_count {
                 continue; // captured against a wider workbook
             }
@@ -219,14 +225,25 @@ impl Workbook {
                     return Err(FilterError::InvalidRange);
                 }
             }
-            wanted[index] = Some(entry);
+            let criteria = snapshot.range_criteria(index).map(|criteria| {
+                if entry.range.is_none() || !entry.rules.is_empty() || !entry.groups.is_empty() {
+                    return Err(FilterError::InvalidCriteria("Use a single condition source for a filter."));
+                }
+                FilterCriteriaState::from_snapshot(self, criteria)
+            }).transpose()?;
+            wanted[index] = Some((entry, criteria));
         }
         let mut restored = 0u32;
         for (sheet_index, entry) in wanted.into_iter().enumerate() {
             let next = match entry {
-                Some(entry) => {
+                Some((entry, criteria)) => {
                     restored += 1;
-                    if entry.range.is_none()
+                    if let Some(criteria) = criteria {
+                        Some(crate::filter::SheetAutoFilter::new_range_criteria(
+                            entry.range.expect("validated advanced filter range"), criteria,
+                            entry.hidden_rows.iter().copied().collect(),
+                        ))
+                    } else if entry.range.is_none()
                         && entry.rules.is_empty()
                         && entry.groups.is_empty()
                         && entry.hidden_rows.is_empty()
@@ -234,9 +251,9 @@ impl Workbook {
                         None
                     } else {
                         let mut state = if entry.groups.is_empty() {
-                            crate::filter::SheetAutoFilter::new(entry.rules, entry.hidden_rows.into_iter().collect())
+                            crate::filter::SheetAutoFilter::new(entry.rules.clone(), entry.hidden_rows.iter().copied().collect())
                         } else {
-                            crate::filter::SheetAutoFilter::new_grouped(entry.groups, entry.hidden_rows.into_iter().collect())
+                            crate::filter::SheetAutoFilter::new_grouped(entry.groups.clone(), entry.hidden_rows.iter().copied().collect())
                         };
                         state.range = entry.range;
                         Some(state)

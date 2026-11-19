@@ -44,9 +44,16 @@ pub(super) fn prepare(
     let rules = FormulaRuleChange::prepare_row_band_insert(workbook, sheet, row, columns, row_count)?;
     let validations = ValidationShift::prepare(
         target.data_validations(), row, columns, row_count, &workbook.names[sheet])?;
+    let edit = crate::shift::ShiftEdit::RowInsert { at: row, count: 1 };
+    let mut filter_criteria = workbook.shifted_filter_criteria(sheet, edit, Some(columns));
     let filter = match target.filter() {
         Some(before) => before.after_row_band_insert(row, columns, row_count)?
-            .map(|after| (Some(before.clone()), Some(after))),
+            .map(|mut after| {
+                if let Some(index) = filter_criteria.iter().position(|change| change.owner == sheet) {
+                    filter_criteria.remove(index).apply_to(&mut after);
+                }
+                (Some(before.clone()), Some(after))
+            }),
         None => None,
     };
     let mut shifted_tables = Vec::new();
@@ -130,7 +137,8 @@ pub(super) fn prepare(
         rewrite_row_band_insert(expr, before.sheet_name(), local, row, columns)
     });
     let change = TableDefinitionChange { sheet, range: after.range, before, after: Some(after),
-        cells: vec![(original, next)], formulas, rules, lambdas, named_ranges, shifted_tables, filter, validations };
+        cells: vec![(original, next)], formulas, rules, lambdas, named_ranges, filter_criteria,
+        shifted_tables, filter, validations };
     if change.retained_bytes() > MAX_BYTES {
         return Err("Inserting a table row exceeds the 32 MiB undo budget.".into());
     }

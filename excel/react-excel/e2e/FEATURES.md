@@ -1473,3 +1473,13 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | FILTER-055 | 颜色筛选：中文窄屏键盘输入 RGB | `plugins/data-filter-color.spec.ts` | `Chinese color filter applies an RGB color with the keyboard at 390px` |
 | FILTER-056 | 颜色筛选：表格条纹与汇总行 | `workbook/table-color-filter.spec.ts` | `Table banded fill filters data independently of the total row` |
 | FILTER-057 | 颜色候选请求期间可关闭并丢弃迟到结果 | `plugins/data-filter-color-async.spec.ts` | `Pending color candidates can be closed without a late update` |
+| FILTER-058 | 条件区域按同一行合取、不同行析取，支持重复标题 | `advanced-filter/worksheet-criteria.spec.ts` | `Worksheet criteria combine repeated headings and alternative rows` |
+| FILTER-059 | 跨表公式条件显式重算及可见性撤销 | `advanced-filter/worksheet-criteria.spec.ts` | `Worksheet formula criteria reapply from edited cells and undo restores visibility` |
+| FILTER-060 | 原生文件重开可直接重新应用已保存条件区域 | `advanced-filter/worksheet-criteria.spec.ts` | `Native reopening restores worksheet criteria and allows reapply without the plugin` |
+| FILTER-061 | 条件区域输入错误保留原记录及重做 | `advanced-filter/worksheet-criteria.spec.ts` | `Invalid criteria preserve visible records and the redo stack` |
+| FILTER-062 | 跨表复制、输出标题排序、唯一及覆盖确认 | `advanced-filter/worksheet-criteria-copy.spec.ts` | `Copy filtered records previews selected headings and requires overwrite confirmation` |
+| FILTER-063 | 取消复制预览保留目标和历史 | `advanced-filter/worksheet-criteria-copy.spec.ts` | `Canceling a copy preview keeps the destination and history intact` |
+| FILTER-064 | 复制目标相交时拒绝完整操作 | `advanced-filter/worksheet-criteria-copy.spec.ts` | `Copy filtered records rejects a destination overlapping the source` |
+| FILTER-065 | 中文窄屏键盘提交条件区域及焦点恢复 | `plugins/worksheet-criteria.spec.ts` | `Chinese worksheet criteria submit by keyboard and restore focus at 390px` |
+| FILTER-066 | Summary 工作簿按示例条件复制唯一匹配记录 | `plugins/worksheet-criteria.spec.ts` | `Summary worksheet criteria copy only the matching native sample record` |
+| FILTER-067 | 删除条件工作表后可保存和重开，保留筛选快照和缺失提示 | `advanced-filter/worksheet-criteria.spec.ts` | `Native download and reopen preserve the filtered snapshot after deleting its criteria sheet` |

@@ -2,6 +2,19 @@
 use super::*;
 
 impl TableDefinitionChange {
+    pub(crate) fn affected_sheets(&self, workbook: &Workbook) -> Vec<usize> {
+        let mut indices = BTreeSet::from([self.sheet]);
+        indices.extend(self.formulas.iter().map(|formula| formula.sheet));
+        indices.extend(self.filter_criteria.iter().map(|change| change.owner));
+        indices.extend(self.rules.iter().filter_map(|rule| {
+            workbook
+                .sheet_keys
+                .iter()
+                .position(|key| *key == rule.sheet_key)
+        }));
+        indices.into_iter().collect()
+    }
+
     pub(crate) fn mutation_ranges(&self) -> Vec<(usize, Option<CellRange>)> {
         std::iter::once((self.sheet, Some(self.range)))
             .chain(self.cells.iter().flat_map(|(before, after)|

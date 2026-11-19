@@ -101,6 +101,7 @@ impl CellShiftChange {
             rules,
             lambdas,
             named_ranges,
+            filter_criteria: workbook.shifted_filter_criteria(sheet, edit, Some(band)),
             validations: (validations_before, validations_after),
         };
         if change.retained_bytes() > crate::workbook_history::MAX_BYTES {

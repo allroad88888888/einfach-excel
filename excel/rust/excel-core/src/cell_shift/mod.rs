@@ -150,6 +150,7 @@ pub(crate) struct CellShiftChange {
     rules: Vec<FormulaRuleChange>,
     lambdas: Vec<FormulaLambdaChange>,
     named_ranges: Vec<NamedRangeShift>,
+    filter_criteria: Vec<super::workbook_filter_engine::CriteriaShift>,
     validations: (Vec<DataValidationRegion>, Vec<DataValidationRegion>),
 }
 
@@ -160,6 +161,7 @@ impl CellShiftChange {
         indices.extend(self.rules.iter().filter_map(|rule| {
             workbook.sheet_keys.iter().position(|key| *key == rule.sheet_key)
         }));
+        indices.extend(self.filter_criteria.iter().map(|change| change.owner));
         indices.into_iter().collect()
     }
 
@@ -179,5 +181,6 @@ impl CellShiftChange {
             + crate::sheet::metadata_bytes(&self.lambdas)
             + self.named_ranges.iter().map(NamedRangeShift::retained_bytes).sum::<usize>()
             + crate::sheet::metadata_bytes(&self.validations)
+            + self.filter_criteria.len() * std::mem::size_of::<super::workbook_filter_engine::CriteriaShift>()
     }
 }

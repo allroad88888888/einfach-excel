@@ -1,0 +1,28 @@
+.worksheet-criteria-dialog {
+  width: min(32rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 1.5rem);
+  box-sizing: border-box;
+  border: 1px solid var(--ribbon-border, #d4ded8);
+  border-radius: 10px;
+  padding: 1rem;
+  background: var(--workbook-panel, #fff);
+  color: var(--workbook-text, #182b20);
+}
+
+.worksheet-criteria-dialog::backdrop { background: rgb(0 0 0 / 26%); }
+.worksheet-criteria-dialog h2 { margin: 0 0 0.75rem; font-size: 1.125rem; }
+.worksheet-criteria-dialog form,
+.worksheet-criteria-dialog fieldset { display: grid; gap: 0.625rem; }
+.worksheet-criteria-dialog fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.worksheet-criteria-modes { display: grid; gap: 0.25rem; }
+.worksheet-criteria-field { display: grid; gap: 0.25rem; }
+.worksheet-criteria-field input,
+.worksheet-criteria-field textarea { font: inherit; width: 100%; min-width: 0; box-sizing: border-box; }
+.worksheet-criteria-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+.worksheet-criteria-actions button { font: inherit; }
+.worksheet-criteria-sample { overflow: auto; max-height: 10rem; }
+.worksheet-criteria-sample table { border-collapse: collapse; }
+.worksheet-criteria-sample th,
+.worksheet-criteria-sample td { border: 1px solid #d4ded8; padding: 0.25rem 0.5rem; text-align: left; }
+.worksheet-criteria-dialog p { margin: 0; }
+.worksheet-criteria-dialog [role="alert"] { color: #9a3412; }

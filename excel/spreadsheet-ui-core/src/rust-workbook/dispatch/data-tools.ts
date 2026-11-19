@@ -2,6 +2,7 @@ import { applyRemoveDuplicates, previewRemoveDuplicates } from '../remove-duplic
 import { applyTextColumns, previewTextColumns } from '../text-columns-io'
 import { changeFilter, readFilterValues } from '../filter-io'
 import { sortRange } from '../sort-io'
+import { applyAdvancedFilterCopy, previewAdvancedFilterCopy } from '../advanced-filter-range-io'
 import { replaceWorkbook } from '../find-io'
 import { readSizes } from '../size-io'
 import { readVisibleProjection } from '../visible-projection'
@@ -34,13 +35,22 @@ export const dataToolHandlers: WorkbookHandlers = {
       ),
     }
   },
+  'advancedFilter.previewCopy': (context, current, input) => previewAdvancedFilterCopy(
+    current, context.sheetsById, input, context.revision),
+  'advancedFilter.copy': (context, current, input) => {
+    const result = applyAdvancedFilterCopy(current, context.sheetsById, input, context.revision)
+    return { ...result, projection: context.projectChange(result.changedCells > 0, {
+      sheetId: input.projection.sheetId, projection: input.projection,
+    }).projection }
+  },
   'sheet.filterValues': (context, current, input) => readFilterValues(
     current, context.sheetsById.get(input.sheetId), input, context.revision),
   'sheet.filter': (context, current, input) => {
     const index = context.sheetIndex(input.sheetId)
     const columns = context.sheetsById.get(input.sheetId)!.colCount ?? 16_384
     const hiddenRows = changeFilter(
-      current, index, columns, input, context.sheetsById.get(input.sheetId)!.rowCount,
+      current, index, columns, input,
+      context.sheetsById.get(input.sheetId)!.rowCount, context.sheetsById,
     )
     context.revision += 1
     return {

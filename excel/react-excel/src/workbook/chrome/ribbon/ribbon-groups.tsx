@@ -34,6 +34,7 @@ import { ProtectionTools } from '../../protection/ProtectionTools'
 import { VisibilityTools } from './VisibilityTools'
 import { OutlineTools } from './OutlineTools'
 import { FreezeTools } from './FreezeTools'
+import { SplitTools } from './SplitTools'
 import { SelectionSizeTools } from './SelectionSizeTools'
 import { ViewOptionsTools } from './ViewOptionsTools'
 import { FindReplaceTools } from './FindReplaceTools'
@@ -89,7 +90,7 @@ export const BUILT_IN_RIBBON_GROUPS: readonly WorkbookRibbonGroup[] = [
     tools(TextColumnsTools, RemoveDuplicatesTools, DataValidationTools, ValidationCirclesTools)),
   group('protection', 'Data', msg`Protect`, ProtectionTools),
   group('rows-columns', 'View', msg`Rows and columns`,
-    tools(VisibilityTools, OutlineTools, FreezeTools, SelectionSizeTools)),
+    tools(VisibilityTools, OutlineTools, FreezeTools, SplitTools, SelectionSizeTools)),
   group('show', 'View', msg`Show`, ViewOptionsTools),
   group('find', 'View', msg`Find`, tools(FindReplaceTools, GoToTools, GoToSpecialTools)),
 ]

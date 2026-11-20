@@ -57,6 +57,39 @@ export function forgetActiveCellFact(set: Setter): void {
   set(retainedActiveCellBackingAtom, null)
 }
 
+export interface SeedRetainedActiveCellFactInput {
+  readonly sheetId: string
+  readonly cell: CellCoord
+  readonly revision: ProjectionRevision | undefined
+  readonly fact: DisplayCell | null
+}
+
+/** Seeds the retained active cell fact from a bounded split-pane projection at the same revision. */
+export const seedRetainedActiveCellFactAtom = atom(
+  null,
+  (get, set, input: SeedRetainedActiveCellFactInput): void => {
+    const result = get(projectionSnapshotBackingAtom).result
+    if (
+      result?.kind !== 'visible-window' ||
+      result.sheetId !== input.sheetId ||
+      result.revision === undefined ||
+      result.revision !== input.revision
+    ) {
+      return
+    }
+    set(
+      retainedActiveCellBackingAtom,
+      Object.freeze({
+        sheetId: input.sheetId,
+        cell: Object.freeze({ row: input.cell.row, col: input.cell.col }),
+        revision: input.revision,
+        fact: input.fact,
+      }),
+    )
+  },
+)
+seedRetainedActiveCellFactAtom.debugLabel = 'spreadsheet.projection.seedRetainedActiveCellFact'
+
 /**
  * The active cell's cell-level format. Returns `{}` when the active cell's facts are unknown or it
  * carries no format overrides.

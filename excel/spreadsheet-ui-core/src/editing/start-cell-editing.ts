@@ -1,10 +1,17 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
-import { getSourceTextFromProjection } from '../projection/editable-source-text'
+import {
+  activeCellInputTextAtom,
+  getSourceTextFromProjection,
+} from '../projection/editable-source-text'
 import { projectionSnapshotAtom } from '../projection'
 import type { CellCoord } from '../shared'
 import { editingSessionAtom, returnToEditingSource, startEditingAtom } from './session-atoms'
 import { activeEditingCommitTicketAtom, editingCommitLifecycleAtom } from './commit-state'
-import { selectionAuthorityWitnessAtom } from '../selection'
+import {
+  activeCellAtom,
+  primarySelectionRegionAtom,
+  selectionAuthorityWitnessAtom,
+} from '../selection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import type { EditingInputSource } from './types'
@@ -94,10 +101,16 @@ function startFromProjection(
     getAxisSpanSize(colStart, colEnd, colEnd + 1, 1, sizes.colWidthsBySheet[input.sheetId]) === 0
   )
     return false
+  const primaryRegion = get(primarySelectionRegionAtom)
+  const activeCell = get(activeCellAtom)
+  const isActiveCell =
+    primaryRegion.sheetId === input.sheetId &&
+    activeCell.row === cell.row &&
+    activeCell.col === cell.col
   const sourceText =
-    result?.kind === 'visible-window'
+    (result?.kind === 'visible-window'
       ? getSourceTextFromProjection(result, cell, input.sheetId)
-      : undefined
+      : undefined) ?? (isActiveCell ? get(activeCellInputTextAtom) : undefined)
   if (sourceText === undefined) return false
   if (!isCoordUnlocked(get(sheetProtectionAtom), input.sheetId, cell)) {
     if (input.source !== 'formula-bar')

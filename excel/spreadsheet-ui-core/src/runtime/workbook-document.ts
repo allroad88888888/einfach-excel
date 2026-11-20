@@ -19,6 +19,7 @@ import {
   viewportFilterHiddenBackingAtom,
 } from '../viewport/hidden-state'
 import { zoomBySheetAtom } from '../zoom/state'
+import { resetSplitWindowStateAtom } from '../viewport/split-window-state'
 
 export interface WorkbookDocumentSheet {
   readonly defaults?: SheetDefaults
@@ -83,6 +84,7 @@ export const initializeWorkbookDocumentAtom = atom(
     set(viewportHiddenColsBackingAtom, {})
     set(viewportFilterHiddenBackingAtom, { rowsBySheet: {} })
     set(zoomBySheetAtom, {})
+    set(resetSplitWindowStateAtom)
     set(workbookDocumentBackingAtom, workbook)
     set(sheetTabsAtom, {
       ...DEFAULT_SHEET_TABS_STATE,

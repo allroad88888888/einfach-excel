@@ -1530,3 +1530,11 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | PROTPERM-001 | 受保护工作表勾选排序权限后可对可编辑区域排序与撤销，仍拒绝锁定格 | `protection/permissions.spec.ts` | `PROTPERM-001: protected sheet allows sorting unlocked range when permitted and rejects locked cells` |
 | PROTPERM-002 | 受保护工作表按轴独立放行插入/删除行或列并支持撤销，未授权轴仍拒绝 | `protection/permissions.spec.ts` | `PROTPERM-002: protected sheet allows only granted row or column insertions and deletions with undo` |
 | PROTPERM-003 | 原生工作簿下载与重新打开保留工作表保护细粒度权限 | `protection/permissions.spec.ts` | `PROTPERM-003: native workbook download and reopen preserve worksheet protection permissions` |
+
+### 拆分窗口
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| SPLIT-001 | 水平拆分窗格独立滚动远端行并保持与公式栏及主窗格实时同步编辑/撤销 | `workbook/split-window.spec.ts` | `SPLIT-001: horizontal split scrolls independently and keeps edits live across panes` |
+| SPLIT-002 | 四向拆分联动行列滚动轴、支持双击分割条移除单轴且与冻结窗格互斥 | `workbook/split-window.spec.ts` | `SPLIT-002: quad split couples scroll axes, supports divider double-click, and excludes freeze` |
+| SPLIT-003 | 拆分窗口兼容 Canvas 渲染器并按工作表独立隔离与取消拆分 | `workbook/split-window.spec.ts` | `SPLIT-003: split window renders in Canvas mode and stays isolated per sheet` |

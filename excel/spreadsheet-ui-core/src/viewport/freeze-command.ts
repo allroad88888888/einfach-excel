@@ -17,6 +17,7 @@ import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-s
 import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
 import { selectionVisibilityFeedbackAtom } from '../toolbar/selection-visibility-command'
 import { selectionSizePanelAtom } from '../toolbar/selection-size-command'
+import { clearSheetSplitWindowAtom } from './split-window-state'
 
 export type FreezeAction = 'first-row' | 'first-column' | 'selection' | 'unfreeze'
 export const freezeFeedbackAtom = atom({ busy: false, error: null as string | null })
@@ -93,6 +94,7 @@ export const runFreezeAtom = atom(
       )
         throw new Error('Rust returned a mismatched freeze result.')
       set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
+      if (rows > 0 || cols > 0) set(clearSheetSplitWindowAtom, sheet.id)
       set(freezeFeedbackAtom, { busy: false, error: null })
       return true
     } catch (error) {

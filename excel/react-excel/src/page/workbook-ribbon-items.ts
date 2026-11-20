@@ -89,6 +89,7 @@ export const workbookRibbonItemIds = [
   'view.outline-groups',
   'view.row-and-column-size',
   'view.row-and-column-visibility',
+  'view.split-window',
 ] as const
 
 export type WorkbookRibbonItemId = typeof workbookRibbonItemIds[number]

@@ -705,6 +705,18 @@ msgstr "最小的 {count}%"
 msgid "Bottom border"
 msgstr "下框线"
 
+#: src/workbook/grid/viewport/SplitPaneView.tsx
+msgid "Bottom split pane"
+msgstr "下方拆分窗格"
+
+#: src/workbook/grid/viewport/SplitPaneView.tsx
+msgid "Bottom-left split pane"
+msgstr "左下拆分窗格"
+
+#: src/workbook/grid/viewport/SplitPaneView.tsx
+msgid "Bottom-right split pane"
+msgstr "右下拆分窗格"
+
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Break positions"
 msgstr "分隔位置"
@@ -4869,6 +4881,10 @@ msgstr "删除记录"
 msgid "Remove sort level {0}"
 msgstr "移除排序级别 {0}"
 
+#: src/workbook/chrome/ribbon/SplitTools.tsx
+msgid "Remove split"
+msgstr "取消拆分"
+
 #: src/i18n/feedback-messages.ts
 msgid "Remove subtotals"
 msgstr "删除分类汇总"
@@ -5084,6 +5100,10 @@ msgstr "调整{axisLabel} {label} 的尺寸"
 msgid "Resize column"
 msgstr "调整列宽"
 
+#: src/workbook/grid/viewport/SplitDividers.tsx
+msgid "Resize horizontal split"
+msgstr "调整水平拆分位置"
+
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting."
 msgstr "调整范围时，表头行位置保持不变。如有汇总行，请将其包含在内。转换为普通区域会保留数据和格式。"
@@ -5100,6 +5120,10 @@ msgstr "调整行高"
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Resize table"
 msgstr "调整表格范围"
+
+#: src/workbook/grid/viewport/SplitDividers.tsx
+msgid "Resize vertical split"
+msgstr "调整垂直拆分位置"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Resolve comment"
@@ -5233,6 +5257,10 @@ msgstr "右对齐"
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Right border"
 msgstr "右框线"
+
+#: src/workbook/grid/viewport/SplitPaneView.tsx
+msgid "Right split pane"
+msgstr "右侧拆分窗格"
 
 #: src/i18n/feedback-messages.ts
 msgid "Rounds a number to a specified number of digits."
@@ -6042,6 +6070,14 @@ msgstr "表格内不能输入溢出数组。请使用单值公式，或按 Escap
 msgid "Split after these character positions, for example 2, 5. Unicode code points count as one."
 msgstr "在这些字符位置后分列，例如 2、5。每个 Unicode 码点计为一个字符。"
 
+#: src/workbook/chrome/ribbon/SplitTools.tsx
+msgid "Split at active cell"
+msgstr "按当前单元格拆分"
+
+#: src/workbook/chrome/ribbon/SplitTools.tsx
+msgid "Split horizontally"
+msgstr "水平拆分"
+
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Split mode"
 msgstr "分列方式"
@@ -6053,6 +6089,14 @@ msgstr "拆分一个源列。除非选择其他类型，字段均保留文本。
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Split preview"
 msgstr "分列预览"
+
+#: src/workbook/chrome/ribbon/SplitTools.tsx
+msgid "Split vertically"
+msgstr "垂直拆分"
+
+#: src/workbook/chrome/ribbon/SplitTools.tsx
+msgid "Split window"
+msgstr "拆分窗口"
 
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 msgid "Standard colors"
@@ -6919,6 +6963,10 @@ msgstr "最大 / 最小值"
 msgid "Top border"
 msgstr "上框线"
 
+#: src/workbook/grid/viewport/SplitPaneView.tsx
+msgid "Top-right split pane"
+msgstr "右上拆分窗格"
+
 #: src/workbook/chrome/ribbon/TableTotals.tsx
 msgid "Total column"
 msgstr "汇总列"
@@ -7451,6 +7499,10 @@ msgstr "此规则匹配时，跳过该单元格的所有下方规则。"
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Whole number"
 msgstr "整数"
+
+#: src/workbook/chrome/ribbon/SplitTools.tsx
+msgid "Window split"
+msgstr "窗口已拆分"
 
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "Within"

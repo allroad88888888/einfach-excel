@@ -54,7 +54,12 @@ import { forgetActiveCellFact, retainActiveCellFact } from './active-cell-fact'
 export * from './contracts'
 export * from './types'
 export { applyVisibleProjectionAtom } from './apply-visible-projection'
-export { activeCellFactAtom, activeCellFormatAtom } from './active-cell-fact'
+export {
+  activeCellFactAtom,
+  activeCellFormatAtom,
+  seedRetainedActiveCellFactAtom,
+  type SeedRetainedActiveCellFactInput,
+} from './active-cell-fact'
 export {
   issueProjectionRequestIdAtom,
   nextProjectionRequestId,

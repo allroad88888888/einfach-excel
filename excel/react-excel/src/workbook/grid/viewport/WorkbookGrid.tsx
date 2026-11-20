@@ -5,6 +5,7 @@ import type { I18n } from '@lingui/core'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue } from '@einfach/react'
 import {
+  activeSheetSplitWindowAtom,
   activeSheetZoomAtom,
   activeWorkbookSheetAtom,
   formatPainterAtom,
@@ -17,7 +18,7 @@ import {
   viewportShowGridlinesAtom,
   type WorkbookDocumentSheet,
 } from '@einfach-excel/spreadsheet-ui-core'
-import { useMemo, type CSSProperties } from 'react'
+import { useMemo, useRef, type CSSProperties } from 'react'
 import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use-workbook-viewport'
 import { CellRenderer } from './CellRenderer'
 import { CellEditor } from '../editor/CellEditor'
@@ -39,7 +40,10 @@ import { DrawingLayer } from '../../drawings/DrawingLayer'
 import { SelectionMoveBorder } from '../../drag-move/SelectionMoveBorder'
 import { useGridZoomWheel } from '../../zoom/use-grid-zoom-wheel'
 import { useGridGutter } from './grid-gutter'
+import { SplitDividers } from './SplitDividers'
+import { SplitPaneView } from './SplitPaneView'
 import './grid.css'
+import './split-window.css'
 
 function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
   return Array.from(
@@ -68,7 +72,10 @@ function projectionState(viewport: WorkbookViewport, i18n: I18n) {
 
 function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: WorkbookDocumentSheet }) {
   const { t, i18n } = useLingui()
-  const { rowHeight, colWidth } = useAtomValue(viewportMetricsAtom)
+  const viewportMetrics = useAtomValue(viewportMetricsAtom)
+  const { rowHeight, colWidth } = viewportMetrics
+  const split = useAtomValue(activeSheetSplitWindowAtom)
+  const splitContainerRef = useRef<HTMLDivElement>(null)
   const painter = useAtomValue(formatPainterAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
@@ -162,6 +169,13 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
     }px`,
   } as CSSProperties
 
+  const splitStyle = split.mode === 'none'
+    ? undefined
+    : ({
+        '--split-y': split.horizontalRatio ?? 0.5,
+        '--split-x': split.verticalRatio ?? 0.5,
+      } as CSSProperties)
+
   return (
     <section data-drawing-suspended={drawingSuspended || undefined} className="worksheet-panel" aria-label={t`${activeSheet.name} worksheet`}>
       <OutlineGutters focusGrid={events.focusGrid} />
@@ -171,13 +185,19 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           : t`All columns are hidden. Use Hide / Unhide to restore them.`}</div>
       )}
       <div
-        ref={events.scrollRef}
-        className="sheet-scroll"
-        data-testid="sheet-scroll"
-        data-zoom={zoom}
-        style={zoom === 100 ? undefined : { zoom: zoom / 100 }}
-        onScroll={events.onScroll}
+        ref={splitContainerRef}
+        className="split-viewport-grid"
+        data-split-mode={split.mode}
+        style={splitStyle}
       >
+        <div
+          ref={events.scrollRef}
+          className="sheet-scroll"
+          data-testid="sheet-scroll"
+          data-zoom={zoom}
+          style={zoom === 100 ? undefined : { zoom: zoom / 100 }}
+          onScroll={events.onScroll}
+        >
         <div
           className="sheet-grid-frame grid-viewport-frame"
           data-frozen-rows={frozenRows}
@@ -242,6 +262,56 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           <CellValidationList focusGrid={events.focusGrid} />
           <ResizeGuide />
         </div>
+        </div>
+        <SplitDividers containerRef={splitContainerRef} split={split} />
+        {split.mode === 'horizontal' && (
+          <SplitPaneView
+            pane="bottom"
+            activeSheet={activeSheet}
+            scrollTop={split.secondaryScrollTop}
+            scrollLeft={viewportMetrics.scrollLeft}
+            primaryScrollRef={events.scrollRef}
+            focusGrid={events.focusGrid}
+          />
+        )}
+        {split.mode === 'vertical' && (
+          <SplitPaneView
+            pane="right"
+            activeSheet={activeSheet}
+            scrollTop={viewportMetrics.scrollTop}
+            scrollLeft={split.secondaryScrollLeft}
+            primaryScrollRef={events.scrollRef}
+            focusGrid={events.focusGrid}
+          />
+        )}
+        {split.mode === 'quad' && (
+          <>
+            <SplitPaneView
+              pane="top-right"
+              activeSheet={activeSheet}
+              scrollTop={viewportMetrics.scrollTop}
+              scrollLeft={split.secondaryScrollLeft}
+              primaryScrollRef={events.scrollRef}
+              focusGrid={events.focusGrid}
+            />
+            <SplitPaneView
+              pane="bottom-left"
+              activeSheet={activeSheet}
+              scrollTop={split.secondaryScrollTop}
+              scrollLeft={viewportMetrics.scrollLeft}
+              primaryScrollRef={events.scrollRef}
+              focusGrid={events.focusGrid}
+            />
+            <SplitPaneView
+              pane="bottom-right"
+              activeSheet={activeSheet}
+              scrollTop={split.secondaryScrollTop}
+              scrollLeft={split.secondaryScrollLeft}
+              primaryScrollRef={events.scrollRef}
+              focusGrid={events.focusGrid}
+            />
+          </>
+        )}
       </div>
       <div className="grid-validation-feedback">
         <ValidationInputMessage />

@@ -1,5 +1,6 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
+  activeSheetZoomAtom,
   getVisibleWindow,
   projectionSnapshotAtom,
   runSplitPaneProjectionAtom,
@@ -48,6 +49,7 @@ export function useSplitPaneProjection({
   paneHeading,
 }: UseSplitPaneProjectionInput) {
   const metrics = useAtomValue(viewportMetricsAtom)
+  const zoom = useAtomValue(activeSheetZoomAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const primaryProjection = useAtomValue(projectionSnapshotAtom).result
   const selection = useAtomValue(selectionSnapshotAtom)
@@ -71,7 +73,7 @@ export function useSplitPaneProjection({
     const observer = new ResizeObserver(measure)
     observer.observe(node)
     return () => observer.disconnect()
-  }, [pane, paneRef, paneGutter, paneHeading, setPaneSize])
+  }, [pane, paneRef, paneGutter, paneHeading, zoom, setPaneSize])
 
   const rowHeights = sizeOverrides.rowHeightsBySheet[activeSheet.id]
   const colWidths = sizeOverrides.colWidthsBySheet[activeSheet.id]
@@ -155,6 +157,7 @@ export function useSplitPaneProjection({
   return {
     activeSnapshot,
     displayWindow: activeSnapshot?.window ?? paneWindow,
+    paneSize,
     metrics,
     sizeOverrides,
     rowHeights,

@@ -46,6 +46,10 @@ splitPaneSizesAtom.debugLabel = 'spreadsheet.viewport.splitPaneSizes'
 export const splitPaneGenerationsAtom = atom<Readonly<Partial<Record<SplitPaneId, number>>>>({})
 splitPaneGenerationsAtom.debugLabel = 'spreadsheet.viewport.splitPaneGenerations'
 
+/** Secondary split pane that last received pointer/double-click focus (null = primary pane). */
+export const activeSplitPaneAtom = atom<SplitPaneId | null>(null)
+activeSplitPaneAtom.debugLabel = 'spreadsheet.viewport.activeSplitPane'
+
 export function splitWindowModeOf(state: SheetSplitWindow): SplitWindowMode {
   const hasH = state.horizontalRatio !== null
   const hasV = state.verticalRatio !== null
@@ -55,15 +59,37 @@ export function splitWindowModeOf(state: SheetSplitWindow): SplitWindowMode {
   return 'none'
 }
 
+export function resolveSplitPaneForMode(
+  mode: SplitWindowMode,
+  pane: SplitPaneId | null,
+): SplitPaneId | null {
+  if (mode === 'none' || pane === null) return null
+  if (mode === 'horizontal') {
+    return pane === 'bottom' || pane === 'bottom-left' || pane === 'bottom-right'
+      ? 'bottom'
+      : null
+  }
+  if (mode === 'vertical') {
+    return pane === 'right' || pane === 'top-right' || pane === 'bottom-right'
+      ? 'right'
+      : null
+  }
+  return pane === 'top-right' || pane === 'bottom-left' || pane === 'bottom-right'
+    ? pane
+    : null
+}
+
 export const resetSplitWindowStateAtom = atom(null, (_get, set): void => {
   set(splitWindowBySheetAtom, {})
   set(splitPaneProjectionsAtom, {})
   set(splitPaneSizesAtom, {})
   set(splitPaneGenerationsAtom, {})
+  set(activeSplitPaneAtom, null)
 })
 resetSplitWindowStateAtom.debugLabel = 'spreadsheet.viewport.resetSplitWindowState'
 
 export const clearSheetSplitWindowAtom = atom(null, (get, set, sheetId: string): void => {
+  set(activeSplitPaneAtom, null)
   const current = get(splitWindowBySheetAtom)
   if (!(sheetId in current)) return
   const next = { ...current }

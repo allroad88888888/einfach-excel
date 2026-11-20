@@ -1,5 +1,6 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
+  activeSplitPaneAtom,
   activeWorkbookSheetAtom,
   dispatchGridCellKeyboardInputAtom,
   editingSessionAtom,
@@ -55,6 +56,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const freeze = useAtomValue(projectedFreezeAtom)
   const dispatchGridKeyboard = useSetAtom(dispatchGridCellKeyboardInputAtom)
   const startCellEditing = useSetAtom(startCellEditingFromProjectionAtom)
+  const setActiveSplitPane = useSetAtom(activeSplitPaneAtom)
   const switchAdjacentSheet = useSetAtom(switchAdjacentSheetAtom)
   const setViewportScroll = useSetAtom(setViewportScrollAtom)
   const updatePointerSelection = useSetAtom(updatePointerSelectionAtom)
@@ -180,7 +182,10 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
     if (!pickingReference && painter.mode === 'idle' && hyperlink.onPointerDown(event)) return
     const coord = workbookCellAt(event)
     if (coord === null) return
-    if (!pickingReference) focusGrid()
+    if (!pickingReference) {
+      setActiveSplitPane(null)
+      focusGrid()
+    }
     if (!pointerHandlers.onPointerDown(event)) return
     if (coord !== null && event.button === 0 && event.isPrimary !== false) {
       dragAutoscroll.start(event)
@@ -202,6 +207,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
     if (activeSheet === null || viewport.retained || pickingReference || painter.mode !== 'idle') return
     const cell = workbookCellAt(event)
     if (cell === null) return
+    setActiveSplitPane(null)
     const frame = event.currentTarget
     const isCurrent = () => frame.isConnected &&
       (document.activeElement === document.body || document.activeElement === gridRef.current)

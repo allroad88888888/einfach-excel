@@ -10,9 +10,11 @@ import { viewportGeometrySizesAtom } from './geometry-sizes'
 import { viewportMetricsAtom } from './metrics'
 import { projectedFreezeAtom } from './projected-freeze'
 import {
+  activeSplitPaneAtom,
   clearSheetSplitWindowAtom,
   EMPTY_SPLIT_WINDOW,
   resetSplitWindowStateAtom,
+  resolveSplitPaneForMode,
   splitPaneGenerationsAtom,
   splitPaneProjectionsAtom,
   splitPaneSizesAtom,
@@ -25,9 +27,11 @@ import {
 } from './split-window-state'
 
 export {
+  activeSplitPaneAtom,
   clearSheetSplitWindowAtom,
   EMPTY_SPLIT_WINDOW,
   resetSplitWindowStateAtom,
+  resolveSplitPaneForMode,
   splitPaneProjectionsAtom,
   splitPaneSizesAtom,
   splitWindowBySheetAtom,
@@ -201,6 +205,9 @@ export const setSplitWindowRatioAtom = atom(
       next.verticalRatio === current.verticalRatio
     ) {
       return
+    }
+    if (input.ratio === null) {
+      set(activeSplitPaneAtom, null)
     }
     set(splitWindowBySheetAtom, { ...get(splitWindowBySheetAtom), [sheetId]: next })
   },

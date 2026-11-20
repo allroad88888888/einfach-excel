@@ -9,7 +9,7 @@
   height: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: 11;
+  z-index: 6;
 }
 
 :where(.einfach-spreadsheet) .validation-circle-svg {
@@ -25,6 +25,21 @@
   fill: none;
   stroke: #dc2626;
   stroke-width: 2;
+}
+
+:where(.einfach-spreadsheet) .validation-circles-banner {
+  position: absolute;
+  right: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  background: var(--surface, #ffffff);
+  color: #b91c1c;
+  font-size: 11px;
+  line-height: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 :where(.einfach-spreadsheet) .validation-circles-status {

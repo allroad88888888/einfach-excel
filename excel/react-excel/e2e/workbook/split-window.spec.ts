@@ -52,6 +52,17 @@ test('SPLIT-001: horizontal split scrolls independently and keeps edits live acr
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(distantCell).toHaveText(originalText)
 
+  // Double-clicking a cell inside the bottom pane opens in-cell CellEditor without scrolling top pane
+  await distantCell.dblclick()
+  const bottomEditor = bottom.getByRole('textbox', { name: 'Cell editor', exact: true })
+  await expect(bottomEditor).toBeVisible()
+  await bottomEditor.fill('SO-INCELL-71')
+  await bottomEditor.press('Enter')
+  await expect(distantCell).toHaveText('SO-INCELL-71')
+  await expect.poll(() => primary.evaluate((node) => node.scrollTop)).toBe(0)
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(distantCell).toHaveText(originalText)
+
   // Scrolling bottom back to top shows live edits made from the top pane
   await bottom.evaluate((node) => {
     node.scrollTop = 0

@@ -1,6 +1,10 @@
 import type { Store } from '@einfach/core'
 import {
-  getViewportRangeRectangle, projectionSnapshotAtom, viewportMetricsAtom, viewportGeometrySizesAtom,
+  getViewportRangeRectangle,
+  projectionSnapshotAtom,
+  splitPaneProjectionsAtom,
+  viewportMetricsAtom,
+  viewportGeometrySizesAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { createLayout } from './layout'
 import type { CanvasCellsInput } from './types'
@@ -33,8 +37,10 @@ export function createProjectionLayout(store: Store) {
       projection?.freeze?.cols ? metrics.scrollLeft === 0 : false].join(':')
     if (previous && sameInput(previous, input) && previousSizes === sizes
       && previousProjection === projection && previousGeometry === geometry) return layout
+    const splitPanes = store.getter(splitPaneProjectionsAtom)
     const ownsProjection = projection && (projection.cells === input.cells ||
-      projection.frozen?.regions.some(region => region.cells === input.cells))
+      projection.frozen?.regions.some(region => region.cells === input.cells) ||
+      Object.values(splitPanes).some(snap => snap?.cells === input.cells))
     const rect = getViewportRangeRectangle(metrics, sizes, input.window)
     const origin = ownsProjection ? { x: rect.left, y: rect.top }
       : { x: input.window.colStart * 120, y: input.window.rowStart * 28 }

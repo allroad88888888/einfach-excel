@@ -1,6 +1,7 @@
-import { useSetAtom } from '@einfach/react'
+import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   DEFAULT_SPLIT_RATIO,
+  editingSessionAtom,
   MAX_SPLIT_RATIO,
   MIN_SPLIT_RATIO,
   runSplitWindowAtom,
@@ -20,6 +21,7 @@ interface SplitDividersProps {
 /** Draggable, keyboard-accessible split bars; double-clicking an axis removes that split. */
 export function SplitDividers({ containerRef, split }: SplitDividersProps) {
   const { t } = useLingui()
+  const editing = useAtomValue(editingSessionAtom).source !== null
   const setRatio = useSetAtom(setSplitWindowRatioAtom)
   const runSplit = useSetAtom(runSplitWindowAtom)
   if (split.mode === 'none') return null
@@ -29,6 +31,7 @@ export function SplitDividers({ containerRef, split }: SplitDividersProps) {
     clientX: number,
     clientY: number,
   ) => {
+    if (editing) return
     const container = containerRef.current
     if (!container) return
     const rect = container.getBoundingClientRect()
@@ -42,7 +45,7 @@ export function SplitDividers({ containerRef, split }: SplitDividersProps) {
 
   const handlePointerDown = (axis: 'horizontal' | 'vertical' | 'both') =>
     (event: PointerEvent<HTMLDivElement>) => {
-      if (event.button !== 0) return
+      if (editing || event.button !== 0) return
       event.preventDefault()
       event.currentTarget.setPointerCapture(event.pointerId)
       updateFromPointer(axis, event.clientX, event.clientY)
@@ -50,17 +53,28 @@ export function SplitDividers({ containerRef, split }: SplitDividersProps) {
 
   const handlePointerMove = (axis: 'horizontal' | 'vertical' | 'both') =>
     (event: PointerEvent<HTMLDivElement>) => {
-      if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
+      if (editing || !event.currentTarget.hasPointerCapture(event.pointerId)) return
       updateFromPointer(axis, event.clientX, event.clientY)
     }
 
   const handleKeyDown = (axis: 'horizontal' | 'vertical') =>
     (event: KeyboardEvent<HTMLDivElement>) => {
+      if (editing) return
       const current =
         (axis === 'horizontal' ? split.horizontalRatio : split.verticalRatio) ?? DEFAULT_SPLIT_RATIO
       if (event.key === 'Delete' || event.key === 'Backspace') {
         event.preventDefault()
         setRatio({ axis, ratio: null })
+        return
+      }
+      if (event.key === 'Home') {
+        event.preventDefault()
+        setRatio({ axis, ratio: MIN_SPLIT_RATIO })
+        return
+      }
+      if (event.key === 'End') {
+        event.preventDefault()
+        setRatio({ axis, ratio: MAX_SPLIT_RATIO })
         return
       }
       const decrease = axis === 'horizontal' ? 'ArrowUp' : 'ArrowLeft'
@@ -89,7 +103,9 @@ export function SplitDividers({ containerRef, split }: SplitDividersProps) {
           aria-valuenow={Math.round(split.horizontalRatio * 100)}
           onPointerDown={handlePointerDown('horizontal')}
           onPointerMove={handlePointerMove('horizontal')}
-          onDoubleClick={() => setRatio({ axis: 'horizontal', ratio: null })}
+          onDoubleClick={() => {
+            if (!editing) setRatio({ axis: 'horizontal', ratio: null })
+          }}
           onKeyDown={handleKeyDown('horizontal')}
         />
       )}
@@ -106,7 +122,9 @@ export function SplitDividers({ containerRef, split }: SplitDividersProps) {
           aria-valuenow={Math.round(split.verticalRatio * 100)}
           onPointerDown={handlePointerDown('vertical')}
           onPointerMove={handlePointerMove('vertical')}
-          onDoubleClick={() => setRatio({ axis: 'vertical', ratio: null })}
+          onDoubleClick={() => {
+            if (!editing) setRatio({ axis: 'vertical', ratio: null })
+          }}
           onKeyDown={handleKeyDown('vertical')}
         />
       )}
@@ -117,7 +135,9 @@ export function SplitDividers({ containerRef, split }: SplitDividersProps) {
           aria-hidden="true"
           onPointerDown={handlePointerDown('both')}
           onPointerMove={handlePointerMove('both')}
-          onDoubleClick={() => void runSplit('clear')}
+          onDoubleClick={() => {
+            if (!editing) void runSplit('clear')
+          }}
         />
       )}
     </>

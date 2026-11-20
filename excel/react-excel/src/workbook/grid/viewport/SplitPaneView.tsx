@@ -1,10 +1,13 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeSheetZoomAtom,
+  activeSplitPaneAtom,
+  editingSessionAtom,
+  formatPainterAtom,
+  formulaReferenceActiveAtom,
   getAxisOffsetForIndex,
   getViewportColumnWidth,
   getViewportRowHeight,
-  selectCellAtom,
   setSplitWindowScrollAtom,
   startCellEditingFromProjectionAtom,
   viewportShowGridlinesAtom,
@@ -13,6 +16,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { useLingui } from '@lingui/react/macro'
 import {
+  useCallback,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -22,7 +26,11 @@ import {
   type RefObject,
   type UIEvent,
 } from 'react'
+import { PaneValidationCircles } from '../../advanced-validation/ValidationCirclesOverlay'
+import { useGridPointerSelection } from '../../selection/use-grid-pointer-selection'
 import { gridZoomOf } from '../../zoom/grid-zoom'
+import { useGridZoomWheel } from '../../zoom/use-grid-zoom-wheel'
+import { CellEditor } from '../editor/CellEditor'
 import { CellRenderer } from './CellRenderer'
 import { GridHeading } from './GridHeading'
 import { useGridGutter } from './grid-gutter'
@@ -38,6 +46,67 @@ interface SplitPaneViewProps {
   readonly focusGrid: () => void
 }
 
+function buildSplitPaneStyles(input: {
+  readonly activeSheet: WorkbookDocumentSheet
+  readonly colStart: number
+  readonly colEnd: number
+  readonly rowStart: number
+  readonly colWidth: number
+  readonly rowHeight: number
+  readonly colWidths: Record<string, number> | undefined
+  readonly rowHeights: Record<string, number> | undefined
+  readonly visibleColWidths: readonly number[]
+  readonly visibleRowHeights: readonly number[]
+  readonly paneGutter: number
+  readonly paneHeading: number
+}) {
+  const colOffset = (index: number) =>
+    getAxisOffsetForIndex(index, input.activeSheet.colCount, input.colWidth, input.colWidths)
+  const sheetContentWidth = colOffset(input.activeSheet.colCount)
+  const sheetContentHeight = getAxisOffsetForIndex(
+    input.activeSheet.rowCount,
+    input.activeSheet.rowCount,
+    input.rowHeight,
+    input.rowHeights,
+  )
+  const windowOffsetY = getAxisOffsetForIndex(
+    input.rowStart,
+    input.activeSheet.rowCount,
+    input.rowHeight,
+    input.rowHeights,
+  )
+  const windowOffsetX = `${colOffset(input.colStart)}px`
+  const windowWidth = colOffset(input.colEnd + 1) - colOffset(input.colStart)
+  const frameStyle = {
+    '--grid-column-width': `${input.colWidth}px`,
+    '--grid-row-height': `${input.paneHeading}px`,
+    '--grid-row-header-width': `${input.paneGutter}px`,
+    '--grid-sheet-content-width': `${sheetContentWidth}px`,
+    '--grid-sheet-height': `${sheetContentHeight + input.paneHeading}px`,
+    '--grid-sheet-width': `${sheetContentWidth + input.paneGutter}px`,
+  } as CSSProperties
+  const rowHeaderStyle = {
+    '--grid-window-offset': `${windowOffsetY}px`,
+    '--grid-window-row-heights': input.visibleRowHeights
+      .filter((height) => height > 0)
+      .map((height) => `${height}px`)
+      .join(' '),
+  } as CSSProperties
+  const colHeaderStyle = {
+    '--grid-window-offset-x': windowOffsetX,
+    '--grid-window-column-widths': input.visibleColWidths
+      .filter((width) => width > 0)
+      .map((width) => `${width}px`)
+      .join(' '),
+  } as CSSProperties
+  const surfaceStyle = {
+    ...rowHeaderStyle,
+    '--grid-window-offset-x': windowOffsetX,
+    '--grid-window-width': `${windowWidth}px`,
+  } as CSSProperties
+  return { frameStyle, rowHeaderStyle, colHeaderStyle, surfaceStyle }
+}
+
 /** Secondary split pane backed by bounded Rust display-range reads and coupled scroll sync. */
 export function SplitPaneView({
   pane,
@@ -50,11 +119,15 @@ export function SplitPaneView({
   const { t } = useLingui()
   const zoom = useAtomValue(activeSheetZoomAtom)
   const showGridlines = useAtomValue(viewportShowGridlinesAtom)
-  const selectCell = useSetAtom(selectCellAtom)
+  const editingSession = useAtomValue(editingSessionAtom)
+  const pickingReference = useAtomValue(formulaReferenceActiveAtom)
+  const painter = useAtomValue(formatPainterAtom)
+  const setActiveSplitPane = useSetAtom(activeSplitPaneAtom)
   const startEditing = useSetAtom(startCellEditingFromProjectionAtom)
   const setSplitScroll = useSetAtom(setSplitWindowScrollAtom)
   const { gutter, heading } = useGridGutter()
   const paneRef = useRef<HTMLDivElement>(null)
+  useGridZoomWheel(paneRef)
 
   const ownsVertical = pane === 'bottom' || pane === 'bottom-left' || pane === 'bottom-right'
   const ownsHorizontal = pane === 'right' || pane === 'top-right' || pane === 'bottom-right'
@@ -66,6 +139,7 @@ export function SplitPaneView({
   const {
     activeSnapshot,
     displayWindow,
+    paneSize,
     metrics,
     sizeOverrides,
     rowHeights,
@@ -115,51 +189,20 @@ export function SplitPaneView({
     [colCount, sizeOverrides, activeSheet.id, displayWindow.colStart, metrics.colWidth],
   )
 
-  const colOffset = (index: number) =>
-    getAxisOffsetForIndex(index, activeSheet.colCount, metrics.colWidth, colWidths)
-  const sheetContentWidth = colOffset(activeSheet.colCount)
-  const sheetContentHeight = getAxisOffsetForIndex(
-    activeSheet.rowCount,
-    activeSheet.rowCount,
-    metrics.rowHeight,
+  const { frameStyle, rowHeaderStyle, colHeaderStyle, surfaceStyle } = buildSplitPaneStyles({
+    activeSheet,
+    colStart: displayWindow.colStart,
+    colEnd: displayWindow.colEnd,
+    rowStart: displayWindow.rowStart,
+    colWidth: metrics.colWidth,
+    rowHeight: metrics.rowHeight,
+    colWidths,
     rowHeights,
-  )
-  const windowOffsetY = getAxisOffsetForIndex(
-    displayWindow.rowStart,
-    activeSheet.rowCount,
-    metrics.rowHeight,
-    rowHeights,
-  )
-  const windowOffsetX = `${colOffset(displayWindow.colStart)}px`
-  const windowWidth = colOffset(displayWindow.colEnd + 1) - colOffset(displayWindow.colStart)
-
-  const frameStyle = {
-    '--grid-column-width': `${metrics.colWidth}px`,
-    '--grid-row-height': `${paneHeading}px`,
-    '--grid-row-header-width': `${paneGutter}px`,
-    '--grid-sheet-content-width': `${sheetContentWidth}px`,
-    '--grid-sheet-height': `${sheetContentHeight + paneHeading}px`,
-    '--grid-sheet-width': `${sheetContentWidth + paneGutter}px`,
-  } as CSSProperties
-  const rowHeaderStyle = {
-    '--grid-window-offset': `${windowOffsetY}px`,
-    '--grid-window-row-heights': visibleRowHeights
-      .filter((height) => height > 0)
-      .map((height) => `${height}px`)
-      .join(' '),
-  } as CSSProperties
-  const colHeaderStyle = {
-    '--grid-window-offset-x': windowOffsetX,
-    '--grid-window-column-widths': visibleColWidths
-      .filter((width) => width > 0)
-      .map((width) => `${width}px`)
-      .join(' '),
-  } as CSSProperties
-  const surfaceStyle = {
-    ...rowHeaderStyle,
-    '--grid-window-offset-x': windowOffsetX,
-    '--grid-window-width': `${windowWidth}px`,
-  } as CSSProperties
+    visibleColWidths,
+    visibleRowHeights,
+    paneGutter,
+    paneHeading,
+  })
 
   const handleScroll = (event: UIEvent<HTMLDivElement>) => {
     const node = event.currentTarget
@@ -176,32 +219,48 @@ export function SplitPaneView({
     }
   }
 
-  const resolveCellCoord = (
-    event: PointerEvent<HTMLDivElement> | MouseEvent<HTMLDivElement>,
-  ) => {
-    const direct = workbookCellAt(event)
-    if (direct) return direct
-    const node = paneRef.current
-    if (!node) return null
-    return workbookCellAtViewportPoint({
-      clientX: event.clientX,
-      clientY: event.clientY,
-      bounds: node.getBoundingClientRect(),
-      zoom: gridZoomOf(node),
-      scrollTop: node.scrollTop,
-      scrollLeft: node.scrollLeft,
-      rowHeight: metrics.rowHeight,
-      colWidth: metrics.colWidth,
-      rowHeights,
+  const resolveCellCoord = useCallback(
+    (event: PointerEvent<HTMLElement> | MouseEvent<HTMLElement>) => {
+      const direct = workbookCellAt(event)
+      if (direct) return direct
+      const node = paneRef.current
+      if (!node) return null
+      return workbookCellAtViewportPoint({
+        clientX: event.clientX,
+        clientY: event.clientY,
+        bounds: node.getBoundingClientRect(),
+        zoom: gridZoomOf(node),
+        scrollTop: node.scrollTop,
+        scrollLeft: node.scrollLeft,
+        rowHeight: metrics.rowHeight,
+        colWidth: metrics.colWidth,
+        rowHeights,
+        colWidths,
+        rowHeaderWidth: paneGutter,
+        columnHeaderHeight: paneHeading,
+        rowCount: activeSheet.rowCount,
+        colCount: activeSheet.colCount,
+        frozenHeight: 0,
+        frozenWidth: 0,
+      })
+    },
+    [
+      activeSheet.colCount,
+      activeSheet.rowCount,
       colWidths,
-      rowHeaderWidth: paneGutter,
-      columnHeaderHeight: paneHeading,
-      rowCount: activeSheet.rowCount,
-      colCount: activeSheet.colCount,
-      frozenHeight: 0,
-      frozenWidth: 0,
-    })
-  }
+      metrics.colWidth,
+      metrics.rowHeight,
+      paneGutter,
+      paneHeading,
+      rowHeights,
+    ],
+  )
+
+  const pointerHandlers = useGridPointerSelection({
+    enabled: true,
+    getCellCoord: resolveCellCoord,
+    sheetId: activeSheet.id,
+  })
 
   const seedCoord = (row: number, col: number) => {
     if (!activeSnapshot) return
@@ -215,19 +274,43 @@ export function SplitPaneView({
   }
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return
     const coord = resolveCellCoord(event)
     if (!coord) return
-    selectCell({ sheetId: activeSheet.id, coord, extend: event.shiftKey })
+    if (!pickingReference) {
+      setActiveSplitPane(pane)
+      focusGrid()
+    }
+    if (!pointerHandlers.onPointerDown(event)) return
     seedCoord(coord.row, coord.col)
   }
 
   const handleDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (pickingReference || painter.mode !== 'idle') return
     const coord = resolveCellCoord(event)
     if (!coord) return
-    selectCell({ sheetId: activeSheet.id, coord })
+    setActiveSplitPane(pane)
     seedCoord(coord.row, coord.col)
-    startEditing({ sheetId: activeSheet.id, cell: coord, source: 'formula-bar' })
+    const frame = event.currentTarget
+    const isCurrent = () => frame.isConnected
+    const restoreDraftFocus = (started: boolean) => {
+      if (started || !isCurrent() || editingSession.source === null) return
+      const selector =
+        editingSession.source.source === 'formula-bar'
+          ? '[data-formula-input="true"]'
+          : '[data-cell-editor] textarea'
+      frame
+        .closest('.workbook')
+        ?.querySelector<HTMLTextAreaElement>(selector)
+        ?.focus({ preventScroll: true })
+    }
+    const started = startEditing({
+      sheetId: activeSheet.id,
+      cell: coord,
+      waitForPending: true,
+      isCurrent,
+    })
+    if (typeof started === 'boolean') restoreDraftFocus(started)
+    else void started.then(restoreDraftFocus)
   }
 
   const paneLabel =
@@ -260,6 +343,10 @@ export function SplitPaneView({
         data-gridlines={showGridlines ? undefined : 'hidden'}
         style={frameStyle}
         onPointerDown={handlePointerDown}
+        onPointerMove={pointerHandlers.onPointerMove}
+        onPointerUp={pointerHandlers.onPointerUp}
+        onPointerCancel={pointerHandlers.onPointerCancel}
+        onLostPointerCapture={pointerHandlers.onPointerCancel}
         onDoubleClick={handleDoubleClick}
       >
         {showColHeaders && (
@@ -306,6 +393,30 @@ export function SplitPaneView({
             />
           )}
         </div>
+        <PaneValidationCircles
+          scrollTop={scrollTop}
+          scrollLeft={scrollLeft}
+          viewportWidth={paneSize.width}
+          viewportHeight={paneSize.height}
+          gutter={paneGutter}
+          heading={paneHeading}
+          freeze={null}
+          mergedRanges={activeSnapshot?.mergedRanges}
+          showStatus={false}
+        />
+        <CellEditor
+          focusGrid={focusGrid}
+          pane={pane}
+          paneViewport={{
+            scrollTop,
+            scrollLeft,
+            viewportWidth: paneSize.width,
+            viewportHeight: paneSize.height,
+            gutter: paneGutter,
+            heading: paneHeading,
+            mergedRanges: activeSnapshot?.mergedRanges,
+          }}
+        />
       </div>
     </div>
   )

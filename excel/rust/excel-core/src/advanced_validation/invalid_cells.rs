@@ -60,6 +60,13 @@ impl Workbook {
                 if !has_formula && matches!(value, Value::Null) {
                     return;
                 }
+                let blank = matches!(value, Value::Null)
+                    || matches!(&value, Value::Text(text) if text.is_empty());
+                if !matches!(region.rule.kind, DataValidationKind::CustomFormula { .. })
+                    && ((blank && region.rule.ignore_blank) || region.rule.accepts(&value))
+                {
+                    return;
+                }
                 populated.entry((addr.row, addr.col)).or_insert((region_idx, value));
             });
         }
@@ -78,7 +85,7 @@ impl Workbook {
                             formula::accepts_parsed(self, sheet, addr, *anchor, expr)
                         })
                 }
-                _ => rule.accepts(&value),
+                _ => (blank && rule.ignore_blank) || rule.accepts(&value),
             };
             if !accepted {
                 if cells.len() >= limit {
@@ -88,6 +95,7 @@ impl Workbook {
                 cells.push(InvalidValidationCell { row, col });
             }
         }
+        self.store.settle_pending_reads();
         Ok(InvalidValidationReport { cells, truncated })
     }
 }

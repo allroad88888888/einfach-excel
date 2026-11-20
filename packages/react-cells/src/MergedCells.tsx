@@ -3,6 +3,7 @@ import {
   getViewportRangeRectangle,
   projectionSnapshotAtom,
   selectionRangesAtom,
+  splitPaneProjectionsAtom,
   viewportGeometrySizesAtom,
   viewportMetricsAtom,
   showFormulasAtom, formulaViewText,
@@ -30,15 +31,25 @@ export function MergedCells({ window, anchors, metadataLabels }: {
   metadataLabels?: CellMetadataLabels
 } = {}) {
   const snapshot = useAtomValue(projectionSnapshotAtom)
+  const splitProjections = useAtomValue(splitPaneProjectionsAtom)
   const selections = useAtomValue(selectionRangesAtom)
   const sizes = useAtomValue(viewportGeometrySizesAtom)
   const metrics = useAtomValue(viewportMetricsAtom)
   const showFormulas = useAtomValue(showFormulasAtom)
   const result = snapshot.result
+  const splitSnap = window
+    ? Object.values(splitProjections).find(
+        (item) => item?.window === window && item.sheetId === result?.sheetId,
+      )
+    : undefined
   const visibleAnchors = anchors ?? (result?.kind === 'visible-window' ? result.mergeAnchors : undefined)
-  const borderStyle = useMemo(() => result?.kind === 'visible-window' && visibleAnchors?.length
-    ? createMergedBorderStyle(result, window ?? result.window, metrics, sizes) : undefined,
-  [result, window, metrics, sizes, visibleAnchors])
+  const borderStyle = useMemo(
+    () =>
+      result?.kind === 'visible-window' && visibleAnchors?.length
+        ? createMergedBorderStyle(result, window ?? result.window, metrics, sizes, splitSnap?.cells)
+        : undefined,
+    [result, window, metrics, sizes, visibleAnchors, splitSnap?.cells],
+  )
   if (!borderStyle || result?.kind !== 'visible-window' || result.sheetId !== metrics.sheetId) return null
   const origin = getViewportRangeRectangle(metrics, sizes, window ?? result.window)
   return (

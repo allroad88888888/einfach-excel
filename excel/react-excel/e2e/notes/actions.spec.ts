@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { button, cell, marker, editor, openNote, createNote, expectNeighbors } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
@@ -12,6 +13,7 @@ for (const width of [1280, 390]) test.describe(`${width}px notes`, () => {
 
   test(`insert multiline note preserves values and undoes once at ${width}px`, async ({ page }) => {
     await createNote(page)
+    await showRibbonItem(page, 'insert.note')
     await expect(button(page, 'Note')).toBeFocused()
     await expectNeighbors(page)
     await button(page, 'Undo').click(); await expect(marker(page, '1:0')).toHaveCount(0)
@@ -57,7 +59,7 @@ for (const width of [1280, 390]) test.describe(`${width}px notes`, () => {
   test(`cancel note draft retains saved text and focus at ${width}px`, async ({ page }) => {
     await createNote(page); await openNote(page)
     await page.getByLabel('Note text', { exact: true }).fill('discard me')
-    await button(page, 'Cancel').click(); await expect(button(page, 'Note')).toBeFocused()
+    await button(page, 'Cancel').click(); await showRibbonItem(page, 'insert.note'); await showRibbonItem(page, 'insert.note'); await expect(button(page, 'Note')).toBeFocused()
     await openNote(page)
     await expect(page.getByLabel('Note text', { exact: true })).toHaveValue('First line\n第二行')
     await button(page, 'Cancel').click(); await button(page, 'Undo').click()
@@ -69,7 +71,7 @@ for (const width of [1280, 390]) test.describe(`${width}px notes`, () => {
     await select(page, 'A2', '1:0'); await openNote(page)
     await page.getByLabel('Note text', { exact: true }).fill('discard')
     await page.getByLabel('Note text', { exact: true }).press('Escape')
-    await expect(editor(page)).toHaveCount(0); await expect(button(page, 'Note')).toBeFocused()
+    await expect(editor(page)).toHaveCount(0); await showRibbonItem(page, 'insert.note'); await showRibbonItem(page, 'insert.note'); await expect(button(page, 'Note')).toBeFocused()
     await expect(marker(page, '1:0')).toHaveCount(0)
     await expect(button(page, 'Undo')).toBeDisabled(); await expectNeighbors(page)
   })

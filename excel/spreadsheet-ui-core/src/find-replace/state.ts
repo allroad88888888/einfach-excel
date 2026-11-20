@@ -1,9 +1,17 @@
 import { atom } from '@einfach/core'
-import type { RustFindMatch, RustFindQuery } from '../rust-workbook/find-commands'
+import type { SpreadsheetCellFormat } from '../contracts'
+import type {
+  FindAlign,
+  FindNumberFormatKind,
+  RustFindFormatFilter,
+  RustFindMatch,
+  RustFindQuery,
+} from '../rust-workbook/find-commands'
 import type { CellRange } from '../shared'
 
 export interface FindReplaceForm extends RustFindQuery {
   readonly replacement: string
+  readonly replaceFormat?: RustFindFormatFilter
   readonly scope: 'sheet' | 'workbook' | 'current-selection'
 }
 
@@ -30,6 +38,79 @@ export interface FindReplacePanel {
   readonly notice: string | null
 }
 
+export function cleanFindFormat(
+  format: RustFindFormatFilter | undefined,
+): RustFindFormatFilter | undefined {
+  if (!format) return undefined
+  const next: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(format)) {
+    if (value !== undefined && value !== '') next[key] = value
+  }
+  return Object.keys(next).length > 0 ? (next as RustFindFormatFilter) : undefined
+}
+
+export function hasFindFormatCriteria(format: RustFindFormatFilter | undefined): boolean {
+  return cleanFindFormat(format) !== undefined
+}
+
+function mapNumberFormatKind(
+  format: SpreadsheetCellFormat['numberFormat'],
+): FindNumberFormatKind | undefined {
+  if (!format) return undefined
+  switch (format.kind) {
+    case 'decimal':
+      return 'number'
+    case 'percentage':
+      return 'percent'
+    case 'general':
+    case 'text':
+    case 'number':
+    case 'percent':
+    case 'currency':
+    case 'accounting':
+    case 'date':
+    case 'time':
+    case 'scientific':
+    case 'fraction':
+    case 'special':
+    case 'custom':
+      return format.kind
+    default:
+      return undefined
+  }
+}
+
+function mapAlign(align: SpreadsheetCellFormat['align']): FindAlign | undefined {
+  if (!align || align === 'default') return undefined
+  if (align === 'centerAcross') return 'center-across'
+  if (align === 'left' || align === 'center' || align === 'right') return align
+  return undefined
+}
+
+/** Captures explicit visual style attributes from the active cell for "Choose format from cell". */
+export function extractFormatFromCell(
+  format: SpreadsheetCellFormat | undefined,
+): RustFindFormatFilter | undefined {
+  if (!format) return undefined
+  const numKind = mapNumberFormatKind(format.numberFormat)
+  const customCode =
+    format.numberFormat?.kind === 'custom' ? format.numberFormat.pattern : undefined
+  return cleanFindFormat({
+    ...(format.bold ? { bold: true } : {}),
+    ...(format.italic ? { italic: true } : {}),
+    ...(format.underline ? { underline: true } : {}),
+    ...(format.strikethrough ? { strikethrough: true } : {}),
+    ...(format.fgColor ? { textColor: format.fgColor.toLowerCase() } : {}),
+    ...(format.bgColor && !format.fill ? { bgColor: format.bgColor.toLowerCase() } : {}),
+    ...(format.fontSize ? { fontSize: format.fontSize } : {}),
+    ...(format.fontFamily ? { fontFamily: format.fontFamily } : {}),
+    ...(mapAlign(format.align) ? { align: mapAlign(format.align) } : {}),
+    ...(format.wrap ? { wrapText: true } : {}),
+    ...(numKind && numKind !== 'general' ? { numberFormat: numKind } : {}),
+    ...(customCode ? { customFormatCode: customCode } : {}),
+  })
+}
+
 export const findReplaceStateAtom = atom<FindReplacePanel>({
   open: false,
   tab: 'find',
@@ -48,6 +129,7 @@ export const findReplaceStateAtom = atom<FindReplacePanel>({
     scope: 'sheet',
   },
 })
+findReplaceStateAtom.debugLabel = 'spreadsheet.findReplace.state'
 
 /** 视图只读面板投影；写入全部经过同一个语义 command。 */
 export const findReplacePanelAtom = atom((get) => get(findReplaceStateAtom))

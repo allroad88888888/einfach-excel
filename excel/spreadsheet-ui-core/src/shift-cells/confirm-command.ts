@@ -37,8 +37,15 @@ export const confirmShiftCellsAtom = atom(null, async (get, set): Promise<boolea
   }
   if (state.choice === 'entire-row' || state.choice === 'entire-column') {
     const axis = state.choice === 'entire-row' ? 'rows' : 'columns'
-    set(shiftCellsDialogAtom, CLOSED_SHIFT_CELLS_DIALOG)
-    return set(runSelectionStructureAtom, `${state.mode}-${axis}`)
+    const ok = await set(runSelectionStructureAtom, `${state.mode}-${axis}`)
+    if (ok) {
+      set(shiftCellsDialogAtom, CLOSED_SHIFT_CELLS_DIALOG)
+      return true
+    }
+    return fail(
+      get(selectionStructureFeedbackAtom).error ??
+        'Unprotect the worksheet before inserting or deleting rows and columns.',
+    )
   }
   const direction = DIRECTIONS[state.choice]
   if (!direction || !direction.startsWith(state.mode)) return fail('Choose how to shift the cells.')

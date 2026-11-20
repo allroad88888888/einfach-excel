@@ -1,5 +1,19 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonControl } from '../support/ribbon'
+import { downloadDateFile as downloadFile, openDateFile as openFile } from '../support/conditional-dates'
+
+/** Calendar F20 measures 119.01px + ceil = 120px; these two cases require a shorter column. */
+async function prepareShortColumn(page: import('@playwright/test').Page) {
+  await select(page, 'F20', '19:5')
+  await expect(page.locator('td[data-cell="19:5"]')).toHaveText('2024-03-01 12:00')
+  await showRibbonControl(page, 'Clear contents')
+  await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
+  // Reopen the real native file so the setup edit contributes no undo entry.
+  await openFile(page, await downloadFile(page))
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await select(page, 'A1', '0:0')
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/base-sales-orders/')
@@ -91,6 +105,7 @@ test('formatted cross-sheet formula results participate without changing the for
 test('empty columns reset their override; repeated auto-fit creates no extra undo', async ({
   page,
 }) => {
+  await prepareShortColumn(page)
   const handle = page.getByRole('separator', { name: 'Resize column F', exact: true })
   await handle.dblclick()
   await expect
@@ -119,6 +134,7 @@ test('empty columns reset their override; repeated auto-fit creates no extra und
 })
 
 test('a selected group fits each column independently in one undo', async ({ page }) => {
+  await prepareShortColumn(page)
   await page.getByRole('columnheader', { name: 'Select column E', exact: true }).click()
   await page
     .getByRole('columnheader', { name: 'Select column F', exact: true })

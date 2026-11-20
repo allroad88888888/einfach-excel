@@ -1,10 +1,17 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
-import { getSourceTextFromProjection } from '../projection/editable-source-text'
+import {
+  activeCellInputTextAtom,
+  getSourceTextFromProjection,
+} from '../projection/editable-source-text'
 import { projectionSnapshotAtom } from '../projection'
 import type { CellCoord } from '../shared'
 import { editingSessionAtom, returnToEditingSource, startEditingAtom } from './session-atoms'
 import { activeEditingCommitTicketAtom, editingCommitLifecycleAtom } from './commit-state'
-import { selectionAuthorityWitnessAtom } from '../selection'
+import {
+  activeCellAtom,
+  primarySelectionRegionAtom,
+  selectionAuthorityWitnessAtom,
+} from '../selection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import type { EditingInputSource } from './types'
@@ -16,6 +23,7 @@ import { nativeTableFeedbackAtom } from '../tables/native-feedback'
 import { getAxisSpanSize } from '../viewport/axis-geometry'
 import { sheetProtectionAtom } from '../protection/source-atoms'
 import { isCoordUnlocked } from '../protection/range-coverage'
+import { splitPaneProjectionsAtom } from '../viewport/split-window-state'
 import { clearLockedEditFeedbackForCellAtom, reportLockedEditFeedbackAtom } from './locked-edit-feedback'
 
 export interface StartCellEditingFromProjectionInput {
@@ -76,10 +84,19 @@ function startFromProjection(
   )
     return false
   const result = get(projectionSnapshotAtom).result
-  const merge =
+  const splitSnapshots = Object.values(get(splitPaneProjectionsAtom)).filter(
+    (snap) => snap !== undefined && snap.sheetId === input.sheetId,
+  )
+  let merge =
     result?.kind === 'visible-window' && result.sheetId === input.sheetId
       ? mergeRangeAt(result.mergedRanges ?? [], input.cell)
       : undefined
+  if (!merge) {
+    for (const snap of splitSnapshots) {
+      merge = mergeRangeAt(snap.mergedRanges ?? [], input.cell)
+      if (merge) break
+    }
+  }
   const cell = merge ? { row: merge.rowStart, col: merge.colStart } : input.cell
   const sizes = get(viewportGeometrySizesAtom)
   // 可点击的是整个合并框；锚点行/列隐藏，不代表剩余部分也不可编辑。
@@ -94,10 +111,23 @@ function startFromProjection(
     getAxisSpanSize(colStart, colEnd, colEnd + 1, 1, sizes.colWidthsBySheet[input.sheetId]) === 0
   )
     return false
+  const primaryRegion = get(primarySelectionRegionAtom)
+  const activeCell = get(activeCellAtom)
+  const isActiveCell =
+    primaryRegion.sheetId === input.sheetId &&
+    activeCell.row === cell.row &&
+    activeCell.col === cell.col
+  let splitSourceText: string | undefined
+  for (const snap of splitSnapshots) {
+    splitSourceText = getSourceTextFromProjection(snap, cell, input.sheetId)
+    if (splitSourceText !== undefined) break
+  }
   const sourceText =
-    result?.kind === 'visible-window'
+    (result?.kind === 'visible-window'
       ? getSourceTextFromProjection(result, cell, input.sheetId)
-      : undefined
+      : undefined) ??
+    splitSourceText ??
+    (isActiveCell ? get(activeCellInputTextAtom) : undefined)
   if (sourceText === undefined) return false
   if (!isCoordUnlocked(get(sheetProtectionAtom), input.sheetId, cell)) {
     if (input.source !== 'formula-bar')

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
@@ -9,8 +10,10 @@ test('a merge across both freeze boundaries is editable from its fixed fragment 
   page,
 }) => {
   await select(page, 'C3', '2:2')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await select(page, 'B2:D4', '1:1')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await page
     .getByRole('alertdialog')
@@ -42,6 +45,7 @@ test('large font updates only its frozen row and moves the separator with native
   page,
 }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   const corner = page.locator('[data-frozen-pane="corner"]')
   const before = (await corner.boundingBox())!.height
@@ -49,6 +53,7 @@ test('large font updates only its frozen row and moves the separator with native
     .getByRole('button', { name: 'Select row 3', exact: true })
     .boundingBox())!.height
   await select(page, 'A2', '1:0')
+  await showRibbonItem(page, 'format.font-size')
   await page.getByRole('combobox', { name: 'Font size', exact: true }).selectOption('36')
   await expect.poll(async () => (await corner.boundingBox())!.height).toBeGreaterThan(before)
   const header = (await page
@@ -67,10 +72,12 @@ test('inserting within a frozen band moves its boundary and undo restores its ge
   page,
 }) => {
   await select(page, 'C4', '3:2')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   // 保留原全局行头入口，验证冻结切窗后仍选择用户指定的第2行。
   await page.getByRole('button', { name: 'Select row 2', exact: true }).click()
   await expect(page.getByRole('textbox', { name: 'Name box', exact: true })).toHaveValue('A2:P2')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page
     .getByRole('combobox', { name: 'Insert or delete rows and columns' })
     .selectOption('insert-rows')
@@ -91,7 +98,8 @@ test('freeze panes stay aligned and usable on desktop and narrow screens', async
     await page.setViewportSize({ width, height: 800 })
     await page.goto('/e2e/fixtures/plain-sales-orders/')
     await select(page, 'B3', '2:1')
-    const menu = page.getByRole('combobox', { name: 'Freeze panes' })
+    await showRibbonItem(page, 'view.freeze-panes')
+    const menu = page.getByRole('combobox', { name: 'Freeze panes', includeHidden: true })
     await menu.scrollIntoViewIfNeeded()
     await menu.selectOption('selection')
     await expect(page.locator('[data-frozen-pane="corner"]')).toBeVisible()
@@ -115,6 +123,7 @@ test('freeze panes stay aligned and usable on desktop and narrow screens', async
     expect(left.y).toBe(corner.y + corner.height)
     expect(top.x).toBe(corner.x + corner.width)
     await page.screenshot({ path: info.outputPath(`freeze-${width}.png`), fullPage: true })
+    await showRibbonItem(page, 'view.freeze-panes')
     await menu.selectOption('unfreeze')
     await expect(page.locator('[data-frozen-pane]')).toHaveCount(0)
   }

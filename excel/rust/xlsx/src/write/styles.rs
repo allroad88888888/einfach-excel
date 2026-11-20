@@ -45,11 +45,7 @@ impl StyleTable {
         }
         let num_fmt = format.number_format.as_ref().map_or(0, |nf| self.num_fmt(&number_format::to_code(nf)));
         let font = intern(&mut self.fonts, font_xml(format));
-        let fill = match format.bg_color.as_deref().and_then(to_argb) {
-            Some(argb) => intern(&mut self.fills, format!(
-                r#"<fill><patternFill patternType="solid"><fgColor rgb="{argb}"/><bgColor indexed="64"/></patternFill></fill>"#)),
-            None => 0,
-        };
+        let fill = super::style_fills::xml(format).map_or(0, |xml| intern(&mut self.fills, xml));
         let border = match &format.borders {
             Some(borders) if *borders != Borders::default() => intern(&mut self.borders, border_xml(borders)),
             _ => 0,
@@ -57,7 +53,7 @@ impl StyleTable {
         let alignment = alignment_xml(format);
         let mut xf = format!(r#"<xf numFmtId="{num_fmt}" fontId="{font}" fillId="{fill}" borderId="{border}" xfId="0""#);
         for (flag, used) in [("applyNumberFormat", num_fmt != 0), ("applyFont", font != 0),
-            ("applyFill", fill != 0), ("applyBorder", border != 0), ("applyAlignment", alignment.is_some())] {
+            ("applyFill", fill != 0 || format.fill.is_some() || format.bg_color.is_some()), ("applyBorder", border != 0), ("applyAlignment", alignment.is_some())] {
             if used {
                 xf.push_str(&format!(r#" {flag}="1""#));
             }
@@ -138,6 +134,9 @@ fn font_xml(format: &CellFormat) -> String {
         Some(name) => xml.push_str(&format!(r#"<name val="{}"/>"#, escape(name))),
         None => xml.push_str(r#"<name val="Calibri"/><family val="2"/><scheme val="minor"/>"#),
     }
+    if let Some(baseline) = format.font_baseline {
+        xml.push_str(&format!(r#"<vertAlign val="{}"/>"#, baseline.xml()));
+    }
     xml.push_str("</font>");
     if xml == DEFAULT_FONT { DEFAULT_FONT.into() } else { xml }
 }
@@ -156,8 +155,14 @@ fn side_xml(tag: &str, side: &Option<BorderSide>) -> String {
 }
 
 fn border_xml(borders: &Borders) -> String {
-    format!("<border>{}{}{}{}<diagonal/></border>", side_xml("left", &borders.left),
-        side_xml("right", &borders.right), side_xml("top", &borders.top), side_xml("bottom", &borders.bottom))
+    let up = borders.diag_up.as_ref().filter(|spec| spec.style != "none");
+    let down = borders.diag_down.as_ref().filter(|spec| spec.style != "none");
+    let flags = if up.is_some() || down.is_some() {
+        format!(r#" diagonalUp="{}" diagonalDown="{}""#, u8::from(up.is_some()), u8::from(down.is_some()))
+    } else { String::new() };
+    format!("<border{flags}>{}{}{}{}{}</border>", side_xml("left", &borders.left),
+        side_xml("right", &borders.right), side_xml("top", &borders.top), side_xml("bottom", &borders.bottom),
+        side_xml("diagonal", &up.or(down).cloned()))
 }
 
 fn alignment_xml(format: &CellFormat) -> Option<String> {
@@ -172,8 +177,11 @@ fn alignment_xml(format: &CellFormat) -> Option<String> {
     if let Some(vertical @ ("top" | "center" | "bottom" | "justify" | "distributed")) = format.vertical_align.as_deref() {
         attrs.push_str(&format!(r#" vertical="{vertical}""#));
     }
-    if format.wrap == Some(true) {
-        attrs.push_str(r#" wrapText="1""#);
+    if let Some(wrap) = format.wrap {
+        attrs.push_str(if wrap { r#" wrapText="1""# } else { r#" wrapText="0""# });
+    }
+    if let Some(shrink) = format.shrink_to_fit {
+        attrs.push_str(if shrink { r#" shrinkToFit="1""# } else { r#" shrinkToFit="0""# });
     }
     if let Some(indent) = format.indent.filter(|&n| n > 0) {
         attrs.push_str(&format!(r#" indent="{indent}""#));

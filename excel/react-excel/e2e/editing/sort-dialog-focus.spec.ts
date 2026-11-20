@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab'])
   test(`${action} custom sort retains draft data and native redo at ${width}px`, async ({ page }, info) => {
@@ -16,6 +17,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab
     await expect(cell('93:7')).toHaveText('sort redo')
     await button('Undo').click()
     await select(page, 'D32:F37', '31:3')
+    await showRibbonItem(page, 'data.sort-selected-range')
     const menu = page.getByRole('combobox', { name: 'Sort selected range', exact: true })
     await menu.selectOption('custom')
     const dialog = page.getByRole('dialog', { name: 'Custom sort', exact: true })

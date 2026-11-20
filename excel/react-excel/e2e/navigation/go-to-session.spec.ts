@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -19,6 +20,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     await select(page, 'D90', '89:3')
     const scroll = page.locator('.sheet-scroll')
     const before = await scroll.evaluate(node => [node.scrollTop, node.scrollLeft])
+    await showRibbonItem(page, 'view.go-to')
     await button(page, 'Go to').click()
     const dialog = page.getByRole('dialog', { name: 'Go to', exact: true })
     const input = dialog.getByRole('textbox', { name: 'Reference', exact: true })
@@ -44,6 +46,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     await expect(page.getByRole('tab', { name: 'Sales Orders', exact: true }))
       .toHaveAttribute('aria-selected', 'true')
     await expect(button(page, 'Undo')).toBeDisabled()
+    await showRibbonItem(page, 'view.go-to')
     await button(page, 'Go to').click()
     await expect(input).toHaveValue('')
     await expect(dialog).toContainText('No recent locations yet.')

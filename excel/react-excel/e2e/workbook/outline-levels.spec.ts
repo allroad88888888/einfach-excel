@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -51,6 +52,7 @@ for (const level of [1, 2, 3]) for (const width of [1280])
 for (const level of [1, 2]) for (const width of [1280])
   test(`column outline level ${level} preserves manual hiding in one undo at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
+    await showRibbonItem(page, 'view.outline-groups')
     const menu = page.getByRole('combobox', { name: 'Outline groups' })
     if (level === 2) {
       await menu.selectOption('collapse-columns')

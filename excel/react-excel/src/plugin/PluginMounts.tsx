@@ -1,23 +1,20 @@
 import { useSetAtom } from '@einfach/react'
 import { useLingui } from '@lingui/react/macro'
-import type { WorkbookRibbonTab } from '@einfach-excel/spreadsheet-ui-core'
-import { Fragment } from 'react'
+import { Fragment, useMemo } from 'react'
 import { useSpreadsheetPlugins } from './plugin-context'
 import { contextMenuItemShown, ribbonItemShown, useWorkbookUiOptions } from '../page/workbook-ui-options'
 import type { ContextMenuContribution } from './types'
+import type { WorkbookRibbonGroup } from '../workbook/chrome/ribbon/ribbon-groups'
 
-/** 插件功能区分组排在内置分组之后，沿用内置的分类显隐规则。 */
-export function PluginRibbonGroups({ tab }: { readonly tab: WorkbookRibbonTab }) {
+/** 插件功能区分组排在内置分组之后，只在声明的分类显示，并和内置组一样按整组收进“更多”。 */
+export function usePluginRibbonGroups(): readonly WorkbookRibbonGroup[] {
   const plugins = useSpreadsheetPlugins()
   const ui = useWorkbookUiOptions()
-  return plugins.flatMap(plugin => (plugin.ribbon ?? [])
+  return useMemo(() => plugins.flatMap(plugin => (plugin.ribbon ?? [])
     .filter(({ id }) => ribbonItemShown(ui, `plugin:${plugin.id}:${id}`))
-    .map(({ id, tab: home, Group }) => (
-    <div key={`${plugin.id}:${id}`} className="ribbon-tool-group"
-      data-plugin={plugin.id} data-inactive={tab !== 'Start' && tab !== home}>
-      <Group />
-    </div>
-  )))
+    .map(({ id, tab, Group }) => ({
+      id: `plugin:${plugin.id}:${id}`, tab, layout: 'stack' as const, Content: Group, plugin: plugin.id,
+    }))), [plugins, ui])
 }
 
 function PluginMenuItem({ item, close }: {

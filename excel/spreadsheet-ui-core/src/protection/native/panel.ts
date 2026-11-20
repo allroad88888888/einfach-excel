@@ -15,7 +15,7 @@ import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../../projection'
 import { validateProjectionResult } from '../../projection/contracts'
 import { setSheetProtectionAtom } from '../index'
-import type { SheetProtectionState } from '../types'
+import type { SheetProtectionPermissions, SheetProtectionState } from '../types'
 
 interface Panel {
   sheetId: string | null
@@ -52,7 +52,14 @@ export const nativeProtectionPanelAtom = atom((get) => {
 })
 
 export const runNativeProtectionAtom = atom(null, async (get, set,
-  action: 'open' | 'close' | 'protect' | 'unprotect' | 'allow-selection' | { remove: number },
+  action:
+    | 'open'
+    | 'close'
+    | 'protect'
+    | 'unprotect'
+    | 'allow-selection'
+    | { remove: number }
+    | { permissions: SheetProtectionPermissions },
 ): Promise<boolean> => {
   const state = get(panelAtom)
   if (action === 'close') {
@@ -102,8 +109,11 @@ export const runNativeProtectionAtom = atom(null, async (get, set,
   if (state.revision !== result.revision)
     return fail('The workbook changed. Reopen worksheet protection.')
   let change: NativeProtectionChange
-  if (typeof action === 'object') change = { action: 'remove-range', index: action.remove }
-  else if (action === 'allow-selection') {
+  if (typeof action === 'object' && 'remove' in action) {
+    change = { action: 'remove-range', index: action.remove }
+  } else if (typeof action === 'object' && 'permissions' in action) {
+    change = { action: 'set-permissions', permissions: action.permissions }
+  } else if (action === 'allow-selection') {
     if (!state.selection) return fail('Select one rectangular range to allow editing.')
     change = { action: 'allow-range', range: state.selection }
   } else change = { action }

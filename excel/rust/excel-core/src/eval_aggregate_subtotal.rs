@@ -31,5 +31,7 @@ pub(super) fn fn_subtotal(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     } else {
         return Value::Error(ValueError::InvalidValue);
     };
-    run_subtotal(fn_norm, &args[1..], provider, policy)
+    run_subtotal(fn_norm, &args[1..], |arg, output| {
+        for_each_subtotal_argument(arg, provider, policy, output);
+    })
 }

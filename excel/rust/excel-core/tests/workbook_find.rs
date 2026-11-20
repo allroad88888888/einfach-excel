@@ -14,6 +14,7 @@ fn query(needle: &str) -> FindQuery {
         whole_cell: false,
         wildcards: false,
         look_in: FindLookIn::Formulas,
+        format: None,
     }
 }
 

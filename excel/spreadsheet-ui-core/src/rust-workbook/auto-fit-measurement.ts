@@ -1,3 +1,6 @@
+import type { RichTextRun } from '../contracts'
+import { fontBaselineLayout, fontVerticalMetrics } from '../text/font-baseline'
+import { measureAutoFitRichText } from './auto-fit-rich-text'
 import { formatNumberValue } from '../operations/format/numberFormat'
 import { usesNativeNumberDisplay } from './format-projection'
 import type { RustSparseCellStyle } from './wasm-types'
@@ -18,7 +21,9 @@ export interface AutoFitLayout {
 }
 
 export interface AutoFitText {
+  readonly richText?: readonly RichTextRun[]
   readonly text: string
+  readonly pads?: readonly { readonly char: string; readonly at: number }[]
   readonly numericValue?: number | null
   readonly format: RustSparseCellStyle
   readonly width: number
@@ -76,7 +81,7 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
     }
     return lines
   }
-  return ({ text: raw, numericValue, format, width }: AutoFitText): number => {
+  return ({ text: raw, pads, numericValue, format, width, richText }: AutoFitText): number => {
     const numberFormat = format.numberFormat
     const text =
       numericValue != null && numberFormat &&
@@ -89,7 +94,13 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
         : layout.fontSize
     const family = format.fontFamily?.trim()
     context.font = `${format.italic ? 'italic' : 'normal'} ${format.bold ? 'bold' : 'normal'} ${size}px ${family && /^[A-Za-z0-9, "'\-]+$/.test(family) ? family : layout.fontFamily}`
-    const lineHeight = (size * layout.lineHeight) / layout.fontSize
+    const baseline = fontBaselineLayout(size, format.fontBaseline ?? undefined)
+    const normal = fontVerticalMetrics(context.measureText('Mg'), size)
+    context.font = context.font.replace(`${size}px`, `${baseline.size}px`)
+    const glyph = fontVerticalMetrics(context.measureText('Mg'), baseline.size)
+    const lineHeight = Math.max((size * layout.lineHeight) / layout.fontSize,
+      baseline.shift ? Math.max(normal.ascent, glyph.ascent - baseline.shift) +
+        Math.max(normal.descent, glyph.descent + baseline.shift) : 0)
     const border = (side: 'top' | 'bottom' | 'left' | 'right', fallback: number) => {
       const style = format.borders?.[side]?.style
       if (!style || style === 'none') return fallback
@@ -112,11 +123,17 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
       layout.paddingBottom +
       border('top', layout.borderTop) +
       border('bottom', layout.borderBottom)
-    const wrap = format.overflow === 'wrap' || (!format.overflow && format.wrap)
-    const paragraphs = wrap
+    // 自定义格式的 DOM 使用 white-space: pre；留白和重复空格都不能折叠。
+    const custom = numberFormat?.kind === 'custom' || numberFormat?.kind === 'accounting'
+    const wrap = !custom && (format.overflow === 'wrap' || (!format.overflow && format.wrap))
+    const measuredText = custom && pads?.length
+      ? Array.from(text, (char, at) => pads.find((pad) => pad.at === at)?.char ?? char).join('')
+      : text
+    const paragraphs = custom ? measuredText.split('\n') : wrap
       ? text.replace(/\r\n?/g, '\n').split('\n')
       : [text.replace(/[\t\n\r ]+/g, ' ')]
-    let textWidth = Math.max(0, ...paragraphs.map(widthOf))
+    let textWidth = Math.max(0, ...(custom
+      ? customLineWidths(text, pads, widthOf) : paragraphs.map(widthOf)))
     let textHeight =
       lineHeight *
       paragraphs.reduce(
@@ -125,6 +142,14 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
           (axis === 'row' && wrap ? wrappedLines(paragraph, Math.max(1, width - horizontal)) : 1),
         0,
       )
+    if (richText?.length && richText.map(run => run.text).join('') === text) {
+      const rich = measureAutoFitRichText(context, richText, format, {
+        fontSize: size, fontFamily: family ?? layout.fontFamily,
+        lineRatio: layout.lineHeight / layout.fontSize,
+      }, axis === 'row' && wrap ? Math.max(1, width - horizontal) : undefined)
+      textWidth = rich.width
+      textHeight = rich.height
+    }
     if (axis === 'row' && wrap) textWidth = Math.min(textWidth, Math.max(1, width - horizontal))
     if (format.rotation === 'vertical') {
       // mixed writing-mode: CJK upright, latin runs sideways.
@@ -154,4 +179,22 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
     }
     return axis === 'row' ? textHeight + vertical : textWidth + horizontal
   }
+}
+
+/** 隐藏的留白 span 独立排版，分别测量以免把两侧文字的 kerning 算进留白。 */
+function customLineWidths(text: string, pads: AutoFitText['pads'], widthOf: (text: string) => number) {
+  const widths: number[] = []
+  let width = 0
+  let plain = ''
+  for (const [at, char] of Array.from(text).entries()) {
+    const pad = pads?.find((mark) => mark.at === at)
+    if (pad || char === '\n') {
+      width += widthOf(plain)
+      plain = ''
+      if (pad) width += widthOf(pad.char)
+      else { widths.push(width); width = 0 }
+    } else plain += char
+  }
+  widths.push(width + widthOf(plain))
+  return widths
 }

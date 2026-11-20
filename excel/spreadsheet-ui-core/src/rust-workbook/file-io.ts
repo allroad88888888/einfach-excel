@@ -39,7 +39,8 @@ export function exportWorkbookFile(
 ): { text: string; filename: string } {
   if (!workbook.snapshot_persistence_v1) throw new Error('Rust workbook export is unavailable.')
   const name = titleValue(title)
-  const ordered = [...sheets].sort((a, b) => a.index - b.index)
+  // Deleted sheets keep their canvas for Undo. The file records active sheets only.
+  const ordered = sheets.filter((sheet) => sheet.index !== -1).sort((a, b) => a.index - b.index)
   if (ordered.length !== workbook.sheet_count() ||
     ordered.some((sheet, index) => sheet.index !== index))
     throw new Error('Workbook sheet metadata is out of date. Try downloading again.')

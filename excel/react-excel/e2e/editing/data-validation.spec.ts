@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -6,6 +7,7 @@ const dialog = (page: Page) => page.getByRole('dialog', { name: 'Data validation
 const bar = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
 const list = (page: Page) => page.getByRole('combobox', { name: 'Choose cell value' })
 async function go(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()
@@ -13,6 +15,7 @@ async function go(page: Page, reference: string) {
   await expect(bar(page)).toBeEnabled()
 }
 async function open(page: Page) {
+  await showRibbonItem(page, 'data.data-validation')
   await button(page, 'Data validation').click()
   await expect(dialog(page)).toBeVisible()
   await expect(page.getByLabel('Applies to')).toBeEnabled()
@@ -96,20 +99,25 @@ test('values and ordinary paste obey Stop validation with atomic rejection and u
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await go(page, 'H45:H46')
   await page.evaluate(() => navigator.clipboard.writeText('7\n2'))
+  await showRibbonItem(page, 'clipboard.paste-values')
   await button(page, 'Paste values only').click()
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('Nothing was pasted')
+  await showRibbonItem(page, 'clipboard.paste')
   await expect(button(page, 'Paste')).toBeEnabled()
   await expect(cell(page, '44:7')).toHaveText('5')
   await expect(cell(page, '45:7')).toHaveText('0.5')
   await expect(button(page, 'Undo')).toBeDisabled()
+  await showRibbonItem(page, 'clipboard.paste')
   await button(page, 'Paste').click()
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('Nothing was pasted')
+  await showRibbonItem(page, 'clipboard.paste')
   await expect(button(page, 'Paste')).toBeEnabled()
   await expect(cell(page, '44:7')).toHaveText('5')
   await expect(cell(page, '45:7')).toHaveText('0.5')
   await expect(button(page, 'Undo')).toBeDisabled()
   await expect(cell(page, '46:7')).toHaveText('Ready')
   await page.evaluate(() => navigator.clipboard.writeText('7\n0.75'))
+  await showRibbonItem(page, 'clipboard.paste')
   await button(page, 'Paste').click()
   await expect(cell(page, '44:7')).toHaveText('7')
   await expect(cell(page, '45:7')).toHaveText('0.75')
@@ -125,6 +133,7 @@ test('values and ordinary paste obey Stop validation with atomic rejection and u
 
 test('row insertion moves list rule and undo restores the original cell', async ({ page }) => {
   await go(page, 'H47')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' }).selectOption('insert-rows')
   await go(page, 'H48')
   await expect(cell(page, '47:7')).toHaveText('Ready')

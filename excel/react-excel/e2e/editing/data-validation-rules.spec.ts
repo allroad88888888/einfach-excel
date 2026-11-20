@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -16,6 +17,7 @@ const cases = [
 ] as const
 
 async function open(page: Page) {
+  await showRibbonItem(page, 'data.data-validation')
   await button(page, 'Data validation').click()
   await expect(dialog(page)).toBeVisible()
   await expect(page.getByLabel('Allow', { exact: true })).toBeEnabled()
@@ -90,6 +92,7 @@ for (const width of [1280]) test.describe(`${width}px validation rule creation`,
       if (closing === 'cancel') await button(page, 'Cancel').click()
       else await page.getByLabel('Maximum', { exact: true }).press('Escape')
       await expect(dialog(page)).toHaveCount(0)
+      await showRibbonItem(page, 'data.data-validation')
       await expect(button(page, 'Data validation')).toBeFocused()
       await expect(button(page, 'Undo')).toBeDisabled()
       await expect(cell(page, '46:7')).toHaveText('Ready')

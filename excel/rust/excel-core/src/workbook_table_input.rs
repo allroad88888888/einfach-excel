@@ -95,6 +95,7 @@ impl TableDefinitionChange {
             cells: Vec::new(),
             filter: None,
             named_ranges: Vec::new(),
+            filter_criteria: Vec::new(),
             shifted_tables: Vec::new(),
             validations: ValidationShift::default(),
         }))
@@ -193,6 +194,7 @@ impl TableDefinitionChange {
                 .find(|(_, next)| next.range.contains(addr))
                 .unwrap();
             header.cells = Some(vec![CellSnapshot::value(addr, Value::Text(name.into()))]);
+            header.reconcile_rich_text_with_cells();
         }
         Ok(Some(change))
     }
@@ -202,6 +204,34 @@ impl TableDefinitionChange {
         workbook: &mut Workbook,
         addr: CellAddress,
         input: &str,
+        inherit_columns: bool,
+    ) -> Result<(), String> {
+        self.apply_expanding_input_with_rich_text(workbook, addr, input, None, inherit_columns)
+    }
+
+    pub(crate) fn apply_expanding_rich_text(
+        &mut self,
+        workbook: &mut Workbook,
+        addr: CellAddress,
+        input: &str,
+        runs: Vec<crate::rich_text::RichTextRun>,
+        inherit_columns: bool,
+    ) -> Result<(), String> {
+        self.apply_expanding_input_with_rich_text(
+            workbook,
+            addr,
+            input,
+            Some(runs),
+            inherit_columns,
+        )
+    }
+
+    fn apply_expanding_input_with_rich_text(
+        &mut self,
+        workbook: &mut Workbook,
+        addr: CellAddress,
+        input: &str,
+        mut rich_text: Option<Vec<crate::rich_text::RichTextRun>>,
         inherit_columns: bool,
     ) -> Result<(), String> {
         if self.before.has_headers && addr.row == self.before.range.start.row {
@@ -292,6 +322,13 @@ impl TableDefinitionChange {
                     .set_cell_input(self.sheet, &addr.to_string(), input)
                     .map_err(str::to_string)
             };
+            if result.is_ok() {
+                if let Some(runs) = rich_text.take() {
+                    result = workbook.sheets[self.sheet]
+                        .set_rich_text(addr, runs)
+                        .map_err(str::to_string);
+                }
+            }
             // Table 数据格不能成为 spill 锚点，失败必须还原输入与表定义。
             if result.is_ok()
                 && calculated.is_none()

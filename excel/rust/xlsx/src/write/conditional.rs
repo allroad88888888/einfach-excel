@@ -114,6 +114,30 @@ fn rule_xml(entry: &ConditionalEntry, priority: usize, styles: &mut StyleTable) 
     let stop = if rule["stopIfTrue"].as_bool() == Some(true) { r#" stopIfTrue="1""# } else { "" };
     let cell = cell_name(entry.scope.range.row_start, entry.scope.range.col_start);
     match rule["kind"].as_str()? {
+        "cell-state" => {
+            let (kind, body) = match rule["condition"].as_str()? {
+                "blank" => ("containsBlanks", format!("LEN(TRIM({cell}))=0")),
+                "not-blank" => ("notContainsBlanks", format!("LEN(TRIM({cell}))>0")),
+                "error" => ("containsErrors", format!("ISERROR({cell})")),
+                "not-error" => ("notContainsErrors", format!("NOT(ISERROR({cell}))")),
+                _ => return None,
+            };
+            Some(format!("{}{}{stop}><formula>{}</formula></cfRule>", head(kind), dxf(styles)?, escape(&body)))
+        }
+        "above-average" => {
+            let above = match rule["direction"].as_str()? {
+                "above" => 1, "below" => 0, _ => return None,
+            };
+            let equal = match rule.get("equalAverage") {
+                None => false, Some(value) => value.as_bool()?,
+            } as u8;
+            Some(format!(r#"{}{} aboveAverage="{above}" equalAverage="{equal}"{stop}/>"#, head("aboveAverage"), dxf(styles)?))
+        }
+        "time-period" => {
+            let period = rule["period"].as_str()?;
+            let body = escape(&crate::conditional_time_period::formula(period, &cell)?);
+            Some(format!(r#"{}{} timePeriod="{period}"{stop}><formula>{body}</formula></cfRule>"#, head("timePeriod"), dxf(styles)?))
+        }
         "color-scale" => Some(format!("{}>{}</cfRule>", head("colorScale"), color_scale(rule)?)),
         "data-bar" => Some(format!("{}>{}</cfRule>", head("dataBar"), data_bar(rule)?)),
         "cell-value" => {

@@ -27,6 +27,15 @@ pub struct OutlineGroup {
     pub start: u32,
     pub end: u32,
     pub collapsed: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subtotal: Option<SubtotalOutline>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SubtotalOutline {
+    pub id: u32,
+    pub summary_above: bool,
 }
 
 /// 顺序固定为外层在前；相同范围按原有顺序表示嵌套，无需额外 ID。
@@ -111,6 +120,7 @@ impl SheetOutline {
                     start,
                     end,
                     collapsed: false,
+                    subtotal: None,
                 });
                 groups.sort_by_key(|g| (g.start, std::cmp::Reverse(g.end)));
             }

@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { argumentsPanel, bar, button, cell, download, field, neighbors, openArguments } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
@@ -10,6 +11,7 @@ test.beforeEach(async ({ page }) => {
 
 test('FARG-007 cancelling argument forms and generated drafts writes nothing', async ({ page }) => {
   const before = await download(page)
+  await showRibbonItem(page, 'formula.insert-function')
   await button(page, 'Insert function').click()
   await page.getByRole('listbox', { name: 'Function', exact: true }).selectOption('LET')
   await page.getByRole('listbox', { name: 'Function', exact: true }).selectOption('IF')
@@ -17,6 +19,7 @@ test('FARG-007 cancelling argument forms and generated drafts writes nothing', a
   await openArguments(page, 'SUM'); await field(page, 'number').fill('SUM(1,2)')
   await page.keyboard.press('Escape')
   await expect(argumentsPanel(page)).toHaveCount(0)
+  await showRibbonItem(page, 'formula.insert-function')
   await expect(button(page, 'Insert function')).toBeFocused()
   await openArguments(page, 'IF')
   await field(page, 'logical_test').fill('TRUE'); await field(page, 'value_if_true').fill('7')
@@ -52,6 +55,7 @@ test('FARG-008 required and incomplete repeated arguments keep the form draft', 
 })
 
 test('protected target rejects an argument-generated draft without history or a native write', async ({ page }) => {
+  await showRibbonItem(page, 'data.worksheet-protection')
   await button(page, 'Worksheet protection').click(); await button(page, 'Protect worksheet').click()
   await expect(button(page, 'Unprotect worksheet')).toBeEnabled(); await button(page, 'Close').click()
   await openArguments(page, 'TODAY'); await button(page, 'Create formula draft').click()

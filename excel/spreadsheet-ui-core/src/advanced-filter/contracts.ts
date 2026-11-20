@@ -1,4 +1,5 @@
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
+import { filterDatePeriods, validFilterColorSource, validFilterColorValue } from '../filter/rule-types'
 
 export const maxFilterSelectionBytes = 1_048_576
 const bytes = new TextEncoder()
@@ -16,6 +17,11 @@ export function validFilterCondition(rule: ColumnFilterRule, columns: number): b
   if (rule.kind === 'equals' || rule.kind === 'contains')
     return typeof rule.value === 'string' && rule.value.length <= 32767 &&
       (rule.caseSensitive === undefined || typeof rule.caseSensitive === 'boolean')
+  if (rule.kind === 'top') return ['top', 'bottom'].includes(rule.direction) &&
+    ['items', 'percent'].includes(rule.unit) && Number.isSafeInteger(rule.value) &&
+    rule.value >= 1 && rule.value <= (rule.unit === 'items' ? 500 : 100)
+  if (rule.kind === 'date-period') return filterDatePeriods.includes(rule.period)
+  if (rule.kind === 'color') return validFilterColorSource(rule.source) && validFilterColorValue(rule.color)
   // Persisted flat lists predate selection byte budgets; keep their original shape limit.
   if (rule.kind === 'list') return Array.isArray(rule.values) && rule.values.length <= 1000 &&
     rule.values.every((value: unknown) => typeof value === 'string' && value.length <= 32767)
@@ -38,7 +44,7 @@ export function validFilterGroups(
     return count <= 32 && group.rules.every((rule) => {
       if (!validFilterCondition(rule, columns) ||
         (rule.kind === 'list' && !filterSelectionWithinBudget(rule.values))) return false
-      const strings = 'value' in rule ? [rule.value] : rule.kind === 'list' ? rule.values : []
+      const strings = rule.kind === 'equals' || rule.kind === 'contains' ? [rule.value] : rule.kind === 'list' ? rule.values : []
       payloadBytes += 128 + strings.reduce((sum: number, text: string) =>
         sum + bytes.encode(text).length + 24, 0)
       return payloadBytes <= 8 * maxFilterSelectionBytes

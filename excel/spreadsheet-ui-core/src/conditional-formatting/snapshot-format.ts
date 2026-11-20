@@ -1,18 +1,17 @@
 import type {
-  SpreadsheetBorderSpec,
   SpreadsheetCellFormat,
   SpreadsheetNumberFormat,
 } from '../contracts'
 import type { CellRange } from '../shared'
 import {
   ALIGNMENTS,
-  BORDER_SIDES,
-  BORDER_STYLES,
   NEGATIVE_FORMATS,
   OVERFLOWS,
   VERTICAL_ALIGNMENTS,
 } from './constants'
 import type { ConditionalFormatScope } from './types'
+import { snapshotCellBorders } from './snapshot-borders'
+import { snapshotCellFill } from '../contracts/cell-fill'
 
 export function isObjectRecord(value: unknown): value is Record<PropertyKey, unknown> {
   return typeof value === 'object' && value !== null
@@ -84,19 +83,6 @@ export function snapshotScope(value: unknown): ConditionalFormatScope | null {
     const additionalRanges = value.additionalRanges.map(snapshotRange)
     if (additionalRanges.some((area) => area === null)) return null
     return { range, additionalRanges: additionalRanges as CellRange[] }
-  } catch {
-    return null
-  }
-}
-
-function snapshotBorderSpec(value: unknown): SpreadsheetBorderSpec | null {
-  if (!isObjectRecord(value)) return null
-  try {
-    const style = value.style
-    const color = value.color
-    if (!isOneOf(style, BORDER_STYLES)) return null
-    if (color !== undefined && typeof color !== 'string') return null
-    return { style, ...(color === undefined ? {} : { color }) }
   } catch {
     return null
   }
@@ -232,6 +218,10 @@ export function snapshotFormat(value: unknown): SpreadsheetCellFormat | null {
         result[field] = value[field]
       }
     }
+    if (value.fontBaseline !== undefined) {
+      if (!isOneOf(value.fontBaseline, ['normal', 'superscript', 'subscript'] as const)) return null
+      result.fontBaseline = value.fontBaseline
+    }
     if (value.align !== undefined) {
       if (!isOneOf(value.align, ALIGNMENTS)) return null
       result.align = value.align
@@ -255,15 +245,14 @@ export function snapshotFormat(value: unknown): SpreadsheetCellFormat | null {
         return null
       result.rotation = value.rotation
     }
+    if (value.fill !== undefined) {
+      const fill = snapshotCellFill(value.fill)
+      if (fill === null) return null
+      result.fill = fill
+    }
     if (value.borders !== undefined) {
-      if (!isObjectRecord(value.borders)) return null
-      const borders: Partial<Record<(typeof BORDER_SIDES)[number], SpreadsheetBorderSpec>> = {}
-      for (const side of BORDER_SIDES) {
-        if (value.borders[side] === undefined) continue
-        const spec = snapshotBorderSpec(value.borders[side])
-        if (spec === null) return null
-        borders[side] = spec
-      }
+      const borders = snapshotCellBorders(value.borders)
+      if (borders === null) return null
       result.borders = borders
     }
     return result

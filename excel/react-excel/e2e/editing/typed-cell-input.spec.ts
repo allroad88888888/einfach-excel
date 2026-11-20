@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
@@ -63,6 +64,7 @@ for (const source of ['cell', 'formula'] as const) {
     page,
   }) => {
     const cell = await select(page, 'B10', '9:1')
+    await showRibbonItem(page, 'format.bold')
     await page.getByRole('button', { name: 'Bold', exact: true }).click()
     await expect(cell).toHaveCSS('font-weight', '700')
     if (source === 'cell') await cell.dblclick()

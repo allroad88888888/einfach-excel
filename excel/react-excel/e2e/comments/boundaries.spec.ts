@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { button, cell, marker, editor, timeline, author, body, openComments, createComment, closeComments, expectNeighbors } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) test.describe(`${width}px comment boundaries`, () => {
   test.use({ viewport: { width, height: 850 } })
@@ -13,6 +14,7 @@ for (const width of [1280]) test.describe(`${width}px comment boundaries`, () =>
     ['insert-rows', '2:0'], ['delete-rows', null], ['insert-columns', '1:1'], ['delete-columns', null],
   ] as const) test(`native ${operation} carries comment history at ${width}px`, async ({ page }) => {
     await createComment(page)
+    await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
     await page.getByRole('combobox', { name: 'Insert or delete rows and columns' }).selectOption(operation)
     await expect(marker(page, '1:0')).toHaveCount(0)
     if (moved) await expect(marker(page, moved)).toHaveCount(1)
@@ -53,9 +55,11 @@ for (const width of [1280]) test.describe(`${width}px comment boundaries`, () =>
     // K3原本是日期；空白场景通过真实清空命令准备，不能把有值格当空白格。
     await select(page, 'K3', '2:10')
     await expect(cell(page, '2:10')).toHaveText('2026-09-04')
+    await showRibbonItem(page, 'clear.contents')
     await button(page, 'Clear contents').click()
     await expect(cell(page, '2:10')).toHaveText('')
     await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
+    await showRibbonItem(page, 'clear.contents')
     await expect(button(page, 'Clear contents')).toBeEnabled()
     await createComment(page, 'K3', '2:10', 'Blank discussion')
     await expect(cell(page, '2:10')).toHaveText('')
@@ -77,9 +81,11 @@ for (const width of [1280]) test.describe(`${width}px comment boundaries`, () =>
     await expect(cell(page, '2:10')).toHaveText('2026-09-04')
     await select(page, 'L3', '2:11'); await expect(cell(page, '2:11')).toHaveText('Express')
     await select(page, 'K3:L3', '2:10')
+    await showRibbonItem(page, 'data.merge-cells')
     await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
     const confirmation = page.getByRole('alertdialog', { name: 'Merge these cells?', exact: true })
     await expect(confirmation).toBeVisible()
+    await showRibbonItem(confirmation, 'data.merge-cells')
     await confirmation.getByRole('button', { name: 'Merge cells', exact: true }).click()
     await expect(confirmation).toHaveCount(0)
     const merged = page.locator('[data-merged-cell="true"][data-cell="2:10"]')
@@ -101,6 +107,7 @@ for (const width of [1280]) test.describe(`${width}px comment boundaries`, () =>
 
   test(`frozen pane retains the comment marker while scrolling at ${width}px`, async ({ page }) => {
     await createComment(page, 'A1', '0:0', 'Frozen discussion')
+    await showRibbonItem(page, 'view.freeze-panes')
     await page.getByRole('combobox', { name: 'Freeze panes', exact: true }).selectOption('first-row')
     await select(page, 'A50', '49:0')
     const frozen = page.locator('[data-frozen-pane="top"] td[data-cell="0:0"]')
@@ -113,7 +120,7 @@ for (const width of [1280]) test.describe(`${width}px comment boundaries`, () =>
   })
 
   test(`protected cells reject comments while an editable range accepts them at ${width}px`, async ({ page }) => {
-    await select(page, 'G2', '1:6'); await button(page, 'Worksheet protection').click()
+    await select(page, 'G2', '1:6'); await showRibbonItem(page, 'data.worksheet-protection'); await showRibbonItem(page, 'data.worksheet-protection'); await button(page, 'Worksheet protection').click()
     await button(page, 'Allow editing in selection G2').click()
     await expect(button(page, 'Remove editable range G2')).toBeVisible()
     await button(page, 'Protect worksheet').click()

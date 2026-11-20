@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { unmergeSalesFillRange } from '../support/fill-range'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Fill series', exact: true })
@@ -13,6 +14,7 @@ async function select(page: Page, address: string) {
 }
 async function open(page: Page, address: string, kind = 'number', count = '2') {
   await select(page, address)
+  await showRibbonItem(page, 'data.fill-series')
   await page.getByRole('button', { name: 'Fill series', exact: true }).click()
   await dialog(page).getByLabel('Sequence type').selectOption(kind)
   await dialog(page).getByLabel('Source sample count').fill(count)
@@ -107,6 +109,7 @@ test('formula samples reject without overwriting a destination and cancel restor
   await expect(cell(page, '72:1')).toHaveText('')
   await page.keyboard.press('Escape')
   await expect(dialog(page)).toHaveCount(0)
+  await showRibbonItem(page, 'data.fill-series')
   await expect(page.getByRole('button', { name: 'Fill series', exact: true })).toBeFocused()
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
 })
@@ -139,16 +142,19 @@ test('a thousand-row sequence reaches the final native record and one undo resto
 test('hidden targets participate and existing clipboard snapshot is unchanged', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await select(page, 'A40')
+  await showRibbonItem(page, 'clipboard.copy')
   await page.getByRole('button', { name: 'Copy', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Copied')
   await write(page, 'H8', '1')
   await write(page, 'H9', '3')
   await open(page, 'H8:H12')
   await apply(page)
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await select(page, 'H10')
   await expect(cell(page, '9:7')).toHaveText('5')
   await select(page, 'H14')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(cell(page, '13:7')).toHaveText('1')
 })
@@ -167,6 +173,7 @@ for (const width of [1280, 390]) {
     await expect(dialog(page).getByRole('alert')).toBeInViewport()
     await page.screenshot({ path: info.outputPath(`series-error-${width}.png`) })
     await page.keyboard.press('Escape')
+    await showRibbonItem(page, 'data.fill-series')
     await expect(page.getByRole('button', { name: 'Fill series', exact: true })).toBeFocused()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     expect(errors).toEqual([])

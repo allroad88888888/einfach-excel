@@ -100,6 +100,7 @@ export function FormulaAuditingToolbar(): JSX.Element {
         <button
           data-ribbon-item="formula.evaluate-formula"
           type="button"
+          aria-haspopup="dialog"
           className="tool-button"
           disabled={!available}
           data-auditing-action="evaluate-formula"

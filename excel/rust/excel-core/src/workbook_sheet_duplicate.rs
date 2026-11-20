@@ -225,6 +225,7 @@ impl Workbook {
         let merges = self.sheets[source].merged_ranges().to_vec();
         let freeze = self.sheets[source].frozen_panes();
         let outline = self.sheets[source].outline().clone();
+        let subtotal_regions = self.sheets[source].subtotal_regions.clone();
         let validations = self.sheets[source].data_validations().to_vec();
         let rich_text = self.sheets[source].rich_text_in_range(full);
         let drawings = self.sheets[source].drawings().to_vec();
@@ -247,6 +248,7 @@ impl Workbook {
         });
         copy.restore_merged_ranges(merges)?;
         copy.set_frozen_panes(freeze)?;
+        copy.subtotal_regions = subtotal_regions;
         for region in validations {
             copy.set_data_validation(region.range, Some(region.rule.as_ref().clone()))?;
         }
@@ -274,7 +276,17 @@ impl Workbook {
     }
 
     fn copy_filter(&mut self, source: usize, target: usize) {
-        let filter = self.sheets[source].filter().cloned();
+        let filter = self.sheets[source].filter().cloned().map(|mut filter| {
+            if let Some(link) = filter.range_criteria().and_then(|criteria| criteria.link) {
+                if link.sheet_key == self.sheet_key(source) {
+                    filter.set_criteria_link(crate::advanced_filter::range_state::CriteriaLink {
+                        sheet_key: self.sheet_key(target),
+                        ..link
+                    });
+                }
+            }
+            filter
+        });
         if self.sheets[target].commit_filter_state(filter) {
             self.republish_hidden(target);
         }

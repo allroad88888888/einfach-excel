@@ -50,6 +50,10 @@ fn sort_range_error_to_js(err: SortRangeError) -> JsValue {
         SortRangeError::EmptyKeys => sort_error_to_js("empty-keys", None, None),
         SortRangeError::KeyOutOfRange => sort_error_to_js("key-out-of-range", None, None),
         SortRangeError::MergeIntersectsRange => sort_error_to_js("merge-in-range", None, None),
+        SortRangeError::TableIntersectsRange => sort_error_to_js("table-in-column-sort", None,
+            Some("Convert the table to a range before sorting left to right.")),
+        SortRangeError::FilterIntersectsRange => sort_error_to_js("filter-in-column-sort", None,
+            Some("Clear the active filter before sorting this range left to right.")),
         SortRangeError::ProtectedRange => sort_error_to_js(
             "protected-range", None, Some(einfach_excel_core::protection::PROTECTED_ERROR),
         ),

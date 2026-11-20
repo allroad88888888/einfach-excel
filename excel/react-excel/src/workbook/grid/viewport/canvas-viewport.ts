@@ -6,7 +6,7 @@ import { gridZoomOf } from '../../zoom/grid-zoom'
 export function bindCanvasViewport(canvas: HTMLCanvasElement,
   view: ReturnType<typeof createCanvasCells>) {
   const owner = canvas.parentElement!
-  const scroll = canvas.closest<HTMLElement>('.sheet-scroll')
+  const scroll = canvas.closest<HTMLElement>('.sheet-scroll, .split-pane-scroll')
   const pane = canvas.closest<HTMLElement>('.frozen-pane')
   const frame = canvas.closest<HTMLElement>('.sheet-grid-frame')
   const container = pane ?? scroll

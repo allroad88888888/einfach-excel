@@ -1,0 +1,26 @@
+.cell-fill-dialog {
+  width: min(380px, calc(100vw - 48px));
+  padding: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #1e293b;
+  background: #fff;
+  box-shadow: 0 12px 40px #0f172a33;
+}
+.cell-fill-dialog::backdrop { background: #0f172a33; }
+.cell-fill-dialog h2 { margin: 0 0 16px; font-size: 18px; }
+.cell-fill-dialog fieldset { margin: 0; padding: 0; border: 0; display: grid; gap: 8px; }
+.cell-fill-dialog label { display: grid; gap: 4px; }
+.cell-fill-dialog input, .cell-fill-dialog select, .cell-fill-dialog button {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid #94a3b8;
+  border-radius: 4px;
+}
+.cell-fill-dialog p { font-size: 12px; }
+.cell-fill-dialog [role='alert'] { color: #b91c1c; }
+.cell-fill-preview { height: 64px; border: 1px solid #94a3b8; }
+.cell-fill-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+.gradient-rectangle-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gradient-rectangle-fields input { width: 100%; min-width: 0; box-sizing: border-box; }

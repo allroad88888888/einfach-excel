@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { unmergeSalesFillRange } from '../support/fill-range'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const menu = (page: Page) => page.getByRole('combobox', { name: 'Fill selected range' })
@@ -12,6 +13,7 @@ async function select(page: Page, address: string) {
   await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
 }
 async function fill(page: Page, direction: 'down' | 'right') {
+  await showRibbonItem(page, 'data.fill-selected-range')
   await menu(page).selectOption(direction)
   await expect(page.getByLabel('Fill status')).toHaveText(`Filled ${direction}.`)
 }
@@ -74,6 +76,7 @@ for (const modifier of ['Control', 'Meta']) {
     await page.keyboard.press(`${modifier}+r`)
     await expect(cell(page, '70:5')).toHaveText('Fill me')
     await select(page, 'D73:F73')
+    await showRibbonItem(page, 'data.fill-selected-range')
     await input(page).fill('draft')
     await expect(menu(page)).toBeDisabled()
     // DOM 事件验证输入框的默认行为没有被 grid 接管；不触发浏览器刷新。
@@ -92,6 +95,7 @@ for (const modifier of ['Control', 'Meta']) {
 
 test('blank clears destination and plain source overrides inherited column styles', async ({ page }) => {
   await page.getByRole('columnheader', { name: 'Select column E', exact: true }).click()
+  await showRibbonItem(page, 'format.bold')
   await page.getByRole('button', { name: 'Bold', exact: true }).click()
   await write(page, 'D75', '0')
   await select(page, 'D75:E75')
@@ -107,9 +111,11 @@ test('blank clears destination and plain source overrides inherited column style
 
 test('single cell and merged destinations fail visibly without damaging data or history', async ({ page }) => {
   await select(page, 'A71')
+  await showRibbonItem(page, 'data.fill-selected-range')
   await menu(page).selectOption('down')
   await expect(page.getByRole('alert', { name: 'Fill status' })).toContainText('Include a source')
   await select(page, 'A14:D15')
+  await showRibbonItem(page, 'data.fill-selected-range')
   await menu(page).selectOption('down')
   await expect(page.getByRole('alert', { name: 'Fill status' })).toContainText('unmerge')
   await expect(cell(page, '14:0')).toHaveText('Merged heading')
@@ -121,6 +127,7 @@ test('single cell and merged destinations fail visibly without damaging data or 
 
 test('fills offscreen rows including hidden rows and restores row heights on undo', async ({ page }) => {
   await write(page, 'E2', 'Tall')
+  await showRibbonItem(page, 'format.font-size')
   await page.getByRole('combobox', { name: 'Font size', exact: true }).selectOption('36')
   await select(page, 'E2:E100')
   await fill(page, 'down')
@@ -132,6 +139,7 @@ test('fills offscreen rows including hidden rows and restores row heights on und
   await expect(cell(page, '99:4')).toHaveText('')
   expect((await cell(page, '99:4').boundingBox())!.height).toBeLessThan(36)
   await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await select(page, 'E10')
   await expect(cell(page, '9:4')).toHaveText('Tall')
@@ -140,6 +148,7 @@ test('fills offscreen rows including hidden rows and restores row heights on und
 test('fill leaves the existing copy snapshot untouched', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await select(page, 'A71')
+  await showRibbonItem(page, 'clipboard.copy')
   await page.getByRole('button', { name: 'Copy', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Copied')
   await select(page, 'B71:D73')
@@ -148,6 +157,7 @@ test('fill leaves the existing copy snapshot untouched', async ({ page, context 
   await expect(cell(page, '72:2')).toHaveText('')
   await expect(cell(page, '72:3')).toHaveText('Fill me')
   await select(page, 'H75')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(cell(page, '74:7').locator('.cell-content')).toBeVisible()
   await expect(cell(page, '74:7').locator('.cell-content')).toHaveText('2')
@@ -174,10 +184,13 @@ for (const width of [1280, 390]) {
     page.on('pageerror', (error) => errors.push(error.message))
     await page.setViewportSize({ width, height: 800 })
     await select(page, 'B71:B73')
+    await showRibbonItem(page, 'data.fill-selected-range')
     await menu(page).scrollIntoViewIfNeeded()
+    await showRibbonItem(page, 'data.fill-selected-range')
     await expect(menu(page)).toBeInViewport()
     await fill(page, 'down')
-    await page.getByLabel('Fill status').scrollIntoViewIfNeeded()
+    // 窄屏下填充组收在“更多”里，执行后面板收起；重新展开查看反馈。
+    await showRibbonItem(page, 'data.fill-selected-range')
     await expect(page.getByLabel('Fill status')).toBeInViewport()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.screenshot({ path: info.outputPath(`fill-${width}.png`) })

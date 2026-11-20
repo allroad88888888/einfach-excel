@@ -72,6 +72,7 @@ impl ColorScaleRule {
             } else { blend(mid, self.max, unit_position(value, bounds.median, bounds.max)) }
         } else { blend(self.min, self.max, unit_position(value, bounds.min, bounds.max)) };
         CellStyle { background: Some(Some(format!("#{:02x}{:02x}{:02x}", color[0], color[1], color[2]))),
+            fill: Some(None),
             ..CellStyle::default() }
     }
 }

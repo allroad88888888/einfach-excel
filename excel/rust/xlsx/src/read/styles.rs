@@ -21,18 +21,19 @@ struct Font {
     size: Option<f64>,
     name: Option<String>,
     color: Option<String>,
+    baseline: Option<crate::font_baseline::FontBaseline>,
 }
 
 #[derive(Default)]
 struct Parsed {
     num_fmts: HashMap<u32, String>,
     fonts: Vec<Font>,
-    fills: Vec<Option<String>>,
+    fills: Vec<super::style_fills::Fill>,
     borders: Vec<Borders>,
     xfs: Vec<CellFormat>,
 }
 
-enum Section { None, Font, Fill, Border(Option<&'static str>), CellXfs, Other }
+enum Section { None, Font, Border(Option<&'static str>), CellXfs, Other }
 
 fn color_of(e: &BytesStart, theme: &[String]) -> Option<String> {
     if let Some(rgb) = attr(e, "rgb") {
@@ -45,7 +46,7 @@ fn color_of(e: &BytesStart, theme: &[String]) -> Option<String> {
     attr_u32(e, "indexed").and_then(|index| color::from_indexed(index as usize))
 }
 
-fn border_style(style: &str) -> Option<&'static str> {
+pub(super) fn border_style(style: &str) -> Option<&'static str> {
     Some(match style {
         "thin" | "hair" => "thin",
         "medium" => "medium",
@@ -90,6 +91,7 @@ fn xf_format(e: &BytesStart, parsed: &Parsed) -> CellFormat {
     }
     let default_font = parsed.fonts.first().cloned().unwrap_or_default();
     if let Some(font) = parsed.fonts.get(attr_u32(e, "fontId").unwrap_or(0) as usize) {
+        format.font_baseline = font.baseline;
         if font.bold { format.bold = Some(true); }
         if font.italic { format.italic = Some(true); }
         if font.underline { format.underline = Some(true); }
@@ -100,7 +102,10 @@ fn xf_format(e: &BytesStart, parsed: &Parsed) -> CellFormat {
         if font.name != default_font.name { format.font_family = font.name.clone(); }
         if font.color != default_font.color { format.fg_color = font.color.clone(); }
     }
-    format.bg_color = parsed.fills.get(attr_u32(e, "fillId").unwrap_or(0) as usize).cloned().flatten();
+    let fill_id = attr_u32(e, "fillId").unwrap_or(0);
+    if attr_bool(e, "applyFill", true) && (fill_id != 0 || attr_bool(e, "applyFill", false)) {
+        if let Some(fill) = parsed.fills.get(fill_id as usize) { fill.apply(&mut format); }
+    }
     let borders = parsed.borders.get(attr_u32(e, "borderId").unwrap_or(0) as usize).cloned()
         .unwrap_or_default();
     if borders != Borders::default() {
@@ -125,15 +130,27 @@ fn alignment(e: &BytesStart, format: &mut CellFormat) {
         // bottom 是 Excel 默认，与引擎默认一致，不必写。
         _ => None,
     };
-    if attr_bool(e, "wrapText", false) {
-        format.wrap = Some(true);
-    }
+    format.wrap = attr(e, "wrapText").map(|_| attr_bool(e, "wrapText", false));
+    // Explicit false must override a row/column's shrink setting after import.
+    format.shrink_to_fit = attr(e, "shrinkToFit").map(|_| attr_bool(e, "shrinkToFit", false));
     format.indent = attr_u32(e, "indent").filter(|&n| n > 0).map(|n| n.min(15) as u8);
 }
 
-pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, XlsxError> {
-    let Some(xml) = xml else { return Ok(Vec::new()) };
-    let mut parsed = Parsed::default();
+pub struct ParsedStyles {
+    pub formats: Vec<CellFormat>,
+    pub diagonal_losses: usize,
+    pub fill_losses: usize,
+    pub incomplete_gradients: usize,
+}
+
+pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<ParsedStyles, XlsxError> {
+    let Some(xml) = xml else {
+        return Ok(ParsedStyles { formats: Vec::new(), diagonal_losses: 0,
+            fill_losses: 0, incomplete_gradients: 0 });
+    };
+    let (diagonals, unsupported) = super::diagonal_borders::parse(xml, theme);
+    let (fills, fill_losses, incomplete_gradients) = super::style_fills::parse(xml, theme);
+    let mut parsed = Parsed { fills, ..Default::default() };
     let mut section = Section::None;
     let mut reader = Reader::from_str(xml);
     loop {
@@ -171,11 +188,10 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, Xls
                 section = if empty { Section::None } else { Section::Font };
             }
             (b"fill", _) => {
-                parsed.fills.push(None);
-                section = if empty { Section::None } else { Section::Fill };
+                section = if empty { Section::None } else { Section::Other };
             }
             (b"border", _) => {
-                parsed.borders.push(Borders::default());
+                parsed.borders.push(diagonals.get(parsed.borders.len()).cloned().unwrap_or_default());
                 section = if empty { Section::None } else { Section::Border(None) };
             }
             (b"cellXfs", _) => section = Section::CellXfs,
@@ -190,20 +206,13 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, Xls
                     b"i" => font.italic = attr_bool(&e, "val", true),
                     b"strike" => font.strike = attr_bool(&e, "val", true),
                     b"u" => font.underline = attr(&e, "val").as_deref() != Some("none"),
+                    b"vertAlign" => font.baseline = attr(&e, "val").as_deref()
+                        .and_then(crate::font_baseline::FontBaseline::from_xml),
                     b"sz" => font.size = attr_f64(&e, "val"),
                     b"name" => font.name = attr(&e, "val"),
                     b"color" => font.color = color_of(&e, theme),
                     _ => {}
                 }
-            }
-            (b"patternFill", Section::Fill) => {
-                if attr(&e, "patternType").as_deref().is_none_or(|kind| kind == "none") {
-                    // 无图案填充：本 fill 没有背景色，等 </fill> 再回到顶层。
-                    section = Section::Other;
-                }
-            }
-            (b"fgColor", Section::Fill) => {
-                if let Some(fill) = parsed.fills.last_mut() { *fill = color_of(&e, theme) }
             }
             (side @ (b"left" | b"right" | b"top" | b"bottom" | b"start" | b"end"), Section::Border(_)) => {
                 let side = std::str::from_utf8(side).unwrap_or_default();
@@ -213,6 +222,7 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, Xls
                     section = Section::Border(Some(match side {
                         "top" => "top", "bottom" => "bottom", "left" | "start" => "left", _ => "right",
                     }));
+                    if empty { section = Section::Border(None); }
                 }
             }
             (b"color", Section::Border(Some(side))) => {
@@ -224,7 +234,7 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<Vec<CellFormat>, Xls
             _ => {}
         }
     }
-    Ok(parsed.xfs)
+    Ok(ParsedStyles { formats: parsed.xfs, diagonal_losses: unsupported, fill_losses, incomplete_gradients })
 }
 
 /// Actual font size for each XF, including a font equal to the workbook's default font.

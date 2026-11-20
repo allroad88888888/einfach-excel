@@ -87,7 +87,30 @@ pub(super) fn apply_paste(
                 CellStyle::from_format(CellFormat::default()),
             );
         }
-        for (addr, _, format) in planned {
+        for (addr, value, format) in planned {
+            // Content-only paste modes write plain content even when text equals the target.
+            // Ordinary text editing rebases runs; that behavior must not leak into paste.
+            if matches!(
+                options.mode,
+                ClipboardPasteMode::Values
+                    | ClipboardPasteMode::ValuesAndNumberFormats
+                    | ClipboardPasteMode::Formulas
+                    | ClipboardPasteMode::FormulasAndNumberFormats
+            ) && value.is_some()
+            {
+                sheet.restore_rich_text(CellRange::single(addr), &[]);
+            } else if options.mode == ClipboardPasteMode::ValuesAndFormats && value.is_some() {
+                if options.arithmetic == ClipboardArithmetic::None && merges.target.contains(addr) {
+                    let (_, source) =
+                        snapshot.cell_at_target(addr, merges.target, options.transpose);
+                    sheet.restore_rich_text(
+                        CellRange::single(addr),
+                        &[(addr, source.rich_text.clone())],
+                    );
+                } else {
+                    sheet.restore_rich_text(CellRange::single(addr), &[]);
+                }
+            }
             // 普通粘贴携带链接；仅值/公式/格式不改变目标的链接元数据。
             // 扩表可额外生成粘贴矩形外的表头；它们没有对应剪贴板源格。
             if options.mode == ClipboardPasteMode::All

@@ -12,6 +12,7 @@ pub(super) struct StructuralSnapshot {
     pub(super) merges: Vec<CellRange>,
     pub(super) freeze: crate::FrozenPanes,
     pub(super) outline: crate::outline::SheetOutline,
+    pub(super) subtotal_regions: Vec<crate::subtotal::SubtotalRegion>,
     pub(super) data_validations: Vec<crate::data_validation::DataValidationRegion>,
     pub(super) drawings: Vec<(usize, Vec<crate::drawings::SheetDrawing>)>,
     pub(super) conditional_formats: Vec<(usize, Vec<ConditionalFormatRuleEntry>)>,
@@ -33,6 +34,7 @@ impl StructuralSnapshot {
             merges: workbook.sheets[sheet].merged_ranges().to_vec(),
             freeze: workbook.sheets[sheet].frozen_panes(),
             outline: workbook.sheets[sheet].outline.clone(),
+            subtotal_regions: workbook.sheets[sheet].subtotal_regions.clone(),
             data_validations: workbook.sheets[sheet].data_validations.clone(),
             drawings: drawing_sheets.iter()
                 .map(|&index| (index, workbook.sheets[index].drawings.clone())).collect(),
@@ -53,6 +55,7 @@ impl StructuralSnapshot {
             + self.merges.len() * std::mem::size_of::<CellRange>()
             + std::mem::size_of::<crate::FrozenPanes>()
             + crate::sheet::metadata_bytes(&self.outline)
+            + crate::sheet::metadata_bytes(&self.subtotal_regions)
             + crate::sheet::metadata_bytes(&self.conditional_formats)
             + crate::sheet::metadata_bytes(&self.data_validations)
             + crate::sheet::metadata_bytes(&self.drawings)

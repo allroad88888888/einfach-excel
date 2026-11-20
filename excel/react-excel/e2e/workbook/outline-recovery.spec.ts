@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 
 async function outline(page: Page, action: string) {
+  await showRibbonItem(page, 'view.outline-groups')
   const menu = page.getByRole('combobox', { name: 'Outline groups' })
   await menu.selectOption(action)
   await expect(menu).toBeEnabled()
@@ -65,6 +67,7 @@ for (const width of [1280])
     await expect(cell(page, '13:7')).toHaveText('Keep redo')
     await button(page, 'Undo').click()
     await select(page, 'A11:A14', '10:0')
+    await showRibbonItem(page, 'view.outline-groups')
     await page.getByRole('combobox', { name: 'Outline groups' }).selectOption('group-rows')
     await expect(page.getByRole('alert')).toContainText('not partially overlap')
     await expect(button(page, 'Collapse rows 8–12, level 1')).toBeVisible()

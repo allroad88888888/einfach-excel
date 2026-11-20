@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
@@ -13,6 +14,7 @@ for (const width of [1280])
     await select(page, 'E4:F4', '3:4')
     await copy(page)
     await select(page, 'E10', '9:4')
+    await showRibbonItem(page, 'data.paste-special')
     await page.getByRole('button', { name: 'Paste special', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Paste special', exact: true })
     await dialog.getByRole('combobox', { name: 'Paste content', exact: true }).selectOption('values')
@@ -44,6 +46,7 @@ for (const width of [1280])
     const owner = await cell(page, '8:8').textContent()
     const originalFont = await cell(page, '8:6').evaluate(node => getComputedStyle(node).fontFamily)
     await page.evaluate(() => navigator.clipboard.writeText('\t0\tfalse'))
+    await showRibbonItem(page, 'data.paste-special')
     await page.getByRole('button', { name: 'Paste special', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Paste special', exact: true })
     await dialog.getByRole('combobox', { name: 'Paste content', exact: true }).selectOption('values')

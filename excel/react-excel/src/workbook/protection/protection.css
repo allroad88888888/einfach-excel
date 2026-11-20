@@ -32,3 +32,21 @@
   :where(.einfach-spreadsheet) .protection-panel { padding: 16px; }
   :where(.einfach-spreadsheet) .protection-actions button { flex: 1 1 auto; }
 }
+
+:where(.einfach-spreadsheet) .protection-permissions {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 6px;
+}
+:where(.einfach-spreadsheet) .protection-permissions legend {
+  padding: 0 4px;
+  font-weight: 600;
+}
+:where(.einfach-spreadsheet) .protection-permissions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

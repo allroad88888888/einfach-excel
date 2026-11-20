@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 // 已确认的发送被拒绝后，必须保留原值并重新征求确认，不能沿用失效的 discard 授权。
 for (const width of [1280])
@@ -24,6 +25,7 @@ for (const width of [1280])
         post.call(this, message, Array.isArray(options) ? { transfer: options } : (options ?? {}))
       }
     })
+    await showRibbonItem(page, 'data.merge-cells')
     const menu = page.getByRole('combobox', { name: 'Merge cells', exact: true })
     await menu.selectOption('merge')
     const dialog = page.getByRole('alertdialog', { name: 'Merge these cells?', exact: true })

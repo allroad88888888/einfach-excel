@@ -30,6 +30,7 @@ export const PHYSICAL_SORT_REJECTION_MESSAGES: Readonly<
   'source-too-large': 'Sort could not run: the range is too large to sort.',
   'merge-in-range':
     'Sort could not run: the range contains merged cells. Unmerge them before sorting.',
+  'protected-range': 'This worksheet is protected. Unprotect it before changing locked cells.',
 })
 export const physicalSortRejectionMessage = (
   code: PhysicalSortDiagnosticCode,
@@ -176,6 +177,7 @@ const isRejectionCode = (value: unknown): value is SortRangeRejectionCode =>
     'invalid-payload',
     'source-too-large',
     'merge-in-range',
+    'protected-range',
   ].includes(value as string)
 const sameRange = (left: CellRange, right: CellRange) =>
   left.rowStart === right.rowStart &&

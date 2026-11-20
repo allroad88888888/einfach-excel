@@ -21,7 +21,7 @@ pub(super) struct SubtotalHiddenSets {
 impl SubtotalHiddenSets {
     /// Streaming membership test across both sets — two hash probes, no
     /// intermediate allocation. A row present in both is simply skipped once.
-    fn contains(&self, row: u32) -> bool {
+    pub(super) fn contains(&self, row: u32) -> bool {
         self.filter.as_ref().is_some_and(|h| h.contains(&row))
             || self.manual.as_ref().is_some_and(|h| h.contains(&row))
     }
@@ -61,6 +61,17 @@ pub(super) fn subtotal_hidden_for_arg(
         // no row is ever filtered regardless.
         Err(_) => provider.current_sheet_index(),
     };
+    subtotal_hidden_for_sheet(provider, policy, sheet_index)
+}
+
+pub(super) fn subtotal_hidden_for_sheet(
+    provider: &dyn EvalProvider,
+    policy: SubtotalHiddenPolicy,
+    sheet_index: Option<usize>,
+) -> SubtotalHiddenSets {
+    if policy == SubtotalHiddenPolicy::IncludeAll {
+        return SubtotalHiddenSets::default();
+    }
     SubtotalHiddenSets {
         filter: provider.filter_hidden_rows(sheet_index),
         manual: match policy {

@@ -1,5 +1,6 @@
 import { atom } from '@einfach/core'
-import type { RangeBorderPatch, SpreadsheetBorders, SpreadsheetCellFormat } from '../contracts'
+import type { FontBaseline, RangeBorderPatch, SpreadsheetBorders, SpreadsheetCellFormat } from '../contracts'
+import { snapshotCellFill, type SpreadsheetCellFill } from '../contracts/cell-fill'
 import { activeCellFormatAtom, projectionSnapshotAtom } from '../projection'
 import {
   runSelectionMutationAtom,
@@ -52,7 +53,10 @@ export type SelectionFormatAction =
   | NumberFormatAction
   | { readonly type: 'font-family'; readonly value: string }
   | { readonly type: 'font-size'; readonly value: number }
+  | { readonly type: 'font-baseline'; readonly value: FontBaseline }
+  | { readonly type: 'shrink-to-fit'; readonly value: boolean }
   | { readonly type: 'fill-color'; readonly value: string | null }
+  | { readonly type: 'cell-fill'; readonly value: SpreadsheetCellFill; readonly background: string }
   | { readonly type: 'text-color'; readonly value: string | null }
   | TextLayoutAction
 
@@ -68,6 +72,16 @@ function nextPatch(
   borderPatch?: RangeBorderPatch
 } | null {
   if (typeof action !== 'string') {
+    if (action.type === 'cell-fill') {
+      const fill = snapshotCellFill(action.value)
+      return fill && /^#[\da-f]{6}$/i.test(action.background)
+        ? { format: { fill, bgColor: action.background.toLowerCase() } } : null
+    }
+    if (action.type === 'shrink-to-fit') {
+      return typeof action.value === 'boolean'
+        ? { format: { shrinkToFit: action.value, ...(action.value ? { wrap: false } : {}) } }
+        : null
+    }
     if (action.type === 'horizontal-alignment') {
       return ['default', 'left', 'center', 'right', 'centerAcross'].includes(action.value)
         ? { format: { align: action.value } } : null
@@ -85,9 +99,17 @@ function nextPatch(
     if (action.type === 'fill-color' || action.type === 'text-color') {
       const field = action.type === 'fill-color' ? 'bgColor' : 'fgColor'
       // null 是清除此字段，不把白色/黑色冒充“无填充/自动”；仍由 Rust 处理继承覆盖。
-      if (action.value === null) return { format: {}, clearFormatFields: [field] }
+      if (action.value === null) return { format: {},
+        clearFormatFields: action.type === 'fill-color' ? ['bgColor', 'fill'] : ['fgColor'] }
       const color = action.value.trim()
-      return /^#[\da-f]{6}$/i.test(color) ? { format: { [field]: color.toLowerCase() } } : null
+      return /^#[\da-f]{6}$/i.test(color) ? { format: { [field]: color.toLowerCase() },
+        ...(action.type === 'fill-color' ? { clearFormatFields: ['fill'] as const } : {}) } : null
+    }
+    if (action.type === 'font-baseline') {
+      if (!['normal', 'superscript', 'subscript'].includes(action.value)) return null
+      const fontBaseline = action.value === (current.fontBaseline ?? 'normal')
+        ? 'normal' : action.value
+      return { format: { fontBaseline } }
     }
     if (action.type === 'font-family') {
       const fontFamily = action.value.trim()
@@ -106,7 +128,7 @@ function nextPatch(
     return { format: { [action]: !current[action] } }
   }
   if (action === 'wrap-text') {
-    return { format: { wrap: !current.wrap } }
+    return { format: { wrap: !current.wrap, ...(!current.wrap ? { shrinkToFit: false } : {}) } }
   }
   if (action === 'text-color') {
     return current.fgColor === SELECTION_TEXT_COLOR
@@ -114,9 +136,9 @@ function nextPatch(
       : { format: { fgColor: SELECTION_TEXT_COLOR } }
   }
   if (action === 'fill-color') {
-    return current.bgColor === SELECTION_FILL_COLOR
-      ? { format: {}, clearFormatFields: ['bgColor'] }
-      : { format: { bgColor: SELECTION_FILL_COLOR } }
+    return !current.fill && current.bgColor === SELECTION_FILL_COLOR
+      ? { format: {}, clearFormatFields: ['bgColor', 'fill'] }
+      : { format: { bgColor: SELECTION_FILL_COLOR }, clearFormatFields: ['fill'] }
   }
   if (action === 'all-borders') {
     const enabled = BORDER_SIDES.every((side) => {

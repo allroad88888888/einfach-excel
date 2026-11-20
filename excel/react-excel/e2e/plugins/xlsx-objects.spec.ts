@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonControl } from '../support/ribbon'
 
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGP4z8DAwMAAAA0BAf8MNHMXAAAAAElFTkSuQmCC', 'base64')
 const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -19,6 +20,7 @@ test('pictures and sparklines survive downloading as Excel and opening the file 
   await page.keyboard.press('Enter')
   await cell(page, '0:0').click()
   await cell(page, '0:2').click({ modifiers: ['Shift'] })
+  await showRibbonControl(page, 'Create sparklines: Column')
   await button(page, 'Create sparklines: Column').click()
   await page.getByLabel('Location range').fill('E1')
   await button(page, 'OK').click()

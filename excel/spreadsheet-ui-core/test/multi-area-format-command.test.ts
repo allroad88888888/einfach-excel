@@ -62,6 +62,25 @@ test('font size publishes the native sizes for every area, including offscreen r
     .toEqual({ 1: 51, 90: 51, 91: 51 })
 })
 
+test('a pattern descriptor and both colors share one protected multi-area transaction', async () => {
+  const { store, write, read } = await setup()
+  const action = { type: 'cell-fill' as const, background: '#fff2cc',
+    value: { kind: 'pattern' as const, pattern: 'lightDown' as const, foreground: '#c00000' } }
+  store.setter(setSheetProtectionAtom, { sheetId: 's', state: { mode: 'protected',
+    unlockedRanges: [targets[0]],
+  } })
+  expect(await store.setter(applySelectionFormatAtom, action)).toBe('blocked')
+  expect(write).not.toHaveBeenCalled()
+  store.setter(setSheetProtectionAtom, { sheetId: 's', state: { mode: 'protected',
+    unlockedRanges: targets,
+  } })
+  expect(await store.setter(applySelectionFormatAtom, action)).toBe('completed')
+  expect(write).toHaveBeenCalledTimes(1)
+  expect(write.mock.calls[0][0]).toMatchObject({ targets, writeMode: 'patch',
+    format: { fill: action.value, bgColor: action.background } })
+  expect(read).toHaveBeenCalledTimes(1)
+})
+
 test('a protected later area rejects the entire format request', async () => {
   const { store, write } = await setup()
   store.setter(setSheetProtectionAtom, { sheetId: 's', state: { mode: 'protected',

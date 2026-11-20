@@ -1,9 +1,14 @@
 //! XLSX 字节 → 原生工作簿文件。
 
+mod style_layers;
+mod style_fills;
+mod gradient_fills;
+mod diagonal_borders;
 mod archive;
 pub(crate) mod charts;
 mod chartex;
 mod conditional;
+mod conditional_average;
 mod defined_names;
 mod dom;
 mod drawings;
@@ -84,7 +89,12 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
     let rich_strings = rich_text::shared(&strings_xml, &theme.colors);
     report.add("themeFonts", theme.custom_fonts);
     let styles_xml = match &parts.styles { Some(path) => archive.read(path)?, None => None };
-    let xfs = styles::parse(styles_xml.as_deref(), &theme.colors)?;
+    let parsed_styles = styles::parse(styles_xml.as_deref(), &theme.colors)?;
+    report.add("diagonalBorders", parsed_styles.diagonal_losses);
+    report.add("unsupportedFills", parsed_styles.fill_losses
+        + style_fills::unsupported_dxf_count(styles_xml.as_deref()));
+    report.add("incompleteGradients", parsed_styles.incomplete_gradients);
+    let xfs = parsed_styles.formats;
     let font_sizes = styles::font_sizes(styles_xml.as_deref());
     let dxfs = dxf::parse(styles_xml.as_deref(), &theme.colors);
     let shared = features::Shared { dxfs: &dxfs, theme: &theme.colors, date1904: parts.date1904 };
@@ -119,6 +129,8 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         });
         canvases.push(Canvas { row_count: MAX_ROWS, col_count: MAX_COLS });
 
+        let (row_styles, column_styles, unsupported_styles) = style_layers::read(&data, &xfs);
+        report.add("rowColumnStyles", unsupported_styles);
         let mut cell_styles = Vec::new();
         for cell in data.cells {
             let addr = cell_name(cell.row, cell.col);
@@ -153,10 +165,10 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
                 });
             }
         }
-        if !cell_styles.is_empty() {
+        if !cell_styles.is_empty() || !row_styles.is_empty() || !column_styles.is_empty() {
             workbook.formats.push(FormatRange {
                 sheet: Some(index as u32), start_row: 0, start_col: 0, end_row: u32::MAX, end_col: u32::MAX,
-                cell_styles, ..Default::default()
+                cell_styles, row_styles, column_styles,
             });
         }
         if !data.row_heights.is_empty() || !data.col_widths.is_empty() {

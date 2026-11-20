@@ -1,8 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function open(page: Page, category?: string) {
+  await showRibbonItem(page, 'format.number-format-settings')
   await page.getByRole('button', { name: 'Number format settings' }).click()
   if (category) await page.getByLabel('Number format category').selectOption(category)
 }
@@ -47,8 +49,10 @@ test('scientific half-up precision preserves formulas and supports decimal short
   await apply(page)
   await expect(cell(page, '2:5')).toHaveText('1.235E+04')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('=12345')
+  await showRibbonItem(page, 'format.increase-decimal-places')
   await page.getByRole('button', { name: 'Increase decimal places' }).click()
   await expect(cell(page, '2:5')).toHaveText('1.2345E+04')
+  await showRibbonItem(page, 'format.decrease-decimal-places')
   await page.getByRole('button', { name: 'Decrease decimal places' }).click()
   await expect(cell(page, '2:5')).toHaveText('1.235E+04')
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
@@ -87,6 +91,7 @@ test('time displays day fractions, clock rollover and elapsed hours without chan
   await expect(cell(page, '2:5')).toHaveText('12:00 PM')
   await input(page, '-0.25')
   await expect(cell(page, '2:5')).toHaveText('#####')
+  await showRibbonItem(page, 'format.general-format')
   await page.getByRole('button', { name: 'General format', exact: true }).click()
   await expect(cell(page, '2:5')).toHaveText('-0.25')
 })
@@ -144,8 +149,10 @@ test('native time text survives sheet switching and auto-fit measures the displa
 
 test('all new categories format frozen merged fragments from the native anchor', async ({ page }) => {
   await select(page, 'F3', '2:5')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await select(page, 'E2:G4', '1:4')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await page.getByRole('alertdialog').getByRole('button', { name: 'Merge cells', exact: true }).click()
   const fragments = page.locator('[data-merged-cell="true"]')
@@ -178,6 +185,7 @@ for (const width of [1280, 390]) {
     await page.screenshot({ path: info.outputPath(`time-${width}.png`) })
     await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'format.number-format-settings')
     await expect(page.getByRole('button', { name: 'Number format settings' })).toBeFocused()
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   })

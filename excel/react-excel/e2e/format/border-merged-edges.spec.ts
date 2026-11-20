@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const merged = (page: Page) => page.locator('[data-merged-cell][data-cell="7:1"]')
 const segment = (page: Page, side: string, coord: string) =>
@@ -7,6 +8,7 @@ const segment = (page: Page, side: string, coord: string) =>
 async function paint(page: Page, address: string, coord: string, preset: string,
   color = '#123abc', style = 'thin') {
   await select(page, address, coord)
+  await showRibbonItem(page, 'format.border-settings')
   await page.getByRole('button', { name: 'Border settings', exact: true }).click()
   await page.getByLabel('Position', { exact: true }).selectOption(preset)
   if (preset !== 'none') {
@@ -19,8 +21,10 @@ async function paint(page: Page, address: string, coord: string, preset: string,
 async function merge(page: Page) {
   await select(page, 'B8:D10', '7:1')
   // 本用例需要空合并区域；Summary 分组示例现在在 B9 有原生数值。
+  await showRibbonItem(page, 'clear.contents')
   await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
   await expect(page.locator('td[data-cell="8:1"]')).toHaveText('')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await expect(merged(page)).toBeVisible()
 }
@@ -28,6 +32,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
   await expect(page.locator('td[data-cell="9:0"]')).toHaveText('Hidden row example')
 })
@@ -103,6 +108,7 @@ test('hiding the last merged row keeps its bottom edge at the collapsed boundary
   await merge(page)
   await paint(page, 'B8:D10', '7:1', 'outside', '#c00000', 'thick')
   await select(page, 'A10', '9:0')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('hide-rows')
   await select(page, 'A2', '1:0')
   const bottom = segment(page, 'bottom', '9:2')

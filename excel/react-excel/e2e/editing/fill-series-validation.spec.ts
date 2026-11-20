@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
@@ -10,6 +11,7 @@ for (const width of [1280])
     await expect(cell(page, '1:0')).toHaveText('SO-10001')
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
     await select(page, 'A40:A44', '39:0')
+    await showRibbonItem(page, 'data.fill-series')
     await page.getByRole('button', { name: 'Fill series', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Fill series', exact: true })
     const count = dialog.getByRole('spinbutton', { name: 'Source sample count', exact: true })

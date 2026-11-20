@@ -1,17 +1,20 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Alternating colors', exact: true })
 const blue = 'rgb(232, 240, 254)'
 async function go(page: Page, ref: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(ref)
   await button(page, 'Go').click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
 }
 async function open(page: Page) {
+  await showRibbonItem(page, 'format.alternating-colors')
   await button(page, 'Alternating colors').click()
   await expect(dialog(page)).toBeVisible()
 }
@@ -82,6 +85,7 @@ test('native seed bands keep header formatting and move with inserted rows', asy
   await open(page); await expect(page.getByLabel('First row is a header')).toBeChecked()
   await button(page, 'Cancel').click()
   await go(page, 'H85')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' }).selectOption('insert-rows')
   await expect(cell(page, '86:7')).toHaveCSS('background-color', blue)
   await go(page, 'H87'); await open(page)
@@ -126,6 +130,7 @@ for (const width of [1280, 390]) test(`banding dialog fits ${width}px and restor
   await page.screenshot({ path: info.outputPath(`alternating-colors-${width}.png`), fullPage: true })
   await page.getByLabel('Band color').press('Escape')
   await expect(dialog(page)).toHaveCount(0)
+  await showRibbonItem(page, 'format.alternating-colors')
   await expect(button(page, 'Alternating colors')).toBeFocused()
   await expect(button(page, 'Undo')).toBeDisabled()
   expect(errors).toEqual([])

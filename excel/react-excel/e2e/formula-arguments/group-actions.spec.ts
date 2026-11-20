@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { argumentsPanel, button, cell, commitArguments, field, neighbors, openArguments } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
@@ -33,6 +34,7 @@ test('FARG-011 Cancel button discards the argument form without a write', async 
   await openArguments(page, 'IF'); await field(page, 'logical_test').fill('TRUE')
   await field(page, 'value_if_true').fill('7'); await button(page, 'Cancel').click()
   await expect(argumentsPanel(page)).toHaveCount(0)
+  await showRibbonItem(page, 'formula.insert-function')
   await expect(button(page, 'Insert function')).toBeFocused()
   await expect(cell(page)).toHaveText('Northwind'); await expect(button(page, 'Undo')).toBeDisabled()
   await neighbors(page)
@@ -42,6 +44,7 @@ test('FARG-012 Escape discards the argument form and restores its trigger', asyn
   await openArguments(page, 'LET'); await field(page, 'name').fill('x')
   await page.keyboard.press('Escape')
   await expect(argumentsPanel(page)).toHaveCount(0)
+  await showRibbonItem(page, 'formula.insert-function')
   await expect(button(page, 'Insert function')).toBeFocused()
   await expect(cell(page)).toHaveText('Northwind'); await expect(button(page, 'Undo')).toBeDisabled()
   await neighbors(page)

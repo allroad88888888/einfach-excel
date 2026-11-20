@@ -1,8 +1,10 @@
 import type { RustFillRangeRequest } from './commands'
 import type { WasmWorkbook } from './wasm-types'
 import { withHistory } from './history-io'
+import { normalizeCustomFillSeriesListWitness } from '../auto-fill/list-locale'
+import { validateFillNamedLists } from '../auto-fill/named-list-candidates'
 import type { CellRange } from '../shared'
-import { minimumFillSamples } from '../auto-fill/series-options'
+import { minimumFillSamples, isExplicitDateSeries } from '../auto-fill/series-options'
 
 const nativeRange = (range: CellRange) => ({
   startRow: range.rowStart, endRow: range.rowEnd, startCol: range.colStart, endCol: range.colEnd,
@@ -11,9 +13,52 @@ const nativeRange = (range: CellRange) => ({
 /** 选区前 N 行／列作为源；数据、序列推断、样式覆盖及历史快照全部留在 Rust。 */
 export function fillRange(
   workbook: WasmWorkbook, sheet: number, input: RustFillRangeRequest,
-): CellRange {
+): CellRange | undefined {
   const { direction } = input
   let { range } = input
+  if (input.flash) {
+    const rows = range.rowEnd - range.rowStart + 1
+    const cols = range.colEnd - range.colStart + 1
+    if (
+      !Object.values(range).every((n) => Number.isSafeInteger(n) && n >= 0) ||
+      rows < 1 ||
+      cols !== 1 ||
+      range.rowEnd >= 1_048_576 ||
+      range.colEnd >= 16_384
+    ) {
+      throw new Error('Select a single column for Flash Fill.')
+    }
+    if (!workbook.apply_auto_fill) throw new Error('Rust fill command is unavailable.')
+    const report = workbook.apply_auto_fill({
+      sheet,
+      sourceRange: nativeRange(range),
+      targetRange: nativeRange(range),
+      direction: 'down',
+      series: 'flash-fill',
+      ...(input.validationConfirmation
+        ? { validationConfirmation: input.validationConfirmation }
+        : {}),
+    })
+    if (report.written === 0 && report.writeRange == null) return undefined
+    const actual = report.writeRange
+    if (
+      !actual ||
+      !Number.isSafeInteger(report.written) ||
+      report.written < 1 ||
+      !Object.values(actual).every(Number.isSafeInteger) ||
+      actual.startCol !== range.colStart ||
+      actual.endCol !== range.colEnd ||
+      actual.startRow > actual.endRow
+    ) {
+      throw new Error('Rust returned an invalid fill report.')
+    }
+    return {
+      rowStart: actual.startRow,
+      rowEnd: actual.endRow,
+      colStart: actual.startCol,
+      colEnd: actual.endCol,
+    }
+  }
   if (input.adjacent) {
     if (direction !== 'down' || !input.sourceRange || input.series ||
       !Number.isSafeInteger(input.adjacent.rowLimit) || input.adjacent.rowLimit < 1 ||
@@ -44,11 +89,26 @@ export function fillRange(
     sourceCount < minimumFillSamples(series.kind) ||
     sourceCount >= (direction === 'down' ? rows : cols) || (direction === 'down' ? cols : rows) !== 1))
     throw new Error('Select one row or column, with enough source samples and at least one destination.')
-  const custom = series?.kind === 'custom-list' ? series.customValues : undefined
-  if (series?.kind === 'custom-list' && (!Array.isArray(custom) || custom.length < 2 ||
-    custom.length > 512 || custom.some((value) => typeof value !== 'string') ||
-    custom.join('').length > 16_384))
+  if (series?.kind === 'geometric' && (sourceCount !== 1 ||
+    !Number.isFinite(series.step) || (series.stop !== undefined &&
+      (!Number.isFinite(series.stop) || series.step! <= 0 || series.step === 1))))
+    throw new Error('Geometric series requires one source, a finite step and a valid optional stop.')
+  if (series && isExplicitDateSeries(series.kind) && (sourceCount !== 1 ||
+    !Number.isSafeInteger(series.step) || series.step === 0 || series.stop !== undefined))
+    throw new Error('Enter a non-zero safe whole-number step.')
+  const customValues = series?.kind === 'custom-list' ? series.customValues : undefined
+  if (series?.kind === 'custom-list' && (!Array.isArray(customValues) ||
+    customValues.length < 2 || customValues.length > 512 ||
+    customValues.some(value => typeof value !== 'string') || customValues.join('').length > 16_384))
     throw new Error('Enter 2–512 custom list items, at most 16384 characters.')
+  const custom = series?.kind === 'custom-list' ? normalizeCustomFillSeriesListWitness({
+    listName: 'custom-fill', values: series.customValues, locale: series.customLocale ?? 'en',
+  }) : null
+  if (series?.kind === 'custom-list' && !custom)
+    throw new Error('Enter 2–512 non-empty, unique list items.')
+  const namedLists = input.auto && !series ? input.namedLists : undefined
+  if (namedLists && !validateFillNamedLists(namedLists))
+    throw new Error('Invalid named-list candidates.')
   if (!workbook.apply_auto_fill || !workbook.history_begin || !workbook.history_finish ||
     !workbook.snapshot_viewport_sizes)
     throw new Error('Rust fill command is unavailable.')
@@ -71,30 +131,43 @@ export function fillRange(
     : direction === 'up' ? { ...range, rowEnd: source.rowStart - 1 }
       : direction === 'right' ? { ...range, colStart: source.colEnd + 1 }
         : { ...range, colEnd: source.colStart - 1 }
-  withHistory(
-    workbook,
+  const apply = () => workbook.apply_auto_fill!({
     sheet,
-    destination,
-    `Fill ${series ? `${series.kind} series` : direction}`,
-    true,
-    () =>
-      workbook.apply_auto_fill!({
-        sheet,
-        sourceRange: nativeRange(source),
-        targetRange: nativeRange(range),
-        direction,
-        ...(input.validationConfirmation
-          ? { validationConfirmation: input.validationConfirmation }
-          : {}),
-        series:
-          series?.kind === 'number'
-            ? 'integer-step'
-            : series?.kind === 'date'
-              ? 'date-day'
-              : (series?.kind ?? 'copy'),
-        ...(series || input.auto ? { infer: true } : {}),
-        ...(custom ? { list: { listName: 'custom-fill', values: custom, locale: 'en' } } : {}),
-      }),
+    sourceRange: nativeRange(source),
+    targetRange: nativeRange(range),
+    direction,
+    ...(input.validationConfirmation
+      ? { validationConfirmation: input.validationConfirmation }
+      : {}),
+    series:
+      series?.kind === 'number'
+        ? 'integer-step'
+        : series?.kind === 'date'
+          ? 'date-day'
+          : (series?.kind ?? 'copy'),
+    ...(series?.kind === 'geometric'
+      ? { infer: false, step: series.step,
+        ...(series.stop !== undefined ? { stop: series.stop } : {}) }
+      : series && isExplicitDateSeries(series.kind) ? { infer: false, step: series.step }
+        : series || input.auto ? { infer: true } : {}),
+    ...(custom ? { list: custom } : {}),
+    ...(namedLists?.length ? { namedLists } : {}),
+  })
+  // Geometric Stop must plan its prefix before history checks protected destinations.
+  const report = series?.kind === 'geometric' ? apply() : withHistory(
+    workbook, sheet, destination, `Fill ${series ? `${series.kind} series` : direction}`,
+    true, apply,
   )
-  return destination
+  if (report.written === 0 && report.writeRange == null) return undefined
+  const actual = report.writeRange
+  if (!actual || !Number.isSafeInteger(report.written) || report.written < 1 ||
+    !Object.values(actual).every(Number.isSafeInteger) ||
+    actual.startRow < destination.rowStart || actual.endRow > destination.rowEnd ||
+    actual.startCol < destination.colStart || actual.endCol > destination.colEnd ||
+    actual.endRow < actual.startRow || actual.endCol < actual.startCol ||
+    report.written !== (actual.endRow - actual.startRow + 1) *
+      (actual.endCol - actual.startCol + 1))
+    throw new Error('Rust returned an invalid fill report.')
+  return { rowStart: actual.startRow, rowEnd: actual.endRow,
+    colStart: actual.startCol, colEnd: actual.endCol }
 }

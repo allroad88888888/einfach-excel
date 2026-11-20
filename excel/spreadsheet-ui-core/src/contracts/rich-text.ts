@@ -1,3 +1,5 @@
+import type { FontBaseline } from './cell-format'
+
 /** Inline formatting overrides the inherited cell font only for this text run. */
 export interface RichTextFormat {
   readonly bold?: boolean
@@ -7,6 +9,7 @@ export interface RichTextFormat {
   readonly color?: string
   readonly fontFamily?: string
   readonly fontSize?: number
+  readonly fontBaseline?: FontBaseline
 }
 export interface RichTextRun {
   readonly text: string
@@ -22,6 +25,8 @@ export function validRichText(runs: unknown, text: string): runs is readonly Ric
     content += run.text
     if (content.length > 131068 || run.text.includes('\0')) return false
     const f = run.format
+    if (f.fontBaseline !== undefined &&
+      !['normal', 'superscript', 'subscript'].includes(f.fontBaseline)) return false
     if (
       ['bold', 'italic', 'underline', 'strikethrough'].some(
         (key) => f[key] !== undefined && typeof f[key] !== 'boolean',

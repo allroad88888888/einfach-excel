@@ -1,4 +1,5 @@
 //! 工作簿查询只读取原生稀疏数据；分页限制只约束返回列表，不改变查询总数。
+use crate::find_format::FindFormatFilter;
 use crate::find_text::{utf16_span, FindText};
 use crate::{value_to_display, CellAddress, CellRange, Workbook};
 use einfach_core::Value;
@@ -18,6 +19,7 @@ pub struct FindQuery {
     pub whole_cell: bool,
     pub wildcards: bool,
     pub look_in: FindLookIn,
+    pub format: Option<FindFormatFilter>,
 }
 
 /// 只传定位所需的信息，不把整份工作簿内容复制到 UI。
@@ -81,12 +83,23 @@ impl Workbook {
         query: &FindQuery,
         mut visit: impl FnMut(MatchedCell),
     ) -> Result<(), &'static str> {
-        let matcher = FindText::new(
-            &query.needle,
-            query.case_sensitive,
-            query.whole_cell,
-            query.wildcards,
-        )?;
+        let format_filter = query.format.as_ref().filter(|f| !f.is_empty());
+        if let Some(filter) = format_filter {
+            filter.validate()?;
+        }
+        let matcher = if query.needle.is_empty() {
+            if format_filter.is_none() {
+                return Err("Enter text or choose a format to find.");
+            }
+            None
+        } else {
+            Some(FindText::new(
+                &query.needle,
+                query.case_sensitive,
+                query.whole_cell,
+                query.wildcards,
+            )?)
+        };
         let mut sheets = BTreeMap::<usize, Vec<CellRange>>::new();
         if targets.is_empty() || targets.len() > 1024 {
             return Err("Choose between 1 and 1024 search ranges.");
@@ -112,38 +125,128 @@ impl Workbook {
                 bounds.end.col = bounds.end.col.max(range.end.col);
             }
             let source = self.sheet(sheet).unwrap();
-            self.for_each_sparse_range_cell(sheet, bounds, |address, value| {
-                if error.is_some() || !ranges.iter().any(|range| range.contains(address)) {
-                    return;
-                }
-                let formula = source.formula_text_at(address);
-                let text = match (query.look_in, formula.as_ref(), &value) {
-                    (FindLookIn::Formulas, Some(formula), _) => formula.clone(),
-                    // 原始值模式保留往返精度，不能把显示舍入写回原数值。
-                    (FindLookIn::Formulas, _, Value::Number(number)) => number.to_string(),
-                    (FindLookIn::Values, _, Value::Number(number)) => source
-                        .effective_format(&address.to_string())
-                        .format_number(*number),
-                    _ => value_to_display(&value),
-                };
-                let spans = match matcher.spans(&text) {
-                    Ok(spans) => spans,
-                    Err(message) => {
-                        error = Some(message);
+            if let Some(matcher) = &matcher {
+                self.for_each_sparse_range_cell(sheet, bounds, |address, value| {
+                    if error.is_some() || !ranges.iter().any(|range| range.contains(address)) {
                         return;
                     }
-                };
-                if !spans.is_empty() {
+                    if source
+                        .merged_range_at(address)
+                        .is_some_and(|merged| merged.start != address)
+                    {
+                        return;
+                    }
+                    if let Some(filter) = format_filter {
+                        if !filter.matches(&source.base_format_at(address)) {
+                            return;
+                        }
+                    }
+                    let formula = source.formula_text_at(address);
+                    let text = cell_find_text(source, address, query.look_in, formula.as_ref(), &value);
+                    let spans = match matcher.spans(&text) {
+                        Ok(spans) => spans,
+                        Err(message) => {
+                            error = Some(message);
+                            return;
+                        }
+                    };
+                    if !spans.is_empty() {
+                        visit(MatchedCell {
+                            sheet,
+                            address,
+                            text,
+                            formula: formula.is_some(),
+                            spans,
+                        });
+                    }
+                });
+            } else if let Some(filter) = format_filter {
+                // Format-only search: visit populated cells AND explicitly styled empty cells
+                // in deterministic (row, col) order without materializing unbounded sheet grids.
+                let mut candidates = BTreeMap::<(u32, u32), Value>::new();
+                self.for_each_sparse_range_cell(sheet, bounds, |address, value| {
+                    if ranges.iter().any(|range| range.contains(address)) {
+                        candidates.insert((address.row, address.col), value);
+                    }
+                });
+                for &address in source.cell_styles.keys() {
+                    if bounds.contains(address) && ranges.iter().any(|range| range.contains(address)) {
+                        candidates.entry((address.row, address.col)).or_insert(Value::Null);
+                    }
+                }
+                for &row in source.row_styles.keys() {
+                    if row >= bounds.start.row && row <= bounds.end.row {
+                        for &col in source.column_styles.keys() {
+                            let addr = CellAddress::new(row, col);
+                            if bounds.contains(addr) && ranges.iter().any(|r| r.contains(addr)) {
+                                candidates.entry((row, col)).or_insert(Value::Null);
+                            }
+                        }
+                    }
+                }
+                if bounds.cell_count() <= 100_000 {
+                    for &row in source.row_styles.keys() {
+                        if row >= bounds.start.row && row <= bounds.end.row {
+                            for col in bounds.start.col..=bounds.end.col {
+                                let addr = CellAddress::new(row, col);
+                                if ranges.iter().any(|r| r.contains(addr)) {
+                                    candidates.entry((row, col)).or_insert(Value::Null);
+                                }
+                            }
+                        }
+                    }
+                    for &col in source.column_styles.keys() {
+                        if col >= bounds.start.col && col <= bounds.end.col {
+                            for row in bounds.start.row..=bounds.end.row {
+                                let addr = CellAddress::new(row, col);
+                                if ranges.iter().any(|r| r.contains(addr)) {
+                                    candidates.entry((row, col)).or_insert(Value::Null);
+                                }
+                            }
+                        }
+                    }
+                }
+                for ((row, col), value) in candidates {
+                    let address = CellAddress::new(row, col);
+                    if source
+                        .merged_range_at(address)
+                        .is_some_and(|merged| merged.start != address)
+                    {
+                        continue;
+                    }
+                    if !filter.matches(&source.base_format_at(address)) {
+                        continue;
+                    }
+                    let formula = source.formula_text_at(address);
+                    let text = cell_find_text(source, address, query.look_in, formula.as_ref(), &value);
                     visit(MatchedCell {
                         sheet,
                         address,
+                        spans: vec![0..text.len()],
                         text,
                         formula: formula.is_some(),
-                        spans,
                     });
                 }
-            });
+            }
         }
         error.map_or(Ok(()), Err)
+    }
+}
+
+fn cell_find_text(
+    source: &crate::Sheet,
+    address: CellAddress,
+    look_in: FindLookIn,
+    formula: Option<&String>,
+    value: &Value,
+) -> String {
+    match (look_in, formula, value) {
+        (FindLookIn::Formulas, Some(formula), _) => formula.clone(),
+        // 原始值模式保留往返精度，不能把显示舍入写回原数值。
+        (FindLookIn::Formulas, _, Value::Number(number)) => number.to_string(),
+        (FindLookIn::Values, _, Value::Number(number)) => {
+            source.base_format_at(address).format_number(*number)
+        }
+        _ => value_to_display(value),
     }
 }

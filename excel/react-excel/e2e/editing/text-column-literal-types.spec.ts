@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) for (const kind of ['preserve', 'general', 'text'])
   test(`${kind} split field owns only its native value and number format at ${width}px`, async ({ page }) => {
@@ -10,6 +11,7 @@ for (const width of [1280]) for (const kind of ['preserve', 'general', 'text'])
     await expect(cell('1:0')).toHaveText('SO-10001')
     await page.getByRole('tab', { name: 'Summary', exact: true }).click()
     await select(page, 'E95', '94:4')
+    await showRibbonItem(page, 'data.text-to-columns')
     await button('Text to columns').click()
     const dialog = page.getByRole('dialog', { name: 'Text to columns', exact: true })
     await dialog.getByRole('textbox', { name: 'Destination cell', exact: true }).fill('C21')
@@ -25,6 +27,7 @@ for (const width of [1280]) for (const kind of ['preserve', 'general', 'text'])
     const value = kind === 'general' ? '1' : '001'
     await expect(await select(page, 'C21', '20:2')).toHaveText(value)
     await expect(cell('20:2')).toHaveCSS('font-style', 'italic')
+    await showRibbonItem(page, 'format.number-format-settings')
     await button('Number format settings').click()
     // 现有数字面板将 General 映射为 Number 草稿；关闭，不提交这份预览。
     await expect(page.getByRole('combobox', { name: 'Number format category', exact: true }))

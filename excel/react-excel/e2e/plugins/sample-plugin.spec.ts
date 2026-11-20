@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonControl } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const status = (page: Page) => page.locator('[data-sample-plugin="panel"]')
@@ -11,6 +12,7 @@ async function open(page: Page, query: string) {
 test('a plugin ribbon group dispatches its own command', async ({ page }) => {
   await open(page, '?plugins=sample')
   await expect(status(page)).toHaveText('Sample pings: 0')
+  await showRibbonControl(page, 'Sample ping')
   await page.getByRole('button', { name: 'Sample ping' }).click()
   await expect(status(page)).toHaveText('Sample pings: 1')
 })
@@ -38,6 +40,7 @@ test('a plugin editor adornment follows the cell editing session', async ({ page
 test('plugin messages follow the workbook locale', async ({ page }) => {
   await open(page, '?plugins=sample&locale=zh')
   await expect(status(page)).toHaveText('示例插件计数：0')
+  await showRibbonControl(page, '示例插件计数')
   await expect(page.getByRole('button', { name: '示例插件计数' })).toBeVisible()
 })
 

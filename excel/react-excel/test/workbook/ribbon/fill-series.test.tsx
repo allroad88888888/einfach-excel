@@ -193,3 +193,68 @@ test('invalid saves remain correctable and do not replace the saved preset', asy
   expect(screen.getByRole('option', { name: 'Priority' })).toHaveValue('0')
   expect(fill).not.toHaveBeenCalled()
 })
+
+test('geometric exposes controlled explicit step and optional stop with native error retry', async () => {
+  const { fill } = await setup()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Sequence type'), { target: { value: 'geometric' } })
+  })
+  expect(screen.queryByLabelText('Source sample count')).toBeNull()
+  expect(screen.getByLabelText('Step value')).toHaveValue('2')
+  expect(screen.getByLabelText('Stop value (optional)')).toHaveValue('')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Step value'), { target: { value: '1.5' } })
+    fireEvent.change(screen.getByLabelText('Stop value (optional)'), { target: { value: '7' } })
+  })
+  fill.mockRejectedValueOnce(
+    new Error('Stop requires a non-zero start and a positive step other than 1.'),
+  )
+  await apply()
+  expect(screen.getByRole('alert')).toHaveTextContent('non-zero start')
+  expect(screen.getByLabelText('Step value')).toHaveValue('1.5')
+  expect(screen.getByLabelText('Stop value (optional)')).toHaveValue('7')
+  await apply()
+  expect(fill.mock.lastCall![0].request.series).toEqual({
+    kind: 'geometric',
+    sourceCount: 1,
+    step: 1.5,
+    stop: 7,
+  })
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByRole('button', { name: 'Fill series' })).toHaveFocus()
+})
+
+test.each(['date-weekday', 'date-year'] as const)('%s renders a controlled step without Stop or sample count', async kind => {
+  const { fill } = await setup()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Sequence type'), { target: { value: kind } })
+  })
+  expect(screen.getByLabelText('Step value')).toHaveValue('1')
+  expect(screen.queryByLabelText('Stop value (optional)')).toBeNull()
+  expect(screen.queryByLabelText('Source sample count')).toBeNull()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Step value'), { target: { value: '0.5' } })
+  })
+  await apply()
+  expect(screen.getByRole('alert')).toHaveTextContent('non-zero safe whole-number')
+  expect(fill).not.toHaveBeenCalled()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Step value'), { target: { value: '-2' } })
+  })
+  await apply()
+  expect(fill.mock.lastCall![0].request.series).toEqual({ kind, sourceCount: 1, step: -2 })
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByRole('button', { name: 'Fill series' })).toHaveFocus()
+})
+
+
+test('reserved list names report correctable feedback and saved-list drag hint remains visible', async () => {
+  const { fill } = await setup()
+  await customList('builtin-weekday-short', 'Low\nHigh')
+  expect(screen.getByRole('alert')).toHaveTextContent('List names cannot start with builtin- or locale-.')
+  expect(screen.getByText(/Saved lists guide fill handle drags/)).toBeVisible()
+  expect(screen.queryByRole('option', { name: 'builtin-weekday-short' })).toBeNull()
+  await customList('Priority', 'Low\nHigh')
+  expect(screen.getByRole('status')).toHaveTextContent('List saved.')
+  expect(fill).not.toHaveBeenCalled()
+})

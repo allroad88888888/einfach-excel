@@ -1,11 +1,13 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const panel = (page: Page) => page.getByRole('dialog', { name: 'Fill series', exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => panel(page).getByRole('button', { name, exact: true })
 async function open(page: Page) {
   await select(page, 'E55:E59', '54:4')
+  await showRibbonItem(page, 'data.fill-series')
   await page.getByRole('button', { name: 'Fill series', exact: true }).click()
   await panel(page).getByLabel('Sequence type').selectOption('custom-list')
 }
@@ -38,6 +40,7 @@ for (const width of [1280, 390]) {
       await expect(control).toBeInViewport()
     await page.screenshot({ path: info.outputPath(`custom-lists-${width}.png`) })
     await button(page, 'Cancel').click()
+    await showRibbonItem(page, 'data.fill-series')
     await expect(page.getByRole('button', { name: 'Fill series', exact: true })).toBeFocused()
     await open(page)
     await button(page, 'New list').click()
@@ -137,6 +140,7 @@ test('sheet changes retain presets, new workbook and reload clear them', async (
   await page.getByRole('button', { name: 'New blank workbook', exact: true }).click()
   await expect(page.getByRole('tab', { name: 'Sheet1', exact: true })).toBeVisible()
   await select(page, 'A1:A5', '0:0')
+  await showRibbonItem(page, 'data.fill-series')
   await page.getByRole('button', { name: 'Fill series', exact: true }).click()
   await panel(page).getByLabel('Sequence type').selectOption('custom-list')
   await expect(panel(page).getByLabel('Saved lists').locator('option')).toHaveCount(1)
@@ -155,6 +159,7 @@ test('Chinese list controls, validation and feedback are translated', async ({ p
   const name = page.getByRole('textbox', { name: '名称框' })
   await name.fill('E55:E59')
   await name.press('Enter')
+  await showRibbonItem(page, 'data.fill-series')
   await page.getByRole('button', { name: '填充序列', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: '填充序列', exact: true })
   await dialog.getByLabel('序列类型').selectOption('custom-list')

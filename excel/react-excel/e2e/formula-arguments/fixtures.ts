@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { expect, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 export const cell = (page: Page, coord = '2:1') => page.locator(`td[data-cell="${coord}"]`)
@@ -10,6 +11,7 @@ export const field = (page: Page, name: string, group = 0) => argumentsPanel(pag
   .locator(`[data-argument-name="${name}"] input`).nth(group)
 
 export async function openArguments(page: Page, name: string) {
+  await showRibbonItem(page, 'formula.insert-function')
   await button(page, 'Insert function').click()
   const picker = page.getByRole('dialog', { name: 'Insert function', exact: true })
   await picker.getByRole('listbox', { name: 'Function', exact: true }).selectOption(name)

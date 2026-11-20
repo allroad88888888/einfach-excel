@@ -14,6 +14,8 @@ export interface FilterCondition {
   values: readonly string[]
   min: string
   max: string
+  /** Opaque typed draft for a condition edited by an optional plugin. */
+  nativeRule?: ColumnFilterRule
   caseSensitive: boolean
 }
 export const filterCondition = (col: number): FilterCondition => ({
@@ -30,6 +32,7 @@ export interface FilterValuesBrowser {
 
 /** 条件是唯一可提交草稿；browser 只留当前候选页，不另外复制勾选值。 */
 export const initialFilterPanel = {
+  session: undefined as symbol | undefined,
   sheetId: null as string | null,
   connection: null as RustWorkbookConnection | null,
   table: undefined as string | undefined,

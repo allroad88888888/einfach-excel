@@ -2,6 +2,7 @@ import type {
   DisplayCell, SpreadsheetBorderSpec, SpreadsheetCellFormat,
 } from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
+import { cellFillStyle } from './cell-fill-style'
 
 const COLOR_HEX_RE = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
 const FONT_FAMILY_RE = /^[A-Za-z0-9, "'\-]+$/
@@ -126,6 +127,7 @@ export function cellFormatStyle(
   if (decorations.length) style.textDecoration = decorations.join(' ')
   if (foreground) style.color = foreground
   if (background) style.backgroundColor = background
+  Object.assign(style, cellFillStyle(format.fill, background))
   if (fontFamily && FONT_FAMILY_RE.test(fontFamily)) style.fontFamily = fontFamily
   if (
     typeof fontSize === 'number' &&

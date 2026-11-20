@@ -3,7 +3,11 @@
 struct AutoFitTextJSON {
     text: String,
     numeric_value: Option<f64>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pads: Vec<FormattedCharJSON>,
     format: CellFormatJSON,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    rich_text: Option<Vec<einfach_excel_core::rich_text::RichTextRun>>,
     width: f64,
 }
 
@@ -26,17 +30,16 @@ impl WasmWorkbook {
             sheet as usize,
             CellRange::new(CellAddress::new(start_row, start_col), CellAddress::new(end_row, end_col)),
             axis, default_row, default_col,
-            |value, format, width| {
+            |value, format, width, rich_text| {
                 let value = collapse_array_for_js(value);
                 let value = value.as_ref();
+                let native = native_number_display_for_value(format, value);
                 let input = AutoFitTextJSON {
-                    text: match value {
-                        Value::Number(n) if uses_native_number_display(&format.number_format) =>
-                            format.format_number(*n),
-                        _ => value_to_display(value),
-                    },
+                    text: native.as_ref().map_or_else(|| value_to_display(value), |shown| shown.text.clone()),
+                    pads: native.map_or_else(Vec::new, |shown| shown.pads),
                     numeric_value: match value { Value::Number(n) => Some(*n), _ => None },
                     format: CellFormatJSON::from_format(format), width,
+                    rich_text: rich_text.map(<[_]>::to_vec),
                 };
                 let input = serde_wasm_bindgen::to_value(&input).map_err(|e| e.to_string())?;
                 measure.call1(&JsValue::NULL, &input)

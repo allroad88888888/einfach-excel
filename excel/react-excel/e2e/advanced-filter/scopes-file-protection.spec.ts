@@ -2,11 +2,12 @@ import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 import { summary, alternatives, apply, records, button, minimum, menu, select, open, field, cell } from './support'
 import { openProtection, protect, closeProtection } from '../protection/support'
+import { showRibbonItem } from '../support/ribbon'
 
 test('grouped ordinary filter and two tables keep independent visibility and totals', async ({ page }) => {
   await summary(page); await alternatives(page); await field(page, 2, 'Missing'); await apply(page)
   await records(page, ['W20', 'W10'])
-  await select(page, 'A80', '79:0'); await menu(page).selectOption('open')
+  await select(page, 'A80', '79:0'); await showRibbonItem(page, 'data.worksheet-filter'); await showRibbonItem(page, 'data.worksheet-filter'); await menu(page).selectOption('open')
   const table = page.getByRole('dialog', { name: 'DemoTable filter conditions', exact: true })
   await table.getByLabel('Filter column 1', { exact: true }).selectOption('0')
   await table.getByLabel('Filter condition 1', { exact: true }).selectOption('equals')
@@ -22,7 +23,7 @@ test('grouped ordinary filter and two tables keep independent visibility and tot
   await select(page, 'A46', '45:0')
   await expect(button(page, 'Filter CalculatedOrders column A')).toHaveAttribute('data-filtered', 'true')
   await select(page, 'A25', '24:0'); await records(page, ['W20', 'W10'])
-  await select(page, 'A80', '79:0'); await menu(page).selectOption('clear')
+  await select(page, 'A80', '79:0'); await showRibbonItem(page, 'data.worksheet-filter'); await showRibbonItem(page, 'data.worksheet-filter'); await menu(page).selectOption('clear')
   await expect(cell(page, 82, 0)).toBeVisible()
   await expect(cell(page, 83, 1)).toHaveText('60')
   await select(page, 'A25', '24:0'); await records(page, ['W20', 'W10'])
@@ -41,6 +42,7 @@ test('download and actual file reopen preserve grouped rules and the stored snap
   const filter = file.workbook.filters.find((entry: { sheet: number }) => entry.sheet === 1)
   expect(filter.rules).toEqual([]); expect(filter.groups).toHaveLength(2)
   await button(page, 'Close').click()
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('clear'); await records(page, ['W20', 'E10', 'W10', 'E30'])
   await button(page, 'File').click()
   page.once('dialog', (prompt) => prompt.accept())

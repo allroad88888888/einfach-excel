@@ -1,4 +1,4 @@
-use crate::format::{Align, CellBorders, CellFormat, NumberFormat, Rotation, VerticalAlign};
+use crate::format::{Align, CellBorders, CellFormat, FontBaseline, NumberFormat, Rotation, VerticalAlign};
 
 /// 一层稀疏的显示样式；`None` 表示该层不接管这个属性。
 ///
@@ -11,12 +11,15 @@ pub struct CellStyle {
     pub italic: Option<bool>,
     pub align: Option<Align>,
     pub font_size: Option<Option<u32>>,
+    pub font_baseline: Option<FontBaseline>,
     pub color: Option<Option<String>>,
     pub background: Option<Option<String>>,
+    pub fill: Option<Option<crate::CellFill>>,
     pub font_family: Option<Option<String>>,
     pub underline: Option<bool>,
     pub strikethrough: Option<bool>,
     pub wrap_text: Option<bool>,
+    pub shrink_to_fit: Option<bool>,
     pub indent: Option<u8>,
     pub vertical_align: Option<VerticalAlign>,
     pub rotation: Option<Rotation>,
@@ -45,12 +48,15 @@ impl CellStyle {
             italic: Some(format.italic),
             align: Some(format.align),
             font_size: Some(format.font_size),
+            font_baseline: Some(format.font_baseline),
             color: Some(format.color),
             background: Some(format.background),
+            fill: Some(format.fill),
             font_family: Some(format.font_family),
             underline: Some(format.underline),
             strikethrough: Some(format.strikethrough),
             wrap_text: Some(format.wrap_text),
+            shrink_to_fit: Some(format.shrink_to_fit),
             indent: Some(format.indent),
             vertical_align: Some(format.vertical_align),
             rotation: Some(format.rotation),
@@ -69,12 +75,15 @@ impl CellStyle {
             || (self.italic.is_some() && patch.italic.is_some())
             || (self.align.is_some() && patch.align.is_some())
             || (self.font_size.is_some() && patch.font_size.is_some())
+            || (self.font_baseline.is_some() && patch.font_baseline.is_some())
             || (self.color.is_some() && patch.color.is_some())
             || (self.background.is_some() && patch.background.is_some())
+            || (self.fill.is_some() && patch.fill.is_some())
             || (self.font_family.is_some() && patch.font_family.is_some())
             || (self.underline.is_some() && patch.underline.is_some())
             || (self.strikethrough.is_some() && patch.strikethrough.is_some())
             || (self.wrap_text.is_some() && patch.wrap_text.is_some())
+            || (self.shrink_to_fit.is_some() && patch.shrink_to_fit.is_some())
             || (self.indent.is_some() && patch.indent.is_some())
             || (self.vertical_align.is_some() && patch.vertical_align.is_some())
             || (self.rotation.is_some() && patch.rotation.is_some())
@@ -95,6 +104,9 @@ impl CellStyle {
         if patch.align.is_some() {
             self.align = patch.align;
         }
+        if patch.font_baseline.is_some() {
+            self.font_baseline = patch.font_baseline;
+        }
         if patch.font_size.is_some() {
             self.font_size = patch.font_size;
         }
@@ -103,6 +115,9 @@ impl CellStyle {
         }
         if patch.background.is_some() {
             self.background.clone_from(&patch.background);
+        }
+        if patch.fill.is_some() {
+            self.fill.clone_from(&patch.fill);
         }
         if patch.font_family.is_some() {
             self.font_family.clone_from(&patch.font_family);
@@ -115,6 +130,9 @@ impl CellStyle {
         }
         if patch.wrap_text.is_some() {
             self.wrap_text = patch.wrap_text;
+        }
+        if patch.shrink_to_fit.is_some() {
+            self.shrink_to_fit = patch.shrink_to_fit;
         }
         if patch.indent.is_some() {
             self.indent = patch.indent;
@@ -144,6 +162,9 @@ impl CellStyle {
         if let Some(value) = self.align {
             format.align = value;
         }
+        if let Some(value) = self.font_baseline {
+            format.font_baseline = value;
+        }
         if let Some(value) = self.font_size {
             format.font_size = value;
         }
@@ -152,6 +173,9 @@ impl CellStyle {
         }
         if let Some(value) = &self.background {
             format.background.clone_from(value);
+        }
+        if let Some(value) = &self.fill {
+            format.fill.clone_from(value);
         }
         if let Some(value) = &self.font_family {
             format.font_family.clone_from(value);
@@ -164,6 +188,9 @@ impl CellStyle {
         }
         if let Some(value) = self.wrap_text {
             format.wrap_text = value;
+        }
+        if let Some(value) = self.shrink_to_fit {
+            format.shrink_to_fit = value;
         }
         if let Some(value) = self.indent {
             format.indent = value;

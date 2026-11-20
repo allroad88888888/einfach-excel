@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { button, cell, marker, editor, timeline, author, body, openComments,
   createComment, closeComments, reply, expectNeighbors } from './fixtures'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
@@ -13,6 +14,7 @@ for (const width of [1280, 390]) test.describe(`${width}px comments`, () => {
 
   test(`new comment retains author and local time through undo and redo at ${width}px`, async ({ page }) => {
     await createComment(page)
+    await showRibbonItem(page, 'insert.comments')
     await expect(button(page, 'Comments')).toBeFocused()
     await button(page, 'Undo').click(); await expect(marker(page, '1:0')).toHaveCount(0)
     await expect(button(page, 'Undo')).toBeDisabled()
@@ -81,7 +83,7 @@ for (const width of [1280, 390]) test.describe(`${width}px comments`, () => {
 
   test(`close comments discards a reply draft and restores trigger focus at ${width}px`, async ({ page }) => {
     await createComment(page); await openComments(page); await body(page).fill('discard')
-    await closeComments(page); await expect(button(page, 'Comments')).toBeFocused()
+    await closeComments(page); await showRibbonItem(page, 'insert.comments'); await showRibbonItem(page, 'insert.comments'); await expect(button(page, 'Comments')).toBeFocused()
     await openComments(page); await expect(body(page)).toHaveValue('')
     await expect(timeline(page).locator('li')).toHaveCount(1)
     await closeComments(page); await button(page, 'Undo').click()
@@ -93,7 +95,7 @@ for (const width of [1280, 390]) test.describe(`${width}px comments`, () => {
     await select(page, 'A2', '1:0'); await openComments(page)
     await author(page).fill('Alice'); await body(page, false).fill('discard')
     await body(page, false).press('Escape')
-    await expect(editor(page)).toHaveCount(0); await expect(button(page, 'Comments')).toBeFocused()
+    await expect(editor(page)).toHaveCount(0); await showRibbonItem(page, 'insert.comments'); await showRibbonItem(page, 'insert.comments'); await expect(button(page, 'Comments')).toBeFocused()
     await expect(marker(page, '1:0')).toHaveCount(0); await expect(button(page, 'Undo')).toBeDisabled()
     await expectNeighbors(page)
   })

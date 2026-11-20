@@ -1,12 +1,14 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
 import { copy, paste, select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coordinate: string) => page.locator(`td[data-cell="${coordinate}"]`)
 const link = (page: Page, coordinate: string) => cell(page, coordinate).locator('[data-cell-hyperlink]')
 const editor = (page: Page) => page.getByRole('dialog', { name: /^(Insert|Edit) hyperlink$/ })
 async function openEditor(page: Page) {
+  await showRibbonItem(page, 'insert.hyperlink')
   await button(page, 'Hyperlink').click()
   await expect(editor(page)).toBeVisible()
   await expect(page.getByLabel('Link address')).toBeFocused()
@@ -81,6 +83,7 @@ for (const width of [1280, 390]) test.describe(`${width}px hyperlink actions`, (
       await page.getByLabel('Display text').fill('Reviewed link')
       await button(page, action === 'remove' ? 'Remove link' : inserting ? 'Insert link' : 'Save changes').click()
       await expect(editor(page)).toHaveCount(0)
+      await showRibbonItem(page, 'insert.hyperlink')
       await expect(button(page, 'Hyperlink')).toBeFocused()
       const updatedText = action === 'remove' ? originalText : 'Reviewed link'
       await expect(target).toHaveText(updatedText)
@@ -146,6 +149,7 @@ for (const width of [1280, 390]) test.describe(`${width}px hyperlink actions`, (
     await page.getByLabel('Display text').fill('Discarded label')
     await button(page, 'Cancel').click()
     await expect(editor(page)).toHaveCount(0)
+    await showRibbonItem(page, 'insert.hyperlink')
     await expect(button(page, 'Hyperlink')).toBeFocused()
     await expect(cell(page, '1:1')).toHaveText('Acme Co.')
     await expect(link(page, '1:1')).toHaveAttribute('href', 'https://example.com/customers/acme')
@@ -243,6 +247,7 @@ test('hyperlink dialog fits desktop and narrow viewports, traps focus and restor
     await page.screenshot({ path: info.outputPath(`hyperlink-${width}.png`) })
     await page.getByLabel('Link address').press('Escape')
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'insert.hyperlink')
     await expect(button(page, 'Hyperlink')).toBeFocused()
     await expect(cell(page, '1:1')).toHaveText('Acme Co.')
     await expect(link(page, '1:1')).toHaveAttribute('href', 'https://example.com/customers/acme')
@@ -252,6 +257,7 @@ test('hyperlink dialog fits desktop and narrow viewports, traps focus and restor
 
 test('Chinese hyperlink editor and native URL rejection are translated', async ({ page }) => {
   await page.goto('/?locale=zh')
+  await showRibbonItem(page, 'insert.hyperlink')
   await page.getByRole('button', { name: '超链接', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: '插入超链接' })
   await expect(dialog.getByLabel('链接地址')).toBeFocused()

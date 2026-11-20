@@ -354,6 +354,10 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | FILL-054 | 无相邻连续数据拒绝后重新填充 | `editing/fill-double-click.spec.ts` | no adjacent continuation does not write and another source can fill afterwards |
 | FILL-055 | 合并目标拒绝后拆分重试 | `editing/fill-double-click.spec.ts` | merged destination rejects atomically and succeeds after unmerge |
 | FILL-056 | 双击使用右邻数据且在首个空隙停止 | `editing/fill-double-click.spec.ts` | right-neighbor fallback extends a numeric source only to the first gap |
+| FILL-057 | 显式等比序列和包含终点的有限填充 | `editing/fill-geometric-series.spec.ts` | geometric series multiplies the native start by a decimal step and stops without changing neighbors |
+| FILL-058 | 显式工作日日期序列 | `editing/fill-calendar-series.spec.ts` | weekday date series skips weekends and preserves time and formatting with one undo |
+| FILL-059 | 显式按年日期序列 | `editing/fill-calendar-series.spec.ts` | yearly date series clamps leap day and restores it in a later leap year with one undo |
+| FILL-060 | 已保存自定义列表拖拽推断 | `editing/fill-custom-list-drag.spec.ts` | saved custom list continues from a partial cycle through the fill handle with one undo |
 | FONT-001 | 粗体 | `format/text-style.spec.ts` | Bold toggles the selected Rust cell style |
 | FONT-002 | 斜体 | `format/text-style.spec.ts` | Italic toggles the selected Rust cell style |
 | FONT-003 | 下划线 | `format/text-style.spec.ts` | Underline toggles the selected Rust cell style |
@@ -376,6 +380,22 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | FONT-020 | 增大字号原生写入失败后重试 | `format/font-size-controls.spec.ts` | failed Increase stays readable and retries at 390px |
 | FONT-021 | 减小字号原生写入失败后重试 | `format/font-size-controls.spec.ts` | failed Decrease stays readable and retries at 390px |
 | FONT-022 | 字号提交中禁用编辑和取消 | `format/font-size-controls.spec.ts` | pending custom size disables editing and cancellation until the native response |
+| FONT-023 | 整格上标 | `format/font-baseline.spec.ts` | Superscript raises selected cell text without changing values or nominal font size |
+| FONT-024 | 整格下标与恢复正常 | `format/font-baseline.spec.ts` | Subscript replaces superscript and restores normal text in one undoable step |
+| FONT-025 | 缩小字体填充并在同一事务关闭换行 | `format/shrink-to-fit.spec.ts` | Shrink to fit preserves the stored font size and turns off wrapping in one undoable step |
+| FONT-026 | 换行关闭缩小并可撤销恢复 | `format/shrink-to-fit.spec.ts` | Wrap text disables shrink to fit and undo restores the previous layout |
+| FONT-027 | 查看原生缩小字号示例及未缩小参考格 | `format/shrink-to-fit.spec.ts` | native shrink examples retain numeric formulas and mixed run sizes beside plain references |
+| FONT-028 | 中文窄屏键盘操作缩小字号及保护恢复 | `format/shrink-recovery.spec.ts` | Chinese shrink button works by keyboard at 390px and retries after protection is removed |
+| RICH-001 | 所选字符上标 | `rich-text/font-baseline.spec.ts` | Superscript formats only selected characters and survives reopen with one undo at 1280px |
+| RICH-002 | 所选字符下标 | `rich-text/font-baseline.spec.ts` | Subscript replaces selected superscript without changing source text at 1280px |
+| RICH-003 | 中文局部上标键盘入口 | `rich-text/baseline-keyboard.spec.ts` | Chinese inline superscript activates with Enter on a narrow viewport |
+| RICH-004 | 中文局部下标键盘入口 | `rich-text/baseline-keyboard.spec.ts` | Chinese inline subscript activates with Space on a narrow viewport |
+| RICH-005 | HTML 复制局部上下标及安全文字 | `rich-text/baseline-html.spec.ts` | HTML clipboard exports edited inline glyph styles while escaping markup and retaining plain text |
+| RICH-006 | HTML 复制显式正常基线 | `rich-text/baseline-html.spec.ts` | HTML clipboard retains explicit normal over a superscript cell |
+| RICH-007 | 保存局部格式时禁用编辑及取消 | `rich-text/baseline-recovery.spec.ts` | pending inline save disables editing and cancellation until the actual Worker response |
+| RICH-008 | 仅粘贴值清除目标局部样式并可撤销 | `rich-text/baseline-persistence.spec.ts` | copy cut fill and values-only preserve the edited inline baseline contract |
+| RICH-009 | 合并锚点显示局部下标并撤销 | `rich-text/baseline-merged.spec.ts` | merged anchor renders its selected subscript and restores the original text in one undo |
+| RICH-010 | 合并格重新保存保留全部文本段 | `rich-text/baseline-merged.spec.ts` | reopening a merged rich-text draft and saving unchanged retains every original run |
 | STYLE-001 | 快捷应用填充颜色 | `format/cell-appearance.spec.ts` | Fill color reapplies the last color and No fill clears it explicitly |
 | STYLE-002 | 快捷应用文字颜色 | `format/cell-appearance.spec.ts` | Text color reapplies the last color and Automatic clears it explicitly |
 | STYLE-003 | 水平居中 | `format/cell-appearance.spec.ts` | horizontal center is an independent undoable choice at 1280px |
@@ -436,6 +456,30 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | NUM-022 | 原生拒绝后保留数字格式重试 | `format/number-format-feedback.spec.ts` | native rejection retains number settings, fits 390px and retries as one history entry |
 | NUM-023 | 数字格式处理中阻止重复及取消 | `format/number-format-feedback.spec.ts` | pending format blocks duplicate apply, draft edits and cancellation until Rust responds |
 | NUM-024 | 空白文本错误值只读预览 | `format/number-format-session.spec.ts` | preview reads blank, text and formula errors without inventing a sample or writing |
+| NUM-025 | 自定义格式代码应用 | `format/number-format-custom.spec.ts` | custom code sections color negatives, keep the raw value and undo as one step |
+| NUM-026 | 自定义格式字面量与填充 | `format/number-format-custom.spec.ts` | custom literals sit between digits and fill pushes the symbol and number to the edges |
+| NUM-027 | 非法自定义格式原地纠正 | `format/number-format-custom.spec.ts` | invalid custom codes stay in the draft until corrected and then apply once |
+| NUM-028 | 自定义分数格式缩放与补零 | `format/number-format-custom-fractions.spec.ts` | custom fraction codes preserve scaling and mandatory denominator zeros |
+| NUM-029 | 自定义格式斜杠字面量 | `format/number-format-custom-fractions.spec.ts` | quoted and escaped slashes remain literal in custom codes |
+| NUM-030 | 自定义数字留白自动列宽 | `format/number-format-custom-auto-fit.spec.ts` | auto-fit includes the actual width of custom padding characters |
+| NUM-031 | 自定义文本段自动列宽 | `format/number-format-custom-auto-fit.spec.ts` | auto-fit measures custom text sections with their prefixes and padding |
+| NUM-032 | 会计专用数字格式设置 | `format/number-format-accounting.spec.ts` | accounting settings align symbols left, bracket negatives and show zero as a dash without changing formulas |
+| NUM-033 | 会计格式增加小数位 | `format/number-format-accounting.spec.ts` | Increase decimal places keeps the accounting symbol and undoes exactly once |
+| NUM-034 | 会计格式减少小数位 | `format/number-format-accounting.spec.ts` | Decrease decimal places keeps accounting parentheses and undoes exactly once |
+| NUM-035 | 会计格式自动列宽 | `format/number-format-accounting-auto-fit.spec.ts` | accounting auto-fit includes symbol and parenthesis padding without resizing the neighboring column |
+| NUM-036 | 会计格式原生文件往返 | `workbook/accounting-format-files.spec.ts` | native save and reopen restores accounting category symbol and decimal places |
+| NUM-037 | XLSX内置会计格式读取 | `xlsx/accounting-format.spec.ts` | opening built-in accounting formats 41 through 44 preserves symbols parentheses and zero dashes |
+| NUM-038 | 会计格式XLSX导出往返 | `xlsx/accounting-format.spec.ts` | XLSX export and reopen preserves accounting category custom symbol and decimal places |
+| NUM-039 | 美国ZIP邮编格式 | `format/number-format-special.spec.ts` | US ZIP settings display five digits without changing the value or neighboring cells |
+| NUM-040 | 美国ZIP+4邮编格式 | `format/number-format-special.spec.ts` | US ZIP plus 4 settings restore leading zeros and undo the format once |
+| NUM-041 | 美国电话号码格式 | `format/number-format-special.spec.ts` | US phone settings display seven and ten digit numbers without truncating the value |
+| NUM-042 | 美国社会安全号码格式 | `format/number-format-special.spec.ts` | US SSN settings display nine digits without converting formulas or text |
+| NUM-043 | 中国邮编格式 | `format/number-format-special.spec.ts` | Chinese postal settings display six digits and reopen with the same preset |
+| NUM-044 | 特殊格式区域切换 | `format/number-format-special-locale.spec.ts` | changing the special locale resets the draft preset without writing until Apply |
+| NUM-045 | 特殊格式前导零与文本输入 | `format/number-format-special-input.spec.ts` | typing into special formatted cells restores numeric zeros and preserves explicit text |
+| NUM-046 | 特殊格式自动列宽 | `format/number-format-special-auto-fit.spec.ts` | auto-fit measures the Rust special display without resizing the neighboring column |
+| NUM-047 | 特殊格式原生文件往返 | `workbook/special-format-files.spec.ts` | native save and reopen restores all special presets and their locales |
+| NUM-048 | 特殊格式XLSX往返 | `xlsx/special-format.spec.ts` | XLSX export and reopen recognizes all five special presets without changing values or text |
 | BORDER-001 | 外边框 | `format/border-settings.spec.ts` | outside uses selection edges, not every cell perimeter |
 | BORDER-002 | 内边框 | `format/border-settings.spec.ts` | inside uses selection edges, not every cell perimeter |
 | BORDER-003 | 所有边框 | `format/border-settings.spec.ts` | all uses selection edges, not every cell perimeter |
@@ -462,6 +506,35 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | BORDER-024 | 打开边框设置回读原生线型与颜色 | `format/border-dialog.spec.ts` | Open border dialog preserves native settings and selection at 1280px |
 | BORDER-025 | 边框弹窗正向焦点循环 | `format/border-dialog.spec.ts` | Tab border dialog preserves native settings and selection at 1280px |
 | BORDER-026 | 边框弹窗反向焦点循环 | `format/border-dialog.spec.ts` | Shift+Tab border dialog preserves native settings and selection at 1280px |
+| BORDER-027 | 下斜线边框 | `format/diagonal-borders.spec.ts` | Diagonal down changes each selected cell and undoes in one step |
+| BORDER-028 | 上斜线边框 | `format/diagonal-borders.spec.ts` | Diagonal up changes each selected cell and undoes in one step |
+| BORDER-029 | 双斜线边框 | `format/diagonal-borders.spec.ts` | Both diagonals changes each selected cell and undoes in one step |
+| BORDER-030 | 只清除斜线边框 | `format/diagonal-borders.spec.ts` | No diagonal borders changes each selected cell and undoes in one step |
+| BORDER-031 | 键盘提交斜线边框及保护恢复 | `format/diagonal-keyboard.spec.ts` | Chinese Enter applies a diagonal after protection is removed |
+| PATT-001 | 选择全部 17 种图案并应用 | `format/pattern-fill.spec.ts` | Pattern selector applies all seventeen patterns with distinct geometry and one-step undo |
+| PATT-005 | 修改图案前景色 | `format/pattern-fill.spec.ts` | Pattern color changes only the pattern strokes in one undoable command |
+| PATT-006 | 修改图案底色 | `format/pattern-fill.spec.ts` | Background color changes only the pattern base in one undoable command |
+| PATT-007 | 固色和无填充替换图案 | `format/pattern-recovery.spec.ts` | Solid fill replaces a pattern and No fill removes both colors and the pattern |
+| PATT-008 | 键盘提交图案并恢复焦点 | `format/pattern-keyboard.spec.ts` | Chinese Enter submits a pattern after protection is removed and restores keyboard focus |
+| PATT-009 | 取消图案草稿 | `format/pattern-recovery.spec.ts` | Cancel discards an uncommitted pattern draft and returns focus to its opener |
+| PATT-010 | Escape 关闭图案草稿 | `format/pattern-recovery.spec.ts` | Escape dismisses a pattern draft without changing cell formats or history |
+| PATT-011 | 复制空白图案格后粘贴全部 | `format/pattern-persistence.spec.ts` | copy-all carries both pattern colors without replacing neighboring pattern facts |
+| PATT-012 | 空白图案格仅粘贴格式 | `format/pattern-persistence.spec.ts` | formats carries both pattern colors without replacing neighboring pattern facts |
+| GRAD-001 | 应用线性渐变替换现有填充 | `format/gradient-fill.spec.ts` | Linear gradient replaces a pattern with one native transaction and one-step undo |
+| GRAD-002 | 修改线性渐变角度 | `format/gradient-fill.spec.ts` | Angle preserves the signed unnormalized value and all imported color stops |
+| GRAD-003 | 修改线性渐变起始颜色 | `format/gradient-fill.spec.ts` | Start color edits only its endpoint while preserving the imported middle stop |
+| GRAD-004 | 修改线性渐变结束颜色 | `format/gradient-fill.spec.ts` | End color edits only its endpoint while preserving the imported middle stop |
+| GRAD-005 | 应用矩形渐变 | `format/gradient-fill.spec.ts` | Rectangular gradient commits four coordinates and retains all imported stops |
+| GRAD-006 | 切换渐变类型保留会话参数 | `format/gradient-fill.spec.ts` | Gradient type switching preserves both geometry drafts and every imported stop |
+| GRAD-007 | 修改矩形渐变左边坐标 | `format/gradient-fill.spec.ts` | Left (%) changes its rectangular coordinate in one undoable transaction |
+| GRAD-008 | 修改矩形渐变右边坐标 | `format/gradient-fill.spec.ts` | Right (%) changes its rectangular coordinate in one undoable transaction |
+| GRAD-009 | 修改矩形渐变上边坐标 | `format/gradient-fill.spec.ts` | Top (%) changes its rectangular coordinate in one undoable transaction |
+| GRAD-010 | 修改矩形渐变下边坐标 | `format/gradient-fill.spec.ts` | Bottom (%) changes its rectangular coordinate in one undoable transaction |
+| GRAD-011 | 修改矩形渐变内部颜色 | `format/gradient-fill.spec.ts` | Inner color changes the rectangular endpoint without losing intermediate colors |
+| GRAD-012 | 修改矩形渐变外部颜色 | `format/gradient-fill.spec.ts` | Outer color changes the rectangular endpoint without losing intermediate colors |
+| GRAD-013 | 键盘提交渐变及保护恢复 | `format/gradient-keyboard.spec.ts` | Chinese Enter submits a rectangular gradient after protection recovery and restores focus |
+| GRAD-014 | 取消渐变草稿 | `format/gradient-recovery.spec.ts` | Cancel discards the gradient draft and restores the existing persisted fill |
+| GRAD-015 | Escape关闭渐变草稿 | `format/gradient-recovery.spec.ts` | Escape closes the gradient dialog without a write and returns focus to its trigger |
 | CF-001 | 新增条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | adding a conditional rule changes only its applied cells at 1280px |
 | CF-002 | 修改条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | editing a seeded conditional rule keeps one rule and one undo step at 1280px |
 | CF-003 | 删除条件格式规则 | `format/conditional-rule-lifecycle.spec.ts` | deleting a seeded conditional rule preserves other rules at 1280px |
@@ -501,6 +574,14 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | CF-037 | 打开条件格式管理面板 | `format/conditional-dialog.spec.ts` | Open conditional dialog preserves native rules colors and redo at 1280px |
 | CF-038 | 条件格式面板 Tab 循环 | `format/conditional-dialog.spec.ts` | Tab conditional dialog preserves native rules colors and redo at 1280px |
 | CF-039 | 条件格式面板 Shift+Tab 循环 | `format/conditional-dialog.spec.ts` | Shift+Tab conditional dialog preserves native rules colors and redo at 1280px |
+| CF-040 | 发生日期规则 | `format/conditional-time-period.spec.ts` | date occurring today highlights native dates with times and undoes once at 1280px |
+| CF-041 | 高于平均值条件格式 | `format/conditional-average.spec.ts` | above average highlights the complete numeric domain and undoes once |
+| CF-042 | 低于平均值条件格式 | `format/conditional-average.spec.ts` | below average highlights the complete numeric domain and undoes once |
+| CF-043 | 空值条件格式 | `format/conditional-cell-state.spec.ts` | blank conditional formatting distinguishes native cell states and undoes once |
+| CF-044 | 错误值条件格式 | `format/conditional-cell-state.spec.ts` | error conditional formatting distinguishes native cell states and undoes once |
+| CF-045 | 非空值条件格式 | `format/conditional-cell-state.spec.ts` | not-blank conditional formatting distinguishes native cell states and undoes once |
+| CF-046 | 非错误值条件格式 | `format/conditional-cell-state.spec.ts` | not-error conditional formatting distinguishes native cell states and undoes once |
+| CF-047 | 条件格式包含等于平均值 | `format/conditional-average.spec.ts` | include equal average updates the same rule and preserves strict neighbors |
 | PAINT-001 | 单击格式刷后点击目标 | `format/format-painter.spec.ts` | single paint copies seeded bold, retains target content, exits and undoes once |
 | PAINT-002 | 格式刷拖拽平铺异构格式 | `format/format-painter.spec.ts` | drag paints a tiled heterogeneous source range without replacing values |
 | PAINT-003 | 双击开启连续格式刷 | `format/format-painter.spec.ts` | double click paints multiple targets from one snapshot; Escape stops subsequent clicks |
@@ -740,6 +821,45 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | DATA-096 | 去重预览下一页 | `editing/duplicate-pages.spec.ts` | Next page duplicate preview reads its exact page without changing source history at 1280px |
 | DATA-097 | 去重预览上一页 | `editing/duplicate-pages.spec.ts` | Previous page duplicate preview reads its exact page without changing source history at 1280px |
 | DATA-098 | 切换单列去重比较键 | `editing/duplicate-column-choices.spec.ts` | Compare column duplicate columns invalidates confirmation without losing redo at 1280px |
+| DATA-099 | 自定义列表排序入口及升序 | `editing/sort-custom-list.spec.ts` | saved fill list sorts complete records through the optional plugin at 1280px |
+| DATA-100 | 自定义列表排序降序 | `editing/sort-custom-list.spec.ts` | descending list sort reverses native priority in one undo at 1280px |
+| DATA-101 | 共享列表更新后重新排序 | `editing/sort-custom-list.spec.ts` | edited fill directory is reused by the next sort without a second list registry |
+| DATA-102 | 列表排序缺失选择后纠正 | `editing/sort-custom-list.spec.ts` | missing list choice stays correctable without writing and applies after selection |
+| DATA-103 | 列表排序级别 add | `editing/sort-custom-list-controls.spec.ts` | list sort add changes level priority through the dialog |
+| DATA-104 | 列表排序级别 remove | `editing/sort-custom-list-controls.spec.ts` | list sort remove changes level priority through the dialog |
+| DATA-105 | 列表排序级别 up | `editing/sort-custom-list-controls.spec.ts` | list sort up changes level priority through the dialog |
+| DATA-106 | 列表排序级别 down | `editing/sort-custom-list-controls.spec.ts` | list sort down changes level priority through the dialog |
+| DATA-107 | 列表排序级别 column | `editing/sort-custom-list-controls.spec.ts` | list sort column changes level priority through the dialog |
+| DATA-108 | 列表排序表头选项 | `editing/sort-custom-list-controls.spec.ts` | list sort header option controls first-row movement |
+| DATA-109 | 列表排序 Cancel | `editing/sort-custom-list-controls.spec.ts` | Cancel list-sort dialog preserves data and native redo at 1280px |
+| DATA-110 | 列表排序 Escape | `editing/sort-custom-list-controls.spec.ts` | Escape list-sort dialog preserves data and native redo at 1280px |
+| DATA-111 | 列表排序 Tab | `editing/sort-custom-list-controls.spec.ts` | Tab list-sort dialog preserves data and native redo at 1280px |
+| DATA-112 | 列表排序 Shift+Tab | `editing/sort-custom-list-controls.spec.ts` | Shift+Tab list-sort dialog preserves data and native redo at 1280px |
+| DATA-113 | 列表排序选项 case | `editing/sort-custom-list-options.spec.ts` | list sort case uses native options without trimming cell values |
+| DATA-114 | 列表排序选项 empty-first | `editing/sort-custom-list-options.spec.ts` | list sort empty-first uses native options without trimming cell values |
+| DATA-115 | 列表排序选项 empty-last | `editing/sort-custom-list-options.spec.ts` | list sort empty-last uses native options without trimming cell values |
+| DATA-116 | 键盘打开并应用列表排序 | `plugins/data-sort.spec.ts` | Chinese list sorting keeps keyboard entry and native undo at 390px |
+| DATA-117 | 按单元格填充色排序 | `editing/sort-colors.spec.ts` | Cell fill color moves complete solid-color records in one undo step |
+| DATA-118 | 按实际字体颜色排序 | `editing/sort-colors.spec.ts` | Font color uses rendered number-section colors when moving records |
+| DATA-119 | 按无填充排序 | `editing/sort-colors.spec.ts` | No fill is distinct from explicit white and patterned cells |
+| DATA-120 | 自动字体颜色置底 | `editing/sort-colors.spec.ts` | On bottom moves automatic font-color records after explicit black |
+| DATA-121 | 同列多颜色排序及级别上移 | `editing/sort-colors.spec.ts` | Same-column color levels apply their configured priority stably |
+| DATA-122 | 填充色置底并保留文件中的行顺序 | `editing/sort-colors.spec.ts` | Sorted color records reopen in native and XLSX files |
+| DATA-123 | 键盘打开并应用颜色排序 | `plugins/color-sort.spec.ts` | Chinese color sort works by keyboard at 390px and restores its opener |
+| DATA-124 | 按显示图标排序 | `editing/sort-icons.spec.ts` | Displayed reversed icons sort before equal indices from a different set |
+| DATA-125 | 按无图标排序 | `editing/sort-icons.spec.ts` | No icon moves only iconless records and keeps icon groups stable |
+| DATA-126 | 指定图标置底 | `editing/sort-icons.spec.ts` | On bottom keeps other icon identities stable |
+| DATA-127 | 同列混合图标和颜色排序级别 | `editing/sort-icons.spec.ts` | Icon and color criteria can sort the same column at different levels |
+| DATA-128 | 键盘打开并应用图标排序 | `plugins/icon-sort.spec.ts` | Chinese icon sort submits by keyboard and restores focus at 390px |
+| DATA-129 | 横向按值排序和一次撤销及文件重开 | `editing/sort-columns.spec.ts` | Left-to-right value sort moves complete columns with one undo step |
+| DATA-130 | 横向多个行键和排序方向 | `editing/sort-columns.spec.ts` | Horizontal levels break ties by the selected row and direction |
+| DATA-131 | 隐藏列留位及同键稳定 | `editing/sort-columns.spec.ts` | Horizontal sorting leaves hidden column positions and groups equal values stably |
+| DATA-132 | 横向按图标和颜色左置右置 | `editing/sort-columns.spec.ts` | Displayed icon and fill row keys honor On right and On left in one sort |
+| DATA-133 | 活动筛选范围阻止横向排序 | `editing/sort-columns.spec.ts` | A horizontal sort rejects an active worksheet filter without moving records |
+| DATA-134 | Table 相交阻止横向排序 | `editing/sort-columns.spec.ts` | Horizontal sort rejects a range that intersects a Table |
+| DATA-135 | 中文窄屏键盘横向排序 | `plugins/horizontal-sort.spec.ts` | Chinese horizontal sort submits by keyboard and restores focus at 390px |
+| DATA-136 | 单行区域横向排序 | `editing/sort-columns.spec.ts` | A single selected row can be sorted left to right |
+| DATA-137 | 原生横向排序示例 | `editing/sort-columns.spec.ts` | Summary horizontal sort sample moves only the selected column records |
 | FIND-001 | 工作簿查找 | `editing/find-replace.spec.ts` | workbook find navigates offscreen into Summary and previous/next wrap exact occurrences |
 | FIND-002 | 当前替换 | `editing/find-replace.spec.ts` | current replacement changes only the chosen Unicode occurrence and undo restores it |
 | FIND-003 | 全部替换 | `editing/find-replace.spec.ts` | replace all changes every matching order beyond 500 and is one undoable operation |
@@ -924,6 +1044,18 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | VIEW-010 | 斜向滚动保持旧格真实坐标 | `workbook/scroll-stability.spec.ts` | diagonal scroll reuses buffered cells at their actual sheet coordinates |
 | VIEW-011 | 定位多行内容后公式栏与视口稳定 | `workbook/name-box-scroll.spec.ts` | multiline target keeps its formula bar and viewport stable at 1280px |
 | VIEW-012 | 连续滚轮输入时双向滚动保持视口覆盖 | `workbook/wheel-scroll-coverage.spec.ts` | rapid wheel scrolling keeps the populated viewport covered in both directions |
+| VIEW-013 | 放不下的组整组收进更多 | `workbook/ribbon-overflow.spec.ts` | trailing groups fold into More and a folded tool applies at 760px |
+| VIEW-014 | Escape 收起更多工具 | `workbook/ribbon-overflow.spec.ts` | Escape collapses More and returns focus to it at 760px |
+| VIEW-015 | 点击表格收起更多工具 | `workbook/ribbon-overflow.spec.ts` | clicking the grid collapses More and selects the cell at 760px |
+| VIEW-016 | 宽屏开始分类不出现更多 | `workbook/ribbon-overflow.spec.ts` | Start fits every group without More at 1280px |
+| VIEW-017 | 更多中的命令菜单执行后收起 | `workbook/ribbon-overflow.spec.ts` | a folded filter command closes More and leaves the header reachable at 390px |
+| VIEW-018 | 更多中的设置支持连续键盘调整 | `workbook/ribbon-overflow.spec.ts` | a folded setting supports consecutive keyboard adjustments at 390px |
+| VIEW-019 | 延迟确认框保留更多中的入口与焦点 | `workbook/ribbon-overflow.spec.ts` | a delayed merge confirmation keeps its folded opener available at 390px |
+| VIEW-020 | 窄屏更多面板换行后调整计算设置 | `workbook/ribbon-more-navigation.spec.ts` | folded calculation settings wrap and stay usable at 390px in en |
+| VIEW-021 | 向下键进入更多并用键盘选择设置 | `workbook/ribbon-more-navigation.spec.ts` | ArrowDown enters More at the first setting and applies a keyboard selection |
+| VIEW-022 | 向上键进入更多末项并打开对话框 | `workbook/ribbon-more-navigation.spec.ts` | ArrowUp enters More at the last command and a dialog returns to its opener |
+| VIEW-023 | Tab 离开更多后收起并继续定位单元格 | `workbook/ribbon-more-navigation.spec.ts` | Tab out of More closes it and leaves the next field ready for input |
+| VIEW-024 | Shift+Tab 离开更多后收起并操作行内按钮 | `workbook/ribbon-more-navigation.spec.ts` | Shift+Tab leaves More for an inline command without losing focus |
 | FILE-001 | 下载原生工作簿 | `workbook/workbook-files.spec.ts` | download preserves workbook data and history at 1280px |
 | FILE-002 | 无效文件不破坏当前工作簿 | `workbook/workbook-files.spec.ts` | invalid native content leaves values, selection, history and current file usable |
 | FILE-003 | 新建空白工作簿 | `workbook/workbook-files.spec.ts` | new workbook cancellation keeps data before confirmed replacement at 1280px |
@@ -1173,6 +1305,8 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | PLUGIN-003 | 插件编辑器挂件跟随编辑会话 | `plugins/sample-plugin.spec.ts` | a plugin editor adornment follows the cell editing session |
 | PLUGIN-004 | 插件词条跟随工作簿语言 | `plugins/sample-plugin.spec.ts` | plugin messages follow the workbook locale |
 | PLUGIN-005 | 未挂插件时不渲染任何插件入口 | `plugins/sample-plugin.spec.ts` | the workbook mounts no plugin contribution without plugins |
+| PLUGIN-006 | 文字格式插件在原字体组执行命令 | `plugins/text-format.spec.ts` | a text-format contribution runs inside the existing font row even when its anchor is hidden |
+| PLUGIN-007 | 宿主隐藏组内贡献或单个插件入口 | `plugins/text-format.spec.ts` | the host can hide a whole text-format contribution or just one of its stable controls |
 | VIEWTGL-001 | 按工作表隐藏／显示网格线 | `view-options/view-options.spec.ts` | hiding gridlines clears the cell grid but keeps it per sheet |
 | VIEWTGL-002 | 隐藏／显示行列标题且命中与编辑器对齐 | `view-options/view-options.spec.ts` | hiding headings removes row and column headers and keeps clicks on the right cell |
 | VIEWTGL-003 | 隐藏／显示公式栏 | `view-options/view-options.spec.ts` | the formula bar can be hidden and shown again |
@@ -1272,3 +1406,159 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CHART-021 | 设置栏「下载 SVG」在浏览器内离屏重画并下载矢量图，文字保持为文本 | `charts/analysis.spec.ts` | the chart downloads as an SVG drawn in the browser |
 | CHART-022 | 由表格选区插入的图表引用表名，表格下方输入新行后图表跟着扩；设置栏可填表格列范围或名称，不存在时报错 | `charts/data-source.spec.ts` | a chart made from a table follows the table as it grows and accepts names |
 | CHART-023 | 选中图表时按系列名 / 类别 / 数值标出数据源，点击柱子标出它的单元格，取消选中后撤掉 | `charts/data-source.spec.ts` | selecting a chart outlines its data and clicking a bar marks its cell |
+
+## Optional rank filter conditions
+
+| ID | Feature | E2E file | Primary test |
+| --- | --- | --- | --- |
+| FILTER-001 | Top items | `editing/filter-top.spec.ts` | `top items filter uses numeric ranks and cutoff ties in one undo at 1280px` |
+| FILTER-002 | Top percent | `editing/filter-top.spec.ts` | `top percent rounds up numeric population and retains ties at 1280px` |
+| FILTER-003 | Bottom items | `editing/filter-bottom.spec.ts` | `bottom items include negative numbers and numeric formulas in one undo` |
+| FILTER-004 | Bottom percent | `editing/filter-bottom.spec.ts` | `bottom percent excludes text and blank cells from the numeric population` |
+| FILTER-005 | Top with another column | `editing/filter-top.spec.ts` | `top ranks the original domain before intersecting another column` |
+| FILTER-006 | Top keyboard entry | `editing/filter-top.spec.ts` | `top condition keyboard activation submits through the header dialog` |
+| FILTER-007 | Rank reapply snapshot | `editing/filter-bottom.spec.ts` | `rank filtering preserves its snapshot until reapply and undo restores the prior result` |
+| FILTER-008 | Rank invalid input and Cancel | `editing/filter-top-controls.spec.ts` | `rank bounds keep the dialog recoverable and Cancel preserves redo at 390px` |
+| FILTER-009 | Rank Escape | `editing/filter-top-controls.spec.ts` | `Escape drops a changed rank draft and restores header focus` |
+| FILTER-010 | Rank OR groups | `editing/filter-top-controls.spec.ts` | `OR groups preserve independent rank thresholds on the same column` |
+| FILTER-011 | Table rank header | `workbook/table-top-filter.spec.ts` | `table top filter excludes its total and undoes once at 1280px` |
+| FILTER-012 | Independent rank scopes | `workbook/table-top-filter.spec.ts` | `ordinary and Table rank filters retain separate snapshots when one is cleared` |
+| FILTER-013 | Native rank without plugin | `editing/filter-top-persistence.spec.ts` | `native rank filters reopen without the plugin and remain intact when editing another column` |
+| FILTER-014 | Table rank native reopen | `editing/filter-top-persistence.spec.ts` | `Table rank native roundtrip preserves rule and committed hidden snapshot` |
+| FILTER-015 | Rank XLSX loss report | `editing/filter-top-persistence.spec.ts` | `XLSX reports lost filter conditions and snapshots while preserving manual hiding` |
+| FILTER-016 | Filter plugin composition | `plugins/data-filter.spec.ts` | `data-filter is absent by default and composes with text-format through the existing header` |
+| FILTER-017 | Chinese rank keyboard | `plugins/data-filter.spec.ts` | `Chinese rank condition supports keyboard submission at 390px` |
+| FILTER-018 | Rank ribbon entry | `plugins/data-filter.spec.ts` | `rank can be configured through the ribbon filter entry` |
+| FILTER-019 | Rank instance isolation | `plugins/data-filter-host.spec.ts` | `rank drafts and native results are isolated between two spreadsheet instances` |
+| FILTER-020 | Filter plugin uninstall | `plugins/data-filter-host.spec.ts` | `uninstalling the condition editor preserves the active typed draft through Apply` |
+
+## 日期 Date period
+
+| ID | 功能 | E2E | Primary test |
+| --- | --- | --- | --- |
+| FILTER-021 | 日期筛选：选择今天期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter today applies both calendar boundaries through its option` |
+| FILTER-022 | 日期筛选：选择昨天期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter yesterday applies both calendar boundaries through its option` |
+| FILTER-023 | 日期筛选：选择明天期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter tomorrow applies both calendar boundaries through its option` |
+| FILTER-024 | 日期筛选：选择上周期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter last-week applies both calendar boundaries through its option` |
+| FILTER-025 | 日期筛选：选择本周期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter this-week applies both calendar boundaries through its option` |
+| FILTER-026 | 日期筛选：选择下周期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter next-week applies both calendar boundaries through its option` |
+| FILTER-027 | 日期筛选：选择上月期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter last-month applies both calendar boundaries through its option` |
+| FILTER-028 | 日期筛选：选择本月期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter this-month applies both calendar boundaries through its option` |
+| FILTER-029 | 日期筛选：选择下月期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter next-month applies both calendar boundaries through its option` |
+| FILTER-030 | 日期筛选：选择上季度期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter last-quarter applies both calendar boundaries through its option` |
+| FILTER-031 | 日期筛选：选择本季度期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter this-quarter applies both calendar boundaries through its option` |
+| FILTER-032 | 日期筛选：选择下季度期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter next-quarter applies both calendar boundaries through its option` |
+| FILTER-033 | 日期筛选：选择去年期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter last-year applies both calendar boundaries through its option` |
+| FILTER-034 | 日期筛选：选择今年期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter this-year applies both calendar boundaries through its option` |
+| FILTER-035 | 日期筛选：选择明年期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter next-year applies both calendar boundaries through its option` |
+| FILTER-036 | 日期筛选：选择年初至今期间并应用 | `editing/filter-date-periods.spec.ts` | `date filter year-to-date applies both calendar boundaries through its option` |
+| FILTER-037 | 日期筛选：Escape 放弃草稿并保留重做 | `editing/filter-date-controls.spec.ts` | `date filter Escape discards its draft and preserves redo and header focus` |
+| FILTER-038 | 日期筛选：重新应用并撤销隐藏快照 | `editing/filter-date-controls.spec.ts` | `date filter reapply alone updates edited dates and Undo restores the prior snapshot` |
+| FILTER-039 | 日期筛选：同列 OR 期间组合 | `editing/filter-date-controls.spec.ts` | `date periods in OR groups keep their own boundaries on the same column` |
+| FILTER-040 | 日期筛选：浏览候选值 | `editing/filter-date-controls.spec.ts` | `date value candidates omit their own condition and retain other-column date conditions` |
+| FILTER-041 | 日期筛选：与完整域 Top-N 条件求交 | `editing/filter-date-controls.spec.ts` | `date AND rank uses the full score domain before intersecting calendar matches` |
+| FILTER-042 | 日期筛选：表头激活默认今天条件 | `plugins/data-filter-date.spec.ts` | `date filter activation keeps today's native time values at 1280px` |
+| FILTER-043 | 日期筛选：功能区入口 | `plugins/data-filter-date.spec.ts` | `date filter is configured through the existing ribbon entry` |
+| FILTER-044 | 日期筛选：中文窄屏键盘选项与应用 | `plugins/data-filter-date.spec.ts` | `Chinese date period can be selected and applied with the keyboard at 390px` |
+| FILTER-045 | 日期筛选：Canvas 表头点击 | `plugins/data-filter-date.spec.ts` | `Canvas painted header opens the date plugin and applies its native snapshot` |
+| FILTER-046 | 日期筛选：无插件原生重开后继续编辑 | `editing/filter-date-persistence.spec.ts` | `native date rules reopen without the plugin and survive another column edit and reapply` |
+| FILTER-047 | 日期筛选：XLSX 导出损失报告与重开 | `editing/filter-date-persistence.spec.ts` | `XLSX date-filter export reports lost conditions and reopens all filtered data rows` |
+| FILTER-048 | 日期筛选：Table 表头与原生往返 | `workbook/table-date-filter.spec.ts` | `Table date filter excludes totals and preserves its native snapshot at 1280px` |
+| FILTER-049 | 颜色筛选：填充色及有色空白行与一次撤销 | `editing/filter-colors.spec.ts` | `Cell color filter keeps solid matches including blanks in one undo step` |
+| FILTER-050 | 颜色筛选：无填充与图案、显式白色 | `editing/filter-colors.spec.ts` | `No fill excludes explicit white and patterned cells` |
+| FILTER-051 | 颜色筛选：字体色：富文本与数字格式的显示色 | `editing/filter-colors.spec.ts` | `Font color matches rich-text runs and number-section colors` |
+| FILTER-052 | 颜色筛选：按条件格式的当前颜色筛选和重新应用 | `editing/filter-colors.spec.ts` | `Conditional color is sampled when Apply or Reapply runs` |
+| FILTER-053 | 颜色筛选：原生颜色规则与隐藏快照脱离插件恢复 | `editing/filter-colors.spec.ts` | `Native file keeps the color rule and visibility with the plugin absent` |
+| FILTER-054 | 颜色筛选：候选分页含离屏样式 | `plugins/data-filter-color.spec.ts` | `Color candidates page through offscreen rows without applying a rule` |
+| FILTER-055 | 颜色筛选：中文窄屏键盘输入 RGB | `plugins/data-filter-color.spec.ts` | `Chinese color filter applies an RGB color with the keyboard at 390px` |
+| FILTER-056 | 颜色筛选：表格条纹与汇总行 | `workbook/table-color-filter.spec.ts` | `Table banded fill filters data independently of the total row` |
+| FILTER-057 | 颜色候选请求期间可关闭并丢弃迟到结果 | `plugins/data-filter-color-async.spec.ts` | `Pending color candidates can be closed without a late update` |
+| FILTER-058 | 条件区域按同一行合取、不同行析取，支持重复标题 | `advanced-filter/worksheet-criteria.spec.ts` | `Worksheet criteria combine repeated headings and alternative rows` |
+| FILTER-059 | 跨表公式条件显式重算及可见性撤销 | `advanced-filter/worksheet-criteria.spec.ts` | `Worksheet formula criteria reapply from edited cells and undo restores visibility` |
+| FILTER-060 | 原生文件重开可直接重新应用已保存条件区域 | `advanced-filter/worksheet-criteria.spec.ts` | `Native reopening restores worksheet criteria and allows reapply without the plugin` |
+| FILTER-061 | 条件区域输入错误保留原记录及重做 | `advanced-filter/worksheet-criteria.spec.ts` | `Invalid criteria preserve visible records and the redo stack` |
+| FILTER-062 | 跨表复制、输出标题排序、唯一及覆盖确认 | `advanced-filter/worksheet-criteria-copy.spec.ts` | `Copy filtered records previews selected headings and requires overwrite confirmation` |
+| FILTER-063 | 取消复制预览保留目标和历史 | `advanced-filter/worksheet-criteria-copy.spec.ts` | `Canceling a copy preview keeps the destination and history intact` |
+| FILTER-064 | 复制目标相交时拒绝完整操作 | `advanced-filter/worksheet-criteria-copy.spec.ts` | `Copy filtered records rejects a destination overlapping the source` |
+| FILTER-065 | 中文窄屏键盘提交条件区域及焦点恢复 | `plugins/worksheet-criteria.spec.ts` | `Chinese worksheet criteria submit by keyboard and restore focus at 390px` |
+| FILTER-066 | Summary 工作簿按示例条件复制唯一匹配记录 | `plugins/worksheet-criteria.spec.ts` | `Summary worksheet criteria copy only the matching native sample record` |
+| FILTER-067 | 删除条件工作表后可保存和重开，保留筛选快照和缺失提示 | `advanced-filter/worksheet-criteria.spec.ts` | `Native download and reopen preserve the filtered snapshot after deleting its criteria sheet` |
+
+### 分类汇总
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| SUBTOTAL-001 | 从当前区域插入真实公式及大纲，单次撤销 | `editing/subtotal-groups.spec.ts` | `Subtotal inserts native formulas and outlines with one undo step` |
+| SUBTOTAL-002 | 替换汇总方式，单次撤销恢复原小计 | `editing/subtotal-lifecycle.spec.ts` | `Replacing subtotals uses the requested function and one undo restores the prior totals` |
+| SUBTOTAL-003 | 追加内层分类，原始明细参与总计 | `editing/subtotal-groups.spec.ts` | `Subtotal appends inner groups and calculates grand totals from detail rows` |
+| SUBTOTAL-004 | 删除生成的汇总行，保护用户手工内容 | `editing/subtotal-lifecycle.spec.ts` | `Remove all protects user content in a generated row and restores the original list` |
+| SUBTOTAL-005 | 汇总置于上方，原生保存重开和无插件折叠 | `editing/subtotal-lifecycle.spec.ts` | `Above-data subtotals reopen and collapse without the optional plugin` |
+| SUBTOTAL-006 | 原生 Table 区域拒绝分类汇总 | `plugins/subtotal.spec.ts` | `Subtotal rejects a worksheet Table through the optional ribbon entry` |
+| SUBTOTAL-007 | 中文窄屏键盘操作与焦点恢复 | `plugins/subtotal.spec.ts` | `Chinese subtotal runs by keyboard at 390px and restores focus` |
+| SUBTOTAL-008 | 删除小计保留生成行上的独立数据验证规则 | `editing/subtotal-metadata.spec.ts` | `Remove all retains data validation that belongs only to a generated row` |
+| SUBTOTAL-009 | 替换小计保留生成行上的独立数据验证规则 | `editing/subtotal-metadata.spec.ts` | `Replacing subtotals retains data validation that belongs only to a generated row` |
+
+### 合并计算
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| CONSOLIDATE-001 | 跨表二维按分类合并计算并支持单次撤销/重做 | `editing/consolidate.spec.ts` | `Consolidate combines 2D categories across sheets with one undo step` |
+| CONSOLIDATE-002 | 按位置合并计算切换统计函数并门控覆盖确认 | `editing/consolidate.spec.ts` | `Consolidate by position previews alternate functions and gates overwrite confirmation` |
+| CONSOLIDATE-003 | 创建源数据链接生成跨表公式、可折叠行大纲与原子撤销 | `editing/consolidate.spec.ts` | `Linked consolidate creates live cross-sheet formulas, row outlines, and atomic undo` |
+| CONSOLIDATE-004 | 同表链接拒绝保护与无插件核心界面保持洁净 | `editing/consolidate.spec.ts` | `Consolidate rejects same-sheet links and stays absent without the optional plugin` |
+
+### 圈释无效数据
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| VALCIRCLE-001 | 圈释已有违规单元格（忽略空白格），修复后自动消除并支持一键清除 | `advanced-validation/circle-invalid-data.spec.ts` | `Circle invalid data highlights pre-existing violations, updates on edit, and clears` |
+| VALCIRCLE-002 | 自定义公式验证在依赖变更时动态更新标识圈并兼容 Canvas 渲染 | `advanced-validation/circle-invalid-data.spec.ts` | `Circle invalid data tracks dynamic custom formula rules in DOM and Canvas renderers` |
+| VALCIRCLE-003 | 受保护工作表可执行只读圈释与清除，不写入撤销历史 | `advanced-validation/circle-invalid-data.spec.ts` | `Circle invalid data works on a protected worksheet without mutating undo history` |
+
+### 按格式查找与替换
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| FINDFMT-001 | 按格式查找定位粗体/填充色单元格（含从活动格提取与已设样式空白格） | `editing/find-by-format.spec.ts` | `Find by format locates bold and fill-colored cells including styled blanks` |
+| FINDFMT-002 | 仅替换格式原子更新匹配单元格样式（保留公式与值）并支持单步撤销 | `editing/find-by-format.spec.ts` | `Replace format updates matched cells atomically with one undo step` |
+| FINDFMT-003 | 文本与格式组合查找替换同时更新内容与样式并支持单步撤销 | `editing/find-by-format.spec.ts` | `Combined text and format find-replace filters matches and replaces both atomically` |
+
+### 保护下允许排序与插删
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| PROTPERM-001 | 受保护工作表勾选排序权限后可对可编辑区域排序与撤销，仍拒绝锁定格 | `protection/permissions.spec.ts` | `PROTPERM-001: protected sheet allows sorting unlocked range when permitted and rejects locked cells` |
+| PROTPERM-002 | 受保护工作表按轴独立放行插入/删除行或列并支持撤销，未授权轴仍拒绝 | `protection/permissions.spec.ts` | `PROTPERM-002: protected sheet allows only granted row or column insertions and deletions with undo` |
+| PROTPERM-003 | 原生工作簿下载与重新打开保留工作表保护细粒度权限 | `protection/permissions.spec.ts` | `PROTPERM-003: native workbook download and reopen preserve worksheet protection permissions` |
+
+### 拆分窗口
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| SPLIT-001 | 水平拆分窗格独立滚动远端行并保持与公式栏及主窗格实时同步编辑/撤销 | `workbook/split-window.spec.ts` | `SPLIT-001: horizontal split scrolls independently and keeps edits live across panes` |
+| SPLIT-002 | 四向拆分联动行列滚动轴、支持双击分割条移除单轴且与冻结窗格互斥 | `workbook/split-window.spec.ts` | `SPLIT-002: quad split couples scroll axes, supports divider double-click, and excludes freeze` |
+| SPLIT-003 | 拆分窗口兼容 Canvas 渲染器并按工作表独立隔离与取消拆分 | `workbook/split-window.spec.ts` | `SPLIT-003: split window renders in Canvas mode and stays isolated per sheet` |
+
+### Table 内富文本编辑
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| TABLERICH-001 | Table 数据格支持局部富文本样式编辑与单步撤销/重做 | `rich-text/table-rich-text.spec.ts` | `TABLERICH-001: table data cell supports rich text editing with atomic undo and redo` |
+| TABLERICH-002 | Table 表头富文本编辑支持原子改名、结构化引用改写、重名校验与单步撤销 | `rich-text/table-rich-text.spec.ts` | `TABLERICH-002: table header rich text renames column, rewrites structured refs, and rejects duplicates` |
+| TABLERICH-003 | Table 内富文本随原生工作簿下载与重新打开完整保留 | `rich-text/table-rich-text.spec.ts` | `TABLERICH-003: table rich text survives native workbook download and reopen` |
+
+### Flash Fill（快速填充）
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| FLASHFILL-001 | 数据栏快速填充从相邻列推断拆分重组模式并支持单步撤销 | `editing/flash-fill.spec.ts` | `FLASHFILL-001: Flash Fill via ribbon splits and reformats names with single undo` |
+| FLASHFILL-002 | `Ctrl/⌘+E` 快捷键快速填充跨多列拼接邮箱并自动跳过表头行 | `editing/flash-fill.spec.ts` | `FLASHFILL-002: Flash Fill via Ctrl+E combines columns into emails and skips headers` |
+| FLASHFILL-003 | 快速填充安全拒绝多列选区与无规律示例且不修改单元格 | `editing/flash-fill.spec.ts` | `FLASHFILL-003: Flash Fill rejects multi-column selection and unresolvable patterns safely` |
+
+### 单元格样式与主题
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| CELLSTYLE-001 | 内置单元格样式库原子应用填充、字体与边框，支持单步撤销及常规重置 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-001: built-in cell style presets apply fill, font, and borders atomically with single undo and Normal reset` |
+| CELLSTYLE-002 | 切换工作簿主题实时联动主题样式预览、单元格着色及颜色面板主题色行 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-002: switching workbook theme updates themed cell styles and Fill color palette theme row` |
+| CELLSTYLE-003 | 单元格样式遵循工作表保护并在原生工作簿下载重开后完整保留 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-003: cell styles respect worksheet protection and survive native workbook roundtrip` |

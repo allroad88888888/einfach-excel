@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 async function selectedCell(page: Page): Promise<Locator> {
   await page.goto('/')
@@ -10,6 +11,7 @@ async function selectedCell(page: Page): Promise<Locator> {
 
 test('Fill color reapplies the last color and No fill clears it explicitly', async ({ page }) => {
   const cell = await selectedCell(page)
+  await showRibbonItem(page, 'format.fill-color')
   const button = page.getByRole('button', { name: 'Fill color', exact: true })
   const initial = await cell.evaluate((element) => getComputedStyle(element).backgroundColor)
 
@@ -18,6 +20,7 @@ test('Fill color reapplies the last color and No fill clears it explicitly', asy
   await expect(cell).toHaveCSS('background-color', 'rgb(255, 242, 204)')
   await button.click()
   await expect(cell).toHaveCSS('background-color', 'rgb(255, 242, 204)')
+  await showRibbonItem(page, 'format.fill-color-palette')
   await page.getByRole('button', { name: 'Choose fill color' }).click()
   await page.getByRole('button', { name: 'No fill', exact: true }).click()
   await expect(button).toHaveAttribute('aria-pressed', 'false')
@@ -26,6 +29,7 @@ test('Fill color reapplies the last color and No fill clears it explicitly', asy
 
 test('Text color reapplies the last color and Automatic clears it explicitly', async ({ page }) => {
   const cell = await selectedCell(page)
+  await showRibbonItem(page, 'format.text-color')
   const button = page.getByRole('button', { name: 'Text color', exact: true })
   const initial = await cell.evaluate((element) => getComputedStyle(element).color)
 
@@ -34,6 +38,7 @@ test('Text color reapplies the last color and Automatic clears it explicitly', a
   await expect(cell).toHaveCSS('color', 'rgb(192, 0, 0)')
   await button.click()
   await expect(cell).toHaveCSS('color', 'rgb(192, 0, 0)')
+  await showRibbonItem(page, 'format.text-color-palette')
   await page.getByRole('button', { name: 'Choose text color' }).click()
   await page.getByRole('button', { name: 'Automatic text color' }).click()
   await expect(button).toHaveAttribute('aria-pressed', 'false')
@@ -42,6 +47,7 @@ test('Text color reapplies the last color and Automatic clears it explicitly', a
 
 test('Horizontal alignment selects center, right and left through Rust', async ({ page }) => {
   const cell = await selectedCell(page)
+  await showRibbonItem(page, 'format.horizontal-alignment')
   const control = page.getByRole('combobox', { name: 'Horizontal alignment' })
 
   for (const alignment of ['center', 'right', 'left']) {
@@ -52,6 +58,7 @@ test('Horizontal alignment selects center, right and left through Rust', async (
 
 test('Vertical alignment selects top, center and bottom through Rust', async ({ page }) => {
   const cell = await selectedCell(page)
+  await showRibbonItem(page, 'format.vertical-alignment')
   const control = page.getByRole('combobox', { name: 'Vertical alignment' })
 
   for (const alignment of ['top', 'middle', 'bottom']) {
@@ -62,6 +69,7 @@ test('Vertical alignment selects top, center and bottom through Rust', async ({ 
 
 test('Text rotation selects clockwise, counterclockwise and off through Rust', async ({ page }) => {
   const cell = await selectedCell(page)
+  await showRibbonItem(page, 'format.text-rotation')
   const control = page.getByRole('combobox', { name: 'Text rotation' })
 
   await control.selectOption('45')
@@ -74,6 +82,7 @@ test('Text rotation selects clockwise, counterclockwise and off through Rust', a
 
 test('Borders toggles thin borders through Rust', async ({ page }) => {
   const cell = await selectedCell(page)
+  await showRibbonItem(page, 'format.borders')
   const button = page.getByRole('button', { name: 'Borders' })
 
   await button.click()
@@ -124,6 +133,7 @@ for (const width of [1280, 390]) test.describe(`${width}px horizontal alignment 
   for (const alignment of ['left', 'center', 'right']) {
     test(`horizontal ${alignment} is an independent undoable choice at ${width}px`, async ({ page }) => {
       const target = await selectedCell(page)
+      await showRibbonItem(page, 'format.horizontal-alignment')
       const control = page.getByRole('combobox', { name: 'Horizontal alignment', exact: true })
       const neighbor = page.locator('td[data-cell="3:0"]')
       const original = await target.evaluate(node => getComputedStyle(node).textAlign)
@@ -151,6 +161,7 @@ for (const width of [1280, 390]) test.describe(`${width}px vertical alignment ch
   for (const alignment of ['top', 'center', 'bottom']) {
     test(`vertical ${alignment} is an independent undoable choice at ${width}px`, async ({ page }) => {
       const target = await selectedCell(page)
+      await showRibbonItem(page, 'format.vertical-alignment')
       const control = page.getByRole('combobox', { name: 'Vertical alignment', exact: true })
       const neighbor = page.locator('td[data-cell="3:0"]')
       const original = await target.evaluate(node => getComputedStyle(node).verticalAlign)
@@ -179,6 +190,7 @@ for (const width of [1280, 390]) test.describe(`${width}px rotation choices`, ()
   for (const angle of [-90, -45, 45, 90, 'vertical'] as const) {
     test(`rotation ${angle} preserves cell data and undoes once at ${width}px`, async ({ page }) => {
       const target = await selectedCell(page)
+      await showRibbonItem(page, 'format.text-rotation')
       const control = page.getByRole('combobox', { name: 'Text rotation', exact: true })
       const before = await target.innerText()
       const size = await target.boundingBox()

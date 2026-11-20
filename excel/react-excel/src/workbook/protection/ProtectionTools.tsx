@@ -3,9 +3,11 @@ import { useId, useLayoutEffect, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
+  getProtectionPermissions,
   nativeProtectionPanelAtom,
   runNativeProtectionAtom,
   rangeToA1,
+  type SheetProtectionPermissions,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../chrome/ribbon/dialog-focus'
 import { translateFeedback } from '../../i18n/translate-feedback'
@@ -20,6 +22,10 @@ export function ProtectionTools(): React.JSX.Element {
   const dialog = useRef<HTMLDialogElement>(null)
   const id = useId()
   const protectedSheet = state.protection?.mode === 'protected'
+  const permissions = getProtectionPermissions(state.protection)
+  const togglePermission = (key: keyof SheetProtectionPermissions, checked: boolean) => {
+    void run({ permissions: { ...permissions, [key]: checked } })
+  }
   useLayoutEffect(() => {
     const element = dialog.current
     const opener = trigger.current
@@ -140,6 +146,59 @@ export function ProtectionTools(): React.JSX.Element {
                   <Trans>Select one rectangular range to allow editing.</Trans>
                 </p>
               )}
+              <fieldset className="protection-permissions" disabled={state.busy || protectedSheet}>
+                <legend>
+                  <Trans>Allowed actions while protected</Trans>
+                </legend>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={permissions.sort}
+                    onChange={(event) => togglePermission('sort', event.currentTarget.checked)}
+                  />
+                  <Trans>Sort editable ranges</Trans>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={permissions.insertRows}
+                    onChange={(event) =>
+                      togglePermission('insertRows', event.currentTarget.checked)
+                    }
+                  />
+                  <Trans>Insert rows</Trans>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={permissions.insertColumns}
+                    onChange={(event) =>
+                      togglePermission('insertColumns', event.currentTarget.checked)
+                    }
+                  />
+                  <Trans>Insert columns</Trans>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={permissions.deleteRows}
+                    onChange={(event) =>
+                      togglePermission('deleteRows', event.currentTarget.checked)
+                    }
+                  />
+                  <Trans>Delete rows</Trans>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={permissions.deleteColumns}
+                    onChange={(event) =>
+                      togglePermission('deleteColumns', event.currentTarget.checked)
+                    }
+                  />
+                  <Trans>Delete columns</Trans>
+                </label>
+              </fieldset>
             </>
           )}
           {state.busy && (

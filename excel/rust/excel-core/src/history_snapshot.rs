@@ -77,6 +77,41 @@ impl HistorySnapshot {
         workbook.restore_history_snapshot(sheet, self)
     }
 
+    /// Reconciles `rich_text` after mutating `self.cells` so formula/blank/normalized cells
+    /// never carry stale or mismatched inline runs.
+    pub(crate) fn reconcile_rich_text_with_cells(&mut self) {
+        let Some(cells) = &self.cells else {
+            return;
+        };
+        let text_by_addr: std::collections::HashMap<crate::CellAddress, &str> = cells
+            .iter()
+            .filter_map(|cell| {
+                if cell.formula.is_some() {
+                    return None;
+                }
+                match &cell.value {
+                    Some(Value::Text(text)) if !text.is_empty() => {
+                        Some((cell.addr, text.as_ref()))
+                    }
+                    _ => None,
+                }
+            })
+            .collect();
+        self.rich_text = std::mem::take(&mut self.rich_text)
+            .into_iter()
+            .filter_map(|(addr, runs)| {
+                let target_text = *text_by_addr.get(&addr)?;
+                let run_text: String = runs.iter().map(|r| r.text.as_str()).collect();
+                if run_text == target_text {
+                    return Some((addr, runs));
+                }
+                let trimmed = crate::rich_text::trim_runs(runs).ok()?;
+                let trimmed_text: String = trimmed.iter().map(|r| r.text.as_str()).collect();
+                (trimmed_text == target_text).then_some((addr, trimmed))
+            })
+            .collect();
+    }
+
     /// 历史预算按原始字符串及稀疏条目估算，避免大量长文本记录无限增长。
     pub fn retained_bytes(&self) -> usize {
         let cells = self.cells.as_ref().map_or(0, |cells| {

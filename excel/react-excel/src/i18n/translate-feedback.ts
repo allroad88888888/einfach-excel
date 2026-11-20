@@ -22,6 +22,8 @@ export function translateFeedback(i18n: I18n, message: string | null | undefined
   }
   match = /^Sorted (\d+) rows\.$/.exec(message)
   if (match) { const rows = match[1]; return t(i18n)`Sorted ${rows} rows.` }
+  match = /^Sorted (\d+) columns\.$/.exec(message)
+  if (match) { const columns = match[1]; return t(i18n)`Sorted ${columns} columns.` }
   match = /^(\d+) rows filtered out\.$/.exec(message)
   if (match) { const rows = match[1]; return t(i18n)`${rows} rows filtered out.` }
   match = /^Table (.+)\. (\d+) rows filtered out in this worksheet\.$/.exec(message)
@@ -87,6 +89,12 @@ export function translateFeedback(i18n: I18n, message: string | null | undefined
   if (message.startsWith(capture)) {
     const detail = translateFeedback(i18n, message.slice(capture.length))
     return t(i18n)`Could not capture formatting: ${detail}`
+  }
+  const autoFillRejected = 'auto-fill rejected: '
+  if (message.startsWith(autoFillRejected)) {
+    const detail = message.slice(autoFillRejected.length)
+    const translated = translateFeedback(i18n, detail)
+    if (translated !== detail || Object.hasOwn(feedbackMessages, detail)) return translated
   }
   // 未知错误不能被吞掉或伪装成成功；保留诊断原文。
   return message

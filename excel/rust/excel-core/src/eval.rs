@@ -137,6 +137,12 @@ use eval_engineering_convert_core::*;
 use eval_engineering_convert_eval::*;
 
 use eval_aggregate_hidden::*;
+#[path = "eval_subtotal_reference.rs"]
+mod eval_subtotal_reference;
+pub(crate) use eval_subtotal_reference::{
+    expr_contains_subtotal, formula_source_contains_subtotal,
+};
+use eval_subtotal_reference::for_each_subtotal_argument;
 
 use eval_aggregate_subtotal_engine::*;
 
@@ -206,7 +212,8 @@ use eval_core_indirect::*;
 use eval_core_date_arithmetic::*;
 use eval_core_numbers::*;
 use eval_core_date_serial::*;
-use eval_core_criteria::*;
+pub(crate) use eval_core_criteria::{parse_criterion_op, pattern_has_wildcard, wildcard_match};
+use eval_core_criteria::matches_criterion;
 use eval_core_value_helpers::*;
 
 use std::cell::{Cell, RefCell};

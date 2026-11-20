@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -14,6 +15,7 @@ test.beforeEach(async ({ page }) => {
 for (const width of [1280]) {
   test(`ordinary cell spill details never fabricates navigation at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 })
+    await showRibbonItem(page, 'formula.spill-details')
     await button(page, 'Spill details').click()
     await expect(dialog(page)).toContainText('This cell is not part of a spilled array.')
     for (const name of ['Select spill range', 'Go to formula cell', 'Select blocking cell'])
@@ -30,11 +32,13 @@ for (const width of [1280]) {
     await page.setViewportSize({ width, height: 850 })
     const input = page.getByRole('textbox', { name: 'Active cell value' })
     await input.fill('=SUM(')
+    await showRibbonItem(page, 'formula.spill-details')
     await expect(button(page, 'Spill details')).toBeDisabled()
     await expect(input).toHaveValue('=SUM(')
     await expect(dialog(page)).toHaveCount(0)
     await input.press('Escape')
     await expect(input).toHaveValue("='Sales Orders'!B2")
+    await showRibbonItem(page, 'formula.spill-details')
     await button(page, 'Spill details').click()
     await expect(dialog(page)).toContainText('This cell is not part of a spilled array.')
     await button(page, 'Close').click()
@@ -50,6 +54,7 @@ for (const width of [1280]) {
     await input.fill('=SEQUENCE(3)'); await input.press('Enter')
     await expect(cell(page, '98:7')).toHaveText('1')
     await select(page, 'H99', '98:7')
+    await showRibbonItem(page, 'formula.spill-details')
     await button(page, 'Spill details').click()
     await expect(dialog(page)).toContainText('Spill range: H99:H101')
     await button(page, 'Select spill range').click()

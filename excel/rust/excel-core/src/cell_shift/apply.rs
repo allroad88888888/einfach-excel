@@ -61,6 +61,7 @@ impl CellShiftChange {
                 workbook.publish_atom_names();
             }
             result = workbook.restore_merged_history_snapshots(&[(self.sheet, next)]);
+            for change in &self.filter_criteria { change.apply(workbook, undo); }
             for rule in &self.rules {
                 rule.apply(workbook, undo);
             }

@@ -15,6 +15,33 @@ struct FillPlan {
     borders: BorderPlan,
 }
 
+fn coalesce_planned_ranges(sheet: usize, cells: &[PlannedCell]) -> Vec<(usize, CellRange, bool)> {
+    let mut coords: Vec<CellAddress> = cells.iter().map(|cell| cell.addr).collect();
+    coords.sort_by_key(|addr| (addr.col, addr.row));
+    coords.dedup();
+    let mut ranges: Vec<(usize, CellRange, bool)> = Vec::new();
+    for addr in coords {
+        if let Some((_, last, _)) = ranges.last_mut() {
+            if last.start.col == addr.col
+                && last.end.col == addr.col
+                && last.end.row + 1 == addr.row
+            {
+                last.end.row = addr.row;
+                continue;
+            }
+            if last.start.row == addr.row
+                && last.end.row == addr.row
+                && last.end.col + 1 == addr.col
+            {
+                last.end.col = addr.col;
+                continue;
+            }
+        }
+        ranges.push((sheet, CellRange::single(addr), true));
+    }
+    ranges
+}
+
 impl Workbook {
     /// 所有源样本、目标约束和公式先验证；失败时不修改工作簿。
     pub fn apply_auto_fill(
@@ -26,19 +53,37 @@ impl Workbook {
     }
 
     fn plan_auto_fill(&self, request: &AutoFillRequest) -> Result<FillPlan, AutoFillError> {
-        validate_geometry(request)?;
-        let write_range = fill_write_range(request);
         if self.is_inside_custom_call() {
             return Err(AutoFillError::MutationDuringCustomCall);
         }
         let sheet = self
             .sheet(request.sheet_idx)
             .ok_or(AutoFillError::SheetOutOfRange)?;
+        if request.series == AutoFillSeries::FlashFill {
+            let (cells, write_range) = flash::plan(self, sheet, request)?;
+            if write_range.is_none() {
+                return Ok(FillPlan::default());
+            }
+            let borders = sheet.plan_replacement_borders(
+                cells
+                    .iter()
+                    .map(|cell| (cell.addr, cell.format.borders.clone())),
+                sheet.merged_ranges(),
+            );
+            self.ensure_fill_protection(request.sheet_idx, &cells, &borders)?;
+            return Ok(FillPlan {
+                cells,
+                write_range,
+                borders,
+            });
+        }
+        validate_geometry(request)?;
+        let mut write_range = fill_write_range(request);
         // 无扩展复制是空操作；序列仍须验证原有 witness 合同。
         if write_range.is_none() && request.series == AutoFillSeries::Copy {
             return Ok(FillPlan::default());
         }
-        if sheet
+        if !matches!(request.series, AutoFillSeries::Geometric { .. }) && sheet
             .merged_ranges()
             .iter()
             .any(|range| range.intersects(request.target_range))
@@ -48,18 +93,25 @@ impl Workbook {
             ));
         }
         let cells = match request.series {
+            AutoFillSeries::Geometric { stop } => {
+                let (cells, actual) = geometric::plan(sheet, request, write_range, stop)?;
+                write_range = actual;
+                cells
+            }
             AutoFillSeries::Copy => plan_copy(sheet, request, write_range.unwrap())?,
             AutoFillSeries::IntegerStep | AutoFillSeries::DecimalStep => {
                 plan_numeric_series(sheet, request, write_range)?
             }
             AutoFillSeries::LinearTrend => plan_linear_trend(sheet, request, write_range)?,
-            AutoFillSeries::DateDay | AutoFillSeries::DateWeek | AutoFillSeries::DateMonth => {
+            AutoFillSeries::DateDay | AutoFillSeries::DateWeek | AutoFillSeries::DateMonth
+            | AutoFillSeries::DateWeekday | AutoFillSeries::DateYear => {
                 plan_date_series(sheet, request, write_range)?
             }
             AutoFillSeries::TextNumber => plan_text_number_series(sheet, request, write_range)?,
             AutoFillSeries::WeekdayName
             | AutoFillSeries::MonthName
             | AutoFillSeries::CustomList => plan_named_series(sheet, request, write_range)?,
+            AutoFillSeries::FlashFill => unreachable!("handled above"),
         };
         if write_range.is_none() {
             return Ok(FillPlan::default());
@@ -130,8 +182,9 @@ impl Workbook {
         // 公式与跨格条件必须读取整批新值；私有回滚事务不会成为用户的额外一条历史。
         let mut rollback = WorkbookHistory::default();
         if !validations.is_empty() {
+            let targets = coalesce_planned_ranges(sheet, &cells);
             rollback
-                .begin(self, sheet, write_range.unwrap(), "Validate fill", true)
+                .begin_ranges(self, sheet, write_range.unwrap(), "Validate fill", &targets, false)
                 .map_err(AutoFillError::InvalidGeometry)?;
             for range in border_plan_ranges(&borders) {
                 rollback.capture_extra_formats(self.sheet(sheet).unwrap(), sheet, range);
@@ -214,6 +267,29 @@ impl WorkbookHistory {
         request: &AutoFillRequest,
     ) -> Result<AutoFillReport, AutoFillError> {
         let plan = workbook.plan_auto_fill(request)?;
+        // Stop decides the history range before protection/validation snapshot preflight.
+        // Existing callers may already own a transaction; the geometric wire path does not.
+        if matches!(
+            request.series,
+            AutoFillSeries::Geometric { .. } | AutoFillSeries::FlashFill
+        ) && !self.is_pending()
+        {
+            let Some(range) = plan.write_range else {
+                return workbook.apply_fill_plan(request.sheet_idx, plan);
+            };
+            let label = if request.series == AutoFillSeries::FlashFill {
+                "Flash Fill"
+            } else {
+                "Fill geometric series"
+            };
+            let targets = coalesce_planned_ranges(request.sheet_idx, &plan.cells);
+            self.begin_ranges(workbook, request.sheet_idx, range, label, &targets, false)
+                .map_err(AutoFillError::InvalidGeometry)?;
+            let result = self.apply_planned_fill(workbook, request.sheet_idx, plan);
+            self.finish(workbook, result.is_ok())
+                .map_err(AutoFillError::InvalidGeometry)?;
+            return result;
+        }
         self.apply_planned_fill(workbook, request.sheet_idx, plan)
     }
 

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -14,6 +15,7 @@ async function refresh(page: Page) {
 }
 async function open(page: Page, source = 'E95', coord = '94:4', destination = 'B95') {
   await select(page, source, coord)
+  await showRibbonItem(page, 'data.text-to-columns')
   await button(page, 'Text to columns').click()
   // 默认在源位置预览可能越过画布；先指定可容纳输出的目标。
   await expect(page.getByRole('dialog')).toBeVisible()

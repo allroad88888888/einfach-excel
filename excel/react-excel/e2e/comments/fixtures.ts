@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { expect, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 export const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -11,6 +12,7 @@ export const author = (page: Page) => page.getByLabel('Workbook display name', {
 export const body = (page: Page, existing = true) => page.getByLabel(existing ? 'Reply text' : 'Comment text', { exact: true })
 
 export async function openComments(page: Page) {
+  await showRibbonItem(page, 'insert.comments')
   await button(page, 'Comments').click()
   await expect(editor(page)).toBeVisible()
   await expect(author(page)).toBeEnabled()

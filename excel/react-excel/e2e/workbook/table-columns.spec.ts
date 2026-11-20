@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -9,6 +10,7 @@ async function summary(page: Page) {
   await expect(cell(page, '4:1')).toHaveText('60')
 }
 async function open(page: Page) {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click(); await button(page, 'Edit table DemoTable').click()
   return page.getByRole('dialog', { name: 'Tables', exact: true })
 }
@@ -123,6 +125,7 @@ test('header rename updates a cross-sheet structured array and its dependent for
 })
 
 test('name manager locates a Table on another worksheet without adding history', async ({ page }) => {
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click()
   await expect(button(page, 'Go to table DemoTable')).toContainText('Summary!A80:B84')
   await button(page, 'Go to table DemoTable').click()
@@ -152,6 +155,7 @@ for (const width of [1280, 390]) test(`column and location controls fit ${width}
   await page.screenshot({ path: info.outputPath(`table-columns-${width}.png`) })
   await close(page)
   await select(page, 'B5', '4:1'); await expect(cell(page, '4:1')).toHaveText('60')
+  await showRibbonItem(page, 'formula.name-manager')
   await button(page, 'Name manager').click()
   const names = page.getByRole('dialog', { name: 'Name manager' })
   await button(page, 'Go to table DemoTable').scrollIntoViewIfNeeded()
@@ -160,6 +164,7 @@ for (const width of [1280, 390]) test(`column and location controls fit ${width}
   expect(box.x).toBeGreaterThanOrEqual(0); expect(box.x + box.width).toBeLessThanOrEqual(width)
   await page.screenshot({ path: info.outputPath(`table-location-${width}.png`) })
   await page.keyboard.press('Escape'); await expect(names).toHaveCount(0)
+  await showRibbonItem(page, 'formula.name-manager')
   await expect(button(page, 'Name manager')).toBeFocused()
   expect(errors).toEqual([])
 })

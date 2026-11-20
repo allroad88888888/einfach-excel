@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Data validation', exact: true })
 const bar = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
 async function go(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()
@@ -12,6 +14,7 @@ async function go(page: Page, reference: string) {
   await expect(bar(page)).toBeEnabled()
 }
 async function open(page: Page) {
+  await showRibbonItem(page, 'data.data-validation')
   await button(page, 'Data validation').click()
   await expect(dialog(page)).toBeVisible()
   await expect(page.getByLabel('Applies to')).toBeEnabled()
@@ -99,6 +102,7 @@ test('comparison rejects an entire values paste before changing any seed cell', 
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await go(page, 'H53:H55')
   await page.evaluate(() => navigator.clipboard.writeText('5\n9\n6'))
+  await showRibbonItem(page, 'clipboard.paste-values')
   await button(page, 'Paste values only').click()
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('Nothing was pasted')
   await expect(cell(page, '52:7')).toHaveText('5')

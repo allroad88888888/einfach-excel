@@ -18,18 +18,18 @@ impl Sheet {
                 for col in merge.start.col..=merge.end.col {
                     desired
                         .entry(CellAddress::new(merge.start.row, col))
-                        .or_default();
+                        .or_insert_with(|| self.diagonal_only(CellAddress::new(merge.start.row, col)));
                     desired
                         .entry(CellAddress::new(merge.end.row, col))
-                        .or_default();
+                        .or_insert_with(|| self.diagonal_only(CellAddress::new(merge.end.row, col)));
                 }
                 for row in merge.start.row..=merge.end.row {
                     desired
                         .entry(CellAddress::new(row, merge.start.col))
-                        .or_default();
+                        .or_insert_with(|| self.diagonal_only(CellAddress::new(row, merge.start.col)));
                     desired
                         .entry(CellAddress::new(row, merge.end.col))
-                        .or_default();
+                        .or_insert_with(|| self.diagonal_only(CellAddress::new(row, merge.end.col)));
                 }
             }
         }
@@ -71,6 +71,13 @@ impl Sheet {
             *borders != after_format
         });
         writes
+    }
+
+    // Perimeter placeholders inherit the source anchor's physical edges, but their own
+    // diagonals are not replacement targets and must survive the shared-edge repair.
+    fn diagonal_only(&self, addr: CellAddress) -> CellBorders {
+        let borders = self.base_format_at(addr).borders;
+        CellBorders { diag_up: borders.diag_up, diag_down: borders.diag_down, ..Default::default() }
     }
 }
 

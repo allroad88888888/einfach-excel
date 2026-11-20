@@ -14,6 +14,10 @@ pub enum BorderPreset {
     Bottom,
     Left,
     None,
+    DiagonalDown,
+    DiagonalUp,
+    Diagonal,
+    DiagonalNone,
 }
 
 /// 仅活在当前命令内的变更计划，供原生历史先捕获实际影响范围。
@@ -43,12 +47,18 @@ impl Sheet {
         if count > 100_000 {
             return Err("Border selection exceeds 100,000 cells. Choose a smaller range.");
         }
+        if matches!(preset, BorderPreset::DiagonalDown | BorderPreset::DiagonalUp
+            | BorderPreset::Diagonal | BorderPreset::DiagonalNone) {
+            return Ok(self.plan_diagonal_borders(range, preset, &border));
+        }
         let border = if preset == BorderPreset::None {
             BorderSpec::default()
         } else {
             border
         };
-        let mut writes = BorderPlan::new();
+        let mut writes = if preset == BorderPreset::None {
+            self.plan_diagonal_borders(range, BorderPreset::DiagonalNone, &border)
+        } else { BorderPlan::new() };
         for addr in range.iter() {
             let cell = self
                 .merged_range_at(addr)
@@ -72,6 +82,7 @@ impl Sheet {
                 BorderPreset::Right => [false, outer[1], false, false],
                 BorderPreset::Bottom => [false, false, outer[2], false],
                 BorderPreset::Left => [false, false, false, outer[3]],
+                _ => unreachable!("diagonal presets have their own logical-cell plan"),
             };
             for (side, selected) in selected.into_iter().enumerate() {
                 if !selected {

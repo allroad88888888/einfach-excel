@@ -1,8 +1,8 @@
-import type { RichTextRun } from '../contracts'
+import type { NativeSubtotalList, NativeSubtotalListRequest, NativeSubtotalReport, SubtotalAction } from './subtotal-commands'
+import type { RustFillNamedList } from './fill-types'
 import type { SheetDefaults } from '../runtime/sheet-defaults'
 import type {
-  DisplayCell,
-  IterativeCalculationConfig,
+  DisplayCell, RichTextRun, IterativeCalculationConfig,
   SpreadsheetCellFormat,
   SpreadsheetNumberFormat,
   ViewportRowHeight,
@@ -19,14 +19,20 @@ import type { WasmFindQueries } from './find-commands'
 import type { WasmSelectSpecialQueries } from './select-special-commands'
 import type { CellRange } from '../shared'
 import type { SelectionNumbers } from '../status-bar/types'
-import type { RustSortKey } from './sort-commands'
+import type { WasmSortRange } from './sort-commands'
+import type { RustConditionalFontColors, RustNativeNumberDisplay, RustNumberFormatPreview } from './native-number-display'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import type { RustFilterReport, RustFilterValuesPage, RustFilterValuesQuery } from './filter-commands'
+import type {
+  NativeFilterRangeCriteria, WasmAdvancedFilterCopy,
+} from './advanced-filter-range-commands'
+import type { WasmConsolidate } from './consolidate-commands'
 import type { NativeTextColumnsRequest, RustTextColumnsPreview, RustTextColumnsReport } from './text-columns-commands'
 import type { NativeRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from './remove-duplicates-commands'
 import type { NativeQuickFormulaRequest, QuickFormulaSuggestion } from './quick-formula-commands'
 import type { ConditionalFormatChange, NativeConditionalFormats } from './conditional-format-commands'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
+import type { InvalidValidationReport } from './data-validation-commands'
 import type { NativeOutlineAction } from '../outline/native-state'
 import type { NativeNamedRange, NativeNamedRangeAction } from '../named-ranges/native-types'
 import type { NativeTable, NativeTableAction } from '../tables/native-types'
@@ -42,11 +48,10 @@ import type { WasmAsyncFormulaQueries } from './async-formulas/commands'
 import type { WasmFormulaAuditingQueries } from '../formula-auditing/types'
 import type { HostWasmCommands } from '../host/types'
 
-export interface RustCellSnapshot {
+export interface RustCellSnapshot extends RustNativeNumberDisplay {
   readonly sheet: number
   readonly addr: string
   readonly display: string
-  readonly formattedDisplay?: string
   readonly inputText?: string
   readonly richText?: readonly RichTextRun[]
   readonly hyperlink?: string
@@ -75,7 +80,7 @@ export interface RustIndexedRowStyleSnapshot extends RustIndexedStyleSnapshot {
   readonly height?: number
 }
 
-export interface RustFormatRangeSnapshot {
+export interface RustFormatRangeSnapshot extends RustConditionalFontColors {
   readonly defaultFontSize?: number
   readonly cellStyles: readonly RustCellStyleSnapshot[]
   readonly rowStyles: readonly RustIndexedRowStyleSnapshot[]
@@ -84,7 +89,8 @@ export interface RustFormatRangeSnapshot {
   readonly conditionalIcons?: readonly ({ readonly addr: string } & NonNullable<DisplayCell['conditionalIcon']>)[]
 }
 
-export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
+export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries, WasmAdvancedFilterCopy,
+  WasmConsolidate,
   WasmFindQueries, WasmSelectSpecialQueries, WasmCustomFormulaQueries,
   WasmNoteQueries, WasmDrawingQueries, WasmMediaQueries,
   WasmCommentQueries, WasmProtectionQueries, WasmAsyncFormulaQueries,
@@ -113,8 +119,14 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   change_table?: (sheet: number, action: NativeTableAction) => boolean
   list_named_ranges?: () => readonly NativeNamedRange[]
   change_named_range?: (sheet: number, action: NativeNamedRangeAction) => boolean
+  inspect_subtotal_list?: (request: NativeSubtotalListRequest) => NativeSubtotalList
+  change_subtotals?: (request: {
+    readonly list: NativeSubtotalListRequest
+    readonly action: SubtotalAction
+  }) => NativeSubtotalReport | undefined
   change_outline?: (sheet: number, axis: 'row' | 'column', action: NativeOutlineAction) => boolean
   getDataValidation?: (sheet: number, row: number, col: number) => NativeDataValidationRule | null
+  listInvalidValidationCells?: (sheet: number, maxCount: number) => InvalidValidationReport
   setDataValidation?: (sheet: number, rowStart: number, colStart: number,
     rowEnd: number, colEnd: number, rule: NativeDataValidationRule | null) => void
   listConditionalFormats?: (sheet: number) => NativeConditionalFormats
@@ -139,25 +151,19 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   split_text_columns?: (
     request: NativeTextColumnsRequest, overwrite: boolean,
   ) => RustTextColumnsReport
-  preview_number_format?: (sheet: number, addr: string, format: SpreadsheetNumberFormat) => string
+  preview_number_format?: (
+    sheet: number, addr: string, format: SpreadsheetNumberFormat) => RustNumberFormatPreview
   applyFilter?: (
     sheet: number,
-    input: { rules: readonly ColumnFilterRule[]; range?: CellRange },
+    input: {
+      rules: readonly ColumnFilterRule[]
+      range?: CellRange
+      rangeCriteria?: NativeFilterRangeCriteria
+    },
   ) => RustFilterReport
   reapplyFilter?: (sheet: number) => RustFilterReport
   clearFilter?: (sheet: number) => RustFilterReport
-  sortRange?: (
-    sheet: number,
-    input: {
-      readonly range: { startRow: number; endRow: number; startCol: number; endCol: number }
-      readonly keys: readonly (RustSortKey & {
-        readonly caseSensitive: boolean; readonly emptyFirst: boolean
-      })[]
-      readonly excludedRows: readonly number[]
-    },
-  ) =>
-    | { readonly ok: true; readonly movedRows: number }
-    | { readonly ok: false; readonly code: string; readonly message?: string }
+  sortRange?: WasmSortRange
   apply_auto_fill?: (input: {
     readonly validationConfirmation?: 'continue'
     readonly sheet: number
@@ -166,6 +172,7 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
     readonly direction: 'down' | 'right' | 'up' | 'left'
     readonly series:
       | 'copy'
+      | 'geometric'
       | 'integer-step'
       | 'text-number'
       | 'linear-trend'
@@ -173,9 +180,17 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
       | 'month-name'
       | 'custom-list'
       | 'date-day'
+      | 'date-weekday'
+      | 'date-year'
+      | 'flash-fill'
+    readonly step?: number
+    readonly stop?: number
+    readonly namedLists?: readonly RustFillNamedList[]
     readonly infer?: boolean
     readonly list?: { listName: string; values: readonly string[]; locale: string }
-  }) => { readonly written: number }
+  }) => { readonly written: number; readonly writeRange: {
+    startRow: number; endRow: number; startCol: number; endCol: number
+  } | null }
   find_fill_down_end?: (sheet: number,
     source: { startRow: number; endRow: number; startCol: number; endCol: number }, limit: number,
   ) => number | undefined

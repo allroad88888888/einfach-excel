@@ -89,6 +89,7 @@ impl WasmWorkbook :: [#[wasm_bindgen(js_name = getDataValidation)]] :: pub fn ge
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = getLastValidationFailure)]] :: pub fn get_last_validation_failure(&self) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = getPrintConfig)]] :: pub fn get_print_config(&self, sheet: u32) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = listConditionalFormats)]] :: pub fn list_conditional_formats(&self, sheet: u32) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [#[wasm_bindgen(js_name = listInvalidValidationCells)]] :: pub fn list_invalid_validation_cells( &self, sheet: u32, max_count: u32, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = manageConditionalFormatRule)]] :: pub fn manage_conditional_format_rule(&mut self, sheet: u32, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = removeConditionalFormatRule)]] :: pub fn remove_conditional_format_rule( &mut self, sheet: u32, request: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = setCellInputConfirmed)]] :: pub fn set_cell_input_confirmed(&mut self, sheet: usize, addr: &str, input: &str, expand_tables: bool) -> Result<(), JsValue>
@@ -99,6 +100,7 @@ impl WasmWorkbook :: [#[wasm_bindgen]] :: pub fn function_catalog() -> Result<Js
 impl WasmWorkbook :: [] :: pub fn add_sheet(&mut self, name: &str) -> u32
 impl WasmWorkbook :: [] :: pub fn aggregate_selection(&self, targets: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn apply_auto_fill(&mut self, payload: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn apply_consolidate( &mut self, request: JsValue, approval: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn auto_fit_dimensions( &mut self, sheet: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, axis: &str, default_row: u32, default_col: u32, measure: &js_sys::Function, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn bulk_import_cells(&mut self, cells: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn bulk_install_workbook(&mut self, payload: JsValue) -> Result<JsValue, JsValue>
@@ -113,10 +115,12 @@ impl WasmWorkbook :: [] :: pub fn change_note( &mut self, sheet: u32, row: u32, 
 impl WasmWorkbook :: [] :: pub fn change_outline(&mut self, sheet: u32, axis: &str, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_protection(&mut self, sheet: u32, change: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_rich_text(&mut self, sheet: u32, row: u32, col: u32, runs: JsValue) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn change_subtotals(&mut self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_table(&mut self, sheet: u32, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn clear_cell(&mut self, sheet_idx: u32, addr: &str)
 impl WasmWorkbook :: [] :: pub fn clear_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> u32
 impl WasmWorkbook :: [] :: pub fn clear_selection(&mut self, request: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn copy_advanced_filter( &mut self, request: JsValue, approval: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn debug_cross_sheet_dependents_count(&self) -> u32
 impl WasmWorkbook :: [] :: pub fn debug_formula_cache_state(&self, sheet_idx: u32, addr: &str) -> String
 impl WasmWorkbook :: [] :: pub fn debug_formula_count(&self) -> u32
@@ -153,6 +157,7 @@ impl WasmWorkbook :: [] :: pub fn host_write_cells(&mut self, cells: JsValue) ->
 impl WasmWorkbook :: [] :: pub fn initialize_sheet_defaults(&mut self, idx: u32, json: &str) -> Result<(), JsValue>
 impl WasmWorkbook :: [] :: pub fn insert_col(&mut self, sheet_idx: u32, at: u32, count: u32)
 impl WasmWorkbook :: [] :: pub fn insert_row(&mut self, sheet_idx: u32, at: u32, count: u32)
+impl WasmWorkbook :: [] :: pub fn inspect_subtotal_list(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn inspect_watched_cells(&self, targets: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn is_error(&self, sheet_idx: u32, addr: &str) -> bool
 impl WasmWorkbook :: [] :: pub fn list_named_ranges(&self) -> Result<JsValue, JsValue>
@@ -169,7 +174,9 @@ impl WasmWorkbook :: [] :: pub fn patch_format_selection(&mut self, request: JsV
 impl WasmWorkbook :: [] :: pub fn patch_range_borders( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, input: JsValue, ) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn prepare_clipboard( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, cut: bool, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn prepare_clipboard_blocks(&mut self, sheet_idx: u32, blocks: JsValue) -> Result<JsValue, JsValue>
-impl WasmWorkbook :: [] :: pub fn preview_number_format( &self, sheet_idx: u32, addr: &str, format: JsValue, ) -> Result<String, JsValue>
+impl WasmWorkbook :: [] :: pub fn preview_advanced_filter_copy(&self, request: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn preview_consolidate(&self, request: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn preview_number_format( &self, sheet_idx: u32, addr: &str, format: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_remove_duplicates(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_text_columns(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn put_media(&mut self, bytes: &[u8]) -> Result<String, JsValue>

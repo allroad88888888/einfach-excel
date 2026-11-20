@@ -1,9 +1,11 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
 import { button, cell, menu, select, summary } from '../advanced-filter/support'
+import { showRibbonItem } from '../support/ribbon'
 
 async function openTable(page: Page, name: string, address: string, key: string) {
   await select(page, address, key)
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('open')
   const dialog = page.getByRole('dialog', { name: `${name} filter conditions`, exact: true })
   await expect(dialog).toBeVisible()
@@ -49,9 +51,11 @@ test('Table grouped filters survive actual download and reopen independently of 
   await button(page, 'Close').click()
 
   await select(page, 'A80', '79:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('clear')
   await expect(cell(page, 82, 0)).toBeVisible()
   await select(page, 'A46', '45:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await menu(page).selectOption('clear')
   await expect(cell(page, 46, 0)).toBeVisible()
   await button(page, 'File').click()

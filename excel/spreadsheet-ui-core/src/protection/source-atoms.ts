@@ -1,6 +1,10 @@
 import { atom, type Atom, type Getter, type Setter } from '@einfach/core'
 import type { SheetProtectionBySheet, SheetProtectionState } from './types'
-import { EMPTY_SHEET_PROTECTION, snapshotProtectionState } from './sheet-state'
+import {
+  EMPTY_SHEET_PROTECTION,
+  hasCustomPermissions,
+  snapshotProtectionState,
+} from './sheet-state'
 
 // --- canonical source state ---
 
@@ -16,7 +20,12 @@ sheetProtectionAtom.debugLabel = 'spreadsheet.protection.state'
 /** Whole-sheet read-only status, derived from accepted protection facts. */
 export const readOnlySheetIdsAtom = atom((get): ReadonlySet<string> => new Set(
   Object.entries(get(sheetProtectionAtom))
-    .filter(([, state]) => state.mode === 'protected' && state.unlockedRanges.length === 0)
+    .filter(
+      ([, state]) =>
+        state.mode === 'protected' &&
+        state.unlockedRanges.length === 0 &&
+        !hasCustomPermissions(state.permissions),
+    )
     .map(([sheetId]) => sheetId),
 ))
 readOnlySheetIdsAtom.debugLabel = 'spreadsheet.protection.readOnlySheetIds'

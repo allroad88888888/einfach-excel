@@ -1,4 +1,5 @@
 import { atom } from '@einfach/core'
+import { nativeFillNamedListsAtom } from './locale'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import {
@@ -22,10 +23,13 @@ export const directionalFillFeedbackAtom = atom((get) => get(feedbackAtom))
 
 /** 填充入口只传选项；当前选区、原生写入及结果发布都在一个 command 内。 */
 export const fillSelectionAtom = atom(null, async (
-  get, set, input: 'down' | 'right' | Pick<RustFillRangeRequest, 'direction' | 'series'> &
+  get, set, input: 'down' | 'right' | 'flash' | Pick<RustFillRangeRequest, 'direction' | 'series'> &
     Partial<Pick<RustFillRangeRequest, 'sourceRange' | 'range' | 'auto' | 'sheetId' | 'adjacent'>>,
 ): Promise<boolean> => {
-  const { direction, series } = typeof input === 'string' ? { direction: input, series: undefined } : input
+  const isFlash = input === 'flash'
+  const { direction, series } = typeof input === 'string'
+    ? { direction: isFlash ? 'down' as const : input, series: undefined }
+    : input
   if (get(feedbackAtom).busy || get(editingSessionAtom).source !== null ||
     get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy ||
     get(systemClipboardFeedbackAtom).busy) return false
@@ -41,7 +45,9 @@ export const fillSelectionAtom = atom(null, async (
   if (drag && (drag.sheetId !== sheetId || !rangeEquals(drag.sourceRange!, selection.range)))
     return fail('The fill source selection changed. Drag again.')
   const range = drag?.range ?? selection.range
-  if (!drag?.adjacent &&
+  if (isFlash) {
+    if (range.colStart !== range.colEnd) return fail('Select a single column for Flash Fill.')
+  } else if (!drag?.adjacent &&
     ((direction === 'down' || direction === 'up') ? range.rowEnd - range.rowStart : range.colEnd - range.colStart) < 1)
     return fail('Include a source row or column and at least one destination.')
   // 来源只是读取，真实目的格及边框邻居由 Rust 全量预检，不能误锁来源。
@@ -54,8 +60,10 @@ export const fillSelectionAtom = atom(null, async (
     sheetId, requestId, window: visible.window, viewport: visible.viewport, reason: 'toolbar',
   })
   const payload = {
-    request: { sheetId, requestId, range, direction, ...(series ? { series } : {}),
+    request: { sheetId, requestId, range, direction, ...(isFlash ? { flash: true } : {}),
+      ...(series ? { series } : {}),
       ...(drag ? { sourceRange: drag.sourceRange, auto: drag.auto,
+        ...(drag.auto ? { namedLists: get(nativeFillNamedListsAtom) } : {}),
         ...(drag.adjacent ? { adjacent: drag.adjacent } : {}) } : {}) }, projection,
   }
   return set(resumeValidatedFillAtom, { connection, witness, payload })
@@ -72,7 +80,11 @@ export const resumeValidatedFillAtom = atom(null, async (get, set, input: {
   const { request, projection } = payload
   const { sheetId, requestId, range, direction, adjacent } = request
   const fail = (error: string) => { set(feedbackAtom, { busy: false, error, message: '' }); return false }
-  const busy = { busy: true, error: '', message: `Filling ${direction}…` }
+  const busy = {
+    busy: true,
+    error: '',
+    message: request.flash ? 'Flash filling…' : `Filling ${direction}…`,
+  }
   set(feedbackAtom, busy)
   try {
     const pending = connection.request('range.fill', payload)
@@ -93,8 +105,8 @@ export const resumeValidatedFillAtom = atom(null, async (get, set, input: {
       !Number.isSafeInteger(target.rowEnd) || target.rowEnd <= range.rowEnd ||
       target.rowEnd >= adjacent.rowLimit)) throw new Error('Rust returned a mismatched fill range.')
     // 双击的尺寸快照只覆盖实际写入行，不能拿它清理来源行已有的高度。
-    applyProjectionSizes(get, set, { ...result.projection,
-      window: adjacent ? ack.affectedRange! : target, ...result.sizes })
+    if (ack.affectedRange) applyProjectionSizes(get, set, { ...result.projection,
+      window: ack.affectedRange, ...result.sizes })
     set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
     const currentSelection = get(selectionSnapshotAtom)
     if (adjacent && currentSelection.selection.sheetId === sheetId &&
@@ -103,7 +115,15 @@ export const resumeValidatedFillAtom = atom(null, async (get, set, input: {
         anchor: { row: target.rowStart, col: target.colStart },
         focus: { row: target.rowEnd, col: target.colEnd } })
     }
-    set(feedbackAtom, { busy: false, error: '', message: `Filled ${direction}.` })
+    set(feedbackAtom, {
+      busy: false,
+      error: '',
+      message: ack.affectedRange
+        ? request.flash
+          ? 'Flash filled.'
+          : `Filled ${direction}.`
+        : 'No cells filled.',
+    })
     return true
   } catch (error) {
     if (!request.validationConfirmation && get(rustWorkbookConnectionAtom) === connection)

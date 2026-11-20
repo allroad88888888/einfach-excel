@@ -93,6 +93,12 @@
     "@einfach-excel/plugin-image-export": "workspace:*",
     "@einfach-excel/plugin-chart": "workspace:*",
     "@einfach-excel/plugin-image": "workspace:*",
-    "@einfach-excel/plugin-sparkline": "workspace:*"
+    "@einfach-excel/plugin-sparkline": "workspace:*",
+    "@einfach-excel/plugin-text-format": "workspace:*",
+    "@einfach-excel/plugin-cell-appearance": "workspace:*",
+    "@einfach-excel/plugin-data-sort": "workspace:*",
+    "@einfach-excel/plugin-data-filter": "workspace:*",
+    "@einfach-excel/plugin-data-subtotal": "workspace:*",
+    "@einfach-excel/plugin-data-consolidate": "workspace:*"
   }
 }

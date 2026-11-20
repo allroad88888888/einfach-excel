@@ -17,6 +17,22 @@ export function readDisplayFormats(
   return fontSize === undefined ? snapshot : { ...snapshot, defaultFontSize: fontSize }
 }
 
+/** Reads explicit cell/row/column base format at `(row, col)` without sheet defaults, CF, or Table styles. */
+export function readExplicitBaseFormat(
+  workbook: WasmWorkbook,
+  sheet: number,
+  row: number,
+  col: number,
+): SpreadsheetCellFormat | null {
+  if (!workbook.snapshot_format_range) return null
+  const snapshot = workbook.snapshot_format_range(sheet, row, col, row, col)
+  const cellStyles = new Map(snapshot.cellStyles.map((entry) => [entry.addr, entry.format]))
+  const rowStyles = new Map(snapshot.rowStyles.map((entry) => [entry.index, entry.format]))
+  const columnStyles = new Map(snapshot.columnStyles.map((entry) => [entry.index, entry.format]))
+  const format = formatAt(cellStyles, rowStyles, columnStyles, row, col)
+  return isDefaultFormat(format) ? null : format
+}
+
 function applyStyle(
   target: SpreadsheetCellFormat,
   style: RustSparseCellStyle | undefined,
@@ -48,7 +64,13 @@ function formatAt(
 export function usesNativeNumberDisplay(kind: SpreadsheetNumberFormat['kind']): boolean {
   return kind === 'text' || kind === 'date' || kind === 'time' || kind === 'scientific' ||
     kind === 'fraction' || kind === 'number' || kind === 'decimal' || kind === 'percent' ||
-    kind === 'percentage' || kind === 'currency'
+    kind === 'percentage' || kind === 'currency' || kind === 'accounting' || kind === 'custom' || kind === 'special'
+}
+
+/** 条件格式字体色压过自定义格式段颜色；填充与留白保持不变。 */
+function withoutSectionColor(cell: DisplayCell): DisplayCell {
+  const { fill, pads } = cell.numberFormatDisplay ?? {}
+  return { ...cell, numberFormatDisplay: fill || pads ? { fill, pads } : undefined }
 }
 
 function formattedDisplayValue(cell: DisplayCell, format: SpreadsheetCellFormat): string {
@@ -81,6 +103,7 @@ export function applyVisibleFormats(
     return [addr, bar] as const
   }))
   const result: DisplayCell[] = []
+  const conditionalFontColors = new Set(snapshot.conditionalFontColors ?? [])
   const icons = new Map((snapshot.conditionalIcons ?? []).map(({ addr, ...icon }) => {
     if (!['three-arrows', 'three-traffic-lights', 'three-flags'].includes(icon.set) ||
       ![0, 1, 2].includes(icon.index) || typeof icon.showValue !== 'boolean')
@@ -94,7 +117,9 @@ export function applyVisibleFormats(
       const dataBar = dataBars.get(toA1(row, col))
       const conditionalIcon = icons.get(toA1(row, col))
       // 每帧都显式替换视觉字段，撤销规则后不能遗留旧图标或数据条。
-      const cell = source && { ...source, dataBar, conditionalIcon }
+      const visual = source && { ...source, dataBar, conditionalIcon }
+      const cell = visual?.numberFormatDisplay?.color && conditionalFontColors.has(toA1(row, col))
+        ? withoutSectionColor(visual) : visual
       let format = formatAt(cellStyles, rowStyles, columnStyles, row, col)
       if (format.fontSize === undefined && snapshot.defaultFontSize !== undefined)
         format = { ...format, fontSize: snapshot.defaultFontSize }

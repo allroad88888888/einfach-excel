@@ -3,7 +3,7 @@
 
 use super::package::Part;
 use super::rels::Rels;
-use super::xml::escape;
+use super::xml::escape_attr;
 use crate::address::parse_range;
 use crate::native::Table;
 
@@ -45,14 +45,14 @@ fn table_xml(table: &Table, id: usize) -> Option<String> {
         String::new()
     };
     let columns: String = table.columns.iter().enumerate()
-        .map(|(i, name)| format!(r#"<tableColumn id="{}" name="{}"/>"#, i + 1, escape(name))).collect();
+        .map(|(i, name)| format!(r#"<tableColumn id="{}" name="{}"/>"#, i + 1, escape_attr(name))).collect();
     let name = style_name(&table.style.preset).map(|n| format!(r#" name="{n}""#)).unwrap_or_default();
     let style = &table.style;
     Some(format!(
         r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="{id}" name="{n}" displayName="{n}" ref="{r}"{attrs}>{filter}<tableColumns count="{count}">{columns}</tableColumns><tableStyleInfo{name} showFirstColumn="{}" showLastColumn="{}" showRowStripes="{}" showColumnStripes="{}"/></table>"#,
         flag(style.first_column), flag(style.last_column), flag(style.banded_rows), flag(style.banded_columns),
-        n = escape(&table.name), r = crate::address::range_name([r1, c1, r2, c2]), count = table.columns.len()))
+        n = escape_attr(&table.name), r = crate::address::range_name([r1, c1, r2, c2]), count = table.columns.len()))
 }
 
 /// 返回 `<tableParts>` 片段；`next_id` 是工作簿内递增的表编号（同时用作文件名）。

@@ -33,6 +33,7 @@ impl Highlight {
         }
         let style = CellStyle {
             color: self.color.map(Some),
+            fill: self.background.as_ref().map(|_| None),
             background: self.background.map(Some),
             bold: self.bold,
             italic: self.italic,

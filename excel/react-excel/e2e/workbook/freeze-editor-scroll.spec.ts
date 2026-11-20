@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) {
   test(`a rejected fixed-cell edit keeps its feedback visible outside the cell at ${width}px`, async ({
@@ -8,6 +9,7 @@ for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 800 })
     await page.goto('/')
     await select(page, 'B3', '2:1')
+    await showRibbonItem(page, 'view.freeze-panes')
     await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
     await (await select(page, 'A2', '1:0')).dblclick()
     const editor = page.getByRole('textbox', { name: 'Cell editor', exact: true })
@@ -47,6 +49,7 @@ for (const frozen of [false, true]) {
       await page.goto('/')
       if (frozen) {
         await select(page, 'B3', '2:1')
+        await showRibbonItem(page, 'view.freeze-panes')
         await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
       }
       const cell = await select(page, 'D5', '4:3')

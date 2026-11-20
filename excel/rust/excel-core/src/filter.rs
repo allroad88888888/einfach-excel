@@ -27,227 +27,22 @@
 //! what makes the port behaviour-preserving on the worker path: same bytes
 //! in, same predicate, same answer.
 
+use crate::advanced_filter::range_state::FilterCriteriaState;
 use std::collections::BTreeSet;
 
-/// One column filter condition, the Rust twin of the TypeScript wire type
-/// `ColumnFilterRule` (`excel/spreadsheet-ui-core/src/filter-sort/types.ts:12-16`).
-///
-/// Four kinds, no more: the union is closed on the TypeScript side and the
-/// dropdown UI can only build these. `case_sensitive` collapses the wire's
-/// optional `caseSensitive?: boolean` — absent and `false` behave
-/// identically there (`caseSensitive ? value : value.toLocaleLowerCase()`),
-/// so a plain `bool` loses nothing.
-#[derive(Clone, Debug, PartialEq)]
-pub enum ColumnFilterRule {
-    /// Whole-value equality, case-folded unless `case_sensitive`.
-    Equals {
-        col_index: u32,
-        value: String,
-        case_sensitive: bool,
-    },
-    /// Substring containment, case-folded unless `case_sensitive`.
-    Contains {
-        col_index: u32,
-        value: String,
-        case_sensitive: bool,
-    },
-    /// Inclusive numeric band. A non-numeric cell never matches. Either
-    /// bound may be absent, which makes that side unbounded.
-    Range {
-        col_index: u32,
-        min: Option<f64>,
-        max: Option<f64>,
-    },
-    /// Membership in an explicit value list. RAW string comparison — see
-    /// the module note about the deliberate inconsistency with `Equals`.
-    List { col_index: u32, values: Vec<String> },
-}
-
-impl ColumnFilterRule {
-    /// The 0-based column this rule reads.
-    pub fn col_index(&self) -> u32 {
-        match self {
-            ColumnFilterRule::Equals { col_index, .. }
-            | ColumnFilterRule::Contains { col_index, .. }
-            | ColumnFilterRule::Range { col_index, .. }
-            | ColumnFilterRule::List { col_index, .. } => *col_index,
-        }
-    }
-}
-
-/// JavaScript's `WhiteSpace ∪ LineTerminator` production, which is what
-/// `String.prototype.trim` and `Number(string)` both strip.
-///
-/// It is NOT `char::is_whitespace` (the Unicode `White_Space` property).
-/// The two differ at exactly two code points:
-///
-///   - U+0085 NEXT LINE — `White_Space`, but NOT JavaScript whitespace.
-///   - U+FEFF ZERO WIDTH NO-BREAK SPACE — JavaScript whitespace (it is
-///     `<ZWNBSP>` in the spec), but NOT `White_Space`.
-///
-/// Both matter here: a BOM-prefixed `"\u{feff}Total"` label is a summary
-/// row in the product today, and a NEL-prefixed `"\u{85}12"` is NOT the
-/// number 12 today. Spelling the set out is how the port keeps both.
-fn is_js_whitespace(c: char) -> bool {
-    (c.is_whitespace() && c != '\u{85}') || c == '\u{feff}'
-}
-
-/// JavaScript's `String.prototype.trim`.
-pub fn js_trim(value: &str) -> &str {
-    value.trim_matches(is_js_whitespace)
-}
-
-/// JavaScript's `Number(string)` composed with `Number.isFinite`, i.e. the
-/// TypeScript `numericValue` helper (`projection-helpers.ts:82-85`):
-///
-/// ```ts
-/// export function numericValue(text: string): number | null {
-///   const value = Number(text)
-///   return Number.isFinite(value) ? value : null
-/// }
-/// ```
-///
-/// `str::parse::<f64>()` is NOT a substitute, and the differences are not
-/// academic — the first one fires on every empty cell in a filtered column:
-///
-/// | input        | `Number(x)` | `x.parse::<f64>()` |
-/// |--------------|-------------|--------------------|
-/// | `""`         | `0`         | `Err`              |
-/// | `"  12  "`   | `12`        | `Err`              |
-/// | `"0x10"`     | `16`        | `Err`              |
-/// | `"0b101"`    | `5`         | `Err`              |
-/// | `"Infinity"` | `∞` → `None`| `Err`              |
-/// | `"inf"`      | `NaN` → `None` | `Ok(∞)`         |
-/// | `"NaN"`      | `NaN` → `None` | `Ok(NaN)`       |
-/// | `"1_000"`    | `NaN` → `None` | `Err`           |
-///
-/// The empty-string row is the one with product consequences: a `range`
-/// rule whose band contains zero MATCHES every blank cell in the column
-/// today. That is the behaviour being preserved, not endorsed.
-///
-/// Strategy: validate the JavaScript `StringNumericLiteral` grammar by
-/// hand, then delegate the actual decimal-to-binary rounding to Rust's
-/// `f64` parser, which is correctly rounded exactly like the JavaScript
-/// one. Validation is what keeps `"inf"` / `"NaN"` / `"1_000"` out.
-pub fn js_numeric_value(text: &str) -> Option<f64> {
-    let value = js_number(text)?;
-    if value.is_finite() {
-        Some(value)
-    } else {
-        None
-    }
-}
-
-/// `Number(string)` proper. `None` stands for `NaN` (the caller cannot
-/// tell the difference, since `Number.isFinite(NaN)` is false anyway, but
-/// keeping the split makes the grammar readable).
-fn js_number(text: &str) -> Option<f64> {
-    let s = js_trim(text);
-    // `Number("")` and `Number("   ")` are +0, not NaN. This is the row of
-    // the table above that actually changes what users see.
-    if s.is_empty() {
-        return Some(0.0);
-    }
-
-    if let Some(rest) = strip_radix_prefix(s, 'x', 'X') {
-        return parse_radix(rest, 16);
-    }
-    if let Some(rest) = strip_radix_prefix(s, 'o', 'O') {
-        return parse_radix(rest, 8);
-    }
-    if let Some(rest) = strip_radix_prefix(s, 'b', 'B') {
-        return parse_radix(rest, 2);
-    }
-
-    let (negative, body) = match s.strip_prefix('-') {
-        Some(rest) => (true, rest),
-        None => (false, s.strip_prefix('+').unwrap_or(s)),
-    };
-
-    // `Infinity` is spelled exactly that way — case-sensitively, and only
-    // that word. `inf`, `INFINITY` and `NaN` are all plain NaN in JS.
-    if body == "Infinity" {
-        return Some(if negative {
-            f64::NEG_INFINITY
-        } else {
-            f64::INFINITY
-        });
-    }
-    if !is_js_decimal_literal(body) {
-        return None;
-    }
-    let parsed: f64 = body.parse().ok()?;
-    Some(if negative { -parsed } else { parsed })
-}
-
-fn strip_radix_prefix<'a>(s: &'a str, lower: char, upper: char) -> Option<&'a str> {
-    let rest = s.strip_prefix('0')?;
-    let mut chars = rest.chars();
-    let marker = chars.next()?;
-    if marker == lower || marker == upper {
-        Some(chars.as_str())
-    } else {
-        None
-    }
-}
-
-/// `NonDecimalIntegerLiteral`. No sign is permitted (`Number("-0x10")` is
-/// NaN), and at least one digit is required (`Number("0x")` is NaN).
-/// Accumulating in `f64` matches the spec's "mathematical value, then
-/// rounded" only up to 2^53; beyond that the last ulp can differ. Cells
-/// whose DISPLAY string is a >53-bit hex literal are not a shape this
-/// product produces, and the alternative — arbitrary-precision integer
-/// parsing — would be a lot of machinery for that.
-fn parse_radix(digits: &str, radix: u32) -> Option<f64> {
-    if digits.is_empty() {
-        return None;
-    }
-    let mut acc = 0f64;
-    for c in digits.chars() {
-        let d = c.to_digit(radix)?;
-        acc = acc * f64::from(radix) + f64::from(d);
-    }
-    Some(acc)
-}
-
-/// The unsigned `StrUnsignedDecimalLiteral` grammar minus `Infinity`:
-/// `digits[.digits][e[±]digits]`, `.digits[e[±]digits]`, or
-/// `digits.[e[±]digits]`. At least one mantissa digit; a bare `"."`,
-/// a dangling `"1e"` and an underscore-separated `"1_000"` are all NaN.
-fn is_js_decimal_literal(body: &str) -> bool {
-    let bytes = body.as_bytes();
-    let mut i = 0;
-    let mut mantissa_digits = 0;
-    while i < bytes.len() && bytes[i].is_ascii_digit() {
-        i += 1;
-        mantissa_digits += 1;
-    }
-    if i < bytes.len() && bytes[i] == b'.' {
-        i += 1;
-        while i < bytes.len() && bytes[i].is_ascii_digit() {
-            i += 1;
-            mantissa_digits += 1;
-        }
-    }
-    if mantissa_digits == 0 {
-        return false;
-    }
-    if i == bytes.len() {
-        return true;
-    }
-    if bytes[i] != b'e' && bytes[i] != b'E' {
-        return false;
-    }
-    i += 1;
-    if i < bytes.len() && (bytes[i] == b'+' || bytes[i] == b'-') {
-        i += 1;
-    }
-    let exponent_start = i;
-    while i < bytes.len() && bytes[i].is_ascii_digit() {
-        i += 1;
-    }
-    i > exponent_start && i == bytes.len()
-}
+mod rule;
+mod color_key;
+pub(crate) mod display_column;
+pub(crate) mod prepared_colors;
+pub(crate) mod scan_day;
+pub use color_key::{FilterColorSource, FilterColorTarget};
+pub(crate) mod date_period;
+mod legacy_number;
+pub(crate) mod prepared;
+pub(crate) mod validation;
+pub use rule::{ColumnFilterRule, FilterTopAmount, FilterTopDirection};
+pub use date_period::FilterDatePeriod;
+pub use legacy_number::{js_numeric_value, js_trim};
 
 /// `normalizeFilterText` (`projection-helpers.ts:87-89`).
 ///
@@ -304,6 +99,9 @@ pub fn filter_rule_matches_value(rule: &ColumnFilterRule, value: &str) -> bool {
         // note. `Equals` and `List` disagree about case in the product
         // today and the golden parity corpus pins that disagreement.
         ColumnFilterRule::List { values, .. } => values.iter().any(|candidate| candidate == value),
+        // Typed criteria use the prepared scan; never coerce display text.
+        ColumnFilterRule::Top { .. } | ColumnFilterRule::DatePeriod { .. }
+        | ColumnFilterRule::Color { .. } => false,
     }
 }
 
@@ -344,20 +142,36 @@ pub struct SheetAutoFilter {
     rules: Vec<ColumnFilterRule>,
     groups: Vec<crate::advanced_filter::ColumnFilterGroup>,
     hidden: BTreeSet<u32>,
+    range_criteria: Option<FilterCriteriaState>,
     pub(crate) range: Option<crate::CellRange>,
 }
 
 impl SheetAutoFilter {
     pub(crate) fn new(rules: Vec<ColumnFilterRule>, hidden: BTreeSet<u32>) -> Self {
-        SheetAutoFilter { rules, groups: Vec::new(), hidden, range: None }
+        SheetAutoFilter { rules, groups: Vec::new(), hidden, range_criteria: None, range: None }
     }
 
     pub(crate) fn new_grouped(groups: Vec<crate::advanced_filter::ColumnFilterGroup>, hidden: BTreeSet<u32>) -> Self {
-        Self { rules: Vec::new(), groups, hidden, range: None }
+        Self { rules: Vec::new(), groups, hidden, range_criteria: None, range: None }
+    }
+
+    pub(crate) fn new_range_criteria(range: crate::CellRange, criteria: FilterCriteriaState,
+        hidden: BTreeSet<u32>) -> Self {
+        Self { range: Some(range), range_criteria: Some(criteria), hidden, ..Default::default() }
+    }
+
+    pub(crate) fn range_criteria(&self) -> Option<FilterCriteriaState> { self.range_criteria }
+
+    pub(crate) fn set_criteria_link(&mut self, link: crate::advanced_filter::range_state::CriteriaLink) {
+        if let Some(criteria) = self.range_criteria.as_mut() {
+            criteria.link = Some(link);
+        }
     }
 
     pub fn groups(&self) -> &[crate::advanced_filter::ColumnFilterGroup] { &self.groups }
-    pub fn has_conditions(&self) -> bool { !self.rules.is_empty() || !self.groups.is_empty() }
+    pub fn has_conditions(&self) -> bool {
+        !self.rules.is_empty() || !self.groups.is_empty() || self.range_criteria.is_some()
+    }
     pub(crate) fn groups_mut(&mut self) -> &mut Vec<crate::advanced_filter::ColumnFilterGroup> { &mut self.groups }
 
     pub fn range(&self) -> Option<crate::CellRange> { self.range }
@@ -413,6 +227,8 @@ pub enum FilterError {
     InvalidGroups,
     /// 区域必须包含表头与数据，条件列必须属于此区域。
     InvalidRange,
+    /// The criteria reference, contents, or requested copy area cannot be used.
+    InvalidCriteria(&'static str),
     /// A history transaction already owns the workbook mutation boundary.
     HistoryPending,
     /// `sheet_index` is not a sheet.
@@ -458,138 +274,6 @@ pub(crate) fn predicate_columns(rules: &[ColumnFilterRule]) -> BTreeSet<u32> {
     cols
 }
 
-/// The visibility answer for one scanned extent, given a value reader.
-///
-/// This is `buildFilterSortDisplayRows` (`projection-helpers.ts:373-410`)
-/// composed with `filterHiddenRowsFromDisplayRows`
-/// (`excel/spreadsheet-ui-core/src/rust-worker/adapter/filter-hidden-rows.ts`) — the two
-/// halves both adapters already run back to back — collapsed into the one
-/// projection they actually want. The intermediate sparse `display ->
-/// source` permutation is dropped because it is provably irrelevant to the
-/// composition: it is only ever consumed as a SET, its header slot is
-/// index 0 while data compaction starts at index 1, and the summary slot
-/// `max_row` can never be overwritten by compaction (at most `max_row - 1`
-/// data rows compete for slots `1..=max_row - 1`).
-///
-/// Layout is the host's, fixed: header row 0, data rows `1..=max_row`,
-/// summary row (if any) at `max_row`.
-pub(crate) fn hidden_rows_for_scan(
-    rules: &[ColumnFilterRule],
-    scanned_rows: u32,
-    read_value: impl Fn(u32, u32) -> String,
-) -> BTreeSet<u32> {
-    // No rules is not "hide nothing after a scan" — it is "no scan
-    // happened", which `buildFilterSortDisplayRows` signals by returning
-    // `null` before it looks at anything.
-    if rules.is_empty() || scanned_rows == 0 {
-        return BTreeSet::new();
-    }
-    let max_row = scanned_rows - 1;
-    // A single-row extent is the header alone; there is nothing to judge.
-    if max_row < 1 {
-        return BTreeSet::new();
-    }
-
-    let has_summary = is_filter_sort_summary_row(&read_value(max_row, 0), max_row);
-    let last_data_row = if has_summary { max_row - 1 } else { max_row };
-
-    let mut hidden = BTreeSet::new();
-    for row in 1..=last_data_row {
-        if !row_matches_rules(rules, |col| read_value(row, col)) {
-            hidden.insert(row);
-        }
-    }
-    hidden
-}
-
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn js_number_matches_javascript_on_the_shapes_rust_would_disagree_about() {
-        // Every row here was produced by running `Number(x)` in node; see
-        // the commit message for the full 7 700-case corpus run.
-        assert_eq!(js_numeric_value(""), Some(0.0));
-        assert_eq!(js_numeric_value("   "), Some(0.0));
-        assert_eq!(js_numeric_value("\u{a0}"), Some(0.0));
-        assert_eq!(js_numeric_value("\u{feff}"), Some(0.0));
-        // U+0085 is Unicode White_Space but NOT JavaScript whitespace.
-        assert_eq!(js_numeric_value("\u{85}"), None);
-        assert_eq!(js_numeric_value(" 12 "), Some(12.0));
-        assert_eq!(js_numeric_value("0x10"), Some(16.0));
-        assert_eq!(js_numeric_value("0b101"), Some(5.0));
-        assert_eq!(js_numeric_value("0o17"), Some(15.0));
-        assert_eq!(
-            js_numeric_value("-0x10"),
-            None,
-            "a sign voids the radix form"
-        );
-        assert_eq!(js_numeric_value("0x"), None);
-        assert_eq!(js_numeric_value(".5"), Some(0.5));
-        assert_eq!(js_numeric_value("5."), Some(5.0));
-        assert_eq!(js_numeric_value("."), None);
-        assert_eq!(js_numeric_value("+5"), Some(5.0));
-        assert_eq!(js_numeric_value("1e3"), Some(1000.0));
-        assert_eq!(js_numeric_value("1e-3"), Some(0.001));
-        assert_eq!(js_numeric_value("1e"), None);
-        assert_eq!(js_numeric_value("1e999"), None, "overflows to Infinity");
-        assert_eq!(js_numeric_value("Infinity"), None);
-        assert_eq!(js_numeric_value("-Infinity"), None);
-        // Rust's own parser accepts all four of these; JavaScript does not.
-        assert_eq!(js_numeric_value("inf"), None);
-        assert_eq!(js_numeric_value("infinity"), None);
-        assert_eq!(js_numeric_value("NaN"), None);
-        assert_eq!(js_numeric_value("1_000"), None);
-        assert_eq!(js_numeric_value("1,000"), None);
-    }
-
-    #[test]
-    fn js_trim_uses_the_javascript_whitespace_set() {
-        assert_eq!(js_trim("\u{feff} total \u{feff}"), "total");
-        assert_eq!(js_trim("\u{85}total"), "\u{85}total");
-        assert!(is_filter_sort_summary_row("\u{feff}Total ", 5));
-        assert!(!is_filter_sort_summary_row("\u{85}Total", 5));
-    }
-
-    #[test]
-    fn list_does_not_case_fold_but_equals_does() {
-        let list = ColumnFilterRule::List {
-            col_index: 0,
-            values: vec!["abc".into()],
-        };
-        let equals = ColumnFilterRule::Equals {
-            col_index: 0,
-            value: "abc".into(),
-            case_sensitive: false,
-        };
-        assert!(!filter_rule_matches_value(&list, "ABC"));
-        assert!(filter_rule_matches_value(&equals, "ABC"));
-    }
-
-    #[test]
-    fn a_blank_cell_is_zero_for_a_range_rule() {
-        // The empty-string consequence spelled out: a band containing 0
-        // keeps every blank row visible, a band excluding 0 hides them.
-        let containing_zero = ColumnFilterRule::Range {
-            col_index: 0,
-            min: Some(-1.0),
-            max: Some(1.0),
-        };
-        let excluding_zero = ColumnFilterRule::Range {
-            col_index: 0,
-            min: Some(1.0),
-            max: None,
-        };
-        assert!(filter_rule_matches_value(&containing_zero, ""));
-        assert!(!filter_rule_matches_value(&excluding_zero, ""));
-    }
-
-    #[test]
-    fn the_summary_row_needs_row_index_above_one() {
-        assert!(!is_filter_sort_summary_row("Total", 0));
-        assert!(!is_filter_sort_summary_row("Total", 1));
-        assert!(is_filter_sort_summary_row("Total", 2));
-        assert!(!is_filter_sort_summary_row("Subtotal", 2));
-    }
-}
+#[path = "filter/legacy_tests.rs"]
+mod tests;

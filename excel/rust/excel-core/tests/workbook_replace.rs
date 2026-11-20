@@ -12,6 +12,7 @@ fn query(needle: &str) -> FindQuery {
         whole_cell: false,
         wildcards: false,
         look_in: FindLookIn::Formulas,
+        format: None,
     }
 }
 fn value(wb: &Workbook, sheet: usize, address: &str) -> Value {

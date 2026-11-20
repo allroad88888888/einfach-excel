@@ -70,14 +70,25 @@ pub(super) fn for_each_arg_value_indexed(
     provider: &dyn EvalProvider,
     f: &mut dyn FnMut(Option<CellAddress>, u64, Value),
 ) -> Option<u64> {
+    for_each_arg_value_with_reference(arg, provider, &mut |_reference, address, position, value| {
+        f(address, position, value);
+    })
+}
+
+/// Stream the same argument values with the resolved reference for worksheet consumers.
+pub(super) fn for_each_arg_value_with_reference(
+    arg: &Expr,
+    provider: &dyn EvalProvider,
+    f: &mut dyn FnMut(Option<&RuntimeRef>, Option<CellAddress>, u64, Value),
+) -> Option<u64> {
     // 先选分支，再走该分支的引用/值路径。若先尝试引用再回退整个 IF，
     // 标量或 #VALUE! 分支会让有副作用的条件被执行两次。
     if let Expr::FuncCall { name, args } = arg {
         if name == "IF" {
             match eval_fn_logical::selected_if_branch(args, provider) {
-                Ok(Some(branch)) => return for_each_arg_value_indexed(branch, provider, f),
-                Ok(None) => f(None, 1, Value::Boolean(false)),
-                Err(error) => f(None, 1, Value::Error(error)),
+                Ok(Some(branch)) => return for_each_arg_value_with_reference(branch, provider, f),
+                Ok(None) => f(None, None, 1, Value::Boolean(false)),
+                Err(error) => f(None, None, 1, Value::Error(error)),
             }
             return None;
         }
@@ -90,7 +101,7 @@ pub(super) fn for_each_arg_value_indexed(
             ..
         } => {
             if addr.row == REF_INVALID_ROW || addr.col == REF_INVALID_COL {
-                f(None, 1, Value::Error(ValueError::InvalidRef));
+                f(None, None, 1, Value::Error(ValueError::InvalidRef));
                 return None;
             }
             let range = CellRange::new(*addr, *addr);
@@ -101,7 +112,7 @@ pub(super) fn for_each_arg_value_indexed(
                 range,
                 &mut |cell_addr, v| {
                     pos += 1;
-                    f(Some(cell_addr), pos, v);
+                    f(None, Some(cell_addr), pos, v);
                 },
             )?;
             return Some(sheet_count as u64);
@@ -114,7 +125,7 @@ pub(super) fn for_each_arg_value_indexed(
             ..
         } => {
             if contains_invalid_ref(arg) {
-                f(None, 1, Value::Error(ValueError::InvalidRef));
+                f(None, None, 1, Value::Error(ValueError::InvalidRef));
                 return None;
             }
             let r = RuntimeRef {
@@ -131,7 +142,7 @@ pub(super) fn for_each_arg_value_indexed(
                 r.range,
                 &mut |cell_addr, v| {
                     pos += 1;
-                    f(Some(cell_addr), pos, v);
+                    f(None, Some(cell_addr), pos, v);
                 },
             )?;
             return cells_per_sheet.map(|c| c * sheet_count as u64);
@@ -139,20 +150,22 @@ pub(super) fn for_each_arg_value_indexed(
         _ => {}
     }
     match runtime_ref_from_expr(arg, provider) {
-        Ok(r) => for_each_ref_value_indexed(&r, provider, f),
+        Ok(r) => for_each_ref_value_indexed(&r, provider, &mut |address, position, value| {
+            f(Some(&r), address, position, value);
+        }),
         Err(ValueError::InvalidValue) => {
             let v = eval_expr_with_provider(arg, provider);
             if let Value::Array(arr) = v {
                 for (i, elem) in arr.data.iter().enumerate() {
-                    f(None, i as u64 + 1, elem.clone());
+                    f(None, None, i as u64 + 1, elem.clone());
                 }
             } else {
-                f(None, 1, v);
+                f(None, None, 1, v);
             }
             None
         }
         Err(e) => {
-            f(None, 1, Value::Error(e));
+            f(None, None, 1, Value::Error(e));
             None
         }
     }

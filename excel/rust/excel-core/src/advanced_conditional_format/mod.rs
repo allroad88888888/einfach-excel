@@ -2,6 +2,6 @@
 mod icon_set;
 mod threshold;
 
-pub use icon_set::ConditionalIconDisplay;
+pub use icon_set::{ConditionalIconDisplay, IconSet};
 pub(crate) use icon_set::IconSetRule;
 pub(crate) use threshold::{rewrite_rule_formulas, NumericDomain, Threshold};

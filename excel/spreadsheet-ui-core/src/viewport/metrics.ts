@@ -10,6 +10,13 @@ import type {
 import { getAxisOffsetForIndex, getAxisSpanSize } from './axis-geometry'
 import { viewportGeometrySizesAtom } from './geometry-sizes'
 import { projectedFreezeAtom } from './projected-freeze'
+import {
+  activeSplitPaneAtom,
+  resolveSplitPaneForMode,
+  splitPaneSizesAtom,
+  splitWindowBySheetAtom,
+  splitWindowModeOf,
+} from './split-window-state'
 
 export const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
   scrollTop: 0,
@@ -224,6 +231,61 @@ export const scrollToCellAtom = atom(
     const sizes = get(viewportGeometrySizesAtom)
     const rowHeights = current.sheetId ? sizes.rowHeightsBySheet[current.sheetId] : undefined
     const colWidths = current.sheetId ? sizes.colWidthsBySheet[current.sheetId] : undefined
+    const splitEntry =
+      !input.viewport && current.sheetId
+        ? get(splitWindowBySheetAtom)[current.sheetId]
+        : undefined
+    const activePane = splitEntry
+      ? resolveSplitPaneForMode(splitWindowModeOf(splitEntry), get(activeSplitPaneAtom))
+      : null
+    if (splitEntry && activePane !== null && current.sheetId) {
+      const ownsVertical =
+        activePane === 'bottom' || activePane === 'bottom-left' || activePane === 'bottom-right'
+      const ownsHorizontal =
+        activePane === 'right' || activePane === 'top-right' || activePane === 'bottom-right'
+      const paneSize = get(splitPaneSizesAtom)[activePane]
+      const paneMetrics = normalizeViewportMetrics(
+        {
+          ...current,
+          scrollTop: ownsVertical ? splitEntry.secondaryScrollTop : current.scrollTop,
+          scrollLeft: ownsHorizontal ? splitEntry.secondaryScrollLeft : current.scrollLeft,
+          viewportHeight: paneSize ? paneSize.height : current.viewportHeight,
+          viewportWidth: paneSize ? paneSize.width : current.viewportWidth,
+        },
+        rowHeights,
+        colWidths,
+      )
+      const scrollPosition = getViewportScrollForCell(paneMetrics, input, rowHeights, colWidths)
+      const nextSecondaryTop = ownsVertical
+        ? scrollPosition.scrollTop
+        : splitEntry.secondaryScrollTop
+      const nextSecondaryLeft = ownsHorizontal
+        ? scrollPosition.scrollLeft
+        : splitEntry.secondaryScrollLeft
+      if (
+        nextSecondaryTop !== splitEntry.secondaryScrollTop ||
+        nextSecondaryLeft !== splitEntry.secondaryScrollLeft
+      ) {
+        set(splitWindowBySheetAtom, {
+          ...get(splitWindowBySheetAtom),
+          [current.sheetId]: {
+            ...splitEntry,
+            secondaryScrollTop: nextSecondaryTop,
+            secondaryScrollLeft: nextSecondaryLeft,
+          },
+        })
+      }
+      const nextPrimaryTop = ownsVertical ? current.scrollTop : scrollPosition.scrollTop
+      const nextPrimaryLeft = ownsHorizontal ? current.scrollLeft : scrollPosition.scrollLeft
+      if (nextPrimaryTop !== current.scrollTop || nextPrimaryLeft !== current.scrollLeft) {
+        set(viewportMetricsAtom, {
+          ...current,
+          scrollTop: nextPrimaryTop,
+          scrollLeft: nextPrimaryLeft,
+        })
+      }
+      return scrollPosition
+    }
     const metrics = input.viewport
       ? normalizeViewportMetrics({ ...current, ...input.viewport }, rowHeights, colWidths)
       : current

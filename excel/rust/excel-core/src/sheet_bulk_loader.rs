@@ -85,6 +85,13 @@ impl<'a> BulkLoader<'a> {
         self.set_cell_at(addr, value);
     }
 
+    /// Workbook queue validation already checked the literal, runs and target geometry.
+    pub(crate) fn set_validated_text_runs_at(&mut self, addr: CellAddress, text: String,
+        runs: Vec<crate::rich_text::RichTextRun>) {
+        self.set_cell_at(addr, Value::Text(text.into()));
+        self.sheet.restore_rich_text(CellRange::single(addr), &[(addr, runs)]);
+    }
+
     /// Typed-address variant of [`Self::set_cell`] (AUDIT A-9): bulk
     /// callers that already hold a `CellAddress` (e.g. `clear_range`'s
     /// sparse scan) skip the string render + re-parse per cell.

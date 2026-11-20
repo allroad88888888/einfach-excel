@@ -2,6 +2,37 @@ import { expect, test, vi } from 'vitest'
 import { validFilterGroups, filterSelectionWithinBudget } from '../../src/advanced-filter/contracts'
 import { readFilterValues, changeFilter } from '../../src/rust-workbook/filter-io'
 import type { WasmWorkbook } from '../../src/rust-workbook/wasm-types'
+import { validFilterRules } from '../../src/rust-workbook/filter-commands'
+import { filterDatePeriods } from '../../src/filter/rule-types'
+
+test('date periods accept only the closed native calendar options in flat and grouped rules', () => {
+  for (const period of filterDatePeriods) {
+    const rule = { kind: 'date-period', colIndex: 1, period }
+    expect(validFilterRules([rule])).toBe(true)
+    expect(validFilterGroups([{ rules: [rule] }])).toBe(true)
+  }
+  for (const period of ['thisMonth', 'quarter-1', '', 1, null, undefined]) {
+    const rule = { kind: 'date-period', colIndex: 1, period }
+    expect(validFilterRules([rule])).toBe(false)
+    expect(validFilterGroups([{ rules: [rule] }])).toBe(false)
+  }
+  expect(validFilterRules([{ kind: 'date-period', colIndex: 16384, period: 'today' }])).toBe(false)
+})
+
+test('typed ranks enforce identical flat and grouped amount contracts', () => {
+  const top = { kind: 'top', colIndex: 1, direction: 'top', unit: 'items', value: 10 }
+  for (const rule of [top, { ...top, value: 500 },
+    { ...top, direction: 'bottom', unit: 'percent', value: 100 }]) {
+    expect(validFilterRules([rule])).toBe(true)
+    expect(validFilterGroups([{ rules: [rule] }])).toBe(true)
+  }
+  for (const patch of [{ value: 0 }, { value: 501 }, { value: 1.5 }, { value: NaN },
+    { value: Infinity }, { value: '10' }, { unit: 'percent', value: 101 },
+    { direction: 'sideways' }, { unit: 'rows' }]) {
+    expect(validFilterRules([{ ...top, ...patch }])).toBe(false)
+    expect(validFilterGroups([{ rules: [{ ...top, ...patch }] }])).toBe(false)
+  }
+})
 
 test('two-level groups reject empty, nested, excessive, nonnumeric and oversized criteria', () => {
   const equals = { kind: 'equals', colIndex: 0, value: 'x' }

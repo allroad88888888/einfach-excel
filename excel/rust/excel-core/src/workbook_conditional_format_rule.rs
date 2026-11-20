@@ -6,6 +6,9 @@ use super::conditional_format_formula::FormulaRule;
 use super::conditional_format_numeric::NumericRule;
 use super::conditional_format_rank::RankRule;
 use super::conditional_format_text::TextRule;
+use super::conditional_format_time_period::TimePeriodRule;
+use super::conditional_format_average::AverageRule;
+use super::conditional_format_cell_state::CellStateRule;
 use crate::cell_style::CellStyle;
 use crate::sheet::ConditionalStatistic;
 use super::advanced_conditional_format::{IconSetRule, NumericDomain};
@@ -20,6 +23,9 @@ pub(crate) enum NativeRuleKind {
     ColorScale(ColorScaleRule),
     DataBar(DataBarRule),
     Text(TextRule),
+    TimePeriod(TimePeriodRule),
+    Average(AverageRule),
+    CellState(CellStateRule),
     Duplicates(DuplicateRule),
     IconSet(IconSetRule),
 }
@@ -49,6 +55,9 @@ impl NativeRule {
             Some("color-scale") => ColorScaleRule::parse(&json).map(NativeRuleKind::ColorScale),
             Some("data-bar") => DataBarRule::parse(&json).map(NativeRuleKind::DataBar),
             Some("text") => TextRule::parse(&json).map(NativeRuleKind::Text),
+            Some("time-period") => TimePeriodRule::parse(&json).map(NativeRuleKind::TimePeriod),
+            Some("above-average") => AverageRule::parse(&json).map(NativeRuleKind::Average),
+            Some("cell-state") => CellStateRule::parse(&json).map(NativeRuleKind::CellState),
             Some("duplicate-values") => DuplicateRule::parse(&json).map(NativeRuleKind::Duplicates),
             Some("icon-set") => IconSetRule::parse(&json).map(NativeRuleKind::IconSet),
             _ => Err("This conditional-format kind is not supported yet."),
@@ -72,6 +81,9 @@ impl NativeRule {
             NativeRuleKind::ColorScale(rule) => rule.enabled,
             NativeRuleKind::DataBar(rule) => rule.enabled,
             NativeRuleKind::Text(rule) => rule.enabled,
+            NativeRuleKind::TimePeriod(rule) => rule.enabled,
+            NativeRuleKind::Average(rule) => rule.enabled,
+            NativeRuleKind::CellState(rule) => rule.enabled,
             NativeRuleKind::Duplicates(rule) => rule.enabled,
             NativeRuleKind::IconSet(rule) => rule.enabled,
         }
@@ -83,6 +95,9 @@ impl NativeRule {
             NativeRuleKind::Formula(rule) => Some(&rule.style),
             NativeRuleKind::Rank(rule) => Some(&rule.style),
             NativeRuleKind::Text(rule) => Some(&rule.style),
+            NativeRuleKind::TimePeriod(rule) => Some(&rule.style),
+            NativeRuleKind::Average(rule) => Some(&rule.style),
+            NativeRuleKind::CellState(rule) => Some(&rule.style),
             NativeRuleKind::Duplicates(rule) => Some(&rule.style),
             NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_) | NativeRuleKind::IconSet(_) => None,
         }
@@ -90,6 +105,7 @@ impl NativeRule {
 
     pub(super) fn statistic(&self) -> Option<ConditionalStatistic> {
         match &self.kind {
+            NativeRuleKind::Average(_) => Some(ConditionalStatistic::Average),
             NativeRuleKind::Rank(rule) => Some(rule.statistic()),
             NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_) | NativeRuleKind::IconSet(_) =>
                 Some(ConditionalStatistic::SortedNumbers),
@@ -98,9 +114,10 @@ impl NativeRule {
         }
     }
 
-    pub(super) fn resolve(&mut self, book: &Workbook, sheet: usize, entry: &ConditionalFormatRuleEntry, statistic: &Value) -> bool {
+    pub(super) fn resolve(&mut self, book: &Workbook, sheet: usize, entry: &ConditionalFormatRuleEntry, statistic: &Value, today: Option<f64>) -> bool {
         let origin = CellAddress::new(entry.row_start, entry.col_start);
         match &mut self.kind {
+            NativeRuleKind::TimePeriod(rule) => rule.resolve(today),
             NativeRuleKind::ColorScale(rule) => NumericDomain::from_value(statistic)
                 .is_some_and(|domain| rule.resolve(&domain, book, sheet, origin)),
             NativeRuleKind::DataBar(rule) => NumericDomain::from_value(statistic)

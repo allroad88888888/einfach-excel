@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 import { start, open, save, threshold, icon, cell, button, cleanNeighbor, addIcons, go, dialog, input } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) {
   test(`native advanced icon seed displays without history at ${width}px`, async ({ page }) => {
@@ -26,6 +27,7 @@ for (const width of [1280, 390]) {
     await cleanNeighbor(page)
     await page.getByLabel('Maximum threshold value', { exact: true }).press('Escape')
     await expect(dialog(page)).toHaveCount(0)
+    await showRibbonItem(page, 'format.conditional-formatting')
     await expect(button(page, 'Conditional formatting')).toBeFocused()
     await open(page, 'color-scale'); await threshold(page, 'Maximum', 'percentile', '50'); await save(page)
     await open(page); await expect(dialog(page).getByRole('listitem')).toHaveCount(1)
@@ -76,6 +78,7 @@ for (const width of [1280, 390]) {
     await page.screenshot({ path: info.outputPath(`advanced-en-${width}.png`), fullPage: true })
     await page.keyboard.press('Escape')
     await page.getByRole('combobox', { name: 'Interface language', exact: true }).selectOption('zh')
+    await showRibbonItem(page, 'format.conditional-formatting')
     await button(page, '条件格式').click()
     const localized = page.getByRole('dialog', { name: '条件格式', exact: true })
     await expect(localized).toBeVisible()

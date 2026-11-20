@@ -35,6 +35,7 @@ fn asc(col: u32) -> SortKey {
         direction: SortDirection::Ascending,
         case_sensitive: false,
         empty_first: false,
+        custom_list: None,
     }
 }
 
@@ -58,6 +59,7 @@ fn fill(
     dir: AutoFillDirection,
 ) -> bool {
     wb.apply_auto_fill(&AutoFillRequest {
+        named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
         sheet_idx: 0,
         source_range: range(source.0, source.1),
         target_range: range(target.0, target.1),
@@ -214,6 +216,7 @@ fn all_three_planner_shapes_refuse_a_bare_anchor() {
     spill_column(&mut wb, "A3", &[10.0, 20.0]); // anchor A3，投影 A4
     assert!(wb
         .apply_auto_fill(&AutoFillRequest {
+            named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
             sheet_idx: 0,
             source_range: range("A1", "A2"),
             target_range: range("A1", "A3"), // write_range A3:A3 —— 只有 anchor
@@ -238,6 +241,7 @@ fn all_three_planner_shapes_refuse_a_bare_anchor() {
     spill_column(&mut wb, "D4", &[10.0, 20.0]); // anchor D4，投影 D5
     assert!(wb
         .apply_auto_fill(&AutoFillRequest {
+            named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
             sheet_idx: 0,
             source_range: range("D1", "D3"),
             target_range: range("D1", "D4"), // write_range D4:D4 —— 只有 anchor

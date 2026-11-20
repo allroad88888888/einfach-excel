@@ -167,7 +167,7 @@ export type KeyboardCommandIntent =
   | HistoryIntent
   | RepeatKeyboardIntent
   | RecalculateKeyboardIntent
-  | { type: 'range.fill'; direction: 'down' | 'right' }
+  | { type: 'range.fill'; direction: 'down' | 'right' | 'flash' }
   | FormatToggleIntent
   | ClearCellsIntent
   | GoToOpenIntent

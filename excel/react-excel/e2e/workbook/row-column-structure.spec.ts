@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const menu = (page: Page) =>
@@ -7,8 +8,11 @@ const menu = (page: Page) =>
     name: 'Insert or delete rows and columns',
   })
 async function structure(page: Page, action: string) {
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await menu(page).selectOption(action)
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await expect(menu(page)).toBeEnabled()
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await expect(menu(page)).toHaveValue('')
   await expect(page.getByRole('alert')).toHaveCount(0)
 }
@@ -123,6 +127,7 @@ test('delete all rows is rejected without losing data, then the menu remains usa
   page,
 }) => {
   await page.getByRole('button', { name: 'Select all cells' }).click()
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await menu(page).selectOption('delete-rows')
   await expect(page.getByRole('alert')).toContainText('Keep at least one row')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
@@ -139,9 +144,13 @@ test('structure menu is reachable on desktop and narrow screens', async ({ page 
     await select(page, 'A2', '1:0')
     await structure(page, 'insert-rows')
     await expect(cell(page, '2:0')).toHaveText('SO-10001')
+    await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
     await menu(page).scrollIntoViewIfNeeded()
+    await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
     await menu(page).focus()
+    await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
     await expect(menu(page)).toBeFocused()
+    await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
     const hit = await menu(page).evaluate((el) => {
       const r = el.getBoundingClientRect()
       return {
@@ -175,6 +184,7 @@ test('Summary native sizes and hidden seed indices move with inserted rows and c
   await expect.poll(async () => (await cell(page, '1:1').boundingBox())?.width).toBe(200)
   await expect(cell(page, '10:1')).toHaveCount(0)
   await expect(cell(page, '1:7')).toHaveCount(0)
+  await showRibbonItem(page, 'view.row-and-column-visibility')
   const visibility = page.getByRole('combobox', { name: 'Row and column visibility' })
   await visibility.selectOption('unhide-all')
   await expect(cell(page, '10:1')).toHaveText('Hidden row example')
@@ -194,6 +204,7 @@ test('an offscreen row height moves with data and is restored by structural undo
   page,
 }) => {
   await select(page, 'A900', '899:0')
+  await showRibbonItem(page, 'view.row-and-column-size')
   await page.getByRole('button', { name: 'Row and column size', exact: true }).click()
   await page.getByRole('spinbutton', { name: 'Row height' }).fill('64')
   await page.getByRole('button', { name: 'Set row height' }).click()

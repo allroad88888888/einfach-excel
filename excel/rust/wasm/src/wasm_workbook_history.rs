@@ -18,6 +18,8 @@ struct HistoryEntryJSON {
     sheet_change: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     structural_edit: Option<StructuralEditJSON>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    structural_edits: Vec<StructuralEditJSON>,
     affected_sheets: Vec<usize>,
     affected_sheet_keys: Vec<String>,
     range: HistoryRangeJSON,
@@ -128,6 +130,7 @@ impl WasmWorkbook {
                     sheet_name: entry.sheet_name.clone(),
                     sheet_change: entry.is_sheet_change(),
                     structural_edit: entry.structural_edit().map(StructuralEditJSON::from),
+                    structural_edits: entry.structural_edits().into_iter().map(StructuralEditJSON::from).collect(),
                     affected_sheets: entry.affected_sheets(),
                     affected_sheet_keys: entry
                         .affected_keys

@@ -104,8 +104,9 @@ pub fn read_sheet(
                 continue;
             };
             if let Ok(Some(text)) = archive.read(&rel.target) {
-                let (table, dropped) = tables::parse(&text, sheet_name, index);
+                let (table, dropped, filter_dropped) = tables::parse(&text, sheet_name, index);
                 report.add("tables", dropped);
+                report.add("autoFilter", usize::from(filter_dropped));
                 features.tables.extend(table);
             } else {
                 report.add("tables", 1);

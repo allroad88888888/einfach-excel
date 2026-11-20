@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { button, editor } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 const views = [
   { width: 1280, renderer: 'dom' },
@@ -55,6 +56,7 @@ for (const { width, renderer } of views) test.describe(`${width}px ${renderer} p
       await expect(editor(page)).toHaveValue('2')
       expect(await grid.boundingBox()).toEqual(bounds)
       await expect(button(page, 'Undo')).toBeDisabled()
+      await showRibbonItem(page, 'clipboard.copy')
       await button(page, 'Copy').click()
       await expect(page.getByLabel('Clipboard status')).toContainText('Copied')
       await expect(warning).toHaveCount(0)

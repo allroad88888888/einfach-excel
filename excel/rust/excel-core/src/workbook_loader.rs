@@ -2,45 +2,9 @@
 
 use super::*;
 
-enum WorkbookOp {
-    /// Typed address (A-9 follow-up, 2026-06-13 P3): producers parse or
-    /// construct the `CellAddress` exactly once at the public boundary;
-    /// replay routes `BulkLoader::set_cell_at`. Carrying a `String`
-    /// here meant one alloc + one re-parse per op in bulk paths whose
-    /// producers already hold a typed address (`restore_sparse`).
-    SetCell { addr: CellAddress, value: Value },
-    /// `expr` is `Some` when the workbook-side parse succeeded — the
-    /// sheet-side flush installs directly without re-parsing. `None`
-    /// covers the parse-failure path: the sheet's `set_formula` sees a
-    /// malformed string, writes `#VALUE!`, and never touches the AST.
-    /// Eliminating the double-parse was the dominant constant-factor
-    /// win for the wasm32 Chain100k bulkWrite tier — `parse_formula`
-    /// allocates a `Vec<char>` per source character plus boxed nodes
-    /// for every binop / cellref, and was running twice per formula
-    /// (workbook + sheet) before this variant. The address is typed
-    /// for the same reason as `SetCell`.
-    SetFormula {
-        addr: CellAddress,
-        source: String,
-        expr: Option<Expr>,
-    },
-    /// Typed address — no `String` round-trip (AUDIT A-9). The clear
-    /// path's producers (`Workbook::clear_range`'s sparse scan, the
-    /// public `clear_cell` after its own parse) always hold a
-    /// `CellAddress` already, and the sheet-side replay has a typed
-    /// entry (`BulkLoader::set_cell_at`), so carrying a string here
-    /// meant one alloc + two parses per cleared cell in a bulk path.
-    ClearCell { addr: CellAddress },
-}
-
-impl WorkbookOp {
-    fn addr(&self) -> CellAddress {
-        match self {
-            WorkbookOp::SetCell { addr, .. } | WorkbookOp::SetFormula { addr, .. }
-            | WorkbookOp::ClearCell { addr } => *addr,
-        }
-    }
-}
+#[path = "workbook_loader_op.rs"]
+mod operation;
+use operation::WorkbookOp;
 
 /// In-progress workbook bulk-load session. Buffers operations until
 /// `flush` runs at the end of `Workbook::bulk_load`. Inside the closure
@@ -90,6 +54,25 @@ impl<'a> WorkbookLoader<'a> {
             .entry(sheet_idx)
             .or_default()
             .push(WorkbookOp::SetCell { addr, value });
+    }
+
+    /// Queue a literal and its inline runs together, preserving duplicate-write order.
+    pub fn set_text_runs_at(&mut self, sheet_idx: usize, addr: CellAddress, text: String,
+        runs: Vec<crate::rich_text::RichTextRun>) -> Result<(), &'static str> {
+        let sheet = self.wb.sheet(sheet_idx).ok_or("The rich text worksheet no longer exists.")?;
+        if self.wb.is_inside_custom_call() || addr.row >= crate::sheet::EXCEL_MAX_ROWS
+            || addr.col >= crate::sheet::EXCEL_MAX_COLS
+            || sheet.merged_range_at(addr).is_some_and(|range| range.start != addr) {
+            return Err("Invalid rich text import target.");
+        }
+        let runs = crate::rich_text::normalize_runs(runs)?;
+        if runs.iter().map(|run| run.text.as_str()).collect::<String>() != text {
+            return Err("Rich text must match the cell's literal text.");
+        }
+        self.wb.cyclic_formulas.remove(&(sheet_idx, addr));
+        self.ops_by_sheet.entry(sheet_idx).or_default()
+            .push(WorkbookOp::SetTextRuns { addr, text, runs });
+        Ok(())
     }
 
     /// Queue a formula write at `(sheet_idx, addr)`. Returns `false` if
@@ -250,6 +233,9 @@ impl<'a> WorkbookLoader<'a> {
                         match op {
                             WorkbookOp::SetCell { addr, value } => {
                                 loader.set_cell_at(addr, value);
+                            }
+                            WorkbookOp::SetTextRuns { addr, text, runs } => {
+                                loader.set_validated_text_runs_at(addr, text, runs);
                             }
                             WorkbookOp::SetFormula { addr, source, expr } => {
                                 // Hand the pre-parsed AST through when we

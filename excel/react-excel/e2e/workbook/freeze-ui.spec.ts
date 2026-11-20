@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
@@ -11,6 +12,7 @@ test('freezes the first row while vertical scrolling and edits the fixed cells',
 }) => {
   const header = page.locator('td[data-cell="0:1"]')
   const before = (await header.boundingBox())!
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('first-row')
   const fixed = page.locator('[data-frozen-pane="top"] td[data-cell="0:1"]')
   await expect(fixed).toBeVisible()
@@ -36,6 +38,7 @@ test('freezes the first column while horizontal scrolling and keeps row headers 
   page,
 }) => {
   const before = (await page.locator('td[data-cell="1:0"]').boundingBox())!
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('first-column')
   const fixed = page.locator('[data-frozen-pane="left"] td[data-cell="1:0"]')
   await expect(fixed).toBeVisible()
@@ -57,6 +60,7 @@ test('freezes at B3 and follows keyboard moves below the fixed band with one und
   page,
 }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'view.freeze-panes')
   const menu = page.getByRole('combobox', { name: 'Freeze panes' })
   await menu.selectOption('selection')
   await expect(page.locator('.sheet-grid-frame')).toHaveAttribute('data-frozen-rows', '2')
@@ -78,7 +82,8 @@ for (const width of [1280, 390]) test(`unfreeze uses the seeded panes and undoes
   await page.setViewportSize({ width, height: 850 })
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   const frame = page.locator('.sheet-grid-frame')
-  const menu = page.getByRole('combobox', { name: 'Freeze panes' })
+  await showRibbonItem(page, 'view.freeze-panes')
+  const menu = page.getByRole('combobox', { name: 'Freeze panes', includeHidden: true })
   await expect(frame).toHaveAttribute('data-frozen-rows', '1')
   await menu.selectOption('unfreeze')
   await expect(page.locator('[data-frozen-pane]')).toHaveCount(0)

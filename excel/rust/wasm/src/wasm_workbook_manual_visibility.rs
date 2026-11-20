@@ -17,6 +17,8 @@ struct SheetVisibilityJSON {
     filter_groups: Vec<ColumnFilterGroupJSON>,
     #[serde(skip_serializing_if = "Option::is_none")]
     filter_range: Option<FilterRangeJSON>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    range_filter_active: Option<bool>,
 }
 
 /// 列隐藏不能混进行隐藏快照，也不能以零列宽持久化。
@@ -95,7 +97,8 @@ impl WasmWorkbook {
             outline_columns: outline.hidden_indices(OutlineAxis::Column).collect(),
             outline: (!outline.rows.is_empty() || !outline.columns.is_empty()).then(|| outline.clone()),
             filter_rows: self.workbook.filter_hidden_rows(sheet as usize),
-            filter_range: self.workbook.filter_range(sheet as usize).map(FilterRangeJSON::from_range),
+            filter_range: self.workbook.filter_range(sheet).map(FilterRangeJSON::from_range),
+            range_filter_active: self.workbook.filter_range_criteria(sheet).is_some().then_some(true),
             filter_rules: self.workbook.filter_rules(sheet as usize)
                 .iter().map(ColumnFilterRuleJSON::from_rule).collect(),
             filter_groups: self.workbook.filter_groups(sheet)

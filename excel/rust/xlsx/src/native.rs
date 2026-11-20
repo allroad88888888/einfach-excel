@@ -186,11 +186,17 @@ pub struct CellFormat {
     pub font_size: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub font_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub font_baseline: Option<crate::font_baseline::FontBaseline>,
     /// `#rrggbb`
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fg_color: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub bg_color: Option<String>,
+    #[serde(default, deserialize_with = "crate::native_fill::deserialize_override",
+        skip_serializing_if = "Option::is_none")]
+    pub bg_color: Option<Option<String>>,
+    #[serde(default, deserialize_with = "crate::native_fill::deserialize_override",
+        skip_serializing_if = "Option::is_none")]
+    pub fill: Option<Option<crate::native_fill::CellFill>>,
     /// left / center / right
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub align: Option<String>,
@@ -200,15 +206,19 @@ pub struct CellFormat {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wrap: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shrink_to_fit: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub indent: Option<u8>,
     #[serde(default, skip_serializing)]
     pub rotation: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, deserialize_with = "crate::native_diagonal_borders::deserialize",
+        skip_serializing_if = "Option::is_none")]
     pub borders: Option<Borders>,
 }
 
-/// kind：general / text / number / percent / currency / scientific / fraction / date / time / custom
+/// kind：general / text / number / percent / currency / accounting / scientific / fraction / date / time / custom / special
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "crate::special_number_format::FormatInput")]
 pub struct NumberFormat {
     pub kind: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -221,9 +231,14 @@ pub struct NumberFormat {
     pub thousands: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub denominator: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preset: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub locale: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Borders {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub top: Option<BorderSide>,
@@ -233,6 +248,10 @@ pub struct Borders {
     pub bottom: Option<BorderSide>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub left: Option<BorderSide>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diag_up: Option<BorderSide>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diag_down: Option<BorderSide>,
 }
 
 /// style：none / thin / medium / thick / dashed / dotted / double

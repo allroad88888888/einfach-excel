@@ -3,8 +3,7 @@ use super::*;
 pub(super) fn run_subtotal(
     fn_num: u32,
     data_args: &[Expr],
-    provider: &dyn EvalProvider,
-    policy: SubtotalHiddenPolicy,
+    for_each_value: impl Fn(&Expr, &mut dyn FnMut(Value)),
 ) -> Value {
     match fn_num {
         // 1: AVERAGE
@@ -16,8 +15,7 @@ pub(super) fn run_subtotal(
                 if err.is_some() {
                     break;
                 }
-                let hidden = subtotal_hidden_for_arg(arg, provider, policy);
-                for_each_subtotal_value(arg, provider, &hidden, &mut |v| {
+                for_each_value(arg, &mut |v| {
                     if err.is_some() {
                         return;
                     }
@@ -43,8 +41,7 @@ pub(super) fn run_subtotal(
         2 => {
             let mut count = 0u64;
             for arg in data_args {
-                let hidden = subtotal_hidden_for_arg(arg, provider, policy);
-                for_each_subtotal_value(arg, provider, &hidden, &mut |v| {
+                for_each_value(arg, &mut |v| {
                     if matches!(v, Value::Number(_)) {
                         count += 1;
                     }
@@ -56,8 +53,7 @@ pub(super) fn run_subtotal(
         3 => {
             let mut count = 0u64;
             for arg in data_args {
-                let hidden = subtotal_hidden_for_arg(arg, provider, policy);
-                for_each_subtotal_value(arg, provider, &hidden, &mut |v| {
+                for_each_value(arg, &mut |v| {
                     if !matches!(v, Value::Null) {
                         count += 1;
                     }
@@ -73,8 +69,7 @@ pub(super) fn run_subtotal(
                 if err.is_some() {
                     break;
                 }
-                let hidden = subtotal_hidden_for_arg(arg, provider, policy);
-                for_each_subtotal_value(arg, provider, &hidden, &mut |v| {
+                for_each_value(arg, &mut |v| {
                     if err.is_some() {
                         return;
                     }
@@ -100,8 +95,7 @@ pub(super) fn run_subtotal(
                 if err.is_some() {
                     break;
                 }
-                let hidden = subtotal_hidden_for_arg(arg, provider, policy);
-                for_each_subtotal_value(arg, provider, &hidden, &mut |v| {
+                for_each_value(arg, &mut |v| {
                     if err.is_some() {
                         return;
                     }
@@ -128,8 +122,7 @@ pub(super) fn run_subtotal(
                 if err.is_some() {
                     break;
                 }
-                let hidden = subtotal_hidden_for_arg(arg, provider, policy);
-                for_each_subtotal_value(arg, provider, &hidden, &mut |v| {
+                for_each_value(arg, &mut |v| {
                     if err.is_some() {
                         return;
                     }
@@ -158,8 +151,7 @@ pub(super) fn run_subtotal(
             // `IncludeAll` collects everything, exactly as before.
             let mut nums = Vec::new();
             for arg in data_args {
-                let hidden = subtotal_hidden_for_arg(arg, provider, policy);
-                for_each_subtotal_value(arg, provider, &hidden, &mut |v| {
+                for_each_value(arg, &mut |v| {
                     if let Value::Number(n) = v {
                         nums.push(n);
                     }
@@ -188,8 +180,7 @@ pub(super) fn run_subtotal(
                 if err.is_some() {
                     break;
                 }
-                let hidden = subtotal_hidden_for_arg(arg, provider, policy);
-                for_each_subtotal_value(arg, provider, &hidden, &mut |v| {
+                for_each_value(arg, &mut |v| {
                     if err.is_some() {
                         return;
                     }

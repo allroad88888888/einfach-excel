@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -16,6 +17,7 @@ async function save(page: Page, action: string) {
 }
 async function editSeed(page: Page) {
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await button(page, 'Edit table DemoTable').click()
 }
@@ -28,6 +30,7 @@ test('table changes preserve live cross-sheet consumers through undo and redo', 
   await input(page, 'L2', '1:11', '=SUM(DemoTable[Amount])')
   await expect(cell(page, '1:11')).toHaveText('60')
   // 当前表的目录不混入其他工作表的 Table。
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await expect(button(page, 'Edit table DemoTable')).toHaveCount(0)
   await save(page, 'Cancel')
@@ -43,6 +46,7 @@ test('table changes preserve live cross-sheet consumers through undo and redo', 
   await button(page, 'Redo').click()
   await expect(formula(page)).toHaveValue('=SUM(RenamedAmounts[Amount])')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await button(page, 'Edit table RenamedAmounts').click()
   await save(page, 'Convert to range')
@@ -71,6 +75,7 @@ test('header normalization is visible and undo restores the original formula and
   await input(page, 'E90', '89:4', 'Amount')
   await input(page, 'G90', '89:6', '=2+3')
   await select(page, 'D90:G92', '89:3')
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await page.getByLabel('Table name', { exact: true }).fill('NormalizedHeaders')
   await save(page, 'Create table')

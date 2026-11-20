@@ -19,6 +19,18 @@ import {
   viewportFilterHiddenBackingAtom,
 } from '../viewport/hidden-state'
 import { zoomBySheetAtom } from '../zoom/state'
+import {
+  resetSplitWindowStateAtom,
+  splitWindowBySheetAtom,
+} from '../viewport/split-window-state'
+import {
+  circlesBackingAtom,
+  resetValidationCirclesStateAtom,
+} from '../data-validation/validation-circles-state'
+import {
+  DEFAULT_WORKBOOK_THEME_ID,
+  workbookThemeIdAtom,
+} from '../toolbar/workbook-theme-state'
 
 export interface WorkbookDocumentSheet {
   readonly defaults?: SheetDefaults
@@ -83,6 +95,9 @@ export const initializeWorkbookDocumentAtom = atom(
     set(viewportHiddenColsBackingAtom, {})
     set(viewportFilterHiddenBackingAtom, { rowsBySheet: {} })
     set(zoomBySheetAtom, {})
+    set(resetSplitWindowStateAtom)
+    set(resetValidationCirclesStateAtom)
+    set(workbookThemeIdAtom, DEFAULT_WORKBOOK_THEME_ID)
     set(workbookDocumentBackingAtom, workbook)
     set(sheetTabsAtom, {
       ...DEFAULT_SHEET_TABS_STATE,
@@ -173,6 +188,19 @@ export const publishWorkbookSheetStructureAtom = atom(
         Object.entries(sizes.colWidthsBySheet).filter(([id]) => ids.has(id)),
       ),
     })
+    set(
+      splitWindowBySheetAtom,
+      Object.fromEntries(
+        Object.entries(get(splitWindowBySheetAtom)).filter(([id]) => ids.has(id)),
+      ),
+    )
+    const circles = get(circlesBackingAtom)
+    set(circlesBackingAtom, {
+      ...circles,
+      bySheet: Object.fromEntries(
+        Object.entries(circles.bySheet).filter(([id]) => ids.has(id)),
+      ),
+    })
   },
 )
 
@@ -191,6 +219,9 @@ export const clearWorkbookDocumentAtom = atom(null, (_get, set): void => {
   set(nativeOutlineProjectionBackingAtom, {})
   set(sheetViewsBackingAtom, EMPTY_SHEET_VIEWS)
   set(groupedSheetIdsBackingAtom, [])
+  set(resetSplitWindowStateAtom)
+  set(resetValidationCirclesStateAtom)
+  set(workbookThemeIdAtom, DEFAULT_WORKBOOK_THEME_ID)
   set(workbookDocumentBackingAtom, EMPTY_WORKBOOK_DOCUMENT)
   set(sheetTabsAtom, DEFAULT_SHEET_TABS_STATE)
   set(setSheetTabsSheetsAtom, { sheets: [] })

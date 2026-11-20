@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { catalogPart, expectPickerHelp, nativeCatalog as catalog } from '../support/native-function-help'
+import { showRibbonItem } from '../support/ribbon'
 
 /** Per-entry help checks are split so each test stays well under the timeout on slow CI runners. */
 const HELP_PARTS = 12
@@ -11,6 +12,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 async function openPicker(page: Page) {
+  await showRibbonItem(page, 'formula.insert-function')
   const opener = page.getByRole('button', { name: 'Insert function', exact: true })
   await opener.click()
   const dialog = page.getByRole('dialog', { name: 'Insert function' })
@@ -87,6 +89,7 @@ for (const width of [1280, 390]) for (let part = 0; part < HELP_PARTS; part++) {
 for (const width of [1280, 390]) test(`HELP-003 Chinese parameters and implementation limits at ${width}px`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 850 })
   await page.getByRole('combobox', { name: 'Interface language' }).selectOption('zh')
+  await showRibbonItem(page, 'formula.insert-function')
   await page.getByRole('button', { name: '插入函数', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: '插入函数' })
   const list = dialog.getByRole('listbox')

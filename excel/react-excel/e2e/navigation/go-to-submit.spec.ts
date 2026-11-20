@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) for (const action of ['Enter', 'Recent location'])
   test(`${action} navigates to the exact saved target without workbook history at ${width}px`, async ({ page }) => {
@@ -10,6 +11,7 @@ for (const width of [1280]) for (const action of ['Enter', 'Recent location'])
     const dialog = page.getByRole('dialog', { name: 'Go to', exact: true })
     await expect(cell('1:0')).toHaveText('SO-10001')
     await select(page, 'D4', '3:3')
+    await showRibbonItem(page, 'view.go-to')
     await button('Go to').click()
     const input = dialog.getByRole('textbox', { name: 'Reference', exact: true })
     await input.fill('R[2]C[-1]')
@@ -18,6 +20,7 @@ for (const width of [1280]) for (const action of ['Enter', 'Recent location'])
       await button('Go').click()
       await expect(dialog).toHaveCount(0)
       await select(page, 'P900', '899:15')
+      await showRibbonItem(page, 'view.go-to')
       await button('Go to').click()
       await dialog.getByRole('button', { name: "'Sales Orders'!C6", exact: true }).click()
     }
@@ -26,6 +29,7 @@ for (const width of [1280]) for (const action of ['Enter', 'Recent location'])
     await expect(cell('5:2')).toHaveText('North')
     await expect(cell('5:2')).toHaveAttribute('data-selected', 'true')
     await expect(page.locator('[data-workbook-grid="true"]')).toBeFocused()
+    await showRibbonItem(page, 'view.go-to')
     await button('Go to').click()
     await expect(dialog.getByRole('region', { name: 'Recent locations' }).getByRole('button'))
       .toHaveText("'Sales Orders'!C6")

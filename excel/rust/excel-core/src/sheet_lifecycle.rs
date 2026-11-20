@@ -52,6 +52,7 @@ impl Sheet {
             merged_ranges: Vec::new(),
             frozen_panes: FrozenPanes::default(),
             outline: Default::default(),
+            subtotal_regions: Vec::new(),
             data_validations: Vec::new(),
             conditional_rules: Vec::new(),
             hidden_rows: BTreeSet::new(),

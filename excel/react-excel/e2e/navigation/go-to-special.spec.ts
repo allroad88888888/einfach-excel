@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem, showRibbonControl } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -9,9 +10,11 @@ async function go(page: Page, range: string) {
   await nameBox(page).fill(range)
   await nameBox(page).press('Enter')
   await expect(nameBox(page)).toHaveValue(range)
+  await showRibbonItem(page, 'view.go-to-special')
   await expect(button(page, 'Go to special')).toBeEnabled()
 }
 async function locate(page: Page, kind: string) {
+  await showRibbonItem(page, 'view.go-to-special')
   await button(page, 'Go to special').click()
   await button(page, kind).click()
   await expect(dialog(page)).toBeHidden()
@@ -41,6 +44,7 @@ for (const [kind, coordinates] of [
 for (const action of ['Borders']) test(`${action} cannot silently mutate only the primary area`, async ({ page }) => {
   await go(page, 'A93:F94')
   await locate(page, 'Constants')
+  await showRibbonControl(page, action)
   await button(page, action).click()
   await expect(cell(page, '92:0')).toHaveText('10')
   await expect(cell(page, '92:4')).toHaveText('30')
@@ -49,6 +53,7 @@ for (const action of ['Borders']) test(`${action} cannot silently mutate only th
   await expect(page.getByRole('status', { name: 'Multi-area selection' })).toContainText('one continuous range')
   await go(page, 'A93:C93')
   await expect(page.getByRole('status', { name: 'Multi-area selection' })).toBeHidden()
+  await showRibbonItem(page, 'format.bold')
   await button(page, 'Bold').click()
   await expect(button(page, 'Undo')).toBeEnabled()
   await button(page, 'Undo').click()
@@ -56,6 +61,7 @@ for (const action of ['Borders']) test(`${action} cannot silently mutate only th
 
 test('no matches preserves selection and dialog; changing condition retries without history', async ({ page }) => {
   await go(page, 'A93:C93')
+  await showRibbonItem(page, 'view.go-to-special')
   await button(page, 'Go to special').click()
   await expect(dialog(page)).toContainText('Selected range: A93:C93')
   await button(page, 'Blanks').click()
@@ -69,6 +75,7 @@ test('no matches preserves selection and dialog; changing condition retries with
 
 test('single-cell scope finds offscreen formulas and keeps frozen and hidden geometry intact', async ({ page }) => {
   await go(page, 'H100')
+  await showRibbonItem(page, 'view.go-to-special')
   await button(page, 'Go to special').click()
   await expect(dialog(page)).toContainText('Entire worksheet canvas: A1:H100')
   await button(page, 'Formulas').click()
@@ -137,6 +144,7 @@ for (const width of [1280, 390]) test(`locate dialog fits ${width}px with keyboa
   page.on('pageerror', (error) => errors.push(error.message))
   await page.setViewportSize({ width, height: 850 })
   await go(page, 'A93:F94')
+  await showRibbonItem(page, 'view.go-to-special')
   await button(page, 'Go to special').focus()
   await page.keyboard.press('Enter')
   await expect(button(page, 'Constants')).toBeFocused()

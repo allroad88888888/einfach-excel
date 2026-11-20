@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280])
   test(`invalid split destination corrects before one native overwrite and undo at ${width}px`, async ({ page }) => {
@@ -16,6 +17,7 @@ for (const width of [1280])
     await expect(cell('93:7')).toHaveText('old redo')
     await button('Undo').click()
     await select(page, 'E97:E98', '96:4')
+    await showRibbonItem(page, 'data.text-to-columns')
     await button('Text to columns').click()
     const dialog = page.getByRole('dialog', { name: 'Text to columns', exact: true })
     await expect(dialog.getByRole('table', { name: 'Split preview' })).toBeVisible()

@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest'
 import {
   createSpreadsheetUi, borderPanelAtom, runBorderPanelAtom, BORDER_PRESETS, BORDER_STYLES,
+  DIAGONAL_BORDER_PRESETS,
   runVisibleProjectionAtom, selectCellAtom, selectionAtom, setSelectionBoundsAtom,
   setRustWorkbookConnectionAtom, startCellEditingFromProjectionAtom,
   type SetFormatRangeRequest, type VisibleProjectionRequest,
@@ -46,7 +47,7 @@ test('opens from native projection, cancel only discards draft', async () => {
   expect(write).not.toHaveBeenCalled()
 })
 
-test.each(BORDER_PRESETS)('%s sends one native range, never per-cell JS writes', async (preset) => {
+test.each([...BORDER_PRESETS, ...DIAGONAL_BORDER_PRESETS])('%s sends one native range, never per-cell JS writes', async (preset) => {
   const { store, write } = await setup()
   await store.setter(runBorderPanelAtom, 'open')
   await store.setter(runBorderPanelAtom, { type: 'draft', patch: { preset } })

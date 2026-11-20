@@ -14,7 +14,7 @@ fn offscreen_content_and_cross_sheet_formula_are_measured_with_effective_format(
     wb.set_formula(0, "B1000000", "=Other!A1*3");
     wb.sheet_mut(0).unwrap().set_format("B1000000", CellFormat { bold: true, ..Default::default() });
     let mut calls = 0;
-    assert!(wb.auto_fit_dimensions(0, range(0, 1, 1_048_575, 1), "column", 28, 120, |value, format, width| {
+    assert!(wb.auto_fit_dimensions(0, range(0, 1, 1_048_575, 1), "column", 28, 120, |value, format, width, _| {
         assert_eq!(value, &Value::Number(21.0));
         assert!(format.bold);
         assert_eq!(width, 120.0);
@@ -32,7 +32,7 @@ fn each_row_uses_its_maximum_without_changing_other_rows_or_columns() {
     wb.set_cell(0, "A2", Value::Number(60.0));
     wb.set_cell(0, "B2", Value::Number(90.0));
     wb.set_cell(0, "A3", Value::Number(35.0));
-    wb.auto_fit_dimensions(0, range(1, 0, 2, 7), "row", 28, 120, |value, _, _| {
+    wb.auto_fit_dimensions(0, range(1, 0, 2, 7), "row", 28, 120, |value, _, _, _| {
         Ok(match value { Value::Number(n) => *n, _ => 0.0 })
     }).unwrap();
     assert_eq!(wb.sheet(0).unwrap().all_row_heights(), vec![(1, 90), (2, 35)]);
@@ -47,7 +47,7 @@ fn late_measurement_error_is_atomic_and_invalid_numbers_are_rejected() {
         wb.set_cell(0, "B1", Value::Number(100.0));
         wb.sheet_mut(0).unwrap().set_col_width(0, 80);
         let mut calls = 0;
-        assert!(wb.auto_fit_dimensions(0, range(0, 0, 10, 1), "column", 28, 120, |_, _, _| {
+        assert!(wb.auto_fit_dimensions(0, range(0, 0, 10, 1), "column", 28, 120, |_, _, _, _| {
             calls += 1;
             Ok(if calls == 1 { 200.0 } else { invalid })
         }).is_err());
@@ -60,7 +60,7 @@ fn empty_sheet_resets_only_sparse_sizes_without_materializing_cells() {
     let mut wb = Workbook::new();
     wb.sheet_mut(0).unwrap().set_row_height(100, 80);
     let atoms = wb.debug_total_atom_count(0);
-    wb.auto_fit_dimensions(0, range(0, 0, 1_048_575, 16_383), "row", 28, 120, |_, _, _| {
+    wb.auto_fit_dimensions(0, range(0, 0, 1_048_575, 16_383), "row", 28, 120, |_, _, _, _| {
         panic!("An empty sheet has no text to measure")
     }).unwrap();
     assert!(wb.sheet(0).unwrap().all_row_heights().is_empty());
@@ -73,9 +73,9 @@ fn merges_across_the_axis_are_preserved_but_horizontal_merge_width_is_available_
     wb.set_cell(0, "A1", Value::Text("Merged text".into()));
     wb.sheet_mut(0).unwrap().restore_merged_ranges(vec![range(0, 0, 0, 1)]).unwrap();
     wb.sheet_mut(0).unwrap().set_col_width(0, 180);
-    wb.auto_fit_dimensions(0, range(0, 0, 99, 1), "column", 28, 120, |_, _, _| panic!("spanning columns")).unwrap();
+    wb.auto_fit_dimensions(0, range(0, 0, 99, 1), "column", 28, 120, |_, _, _, _| panic!("spanning columns")).unwrap();
     assert_eq!(wb.sheet(0).unwrap().col_width(0), Some(180));
-    wb.auto_fit_dimensions(0, range(0, 0, 0, 7), "row", 28, 120, |_, _, width| {
+    wb.auto_fit_dimensions(0, range(0, 0, 0, 7), "row", 28, 120, |_, _, width, _| {
         assert_eq!(width, 300.0);
         Ok(70.0)
     }).unwrap();
@@ -90,7 +90,7 @@ fn hidden_rows_neither_contribute_content_nor_lose_their_saved_height() {
     wb.sheet_mut(0).unwrap().set_row_height(1, 80);
     wb.hide_rows(0, &[1]);
     let mut calls = 0;
-    wb.auto_fit_dimensions(0, range(0, 0, 9, 7), "row", 28, 120, |value, _, _| {
+    wb.auto_fit_dimensions(0, range(0, 0, 9, 7), "row", 28, 120, |value, _, _, _| {
         assert_eq!(value, &Value::Text("Visible".into()));
         calls += 1;
         Ok(25.0)
@@ -104,9 +104,9 @@ fn hidden_rows_neither_contribute_content_nor_lose_their_saved_height() {
 fn repeated_fit_is_a_noop_and_invalid_input_never_measures() {
     let mut wb = Workbook::new();
     wb.set_cell(0, "A1", Value::Number(1.0));
-    assert!(wb.auto_fit_dimensions(0, range(0, 0, 9, 0), "column", 28, 120, |_, _, _| Ok(90.0)).unwrap());
-    assert!(!wb.auto_fit_dimensions(0, range(0, 0, 9, 0), "column", 28, 120, |_, _, _| Ok(90.0)).unwrap());
-    assert!(wb.auto_fit_dimensions(0, range(0, 0, 1_048_576, 0), "row", 28, 120, |_, _, _| panic!("invalid range")).is_err());
+    assert!(wb.auto_fit_dimensions(0, range(0, 0, 9, 0), "column", 28, 120, |_, _, _, _| Ok(90.0)).unwrap());
+    assert!(!wb.auto_fit_dimensions(0, range(0, 0, 9, 0), "column", 28, 120, |_, _, _, _| Ok(90.0)).unwrap());
+    assert!(wb.auto_fit_dimensions(0, range(0, 0, 1_048_576, 0), "row", 28, 120, |_, _, _, _| panic!("invalid range")).is_err());
 }
 
 #[test]
@@ -119,7 +119,7 @@ fn hidden_columns_and_filtered_rows_do_not_participate_in_measurement() {
     WorkbookHistory::default().set_visibility(&mut wb, 0, range(0, 1, 9, 1), "hide-columns").unwrap();
     wb.set_eval_filter_hidden_rows(0, &[1]);
     let mut calls = 0;
-    wb.auto_fit_dimensions(0, range(0, 0, 9, 7), "column", 28, 120, |value, _, _| {
+    wb.auto_fit_dimensions(0, range(0, 0, 9, 7), "column", 28, 120, |value, _, _, _| {
         assert_eq!(value, &Value::Text("Visible".into()));
         calls += 1;
         Ok(75.0)

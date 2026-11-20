@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { button, cell, configure, edit, start } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) test.describe(`${width}px validation file and language`, () => {
   test.use({ viewport: { width, height: 850 } })
@@ -26,6 +27,7 @@ for (const width of [1280, 390]) test.describe(`${width}px validation file and l
     await select(page, 'D45', '44:3')
     await expect(page.getByLabel('Validation input message')).toContainText('Quantity')
     await expect(button(page, 'Undo')).toBeDisabled()
+    await showRibbonItem(page, 'data.data-validation')
     await button(page, 'Data validation').click()
     await expect(page.getByLabel('Validation formula')).toHaveValue('=D45>0')
     await expect(page.getByLabel('Error alert', { exact: true })).toHaveValue('warning')
@@ -40,6 +42,7 @@ for (const width of [1280, 390]) test.describe(`${width}px validation file and l
   test(`Chinese advanced validation controls preserve the same native rule at ${width}px`, async ({ page }, info) => {
     await configure(page, { prompt: true, style: 'information' })
     await page.getByRole('combobox', { name: 'Interface language' }).selectOption('zh')
+    await showRibbonItem(page, 'data.data-validation')
     await page.getByRole('button', { name: '数据验证', exact: true }).click()
     await expect(page.getByLabel('验证公式', { exact: true })).toHaveValue('=D45>0')
     await expect(page.getByLabel('错误提示', { exact: true })).toHaveValue('information')

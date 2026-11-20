@@ -32,7 +32,8 @@ impl WasmWorkbook {
             Some("continue") => true,
             _ => return Err(JsValue::from_str("INVALID_VALIDATION_CONFIRMATION")),
         };
-        let request: AutoFillRequest = request.into();
+        let request: AutoFillRequest = request.try_into().map_err(|err: AutoFillError|
+            auto_fill_rejection(auto_fill_error_code(&err), format!("auto-fill rejected: {err}")))?;
         let automatic = infer && request.series == AutoFillSeries::Copy;
         let request = if infer && !automatic {
             self.workbook

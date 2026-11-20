@@ -43,11 +43,11 @@ function renderWith(plugins: readonly SpreadsheetPlugin[], locale: 'en' | 'zh' =
 }
 
 describe('spreadsheet plugins', () => {
-  it('mounts ribbon groups that follow the built-in tab visibility', async () => {
+  it('mounts ribbon groups only on their own tab, like the built-in groups', async () => {
     const store = renderWith([plugin])
     const group = screen.getByRole('button', { name: 'Bump group' }).closest('.ribbon-tool-group')!
     expect(group).toHaveAttribute('data-plugin', 'fake')
-    expect(group).toHaveAttribute('data-inactive', 'false')
+    expect(group).toHaveAttribute('data-inactive', 'true')
     await act(async () => { store.setter(selectWorkbookRibbonTabAtom, 'Formulas') })
     expect(group).toHaveAttribute('data-inactive', 'true')
     await act(async () => { store.setter(selectWorkbookRibbonTabAtom, 'Data') })
@@ -87,6 +87,16 @@ describe('spreadsheet plugins', () => {
   it('rejects duplicate plugin ids', () => {
     expect(() => assertUniquePluginIds([plugin, { id: 'fake' }]))
       .toThrow('Duplicate spreadsheet plugin id: fake')
+  })
+
+  it('rejects duplicate condition editors and replacement of built-in conditions', () => {
+    const top: SpreadsheetPlugin = { id: 'top', filterConditions: [{ kind: 'top',
+      label: { id: 'top' }, Editor: () => null }] }
+    expect(() => assertUniquePluginIds([top, { ...top, id: 'duplicate' }]))
+      .toThrow('Duplicate filter condition editor: top')
+    expect(() => assertUniquePluginIds([{ ...top, filterConditions: [{ kind: 'equals',
+      label: { id: 'override' }, Editor: () => null }] }]))
+      .toThrow('Duplicate filter condition editor: equals')
   })
 
   it('hides built-in and plugin context menu items by id', async () => {

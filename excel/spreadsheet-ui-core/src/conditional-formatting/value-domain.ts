@@ -1,6 +1,4 @@
 import type {
-  SpreadsheetBorderSide,
-  SpreadsheetBorderSpec,
   SpreadsheetCellFormat,
 } from '../contracts'
 import type { CellRange } from '../shared'
@@ -22,6 +20,8 @@ import type {
   ConditionalFormatScope,
 } from './types'
 import { copyAdvancedVisualRule } from './advanced/snapshot'
+import { cloneFormat } from '../contracts/format-normalization'
+import { freezeCellFill } from '../contracts/cell-fill'
 
 export function copyRange(range: Readonly<CellRange>): CellRange {
   return {
@@ -38,17 +38,7 @@ export function copyScope(scope: ConditionalFormatScope): ConditionalFormatScope
 }
 
 export function copyFormat(format: SpreadsheetCellFormat): SpreadsheetCellFormat {
-  const result: SpreadsheetCellFormat = { ...format }
-  if (format.numberFormat !== undefined) result.numberFormat = { ...format.numberFormat }
-  if (format.borders !== undefined) {
-    const borders: Partial<Record<SpreadsheetBorderSide, SpreadsheetBorderSpec>> = {}
-    for (const side of BORDER_SIDES) {
-      const spec = format.borders[side]
-      if (spec !== undefined) borders[side] = { ...spec }
-    }
-    result.borders = borders
-  }
-  return result
+  return cloneFormat(format)
 }
 
 export function copyRule(rule: ConditionalFormatRule): ConditionalFormatRule {
@@ -58,6 +48,9 @@ export function copyRule(rule: ConditionalFormatRule): ConditionalFormatRule {
     case 'top-bottom':
     case 'text':
     case 'duplicate-values':
+    case 'time-period':
+    case 'cell-state':
+    case 'above-average':
       return { ...rule, format: copyFormat(rule.format) }
     case 'data-bar':
     case 'color-scale':
@@ -79,8 +72,9 @@ export function freezeScope(scope: ConditionalFormatScope): ConditionalFormatSco
 export function freezeFormat(format: SpreadsheetCellFormat): SpreadsheetCellFormat {
   const result = copyFormat(format)
   if (result.numberFormat !== undefined) result.numberFormat = Object.freeze(result.numberFormat)
+  if (result.fill !== undefined) result.fill = freezeCellFill(result.fill)
   if (result.borders !== undefined) {
-    for (const side of BORDER_SIDES) {
+    for (const side of [...BORDER_SIDES, 'diagUp', 'diagDown'] as const) {
       const spec = result.borders[side]
       if (spec !== undefined) result.borders[side] = Object.freeze(spec)
     }
@@ -167,6 +161,12 @@ export function freezeLedger(
 
 export function defaultRuleForKind(kind: ConditionalFormatRuleKind): ConditionalFormatRule {
   switch (kind) {
+    case 'cell-state':
+      return { kind, condition: 'blank', format: { bgColor: '#fef3c7' } }
+    case 'above-average':
+      return { kind, direction: 'above', equalAverage: false, format: { bgColor: '#fef3c7' } }
+    case 'time-period':
+      return { kind, period: 'today', format: { bgColor: '#fef3c7' } }
     case 'text':
       return { kind, condition: 'contains', text: '', format: { bgColor: '#fef3c7' } }
     case 'duplicate-values':

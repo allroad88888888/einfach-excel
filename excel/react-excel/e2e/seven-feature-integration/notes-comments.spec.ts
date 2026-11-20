@@ -1,17 +1,20 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) test(`notes and threaded comments coexist independently in the same cell at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 850 })
   await page.goto('/e2e/fixtures/plain-sales-orders/')
   const target = await select(page, 'B3', '2:1')
   await expect(target).toHaveText('Northwind')
+  await showRibbonItem(page, 'insert.note')
   await page.getByRole('button', { name: 'Note', exact: true }).click()
   const note = page.getByRole('dialog', { name: 'Insert note', exact: true })
   await note.getByRole('textbox', { name: 'Note text', exact: true }).fill('Independent note\n保留备注')
   await note.getByRole('button', { name: 'Insert note', exact: true }).click()
   await expect(note).toHaveCount(0)
 
+  await showRibbonItem(page, 'insert.comments')
   await page.getByRole('button', { name: 'Comments', exact: true }).click()
   const comments = page.getByRole('dialog', { name: 'Cell comments', exact: true })
   await comments.getByRole('textbox', { name: 'Workbook display name', exact: true }).fill('Reviewer')
@@ -22,23 +25,28 @@ for (const width of [1280]) test(`notes and threaded comments coexist independen
   await expect(comments.getByRole('button', { name: 'Reopen discussion', exact: true })).toBeVisible()
   await comments.getByRole('button', { name: 'Close comments', exact: true }).click()
 
+  await showRibbonItem(page, 'insert.note')
   await page.getByRole('button', { name: 'Note', exact: true }).click()
   const saved = page.getByRole('dialog', { name: 'Edit note', exact: true })
   await expect(saved.getByRole('textbox', { name: 'Note text', exact: true })).toHaveValue('Independent note\n保留备注')
   await saved.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await showRibbonItem(page, 'insert.comments')
   await page.getByRole('button', { name: 'Comments', exact: true }).click()
   await comments.getByRole('button', { name: 'Reopen discussion', exact: true }).click()
   await expect(comments.getByRole('button', { name: 'Resolve discussion', exact: true })).toBeVisible()
   await comments.getByRole('button', { name: 'Close comments', exact: true }).click()
 
+  await showRibbonItem(page, 'insert.note')
   await page.getByRole('button', { name: 'Note', exact: true }).click()
   await expect(saved.getByRole('textbox', { name: 'Note text', exact: true })).toHaveValue('Independent note\n保留备注')
   await saved.getByRole('button', { name: 'Delete note', exact: true }).click()
   await expect(saved).toHaveCount(0)
+  await showRibbonItem(page, 'insert.comments')
   await page.getByRole('button', { name: 'Comments', exact: true }).click()
   await expect(comments).toContainText('Thread beside the note')
   await expect(comments.getByRole('button', { name: 'Resolve discussion', exact: true })).toBeVisible()
   await comments.getByRole('button', { name: 'Close comments', exact: true }).click()
+  await showRibbonItem(page, 'insert.note')
   await page.getByRole('button', { name: 'Note', exact: true }).click()
   await expect(note.getByRole('textbox', { name: 'Note text', exact: true })).toHaveValue('')
   await note.getByRole('button', { name: 'Cancel', exact: true }).click()

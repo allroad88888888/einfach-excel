@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const entry of ['toolbar', 'table column'])
   for (const action of ['Open', 'Tab', 'Shift+Tab'])
@@ -16,6 +17,7 @@ for (const width of [1280, 390]) for (const entry of ['toolbar', 'table column']
       await expect(cell('1:6')).toHaveText('158')
       await button('Undo').click()
       const table = entry === 'table column'
+      await showRibbonItem(page, 'data.worksheet-filter')
       const menu = page.getByRole('combobox', { name: 'Worksheet filter', exact: true })
       let trigger = menu
       if (table) {

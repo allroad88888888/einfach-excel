@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280])
   test(`invalid decimal places correct in the same draft with one native undo at ${width}px`, async ({ page }) => {
@@ -10,6 +11,7 @@ for (const width of [1280])
     await expect(cell('1:0')).toHaveText('SO-10001')
     await select(page, 'P3', '2:15')
     const neighbor = await cell('2:14').textContent()
+    await showRibbonItem(page, 'format.number-format-settings')
     await button('Number format settings').click()
     const dialog = page.getByRole('dialog', { name: 'Number format', exact: true })
     const digits = dialog.getByRole('spinbutton', { name: 'Decimal places', exact: true })
@@ -25,6 +27,7 @@ for (const width of [1280])
       .toHaveText('$125.020')
     await button('Apply number format').click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'format.number-format-settings')
     await expect(button('Number format settings')).toBeFocused()
     await expect(cell('2:15')).toHaveText('$125.020')
     await expect(cell('2:15')).toHaveCSS('font-weight', '700')

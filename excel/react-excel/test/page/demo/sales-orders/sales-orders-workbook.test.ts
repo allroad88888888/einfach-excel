@@ -1,7 +1,22 @@
+import { SUMMARY_TOP_FILTER_CELLS } from '../../../../src/page/demo/sales-orders/data/top-filter-seed'
+import { SUMMARY_DATE_FILTER_CELLS } from '../../../../src/page/demo/sales-orders/data/date-filter-seed'
+import { SUMMARY_FONT_BASELINE_CELLS } from '../../../../src/page/demo/sales-orders/data/font-baseline-seed'
+import { SUMMARY_RICH_BASELINE_CELLS } from '../../../../src/page/demo/sales-orders/data/rich-baseline-seed'
+import { SUMMARY_SHRINK_TO_FIT_CELLS } from '../../../../src/page/demo/sales-orders/data/shrink-to-fit-seed'
+import { SUMMARY_DIAGONAL_BORDER_CELLS } from '../../../../src/page/demo/sales-orders/data/diagonal-border-seed'
+import { SUMMARY_PATTERN_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/pattern-fill-seed'
+import { SUMMARY_GRADIENT_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/gradient-fill-seed'
+import { SUMMARY_COLOR_SORT_CELLS } from '../../../../src/page/demo/sales-orders/data/color-sort-seed'
+import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from '../../../../src/page/demo/sales-orders/data/custom-list-drag-seed'
 import { describe, expect, it } from 'vitest'
 import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
+import { SALES_ORDER_NUMBER_FORMAT_EXAMPLES, SALES_ORDER_SPECIAL_FORMAT_EXAMPLES } from '../../../../src/page/demo/sales-orders/data/import-seed'
 import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from '../../../../src/page/demo/sales-orders/data/alternating-colors-seed'
+import { SUMMARY_CALENDAR_CELLS } from '../../../../src/page/demo/sales-orders/data/calendar-seed'
 import { SUMMARY_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/fill-seed'
+import { SUMMARY_CONDITIONAL_DATE_CELLS, SUMMARY_CONDITIONAL_DATE_RULE } from '../../../../src/page/demo/sales-orders/data/conditional-date-seed'
+import { SUMMARY_CONDITIONAL_STATE_CELLS, SUMMARY_CONDITIONAL_STATE_RULES } from '../../../../src/page/demo/sales-orders/data/conditional-cell-state-seed'
+import { SUMMARY_CONDITIONAL_AVERAGE_CELLS, SUMMARY_CONDITIONAL_AVERAGE_RULE } from '../../../../src/page/demo/sales-orders/data/conditional-average-seed'
 import { SUMMARY_CONDITIONAL_TEXT_CELLS, SUMMARY_CONDITIONAL_TEXT_RULES } from '../../../../src/page/demo/sales-orders/data/conditional-text-seed'
 import {
   SALES_ORDER_SHEET_ROW_COUNT,
@@ -28,6 +43,23 @@ import {
 } from '../../../../src/page/demo/sales-orders/data/summary-seed'
 
 describe('Sales Orders workbook definition', () => {
+  it.each([
+    ['gradient fill', SUMMARY_GRADIENT_FILL_CELLS],
+    ['color sort', SUMMARY_COLOR_SORT_CELLS],
+  ] as const)('keeps %s seed cells outside existing examples, merges and hidden axes', async (_, examples) => {
+    const existing: RustImportCell[] = []
+    for await (const chunk of SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks())
+      if (chunk !== examples) existing.push(...chunk)
+    for (const sample of examples) {
+      expect(existing.some(cell => cell.sheet === sample.sheet
+        && cell.row === sample.row && cell.col === sample.col))
+        .toBe(false)
+      expect(SUMMARY_MERGES.some(range => sample.row >= range.rowStart && sample.row <= range.rowEnd
+        && sample.col >= range.colStart && sample.col <= range.colEnd)).toBe(false)
+      expect(sample.row).not.toBe(9)
+      expect(sample.col).not.toBe(6)
+    }
+  })
   it('describes the workbook imported by the page', () => {
     expect(SALES_ORDERS_WORKBOOK_DEFINITION.title).toBe('Sales Orders')
     expect(SALES_ORDERS_WORKBOOK_DEFINITION.customFormulas).toEqual([
@@ -61,9 +93,11 @@ describe('Sales Orders workbook definition', () => {
           rule: { kind: 'icon-set', iconSet: 'three-arrows',
             lowerThreshold: { type: 'percentile', value: '33' },
             upperThreshold: { type: 'percentile', value: '67' }, showValue: true },
-        }, SUMMARY_BANDING_RULE],
+        }, SUMMARY_BANDING_RULE, SUMMARY_CONDITIONAL_DATE_RULE, SUMMARY_CONDITIONAL_AVERAGE_RULE,
+          ...SUMMARY_CONDITIONAL_STATE_RULES],
         editableRanges: [{ rowStart: 70, rowEnd: 72, colStart: 0, colEnd: 0 }],
-        comments: [{ row: 83, col: 7, author: 'Workbook example', body: 'Review this workbook cell.' }],
+        comments: [{ row: 83, col: 7, author: 'Workbook example',
+          body: 'Review this workbook cell.' }],
         dataValidations: SUMMARY_VALIDATIONS,
         outline: SUMMARY_OUTLINE,
         namedRanges: SUMMARY_NAMED_RANGES,
@@ -72,22 +106,39 @@ describe('Sales Orders workbook definition', () => {
     ])
   })
 
-  it('imports the summary examples into the second Rust sheet', () => {
-    const chunks = SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
-      readonly unknown[]
-    >
-    expect([...chunks].slice(-9)).toEqual([
+  it('imports the summary examples into the second Rust sheet', async () => {
+    const chunks: (readonly RustImportCell[])[] = []
+    for await (const chunk of SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks())
+      chunks.push(chunk)
+    const expectedSummaryChunks = [
       SALES_ORDER_SUMMARY_CELLS,
+      SUMMARY_FONT_BASELINE_CELLS,
+      SUMMARY_RICH_BASELINE_CELLS,
+      SUMMARY_SHRINK_TO_FIT_CELLS,
+      SUMMARY_DIAGONAL_BORDER_CELLS,
+      SUMMARY_PATTERN_FILL_CELLS,
+      SUMMARY_GRADIENT_FILL_CELLS,
+      SUMMARY_COLOR_SORT_CELLS,
+      SUMMARY_TOP_FILTER_CELLS,
+      SUMMARY_DATE_FILTER_CELLS,
+      SALES_ORDER_NUMBER_FORMAT_EXAMPLES,
+      SALES_ORDER_SPECIAL_FORMAT_EXAMPLES,
       SUMMARY_VALIDATION_CELLS,
       SUMMARY_OUTLINE_CELLS,
       SUMMARY_NAMED_RANGE_CELLS,
       SUMMARY_TABLE_CELLS,
       SUMMARY_CONDITIONAL_TEXT_CELLS,
       SUMMARY_FILL_CELLS,
+      SUMMARY_CALENDAR_CELLS,
+      SUMMARY_CUSTOM_LIST_DRAG_CELLS,
       SUMMARY_BANDING_CELLS,
+      SUMMARY_CONDITIONAL_DATE_CELLS,
+      SUMMARY_CONDITIONAL_AVERAGE_CELLS,
+      SUMMARY_CONDITIONAL_STATE_CELLS,
       [{ sheet: 1, row: 81, col: 7, kind: 'text', value: 'ORDER_NET', format: { bold: true } },
         { sheet: 1, row: 82, col: 7, kind: 'formula', value: '=ORDER_NET(3,25)' }],
-    ])
+    ]
+    expect(chunks.slice(-expectedSummaryChunks.length)).toEqual(expectedSummaryChunks)
     expect(SALES_ORDER_SUMMARY_CELLS).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -134,10 +185,10 @@ describe('Sales Orders workbook definition', () => {
     expect(new Set(SUMMARY_CONDITIONAL_TEXT_CELLS.map(key)).size)
       .toBe(SUMMARY_CONDITIONAL_TEXT_CELLS.length)
   })
-  it('all import chunks use unique cell addresses, including the spill examples', () => {
-    const cells = [...SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
-      readonly RustImportCell[]
-    >].flat()
+  it('all import chunks use unique cell addresses, including the spill examples', async () => {
+    const cells: RustImportCell[] = []
+    for await (const chunk of SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks())
+      cells.push(...chunk)
     const seen = new Set<string>()
     for (const cell of cells) {
       const address = `${cell.sheet}:${cell.row}:${cell.col}`

@@ -7,6 +7,7 @@ export { goToSpecialAvailableAtom, goToSpecialPanelAtom, runGoToSpecialAtom } fr
 export { sortFeedbackAtom, sortSelectionAtom } from './sort/command'
 export { sortPanelAtom, configureSortAtom } from './sort/panel'
 export * from './filter-sort'
+export type { RustSortCriterion, RustRowSortCriterion, SortRangeOptions } from './rust-workbook/sort-commands'
 export * from './protection'
 export * from './find-replace'
 export * from './runtime/workbook-lifecycle'
@@ -35,6 +36,15 @@ export { formulaArgumentsPanelAtom, runFormulaArgumentsAtom,
 export * from './comments'
 export * from './history'
 export * from './repeat'
+export { fontBaselineLayout, fontVerticalMetrics } from './text/font-baseline'
+export { textShrinkBlockedReason, textShrinkScale } from './text/shrink-to-fit'
+export { diagonalBorderLines, type DiagonalBorderLine } from './borders/diagonal-geometry'
+export { CELL_PATTERN_TILE_SIZE, patternFillRectangles } from './fills/pattern-geometry'
+export { patternFillImage } from './fills/pattern-svg'
+export { gradientColorAt, sortedGradientStops } from './fills/gradient-stops'
+export { linearGradientVector, pathGradientGeometry } from './fills/gradient-geometry'
+export type { GradientPoint, GradientRegion } from './fills/gradient-geometry'
+export { gradientFillImage } from './fills/gradient-svg'
 export * from './contracts'
 export * from './clipboard'
 export * from './clipboard/system-clipboard-command'
@@ -97,14 +107,25 @@ export * from './zoom'
 export * from './drag-move'
 export { WORKBOOK_RIBBON_TABS, workbookRibbonTabAtom, selectWorkbookRibbonTabAtom } from './toolbar/ribbon-tab'
 export type { WorkbookRibbonTab } from './toolbar/ribbon-tab'
+export {
+  workbookRibbonOverflowAtom,
+  reportWorkbookRibbonOverflowAtom,
+  setWorkbookRibbonExpandedAtom,
+  resetWorkbookRibbonOverflowAtom,
+} from './toolbar/ribbon-overflow'
+export type { WorkbookRibbonOverflow } from './toolbar/ribbon-overflow'
 export * from './toolbar/selection-format-command'
 export { colorPaletteAtom, runColorPaletteAtom } from './toolbar/color-palette'
-export { borderPanelAtom, runBorderPanelAtom, BORDER_PRESETS, BORDER_STYLES } from './toolbar/border-panel'
+export * from './toolbar/cell-styles'
+export { borderPanelAtom, runBorderPanelAtom, BORDER_PRESETS, BORDER_STYLES,
+  DIAGONAL_BORDER_PRESETS } from './toolbar/border-panel'
 export { textLayoutFeedbackAtom, runTextLayoutAtom } from './toolbar/text-layout-command'
 export {
   numberFormatPanelAtom, runNumberFormatPanelAtom,
   NUMBER_FORMAT_TIME_PATTERNS, NUMBER_FORMAT_DATE_PATTERNS, NUMBER_FORMAT_FRACTIONS,
 } from './toolbar/number-format-panel'
+export { NUMBER_FORMAT_SPECIAL_PRESETS } from './toolbar/special-number-format-presets'
+export type { SpecialNumberFormatLocale } from './toolbar/special-number-format-presets'
 export {
   DEFAULT_FONT_SIZE, FONT_SIZE_PRESETS, fontSizePanelAtom, runFontSizeAtom,
 } from './toolbar/font-size-command'
@@ -112,6 +133,7 @@ export { clearSelectionAtom, selectionMutationFeedbackAtom } from './toolbar/sel
 export { selectionSizePanelAtom, runSelectionSizeAtom } from './toolbar/selection-size-command'
 export { resizeDragAtom, runResizeDragAtom } from './viewport/resize-drag'
 export type { AutoFitLayout } from './rust-workbook/auto-fit-measurement'
+export type { NumberFormatCodeError } from './rust-workbook/native-number-display'
 export * from './selection/header-selection-command'
 export * from './viewport'
 export * from './workspace'
@@ -119,9 +141,16 @@ export { getViewportRangeRectangle } from './viewport/range-rectangle'
 export { runSelectionMergeAtom, type SelectionMergeAction } from './toolbar/selection-merge-command'
 export { selectionMergeFeedbackAtom } from './toolbar/selection-merge-state'
 export * from './viewport/freeze-command'
+export * from './viewport/split-window'
 export * from './filter/command'
 export * from './filter/panel'
 export { nativeFilterValuesAtom, configureNativeFilterValuesAtom } from './filter/values'
+export { readNativeFilterCandidatePageAtom } from './filter/candidate-page'
+export { worksheetCriteriaContextAtom, type WorksheetCriteriaContext, type WorksheetCriteriaDraft } from './advanced-filter/reference'
+export { runWorksheetCriteriaAtom } from './advanced-filter/range-command'
+export { copyWorksheetCriteriaAtom, type WorksheetCriteriaPreview } from './advanced-filter/copy-command'
+export { validFilterColorSource, validFilterColorValue, type FilterColorSource } from './filter/rule-types'
+export type { RustFilterValuesPage } from './rust-workbook/filter-commands'
 export { nativeTableFiltersAtom, nativeFilterTargetAtom } from './filter/scope'
 export * from './conditional-formatting/native-panel'
 export { runAlternatingColorsAtom, alternatingColorsDraftAtom } from './conditional-formatting/alternating-colors'
@@ -165,3 +194,25 @@ export { nativeProtectionPanelAtom, nativeProtectionOpenAtom,
   runNativeProtectionAtom } from './protection/native/panel'
 export type { SheetDefaults } from './runtime/sheet-defaults'
 export * from './host'
+
+export { subtotalSelectionAtom, inspectSubtotalListAtom, changeSubtotalListAtom,
+  type SubtotalSelection } from './subtotal/command'
+export { SUBTOTAL_FUNCTIONS, type SubtotalFunction, type SubtotalPlacement,
+  type SubtotalList, type SubtotalAction } from './rust-workbook/subtotal-commands'
+export {
+  consolidateContextAtom, previewConsolidateAtom, applyConsolidateAtom,
+  type ConsolidateContext, type ConsolidatePreviewInput, type ConsolidatePreviewResult,
+} from './consolidate/command'
+export {
+  validationCirclesAtom, runValidationCirclesAtom,
+  type ValidationCirclesAction, type ValidationCirclesView,
+} from './data-validation/validation-circles'
+export {
+  DEFAULT_MAX_VALIDATION_CIRCLES,
+  type InvalidValidationCell, type InvalidValidationReport,
+} from './rust-workbook/data-validation-commands'
+export {
+  CONSOLIDATE_FUNCTIONS,
+  type ConsolidateFunction, type ConsolidatePreview, type ConsolidateReport,
+  type ConsolidateRequest, type ConsolidateSourceRef,
+} from './rust-workbook/consolidate-commands'

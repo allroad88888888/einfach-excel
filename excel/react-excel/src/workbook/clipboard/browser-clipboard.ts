@@ -81,12 +81,16 @@ export async function readBrowserClipboard(): Promise<SystemClipboardData> {
   try {
     const items = await navigator.clipboard.read()
     for (const item of items) {
-      if (!item.types.includes('text/plain')) continue
-      const text = await (await item.getType('text/plain')).text()
+      const hasText = item.types.includes('text/plain')
       const html = item.types.includes('text/html')
         ? await (await item.getType('text/html')).text()
         : ''
-      return { text, token: clipboardToken(html) }
+      const token = clipboardToken(html)
+      // Browsers may omit an empty text/plain item when copying a blank formatted cell.
+      // Only the existing native snapshot token authorizes this empty internal payload.
+      if (!hasText && !token) continue
+      const text = hasText ? await (await item.getType('text/plain')).text() : ''
+      return { text, token }
     }
     throw new Error('The clipboard does not contain cell text.')
   } catch (error) {

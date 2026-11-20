@@ -1,5 +1,9 @@
 //! 原生工作簿文件 → XLSX 字节。
 
+mod style_layers;
+mod style_fills;
+mod gradient_fills;
+mod fill_layers;
 mod comments;
 mod conditional;
 mod cell_values;
@@ -41,14 +45,13 @@ fn has_meaningful_format(f: &CellFormat) -> bool {
         || f.font_size.is_some()
         || f.font_family.is_some()
         || f.fg_color.is_some()
-        || f.bg_color.is_some()
         || f.align.as_deref().is_some_and(|a| a != "default")
         || f.vertical_align.as_deref().is_some_and(|a| a != "default")
-        || f.wrap == Some(true)
         || f.indent.is_some_and(|i| i > 0)
         || f.rotation.is_some_and(|r| r != 0)
         || f.borders.as_ref().is_some_and(|b| {
-            [b.top.as_ref(), b.right.as_ref(), b.bottom.as_ref(), b.left.as_ref()]
+            [b.top.as_ref(), b.right.as_ref(), b.bottom.as_ref(), b.left.as_ref(),
+                b.diag_up.as_ref(), b.diag_down.as_ref()]
                 .into_iter()
                 .flatten()
                 .any(|s| s.style != "none")
@@ -59,7 +62,8 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
     let workbook = &file.workbook;
     let mut report = ReportBuilder::default();
     report.add("sheetProtection", workbook.protection.len());
-    report.add("autoFilter", workbook.filters.len());
+    report.add("autoFilter", workbook.filters.len() +
+        workbook.tables.iter().filter(|table| table.auto_filter.is_some()).count());
     report.add("outline", workbook.outlines.len());
     let custom_print = workbook
         .print_configs
@@ -94,12 +98,18 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
         let row_col_styles = range.row_styles.iter().filter(|s| has_meaningful_format(&s.format)).count()
             + range.column_styles.iter().filter(|s| has_meaningful_format(&s.format)).count();
         report.add("rowColumnStyles", row_col_styles);
+        for entry in range.row_styles.iter().chain(&range.column_styles) {
+            gradient_fills::report(&entry.format, &mut report);
+        }
+        style_layers::write(range, target, &mut styles);
+        let fill_layers = fill_layers::FillLayers::new(range, &mut report);
         for style in &range.cell_styles {
             if style.format.rotation.is_some_and(|r| r != 0) {
                 report.add("cellRotation", 1);
             }
             if let Some(coord) = parse_cell(&style.addr) {
-                let mut format = style.format.clone();
+                let mut format = fill_layers.cell(&style.format, coord, &mut report);
+                gradient_fills::report(&format, &mut report);
                 format.font_size = format.font_size.or(target.defaults.font_size);
                 let xf = styles.xf(&format);
                 if xf != target.default_style {

@@ -3,9 +3,18 @@ import type { ProjectionRevision } from '../contracts/types'
 
 export type SheetProtectionMode = 'open' | 'protected'
 
+export interface SheetProtectionPermissions {
+  readonly sort: boolean
+  readonly insertRows: boolean
+  readonly insertColumns: boolean
+  readonly deleteRows: boolean
+  readonly deleteColumns: boolean
+}
+
 export interface SheetProtectionState {
   readonly mode: SheetProtectionMode
   readonly unlockedRanges: readonly Readonly<CellRange>[]
+  readonly permissions?: SheetProtectionPermissions
 }
 
 export type SheetProtectionBySheet = Readonly<Record<string, SheetProtectionState>>

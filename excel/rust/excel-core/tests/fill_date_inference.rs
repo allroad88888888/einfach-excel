@@ -5,6 +5,7 @@ use einfach_excel_core::{
 
 fn request(series: AutoFillSeries, samples: u32) -> AutoFillRequest {
     AutoFillRequest {
+        named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
         sheet_idx: 0,
         source_range: CellRange::new(CellAddress::new(0, 0), CellAddress::new(samples - 1, 0)),
         target_range: CellRange::new(CellAddress::new(0, 0), CellAddress::new(3, 0)),

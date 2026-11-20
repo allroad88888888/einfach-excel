@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select, copy, paste, pasteOption } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ context, page }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -44,6 +45,7 @@ test('transposes a formula using the destination offset while preserving absolut
   await pasteOption(page, 'transpose')
   await select(page, 'E11', '10:4')
   await expect(input).toHaveValue('=(D11+$E$2)')
+  await showRibbonItem(page, 'clipboard.paste')
   await expect(page.getByRole('button', { name: 'Paste', exact: true })).toBeEnabled()
 })
 
@@ -51,6 +53,7 @@ test('skip blanks preserves a target formula and its style, but writes zero and 
   page,
 }) => {
   const target = await select(page, 'G9', '8:6')
+  await showRibbonItem(page, 'format.italic')
   await page.getByRole('button', { name: 'Italic', exact: true }).click()
   await expect(target).toHaveCSS('font-style', 'italic')
   await page.evaluate(() => navigator.clipboard.writeText('\t0\tfalse'))
@@ -66,6 +69,7 @@ test('skip blanks uses the frozen internal input, not display text or source sty
   page,
 }) => {
   await select(page, 'A2', '1:0')
+  await showRibbonItem(page, 'clear.contents')
   await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('')
   await select(page, 'A2:B2', '1:0')
@@ -84,10 +88,12 @@ test('values and formatting freezes the formula result and keeps source number a
   page,
 }) => {
   const source = await select(page, 'G9', '8:6')
+  await showRibbonItem(page, 'format.bold')
   await page.getByRole('button', { name: 'Bold', exact: true }).click()
   await expect(source).toHaveCSS('font-weight', '700')
   await copy(page)
   await select(page, 'E9', '8:4')
+  await showRibbonItem(page, 'clear.contents')
   await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
   await expect(await select(page, 'G9', '8:6')).toHaveText('0.00')
   const target = await select(page, 'B10', '9:1')
@@ -97,6 +103,7 @@ test('values and formatting freezes the formula result and keeps source number a
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('2632')
   await select(page, 'A800', '799:0')
   await expect(await select(page, 'B10', '9:1')).toHaveText('2,632.00')
+  await showRibbonItem(page, 'clear.formats')
   await page.getByRole('button', { name: 'Clear formatting', exact: true }).click()
   await expect(target).toHaveText('2632')
 })
@@ -108,6 +115,7 @@ test('transpose checks rotated boundaries, and rejected special cut keeps the so
   await copy(page)
   const target = await select(page, 'A1000', '999:0')
   const before = await target.textContent()
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   const menu = page.getByRole('combobox', { name: 'More paste options' })
   await menu.selectOption('transpose')
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText(
@@ -135,6 +143,7 @@ test('external text can transpose but cannot supply missing source formats', asy
   await pasteOption(page, 'transpose')
   await expect(await select(page, 'A12', '11:0')).toHaveText('33')
   await select(page, 'A10', '9:0')
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   await page.getByRole('combobox', { name: 'More paste options' }).selectOption('values-formats')
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText(
     'no workbook formatting',
@@ -152,15 +161,18 @@ test('paste options are reusable and visible on desktop and narrow viewports', a
   const target = await select(page, 'B3', '2:1')
   await pasteOption(page, 'values-formats')
   await expect(target).toHaveText('$125')
+  await showRibbonItem(page, 'clear.formats')
   await page.getByRole('button', { name: 'Clear formatting', exact: true }).click()
   await expect(target).toHaveText('125.02')
   await pasteOption(page, 'values-formats')
   await expect(target).toHaveText('$125')
   await page.screenshot({ path: info.outputPath('paste-options-desktop.png') })
   await page.setViewportSize({ width: 390, height: 844 })
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   const menu = page.getByRole('combobox', { name: 'More paste options' })
   await menu.scrollIntoViewIfNeeded()
   await pasteOption(page, 'values-formats')
+  await showRibbonItem(page, 'clipboard.more-paste-options')
   await expect(menu).toHaveValue('')
   const box = await menu.boundingBox()
   expect(box?.height).toBeGreaterThanOrEqual(28)

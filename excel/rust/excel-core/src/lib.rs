@@ -12,10 +12,14 @@ pub mod csv;
 pub mod data_validation;
 pub mod drag_move;
 pub mod outline;
+pub mod subtotal;
+pub mod consolidate;
 mod date_serial;
+mod calendar_period;
 mod date_format;
 mod scientific_format;
 mod fraction_format;
+pub mod custom_number_format;
 mod time_format;
 pub use fraction_format::FractionDenominator;
 pub mod eval;
@@ -23,7 +27,17 @@ pub mod filter;
 pub mod advanced_filter;
 mod find_text;
 mod find_wildcard;
+pub mod find_format;
+mod cell_format;
+mod cell_fill;
+mod display_color;
+mod display_formats;
+pub use cell_fill::{CellFill, FillPattern, GradientStop};
 pub mod format;
+mod number_format;
+pub mod accounting_format;
+pub mod special_number_format;
+pub use special_number_format::SpecialPreset;
 pub mod formula;
 pub mod general_text;
 pub mod history_snapshot;
@@ -39,6 +53,8 @@ pub mod custom_formulas;
 pub mod range;
 pub mod sheet;
 pub mod shift;
+mod named_list;
+pub mod sort_custom_list;
 pub mod sort;
 pub mod text_columns;
 pub mod workbook_text_columns;
@@ -57,10 +73,11 @@ mod workbook_current_region;
 pub use workbook_visible_blocks::VisibleBlocks;
 mod workbook_aggregate;
 pub use workbook_aggregate::SelectionNumbers;
+pub use find_format::{FindAlign, FindFormatFilter, FindNumberFormatKind};
 pub use workbook_find::{FindLookIn, FindMatch, FindPage, FindQuery};
 
 pub use auto_fill::{
-    AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillReport, AutoFillRequest,
+    AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillNamedList, AutoFillNamedLists, AutoFillReport, AutoFillRequest,
     AutoFillSeries, AutoFillTextPattern,
 };
 pub use cell::CellAddress;
@@ -80,6 +97,7 @@ pub use filter::{
     ColumnFilterRule, FilterApplyReport, FilterError, SheetAutoFilter, MAX_FILTER_PREDICATE_CELLS,
 };
 pub use format::{
+    FontBaseline,
     apply_rules, error_display_token, value_to_display, Align, BorderSpec, BorderStyle,
     CellBorders, CellFormat, Condition, ConditionalRule, NumberFormat, Rotation, StyleOverrides,
     VerticalAlign,
@@ -98,7 +116,7 @@ pub use sort::{
 pub use undo::CellSnapshot;
 pub use workbook::{
     BulkInstallStats, CalculationMode, CellShiftDirection, ConditionalFormatConfigSnapshot,
-    ConditionalFormatError, ConditionalIconDisplay, DataBarDisplay, DisplayFormatRangeSnapshot,
+    ConditionalFormatError, ConditionalIconDisplay, DataBarDisplay, DisplayFormatRangeSnapshot, IconSet,
     ConditionalFormatRuleEntry, FilterSnapshot, HeaderFooterFields, HiddenRowsError,
     HiddenRowsSnapshot, InstallError, IterativeConfig, ManualPageBreak, ManualPageBreakAxis,
     MergeAction, PrintConfig, PrintConfigError, PrintConfigSnapshot, PrintOrientation, PrintScale,

@@ -23,10 +23,11 @@ fn rejects_any_intersection_with_merged_cells_without_changing_content() {
         direction: SortDirection::Ascending,
         case_sensitive: false,
         empty_first: false,
+        custom_list: None,
     };
     for target in [range("A1", "B3"), range("A2", "A3")] {
         assert_eq!(
-            sheet.sort_range(target, &[key], &[]),
+            sheet.sort_range(target, std::slice::from_ref(&key), &[]),
             Err(SortRangeError::MergeIntersectsRange)
         );
         assert_eq!(sheet.get_cell("A1"), Value::Number(2.0));
@@ -36,7 +37,7 @@ fn rejects_any_intersection_with_merged_cells_without_changing_content() {
     sheet.set_cell("A4", Value::Number(0.0));
     assert_eq!(
         sheet
-            .sort_range(range("A3", "A4"), &[key], &[])
+            .sort_range(range("A3", "A4"), std::slice::from_ref(&key), &[])
             .unwrap()
             .moved_rows,
         2

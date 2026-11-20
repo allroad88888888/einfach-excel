@@ -11,6 +11,9 @@ impl crate::filter::SheetAutoFilter {
                 ColumnFilterRule::Equals { col_index, .. }
                 | ColumnFilterRule::Contains { col_index, .. }
                 | ColumnFilterRule::Range { col_index, .. }
+                | ColumnFilterRule::Top { col_index, .. }
+                | ColumnFilterRule::DatePeriod { col_index, .. }
+                | ColumnFilterRule::Color { col_index, .. }
                 | ColumnFilterRule::List { col_index, .. } => col_index,
             };
             let next = edit.apply(CellAddress::new(0, *col)).col;

@@ -145,6 +145,7 @@ impl WasmWorkbook {
                     .sheet(sheet_idx)
                     .and_then(|sheet| sheet.get_formula(&addr_str))
                     .unwrap_or_default();
+                let native = native_number_display(&self.workbook, sheet_idx, &addr_str, &value);
                 out.push(CellSnapshotJSON {
                     rich_text: self.workbook.sheet(sheet_idx).and_then(|sheet| sheet.rich_text(addr)).map(<[_]>::to_vec),
                     comment_indicator: self.workbook.sheet(sheet_idx)
@@ -153,7 +154,7 @@ impl WasmWorkbook {
                         .and_then(|sheet| sheet.note(addr)).map(|_| true),
                     hyperlink: self.workbook.sheet(sheet_idx)
                         .and_then(|sheet| sheet.hyperlink(addr)).map(str::to_owned),
-                    formatted_display: native_number_display(&self.workbook, sheet_idx, &addr_str, &value),
+                    formatted_display: None, formatted_color: None, formatted_fill: None, formatted_pads: None,
                     sheet: sheet_idx,
                     addr: addr_str,
                     display: value_to_display(&value),
@@ -161,7 +162,7 @@ impl WasmWorkbook {
                     cell_type: value_to_cell_type(&value),
                     is_error: value.is_error(),
                     formula,
-                });
+                }.with_native(native));
             });
         self.append_empty_hyperlink_cells(sheet_idx, range, &mut out);
         self.append_note_cells(sheet_idx, range, &mut out);

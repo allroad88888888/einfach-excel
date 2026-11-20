@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const bodyCanvas = (page: Page) => page.locator('[data-workbook-grid] canvas')
 const nameBox = (page: Page) => page.getByRole('textbox', { name: 'Name box' })
@@ -109,6 +110,7 @@ test('frozen panes and merged text use Canvas and preserve their interaction coo
 test('painted filter buttons open the existing dialog without starting cell selection', async ({ page }) => {
   await setup(page)
   await go(page, 'A1:C10')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await page.getByRole('combobox', { name: 'Worksheet filter' }).selectOption('selection')
   await expect(page.getByLabel('Filter status')).toBeVisible()
   const p = await point(page, 1, 0)

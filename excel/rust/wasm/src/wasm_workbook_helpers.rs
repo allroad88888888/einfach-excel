@@ -141,21 +141,18 @@ impl WasmWorkbook {
     /// The engine-owned filter state as wire elements, shared by
     /// `snapshotFilters` and the persistence-v1 envelope.
     fn filters_json(&self) -> Vec<SheetFilterStateJSON> {
-        self.workbook
-            .snapshot_filters()
-            .sheets()
-            .iter()
-            .map(SheetFilterStateJSON::from_entry)
-            .collect()
+        let snapshot = self.workbook.snapshot_filters();
+        snapshot.sheets().iter().map(|entry| {
+            SheetFilterStateJSON::from_entry(entry, snapshot.range_criteria(entry.sheet_index))
+        }).collect()
     }
 
     fn filter_snapshot_from_json(filters: Vec<SheetFilterStateJSON>) -> FilterSnapshot {
-        FilterSnapshot::from_sheets(
-            filters
-                .into_iter()
-                .map(SheetFilterStateJSON::into_entry)
-                .collect(),
-        )
+        let (entries, criteria) = filters.into_iter().map(|mut filter| {
+            let criteria = filter.range_criteria.take().map(|criteria| (filter.sheet as usize, criteria.into()));
+            (filter.into_entry(), criteria)
+        }).unzip::<_, _, Vec<_>, Vec<_>>();
+        FilterSnapshot::from_sheets(entries).with_range_criteria(criteria.into_iter().flatten())
     }
 
     fn restore_filters_json(&mut self, payload: FilterSnapshotJSON) -> Result<u32, String> {

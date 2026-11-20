@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { paste, select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) for (const action of ['Next page', 'Previous page'])
   test(`${action} duplicate preview reads its exact page without changing source history at ${width}px`, async ({ page, context }) => {
@@ -18,6 +19,7 @@ for (const width of [1280]) for (const action of ['Next page', 'Previous page'])
     ))
     await paste(page)
     await select(page, 'O1:P46', '0:14')
+    await showRibbonItem(page, 'data.remove-duplicates')
     await button('Remove duplicates').click()
     const dialog = page.getByRole('dialog', { name: 'Remove duplicates', exact: true })
     await expect(dialog.getByRole('status')).toContainText('0 duplicate records;')

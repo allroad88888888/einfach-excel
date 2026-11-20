@@ -93,4 +93,22 @@ impl<'a> EvalProvider for SheetEvalProvider<'a> {
             .get(&addr)
             .map(|s| s.source.as_ref().to_string())
     }
+
+    fn cell_formula_contains_subtotal(
+        &self,
+        _sheet_index: Option<usize>,
+        addr: CellAddress,
+    ) -> bool {
+        if let Some(expr) = self.sheet.interior.formula_exprs.borrow().get(&addr) {
+            return crate::eval::expr_contains_subtotal(expr);
+        }
+        self.sheet
+            .interior
+            .formula_source
+            .borrow()
+            .get(&addr)
+            .is_some_and(|source| {
+                crate::eval::formula_source_contains_subtotal(source.source.as_ref())
+            })
+    }
 }

@@ -16,7 +16,8 @@ import type {
 } from '@einfach-excel/spreadsheet-ui-core'
 
 export interface TestRustWorkbookHandlers {
-  previewNumberFormat?: (request: RustWorkbookCommands['format.preview']['payload']) => Promise<string>
+  previewNumberFormat?: (request: RustWorkbookCommands['format.preview']['payload']) =>
+    Promise<RustWorkbookCommands['format.preview']['result']>
   changeSheets?: (
     request: RustWorkbookCommands['workbook.changeSheets']['payload'],
   ) => Promise<RustWorkbookCommands['workbook.changeSheets']['result']>

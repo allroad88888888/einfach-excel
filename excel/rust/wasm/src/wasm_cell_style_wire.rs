@@ -26,12 +26,15 @@ impl CellFormatJSON {
                 Align::CenterAcross => "centerAcross".into(),
             }),
             font_size: style.font_size,
+            font_baseline: style.font_baseline,
             fg_color: style.color.clone(),
             bg_color: style.background.clone(),
+            fill: style.fill.clone(),
             font_family: style.font_family.clone(),
             underline: style.underline,
             strikethrough: style.strikethrough,
             wrap: style.wrap_text,
+            shrink_to_fit: style.shrink_to_fit,
             indent: style.indent,
             vertical_align: style.vertical_align.map(|value| match value {
                 VerticalAlign::Default => "default".into(),
@@ -58,6 +61,8 @@ impl CellBordersJSON {
             right: self.right.map(BorderSpecJSON::into_spec),
             bottom: self.bottom.map(BorderSpecJSON::into_spec),
             left: self.left.map(BorderSpecJSON::into_spec),
+            diag_up: self.diag_up.map(BorderSpecJSON::into_spec),
+            diag_down: self.diag_down.map(BorderSpecJSON::into_spec),
         }
     }
 
@@ -67,6 +72,8 @@ impl CellBordersJSON {
             right: borders.right.as_ref().map(BorderSpecJSON::from_spec),
             bottom: borders.bottom.as_ref().map(BorderSpecJSON::from_spec),
             left: borders.left.as_ref().map(BorderSpecJSON::from_spec),
+            diag_up: borders.diag_up.as_ref().map(BorderSpecJSON::from_spec),
+            diag_down: borders.diag_down.as_ref().map(BorderSpecJSON::from_spec),
         })
     }
 }

@@ -64,7 +64,7 @@ impl WasmWorkbook {
                 sheet,
                 addr: address,
                 display: String::new(),
-                formatted_display: None,
+                formatted_display: None, formatted_color: None, formatted_fill: None, formatted_pads: None,
                 input_text: String::new(),
                 cell_type: "null".into(),
                 is_error: false,

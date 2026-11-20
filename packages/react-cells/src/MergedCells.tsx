@@ -3,6 +3,7 @@ import {
   getViewportRangeRectangle,
   projectionSnapshotAtom,
   selectionRangesAtom,
+  splitPaneProjectionsAtom,
   viewportGeometrySizesAtom,
   viewportMetricsAtom,
   showFormulasAtom, formulaViewText,
@@ -12,7 +13,12 @@ import {
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { createMergedBorderStyle, MergedCellBorders } from './MergedCellBorders'
 import { CellDataBar } from './CellDataBar'
+import { CellDiagonalBorders } from './CellDiagonalBorders'
 import { RichCellText } from './RichCellText'
+import { shrinkToFitText } from './ShrinkToFitText'
+import {
+  NumberFormatText, numberFormatColorStyle, numberFormatLayout, numberFormatSpacingStyle,
+} from './NumberFormatText'
 import { CellHyperlink } from './hyperlink/CellHyperlink'
 import { CellMetadata, type CellMetadataLabels } from './cell-metadata/CellMetadata'
 import { useMemo } from 'react'
@@ -25,15 +31,25 @@ export function MergedCells({ window, anchors, metadataLabels }: {
   metadataLabels?: CellMetadataLabels
 } = {}) {
   const snapshot = useAtomValue(projectionSnapshotAtom)
+  const splitProjections = useAtomValue(splitPaneProjectionsAtom)
   const selections = useAtomValue(selectionRangesAtom)
   const sizes = useAtomValue(viewportGeometrySizesAtom)
   const metrics = useAtomValue(viewportMetricsAtom)
   const showFormulas = useAtomValue(showFormulasAtom)
   const result = snapshot.result
+  const splitSnap = window
+    ? Object.values(splitProjections).find(
+        (item) => item?.window === window && item.sheetId === result?.sheetId,
+      )
+    : undefined
   const visibleAnchors = anchors ?? (result?.kind === 'visible-window' ? result.mergeAnchors : undefined)
-  const borderStyle = useMemo(() => result?.kind === 'visible-window' && visibleAnchors?.length
-    ? createMergedBorderStyle(result, window ?? result.window, metrics, sizes) : undefined,
-  [result, window, metrics, sizes, visibleAnchors])
+  const borderStyle = useMemo(
+    () =>
+      result?.kind === 'visible-window' && visibleAnchors?.length
+        ? createMergedBorderStyle(result, window ?? result.window, metrics, sizes, splitSnap?.cells)
+        : undefined,
+    [result, window, metrics, sizes, visibleAnchors, splitSnap?.cells],
+  )
   if (!borderStyle || result?.kind !== 'visible-window' || result.sheetId !== metrics.sheetId) return null
   const origin = getViewportRangeRectangle(metrics, sizes, window ?? result.window)
   return (
@@ -47,6 +63,18 @@ export function MergedCells({ window, anchors, metadataLabels }: {
           colEnd: cell.col + span.cols - 1,
         }
         const rect = getViewportRangeRectangle(metrics, sizes, range)
+        const layout = numberFormatLayout(cell, showFormulas)
+        const rotationStyle = cellTextRotationStyle(cell.format)
+        const rotated = Boolean(rotationStyle?.transform)
+        const textContent = <span style={rotationStyle}>
+          <CellHyperlink url={showFormulas ? undefined : cell.hyperlink}
+            color={cell.format?.fgColor}>
+            {layout ? <NumberFormatText display={layout} format={cell.format}
+              text={formulaViewText(cell, showFormulas)} />
+              : <RichCellText cell={cell} text={formulaViewText(cell, showFormulas)}
+                showFormulas={showFormulas} />}
+          </CellHyperlink>
+        </span>
         if (rect.width === 0 || rect.height === 0) return null
         const selected = selections.some((selection) =>
           selection.rowStart <= range.rowStart && selection.rowEnd >= range.rowEnd &&
@@ -64,8 +92,10 @@ export function MergedCells({ window, anchors, metadataLabels }: {
             className={`cell merged-cell cell-metadata-host${cell.dataBar ? ' cell-data-bar-host' : ''}`}
             style={{
               ...cellFormatStyle({ ...cell.format, borders: undefined,
-              ...(cell.richText?.length && !showFormulas
+              ...((cell.richText?.length && !showFormulas) ||
+                (cell.format?.fontBaseline && cell.format.fontBaseline !== 'normal')
                 ? { underline: false, strikethrough: false } : {}) }, cell.valueKind),
+              ...numberFormatColorStyle(cell, showFormulas),
               border: 0,
               top: rect.top - origin.top,
               left: rect.left - origin.left,
@@ -82,16 +112,20 @@ export function MergedCells({ window, anchors, metadataLabels }: {
             <MergedCellBorders range={range} window={window ?? result.window}
               borderStyle={borderStyle} />
             <CellDataBar bar={cell.dataBar} />
+            <CellDiagonalBorders borders={cell.format?.borders}
+              width={rect.width} height={rect.height} />
             <CellMetadata cell={cell} labels={metadataLabels} />
-            <span className="cell-content" data-conditional-icon-value={cell.conditionalIcon
-              ? cell.conditionalIcon.showValue ? 'visible' : 'hidden' : undefined}>
-              <span style={cellTextRotationStyle(cell.format)}>
-                <CellHyperlink url={showFormulas ? undefined : cell.hyperlink}
-                  color={cell.format?.fgColor}>
-                  <RichCellText cell={cell} text={formulaViewText(cell, showFormulas)}
-            showFormulas={showFormulas} />
-                </CellHyperlink>
-              </span>
+            <span className={`cell-content${rotated ? ' cell-rotation-frame' : ''}`}
+              style={{
+                height: rotated ? Math.max(0, rect.height - 6) : undefined,
+                justifyContent: rotated ? cell.format?.verticalAlign === 'top' ? 'flex-start'
+                  : cell.format?.verticalAlign === 'center' ? 'center' : 'flex-end' : undefined,
+                ...numberFormatSpacingStyle(cell),
+              }}
+              data-conditional-icon-value={cell.conditionalIcon
+                ? cell.conditionalIcon.showValue ? 'visible' : 'hidden' : undefined}>
+              {shrinkToFitText(rotated ? <span className="cell-rotation-line">{textContent}</span>
+                : textContent, formulaViewText(cell, showFormulas), cell.format)}
             </span>
           </div>
         )

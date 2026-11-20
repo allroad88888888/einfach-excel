@@ -9,7 +9,8 @@ fn raw_and_inferred_fill_reject_a_locked_tail_without_changing_an_editable_prefi
     book.set_cell(0, "A1", Value::Number(1.0));
     allow(&mut book, range(1, 0, 1, 0));
     protect(&mut book);
-    let request = AutoFillRequest { sheet_idx: 0, source_range: range(0, 0, 0, 0),
+    let request = AutoFillRequest { named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
+            sheet_idx: 0, source_range: range(0, 0, 0, 0),
         target_range: range(0, 0, 2, 0), direction: AutoFillDirection::Down,
         series: AutoFillSeries::Copy, step: None, text_pattern: None, list: None };
     assert!(book.apply_auto_fill(&request).is_err());
@@ -202,10 +203,10 @@ fn sort_and_auto_fit_enforce_native_permissions() {
     book.set_cell(0, "A2", Value::Number(1.0));
     protect(&mut book);
     let keys = [SortKey { col: 0, direction: SortDirection::Ascending,
-        case_sensitive: false, empty_first: false }];
+        case_sensitive: false, empty_first: false, custom_list: None }];
     assert!(book.sort_range(0, range(0, 0, 1, 0), &keys, &[]).is_err());
     assert!(book.auto_fit_dimensions(0, range(0, 0, 1, 0), "column", 28, 120,
-        |_, _, _| Ok(200.0)).is_err());
+        |_, _, _, _| Ok(200.0)).is_err());
     assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(2.0));
     assert_eq!(book.sheet(0).unwrap().col_width(0), None);
 }
@@ -219,7 +220,7 @@ fn replace_and_multiarea_clear_do_not_partially_write_an_editable_prefix() {
     protect(&mut book);
     let mut history = WorkbookHistory::default();
     let query = FindQuery { needle: "old".into(), case_sensitive: false, whole_cell: true,
-        wildcards: false, look_in: FindLookIn::Formulas };
+        wildcards: false, look_in: FindLookIn::Formulas, format: None };
     assert!(history.replace_by_query(&mut book, &[(0, range(0, 0, 0, 1))],
         &query, "new", None).is_err());
     assert!(history.clear_selection(&mut book, 0, &[(range(0, 0, 0, 0), StyleScope::Cell),

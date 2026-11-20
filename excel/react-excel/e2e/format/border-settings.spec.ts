@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const opener = (page: Page) => page.getByRole('button', { name: 'Border settings', exact: true })
 async function open(page: Page, preset = 'outside', style = 'thin', color = '#c00000') {
+  await showRibbonItem(page, 'format.border-settings')
   await opener(page).click()
   await page.getByLabel('Position', { exact: true }).selectOption(preset)
   if (preset !== 'none') {
@@ -128,6 +130,7 @@ test('native border seed styles reopen correctly and clearing does not clear val
     await select(page, address!, coord!)
     const before = await cell(page, coord!).textContent()
     await expect(cell(page, coord!)).toHaveCSS(`border-${side}-style`, style!)
+    await showRibbonItem(page, 'format.border-settings')
     await opener(page).click()
     await expect(page.getByLabel('Line style')).toHaveValue(style!)
     await expect(page.getByLabel('Hex color')).toHaveValue(color!)
@@ -144,8 +147,10 @@ test('native border seed styles reopen correctly and clearing does not clear val
 test('merged cell outside uses the full merged rectangle', async ({ page }) => {
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'B8:C9', '7:1')
+  await showRibbonItem(page, 'clear.contents')
   await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
   await expect(cell(page, '8:1')).toHaveText('')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   const merged = page.locator('[data-merged-cell][data-cell="7:1"]')
   await expect(merged).toBeVisible()
@@ -164,6 +169,7 @@ test('merged cell outside uses the full merged rectangle', async ({ page }) => {
 
 test('frozen cells and the last offscreen cell retain borders after scrolling', async ({ page }) => {
   await select(page, 'C3', '2:2')
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
   await select(page, 'A2', '1:0')
   await open(page, 'outside', 'thick', '#123abc'); await apply(page)
@@ -221,10 +227,13 @@ for (const width of [1280, 390]) {
     await page.screenshot({ path: info.outputPath(`border-ready-${width}.png`) })
     await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'format.border-settings')
     await expect(opener(page)).toBeFocused()
     await expect(cell(page, '9:2')).toHaveCSS('border-top-width', '0px')
+    await showRibbonItem(page, 'format.border-settings')
     await opener(page).click()
     await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+    await showRibbonItem(page, 'format.border-settings')
     await expect(opener(page)).toBeFocused()
     expect(errors).toEqual([])
   })

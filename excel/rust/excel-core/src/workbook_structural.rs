@@ -81,10 +81,12 @@ impl Workbook {
         // 同一份实际位移差异交回历史层，不再扫描/改写闭包第二遍。
         let lambdas = FormulaLambdaChange::for_structural_shift(self, &name, edit);
         let ranges = self.shifted_named_ranges(sheet_index, edit);
+        let filter_criteria = self.shifted_filter_criteria(sheet_index, edit, None);
         let templates = FormulaSourceChange::for_structural_templates(self, sheet_index, edit);
         let store = self.store.clone();
         store.batch(|_| {
             self.shift_sheet_and_tables(sheet_index, edit);
+            for change in &filter_criteria { change.apply(self, false); }
             self.retarget_drawing_references(sheet_index, edit);
             // 包含目标表自己的 Sheet1!A1 写法；同表裸引用已经由 Sheet 位移处理。
             for sheet in &mut self.sheets {

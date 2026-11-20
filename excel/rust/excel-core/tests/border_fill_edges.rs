@@ -87,6 +87,7 @@ fn fill_copies_or_clears_both_faces_in_all_four_directions() {
                 )
                 .unwrap();
             wb.apply_auto_fill(&AutoFillRequest {
+                named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
                 sheet_idx: 0,
                 source_range: range(source, source),
                 target_range: target,
@@ -176,6 +177,7 @@ fn fill_history_restores_neighbour_merge_segments_without_touching_their_content
             .apply_auto_fill(
                 &mut wb,
                 &AutoFillRequest {
+                    named_lists: einfach_excel_core::AutoFillNamedLists::empty(),
                     sheet_idx: 0,
                     source_range: range("B2", "B2"),
                     target_range: range("B2", "B3"),

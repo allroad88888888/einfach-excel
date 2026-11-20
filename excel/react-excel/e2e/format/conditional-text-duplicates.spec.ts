@@ -1,16 +1,18 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Conditional formatting', exact: true })
 const red = 'rgb(255, 199, 206)', green = 'rgb(226, 240, 217)'
 async function go(page: Page, range: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(range)
   await button(page, 'Go').click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
 }
-async function open(page: Page) { await button(page, 'Conditional formatting').click() }
+async function open(page: Page) { await showRibbonItem(page, 'format.conditional-formatting'); await showRibbonItem(page, 'format.conditional-formatting'); await button(page, 'Conditional formatting').click() }
 async function save(page: Page, edit = false) {
   await button(page, edit ? 'Save rule' : 'Add rule').click()
   await expect(dialog(page)).toHaveCount(0)
@@ -187,6 +189,7 @@ for (const width of [1280, 390]) test(`text options fit and cancel restores focu
   await expect(button(page, 'Add rule')).toBeInViewport()
   await page.screenshot({ path: `/tmp/excel-cf-text-${width}.png`, fullPage: true })
   await page.getByLabel('Matching text').press('Escape')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await expect(button(page, 'Conditional formatting')).toBeFocused()
   await expect(button(page, 'Undo')).toBeDisabled()
   expect(errors).toEqual([])

@@ -43,7 +43,7 @@ impl TableDefinitionChange {
             validate_cells(workbook, sheet, range)?;
             Self { sheet, range, before: table.clone(), after: Some(table.clone().with_insert_row(false)),
                 cells: Vec::new(), formulas: Vec::new(), rules: Vec::new(), lambdas: Vec::new(),
-                filter: None, named_ranges: Vec::new(), shifted_tables: Vec::new(),
+                filter: None, named_ranges: Vec::new(), filter_criteria: Vec::new(), shifted_tables: Vec::new(),
                 validations: ValidationShift::default() }
         } else {
             let Some(change) = Self::prepare_resize(workbook, table.name(), range).ok().flatten()

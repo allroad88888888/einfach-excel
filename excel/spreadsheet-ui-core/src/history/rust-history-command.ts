@@ -16,7 +16,7 @@ import {
 } from '../runtime/workbook-document'
 import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
 import { historyProjectionRequest } from '../rust-workbook/history-apply'
-import { structureSheet, structureSizeRange } from '../rust-workbook/structure-geometry'
+import { structureSheetAfterEdits, structureSizeRange } from '../rust-workbook/structure-geometry'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import { systemClipboardFeedbackAtom } from '../clipboard/system-clipboard-command'
 import type { RustHistoryState } from './rust-history-types'
@@ -87,9 +87,10 @@ export const runRustHistoryAtom = atom(
     })
     set(rustHistoryPanelAtom, { ...panel, busy: true, error: null })
     try {
+      const edits = entry.structuralEdits ?? (entry.structuralEdit ? [entry.structuralEdit] : [])
       const restored =
-        entry.structuralEdit && sheet
-          ? structureSheet(sheet, entry.structuralEdit, action === 'undo')
+        edits.length && sheet
+          ? structureSheetAfterEdits(sheet, edits, action === 'undo')
           : undefined
       const expectedSheets = restored
         ? workbook.sheets.map((item) => (item.id === restored.id ? restored : item))

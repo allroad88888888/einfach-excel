@@ -2,6 +2,8 @@ import { PluginEditorAdornments } from '../../../plugin/PluginMounts'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
+  activeSheetSplitWindowAtom,
+  activeSplitPaneAtom,
   commitCellEditingAtom,
   reconcileCellEditingAtom,
   activeWorkbookSheetAtom,
@@ -17,9 +19,12 @@ import {
   getViewportRangeRectangle,
   mergeRangeAt,
   projectionSnapshotAtom,
+  resolveSplitPaneForMode,
   viewportMetricsAtom,
   viewportGeometrySizesAtom,
+  type CellRange,
   type EditorKeyboardOutcome,
+  type SplitPaneId,
 } from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useEffect, useId, useRef } from 'react'
@@ -31,12 +36,24 @@ import { FormulaAssist } from '../../formula/FormulaAssist'
 import { FormulaReferenceHighlight } from '../../formula-reference/FormulaReferenceHighlight'
 import { useGridGutter } from '../viewport/grid-gutter'
 
+export interface CellEditorPaneViewport {
+  readonly scrollTop: number
+  readonly scrollLeft: number
+  readonly viewportWidth: number
+  readonly viewportHeight: number
+  readonly gutter: number
+  readonly heading: number
+  readonly mergedRanges?: readonly CellRange[]
+}
+
 export interface CellEditorProps {
   readonly focusGrid: () => void
+  readonly pane?: SplitPaneId
+  readonly paneViewport?: CellEditorPaneViewport
 }
 
 /** Renders the active in-cell input over its Rust-projected grid cell. */
-export function CellEditor({ focusGrid }: CellEditorProps) {
+export function CellEditor({ focusGrid, pane, paneViewport }: CellEditorProps) {
   const { gutter, heading } = useGridGutter()
   const { i18n, t } = useLingui()
   const session = useAtomValue(editingSessionAtom)
@@ -44,6 +61,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const hasFormulaRefs = useAtomValue(formulaReferenceTokensAtom).length > 0
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
+  const split = useAtomValue(activeSheetSplitWindowAtom)
+  const activeSplitPane = useAtomValue(activeSplitPaneAtom)
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   const projection = useAtomValue(projectionSnapshotAtom).result
   const viewportMetrics = useAtomValue(viewportMetricsAtom)
@@ -64,9 +83,13 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const feedback = editingCommitFeedback(lifecycle)
   const editingFromFormulaBar = session.source?.source === 'formula-bar'
   const editingFromKeyboard = session.source?.source === 'keyboard'
+  const ownerPane = resolveSplitPaneForMode(split.mode, activeSplitPane)
+  const isOwner = (pane ?? null) === ownerPane
+  const cellRow = cell?.row ?? null
+  const cellCol = cell?.col ?? null
 
   useEffect(() => {
-    if (editingFromFormulaBar) return
+    if (!isOwner || editingFromFormulaBar || cellRow === null || cellCol === null) return
     const input = inputRef.current
     input?.focus({ preventScroll: true })
     if (editingFromKeyboard) {
@@ -75,23 +98,39 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
     } else {
       input?.select()
     }
-  }, [cell?.col, cell?.row, editingFromFormulaBar, editingFromKeyboard])
+  }, [cellCol, cellRow, editingFromFormulaBar, editingFromKeyboard, isOwner])
 
-  if (cell === null || editingFromFormulaBar) return null
+  if (!isOwner || cell === null || editingFromFormulaBar) return null
 
   // 实例前缀隔离 ARIA；坐标后缀仍识别旧异步提交，避免完成时抢走下一格焦点。
   const fieldIdentity = `cell-editor-${instanceId}-r${cell.row}-c${cell.col}`
   const sheetId = activeSheet?.id ?? ''
-  const merge =
-    projection?.kind === 'visible-window' && projection.sheetId === sheetId
-      ? mergeRangeAt(projection.mergedRanges ?? [], cell)
-      : undefined
-  const metrics = {
-    ...viewportMetrics,
-    sheetId,
-    rowCount: activeSheet?.rowCount ?? 0,
-    colCount: activeSheet?.colCount ?? 0,
-  }
+  const effectiveGutter = paneViewport ? paneViewport.gutter : gutter
+  const effectiveHeading = paneViewport ? paneViewport.heading : heading
+  const mergedRanges = paneViewport
+    ? (paneViewport.mergedRanges ?? [])
+    : projection?.kind === 'visible-window' && projection.sheetId === sheetId
+      ? (projection.mergedRanges ?? [])
+      : []
+  const merge = mergeRangeAt(mergedRanges, cell)
+  const effectiveFreeze = paneViewport ? null : freeze?.sheetId === sheetId ? freeze : null
+  const metrics = paneViewport
+    ? {
+        ...viewportMetrics,
+        sheetId,
+        rowCount: activeSheet?.rowCount ?? 0,
+        colCount: activeSheet?.colCount ?? 0,
+        scrollTop: paneViewport.scrollTop,
+        scrollLeft: paneViewport.scrollLeft,
+        viewportWidth: paneViewport.viewportWidth,
+        viewportHeight: paneViewport.viewportHeight,
+      }
+    : {
+        ...viewportMetrics,
+        sheetId,
+        rowCount: activeSheet?.rowCount ?? 0,
+        colCount: activeSheet?.colCount ?? 0,
+      }
   const rect = getViewportRangeRectangle(
     metrics,
     sizeOverrides,
@@ -102,8 +141,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       colEnd: cell.col,
     },
   )
-  const frozenRow = freeze?.sheetId === sheetId && cell.row < freeze.rows
-  const frozenCol = freeze?.sheetId === sheetId && cell.col < freeze.cols
+  const frozenRow = effectiveFreeze !== null && cell.row < effectiveFreeze.rows
+  const frozenCol = effectiveFreeze !== null && cell.col < effectiveFreeze.cols
 
   const restoreFocus = (outcome: EditorKeyboardOutcome) => {
     // 同一个 textarea 已用于下一格时，上一格的 Enter 不能抢走新编辑器焦点。
@@ -186,13 +225,13 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
     if (!event.currentTarget.contains(event.relatedTarget)) void commitOnce(false)
   }
   const stopPointer = (event: PointerEvent<HTMLDivElement>) => event.stopPropagation()
-  const top = heading + rect.top + (frozenRow ? metrics.scrollTop : 0)
-  const left = gutter + rect.left + (frozenCol ? metrics.scrollLeft : 0)
+  const top = effectiveHeading + rect.top + (frozenRow ? metrics.scrollTop : 0)
+  const left = effectiveGutter + rect.left + (frozenCol ? metrics.scrollLeft : 0)
   const height = Math.max(rect.height, Math.min(5, draft.split('\n').length) * 18 + 6)
-  const viewportTop = metrics.scrollTop + heading
-  const viewportLeft = metrics.scrollLeft + gutter
-  const frozenHeight = freeze?.sheetId === sheetId ? freeze.height : 0
-  const frozenWidth = freeze?.sheetId === sheetId ? freeze.width : 0
+  const viewportTop = metrics.scrollTop + effectiveHeading
+  const viewportLeft = metrics.scrollLeft + effectiveGutter
+  const frozenHeight = effectiveFreeze ? effectiveFreeze.height : 0
+  const frozenWidth = effectiveFreeze ? effectiveFreeze.width : 0
   // 编辑器保持挂载以保留草稿／焦点，仅裁掉表头及其它固定区上的绘制与命中。
   // 允许负 inset，让错误提示仍能超出单元格，但不能超出可编辑的视口。
   const clipTop = viewportTop + (frozenRow ? 0 : frozenHeight) - top

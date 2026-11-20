@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 export { select } from '../support/clipboard'
 
 export const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -7,6 +8,7 @@ export const editor = (page: Page) => page.getByRole('textbox', { name: 'Active 
 export const panel = (page: Page) => page.getByRole('dialog', { name: 'Worksheet protection', exact: true })
 
 export async function openProtection(page: Page) {
+  await showRibbonItem(page, 'data.worksheet-protection')
   await button(page, 'Worksheet protection').click()
   await expect(panel(page)).toBeVisible()
   await expect(button(page, 'Protect worksheet').or(button(page, 'Unprotect worksheet'))).toBeEnabled()

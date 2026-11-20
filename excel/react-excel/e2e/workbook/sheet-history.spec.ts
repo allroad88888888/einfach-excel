@@ -1,6 +1,7 @@
 import { sheetMenuItem } from '../support/sheet-menu'
 import { expect, test, type Page } from '@playwright/test'
 import { copy, select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const tabs = (page: Page) => page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab')
 const cell = (page: Page, key: string) => page.locator(`td[data-cell="${key}"]`)
@@ -136,6 +137,7 @@ test('structure history invalidates the old clipboard with a visible explanation
   await rename(page, 'Orders')
   await history(page, 'Undo')
   await select(page, 'A4', '3:0')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Copy or cut again')
   await expect(cell(page, '3:0')).toHaveText('00123')

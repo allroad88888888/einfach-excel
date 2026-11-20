@@ -111,6 +111,7 @@ export const protectSheetAtom = atom(
     const nextState: SheetProtectionState = {
       mode: 'protected',
       unlockedRanges: replacement ?? current.unlockedRanges,
+      ...(current.permissions ? { permissions: current.permissions } : {}),
     }
     if (current.mode === 'protected' && protectionStatesEqual(current, nextState)) {
       return 'unchanged'
@@ -122,7 +123,7 @@ export const protectSheetAtom = atom(
 )
 protectSheetAtom.debugLabel = 'spreadsheet.protection.protectSheet'
 
-/** Command: unprotect a sheet. Unlocked ranges are preserved for a later re-protect. */
+/** Command: unprotect a sheet. Unlocked ranges and permissions are preserved for re-protect. */
 export const unprotectSheetAtom = atom(
   null,
   (get, set, input: UnprotectSheetCommandInput): SheetProtectionCommandOutcome => {
@@ -134,6 +135,7 @@ export const unprotectSheetAtom = atom(
     const next = writeSheetProtection(get, set, sheetId, {
       mode: 'open',
       unlockedRanges: current.unlockedRanges,
+      ...(current.permissions ? { permissions: current.permissions } : {}),
     })
     persistProtectionState(set, input.source, sheetId, next)
     return 'committed'
@@ -157,6 +159,7 @@ export function addUnlockedRange(
   const nextState: SheetProtectionState = {
     mode: current.mode,
     unlockedRanges: [...current.unlockedRanges, snapshotRange(input.range)],
+    ...(current.permissions ? { permissions: current.permissions } : {}),
   }
   const next = writeSheetProtection(get, set, sheetId, nextState)
   persistRangeLock(set, input.source, sheetId, input.range, false, next)
@@ -188,6 +191,7 @@ export const removeUnlockedRangeAtom = atom(
     const next = writeSheetProtection(get, set, sheetId, {
       mode: current.mode,
       unlockedRanges: remaining,
+      ...(current.permissions ? { permissions: current.permissions } : {}),
     })
     persistRangeLock(set, input.source, sheetId, input.range, true, next)
     return 'committed'

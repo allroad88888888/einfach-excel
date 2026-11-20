@@ -7,7 +7,7 @@ import { createContext, useContext } from 'react'
 export interface WorkbookUiOptions {
   /** 标题栏（工作簿名、语言、文件菜单）。 */
   readonly header?: boolean
-  /** false 隐藏整个功能区；hidden 使用 workbookRibbonItemIds 中的稳定 ID。 */
+  /** false 隐藏整个功能区；hidden 使用内置稳定 ID 或插件公开的入口/贡献 ID。 */
   readonly ribbon?: boolean | { readonly hidden?: readonly string[] }
   /** 行号栏宽、列标栏高（px，0–512）；只影响本挂载，文件不保存。 */
   readonly rowHeaderWidth?: number

@@ -1,4 +1,5 @@
 import { CONDITIONAL_FORMAT_RULES_MAX } from './constants'
+import { CONDITIONAL_TIME_PERIODS } from './time-period-types'
 import { snapshotAdvancedVisualRule } from './advanced/snapshot'
 import { snapshotAdvancedFormattingRule } from '../advanced-formatting/snapshot'
 import {
@@ -24,6 +25,29 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
       ...(value.stopIfTrue === undefined ? {} : { stopIfTrue: value.stopIfTrue as boolean }),
     }
     switch (value.kind) {
+      case 'cell-state': {
+        const format = snapshotFormat(value.format)
+        if (format === null || !isOneOf(value.condition, ['blank', 'not-blank', 'error', 'not-error'] as const) ||
+          Object.keys(value).some((key) => !['kind', 'condition', 'enabled', 'stopIfTrue', 'format'].includes(key)))
+          return null
+        return { ...options, kind: value.kind, condition: value.condition, format }
+      }
+      case 'above-average': {
+        const format = snapshotFormat(value.format)
+        if (format === null || !isOneOf(value.direction, ['above', 'below'] as const) ||
+          (value.equalAverage !== undefined && typeof value.equalAverage !== 'boolean') ||
+          Object.keys(value).some((key) => !['kind', 'direction', 'equalAverage', 'enabled', 'stopIfTrue', 'format'].includes(key)))
+          return null
+        return { ...options, kind: value.kind, direction: value.direction, format,
+          ...(value.equalAverage === undefined ? {} : { equalAverage: value.equalAverage }) }
+      }
+      case 'time-period': {
+        const format = snapshotFormat(value.format)
+        if (format === null || !isOneOf(value.period, CONDITIONAL_TIME_PERIODS) ||
+          Object.keys(value).some((key) => !['kind', 'period', 'enabled', 'stopIfTrue', 'format'].includes(key)))
+          return null
+        return { ...options, kind: value.kind, period: value.period, format }
+      }
       case 'text':
       case 'duplicate-values':
         return snapshotAdvancedFormattingRule(value)

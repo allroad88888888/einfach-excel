@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { start, go, open, save, highlighted, cleanNeighbor, compareDisplay, numberFormat,
   button, dialog, valueInput, cell } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) {
   test(`display-text rules preserve comparison through edit copy enable clear and history at ${width}px`, async ({ page }) => {
@@ -57,6 +58,7 @@ for (const width of [1280]) {
     for (let row = 0; row < 3; row++) await highlighted(page, row)
     await expect(button(page, 'Undo')).toBeDisabled()
     await select(page, 'A1', '0:0'); await expect(valueInput(page)).toHaveValue('0.5')
+    await showRibbonItem(page, 'format.general-format')
     await button(page, 'General format').click()
     await highlighted(page, 0, false); await highlighted(page, 1, false)
     await highlighted(page, 2); await cleanNeighbor(page)
@@ -69,11 +71,13 @@ for (const width of [1280]) {
     await expect(grid).toHaveAttribute('data-row-count', '1048576')
     await go(page, 'A1048576'); await expect(valueInput(page)).toHaveValue('')
     await expect(cell(page, '1048575:0')).toHaveText('')
+    await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
     await page.getByRole('combobox', { name: 'Insert or delete rows and columns', exact: true }).selectOption('delete-rows')
     await expect(grid).toHaveAttribute('data-row-count', '1048575')
     await go(page, 'A1'); await open(page, 'text')
     await page.getByLabel('Text condition', { exact: true }).selectOption('matches-wildcard')
     await page.getByLabel('Matching text', { exact: true }).fill('a~*'); await save(page)
+    await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
     await page.getByRole('combobox', { name: 'Insert or delete rows and columns', exact: true }).selectOption('insert-rows')
     await expect(grid).toHaveAttribute('data-row-count', '1048576')
     await expect(cell(page, '0:0')).toHaveText('')

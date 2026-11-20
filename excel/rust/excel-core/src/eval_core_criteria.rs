@@ -111,7 +111,7 @@ pub(super) fn criterion_cell_text(v: &Value) -> Option<String> {
     }
 }
 
-pub(super) fn parse_criterion_op(s: &str) -> (&str, &str) {
+pub(crate) fn parse_criterion_op(s: &str) -> (&str, &str) {
     for op in ["<>", ">=", "<=", ">", "<", "="] {
         if let Some(rest) = s.strip_prefix(op) {
             return (op, rest);
@@ -125,7 +125,7 @@ pub(super) fn parse_criterion_op(s: &str) -> (&str, &str) {
 /// escape sequence itself needs the wildcard matcher to decode it (e.g.
 /// `~*` is a literal `*` only after escape resolution; a plain string
 /// compare against the raw pattern would still see the `~`).
-pub(super) fn pattern_has_wildcard(pattern: &str) -> bool {
+pub(crate) fn pattern_has_wildcard(pattern: &str) -> bool {
     let mut chars = pattern.chars();
     while let Some(c) = chars.next() {
         if c == '~' {
@@ -150,7 +150,7 @@ pub(super) fn pattern_has_wildcard(pattern: &str) -> bool {
 /// matcher itself only deals with three cases. Time complexity is O(p·t)
 /// in the worst case (multiple `*`s with backtracking); criteria patterns
 /// are short in practice so this is fine.
-pub(super) fn wildcard_match(pattern: &str, text: &str) -> bool {
+pub(crate) fn wildcard_match(pattern: &str, text: &str) -> bool {
     enum Tok {
         Lit(char),
         Q,

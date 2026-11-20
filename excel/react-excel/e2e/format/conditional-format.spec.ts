@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Conditional formatting', exact: true })
 const bar = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
 async function go(page: Page, reference: string) {
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill(reference)
   await button(page, 'Go').click()
@@ -12,6 +14,7 @@ async function go(page: Page, reference: string) {
   await expect(bar(page)).toBeEnabled()
 }
 async function open(page: Page) {
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await expect(dialog(page)).toBeVisible()
 }
@@ -97,6 +100,7 @@ test('invalid input stays correctable; Escape does not create a rule or history'
   await expect(dialog(page).getByRole('alert')).toContainText('inside this worksheet')
   await page.getByLabel('Applies to', { exact: true }).press('Escape')
   await expect(dialog(page)).toHaveCount(0)
+  await showRibbonItem(page, 'format.conditional-formatting')
   await expect(button(page, 'Conditional formatting')).toBeFocused()
   await expect(button(page, 'Undo')).toBeDisabled()
   await expect(cell(page, '65:2')).toHaveText('4')
@@ -106,6 +110,7 @@ test('invalid input stays correctable; Escape does not create a rule or history'
 
 test('row insertion shifts the rule with cells and undo restores the original scope', async ({ page }) => {
   await go(page, 'C65')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' }).selectOption('insert-rows')
   await expect(cell(page, '66:2')).toHaveText('4')
   await expect(cell(page, '66:2')).toHaveCSS('background-color', 'rgb(255, 199, 206)')

@@ -11,6 +11,7 @@ import {
   eventCount,
   noNewEvents,
 } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const bundler of ['vite', 'rspack']) {
   for (const locale of ['en', 'zh'] as const) {
@@ -169,6 +170,7 @@ for (const bundler of ['vite', 'rspack']) {
       )
       const count = await page.evaluate((key) => window.packageHost.events[key].length, instance)
       await root.locator('td[data-cell="0:0"]').click()
+      await showRibbonItem(root, 'structure.insert-or-delete-rows-and-columns')
       await root.locator('select:has(option[value="insert-rows"])').selectOption('insert-rows')
       await expect(root).toContainText(messages.structure)
       await expect(root.locator('td[data-cell="0:0"]')).toHaveText('1')
@@ -184,6 +186,7 @@ for (const bundler of ['vite', 'rspack']) {
   }) => {
     await start(page, bundler)
     await select(page, 'A1', '0:0')
+    await showRibbonItem(page, 'data.worksheet-protection')
     await button(page, 'Worksheet protection').click()
     await button(page, 'Allow editing in selection A1').click()
     await button(page, 'Protect worksheet').click()

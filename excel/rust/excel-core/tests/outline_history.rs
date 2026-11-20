@@ -186,7 +186,7 @@ fn collapsed_cells_are_not_auto_fit_or_chosen_as_quick_formula_destinations() {
     history.change_outline(&mut book, 0, Axis::Row, Action::SetCollapsed { index: 0, collapsed: true }).unwrap();
     assert!(book.suggest_quick_formula(0, area(0, 1), 100, 8, QuickFormula::Sum).is_err());
     let mut measured = 0;
-    book.auto_fit_dimensions(0, area(0, 2), "row", 28, 120, |value, _, _| {
+    book.auto_fit_dimensions(0, area(0, 2), "row", 28, 120, |value, _, _, _| {
         assert_eq!(value, &Value::Number(1.0));
         measured += 1;
         Ok(30.0)
@@ -198,7 +198,7 @@ fn collapsed_cells_are_not_auto_fit_or_chosen_as_quick_formula_destinations() {
     history.change_outline(&mut book, 0, Axis::Column, Action::SetCollapsed { index: 0, collapsed: true }).unwrap();
     assert!(book.suggest_quick_formula(0, area(0, 1), 100, 8, QuickFormula::Sum).is_err());
     book.sheet_mut(0).unwrap().set_col_width(0, 175);
-    assert!(!book.auto_fit_dimensions(0, area(0, 2), "column", 28, 120, |_, _, _| {
+    assert!(!book.auto_fit_dimensions(0, area(0, 2), "column", 28, 120, |_, _, _, _| {
         panic!("a collapsed column must not be measured")
     }).unwrap());
     assert_eq!(book.sheet(0).unwrap().col_width(0), Some(175));

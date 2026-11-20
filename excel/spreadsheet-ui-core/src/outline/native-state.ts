@@ -4,6 +4,7 @@ export interface NativeOutlineGroup {
   readonly start: number
   readonly end: number
   readonly collapsed: boolean
+  readonly subtotal?: { readonly id: number; readonly summaryAbove: boolean }
 }
 export interface NativeOutline {
   readonly rows: readonly NativeOutlineGroup[]
@@ -45,7 +46,9 @@ export function validNativeOutline(value: unknown): value is NativeOutline {
           group.start >= 0 &&
           group.start <= group.end &&
           group.end < count &&
-          typeof group.collapsed === 'boolean',
+          typeof group.collapsed === 'boolean' &&
+          (group.subtotal === undefined || (axis === 'rows' && Number.isSafeInteger(group.subtotal?.id) &&
+            group.subtotal.id > 0 && typeof group.subtotal.summaryAbove === 'boolean')),
       ),
   )
 }
@@ -67,7 +70,9 @@ export function applyNativeOutlineProjection(
   ) =>
     a.length === b.length &&
     a.every(
-      (g, i) => g.start === b[i].start && g.end === b[i].end && g.collapsed === b[i].collapsed,
+      (g, i) => g.start === b[i].start && g.end === b[i].end && g.collapsed === b[i].collapsed &&
+        g.subtotal?.id === b[i].subtotal?.id &&
+        g.subtotal?.summaryAbove === b[i].subtotal?.summaryAbove,
     )
   if (
     sameIndices(previous?.outlineRows, next.outlineRows) &&
@@ -77,7 +82,9 @@ export function applyNativeOutlineProjection(
   )
     return
   const groups = (values: readonly NativeOutlineGroup[]) =>
-    Object.freeze(values.map((group) => Object.freeze({ ...group })))
+    Object.freeze(values.map((group) => Object.freeze({ ...group,
+      ...(group.subtotal ? { subtotal: Object.freeze({ ...group.subtotal }) } : {}),
+    })))
   set(nativeOutlineProjectionBackingAtom, {
     ...map,
     [sheetId]: Object.freeze({

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
@@ -18,6 +19,7 @@ test('typing equals directly starts reference picking and Enter writes the origi
 })
 
 test('a frozen header can be referenced after scroll without replacing the edit source', async ({ page }) => {
+  await showRibbonItem(page, 'view.freeze-panes')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('first-row')
   const target = await select(page, 'B50', '49:1')
   const input = page.getByRole('textbox', { name: 'Active cell value', exact: true })

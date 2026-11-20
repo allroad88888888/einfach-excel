@@ -1,3 +1,8 @@
+import type { SpreadsheetCellFill } from './cell-fill'
+
+/** Font glyph baseline; independent of alignment within the cell box. */
+export type FontBaseline = 'normal' | 'superscript' | 'subscript'
+
 /** 单元格显示格式的数据契约。 */
 export type SpreadsheetAlignment =
   | 'default'
@@ -69,22 +74,18 @@ export type SpreadsheetNumberFormatFractionDenominator =
  *
  * ── Engine support matrix ──
  *
- * **WASM (Rust wire):** Ten kinds are implemented:
+ * **WASM (Rust wire):** All twelve kinds are implemented:
  *   `general` | `number` (and deprecated `decimal`) |
  *   `percent` (and synonym `percentage`) | `currency` | `date` | `custom` |
- *   `scientific` | `fraction` | `time` (standard time patterns) | `text`.
+ *   `scientific` | `fraction` | `time` (standard time patterns) | `text` | `accounting` | `special` (supported US and CN presets).
  *
- * The remaining kinds – `accounting`, `special` – are
- * **silently downgraded to `general`** by the wire
- * layer (`into_number_format`).  The `negative` field on `number` /
+ * Unknown Special presets/locales and mismatched pairs reject before mutation. The `negative` field on `number` /
  * `currency` / `percent` is also silently discarded (no corresponding wire
  * field).
  *
  * **Static backend:** All declared variants are accepted and echoed back
  * verbatim (no wire round-trip).
  *
- * Support for the missing categories requires new variants on the engine
- * `NumberFormat` enum; they are not exposed by the maintained React dialog yet.
  */
 export type SpreadsheetNumberFormat =
   | { kind: 'general' }
@@ -128,6 +129,7 @@ export type SpreadsheetNumberFormat =
   | { kind: 'custom'; pattern: string }
 
 export type SpreadsheetBorderSide = 'top' | 'right' | 'bottom' | 'left'
+export type SpreadsheetDiagonalSide = 'diagUp' | 'diagDown'
 
 export type SpreadsheetBorderStyle =
   | 'none'
@@ -143,7 +145,9 @@ export interface SpreadsheetBorderSpec {
   color?: string
 }
 
-export type SpreadsheetBorders = Partial<Record<SpreadsheetBorderSide, SpreadsheetBorderSpec>>
+export type SpreadsheetBorders = Partial<
+  Record<SpreadsheetBorderSide | SpreadsheetDiagonalSide, SpreadsheetBorderSpec>
+>
 
 export interface SpreadsheetCellFormat {
   numberFormat?: SpreadsheetNumberFormat
@@ -151,9 +155,11 @@ export interface SpreadsheetCellFormat {
   italic?: boolean
   align?: SpreadsheetAlignment
   fontSize?: number
+  fontBaseline?: FontBaseline
   fontFamily?: string
   fgColor?: string
   bgColor?: string
+  fill?: SpreadsheetCellFill
   borders?: SpreadsheetBorders
   underline?: boolean
   strikethrough?: boolean

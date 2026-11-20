@@ -8,7 +8,7 @@ fn range() -> CellRange {
 fn key(col: u32, case_sensitive: bool, empty_first: bool, descending: bool) -> SortKey {
     SortKey { col, case_sensitive, empty_first, direction: if descending {
         SortDirection::Descending
-    } else { SortDirection::Ascending } }
+    } else { SortDirection::Ascending }, custom_list: None }
 }
 fn seed() -> Sheet {
     let mut sheet = Sheet::new();

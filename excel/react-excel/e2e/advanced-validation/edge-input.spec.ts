@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 import { bar, button, cell, configure, edit, start, validationDialog } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) test.describe(`${width}px custom input boundaries`, () => {
   test.use({ viewport: { width, height: 850 } })
@@ -9,7 +10,7 @@ for (const width of [1280]) test.describe(`${width}px custom input boundaries`, 
   test(`custom formula blank policy uses the actual native candidate at ${width}px`, async ({ page }) => {
     await configure(page, { formula: '=LEN(D45)>0' })
     await edit(page, 'D45', '44:3', 'kept'); await expect(cell(page, '44:3')).toHaveText('kept')
-    await select(page, 'D45', '44:3'); await button(page, 'Data validation').click()
+    await select(page, 'D45', '44:3'); await showRibbonItem(page, 'data.data-validation'); await showRibbonItem(page, 'data.data-validation'); await button(page, 'Data validation').click()
     await page.getByLabel('Ignore blank cells', { exact: true }).uncheck()
     await button(page, 'Apply').click()
     await expect(validationDialog(page)).toHaveCount(0)

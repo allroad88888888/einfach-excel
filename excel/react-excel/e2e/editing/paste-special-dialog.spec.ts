@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, pasteOption } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 async function open(page: Page) {
+  await showRibbonItem(page, 'data.paste-special')
   await button(page, 'Paste special').click()
   await expect(page.getByRole('dialog', { name: 'Paste special' })).toBeVisible()
 }
@@ -137,6 +139,7 @@ test('cancel discards choices and width-only clears incompatible options', async
   // selectOption 不模拟点击焦点；键盘操作明确从用户刚选择的可用控件发出。
   await page.getByLabel('Paste content', { exact: true }).press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
+  await showRibbonItem(page, 'data.paste-special')
   await expect(button(page, 'Paste special')).toBeFocused()
   await open(page)
   await expect(page.getByLabel('Paste content', { exact: true })).toHaveValue('all')
@@ -202,6 +205,7 @@ test('paste dialog fits desktop and narrow screens with keyboard focus and reada
     for (const name of ['Apply paste', 'Cancel']) await expect(button(page, name)).toBeInViewport()
     await page.screenshot({ path: info.outputPath(`paste-special-${width}.png`) })
     await page.keyboard.press('Escape')
+    await showRibbonItem(page, 'data.paste-special')
     await expect(button(page, 'Paste special')).toBeFocused()
   }
   expect(errors).toEqual([])

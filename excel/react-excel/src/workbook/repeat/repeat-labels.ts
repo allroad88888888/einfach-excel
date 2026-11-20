@@ -13,6 +13,7 @@ export const REPEAT_LABELS: Readonly<Record<RepeatLabel, MessageDescriptor>> = {
   'text-color': msg`Text color`,
   'font-family': msg`Font`,
   'font-size': msg`Font size`,
+  'font-baseline': msg`Font baseline`,
   alignment: msg`Alignment`,
   'number-format': msg`Number format`,
   borders: msg`Borders`,

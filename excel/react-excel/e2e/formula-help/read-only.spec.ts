@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 async function download(page: Page) {
   await page.getByRole('button', { name: 'File', exact: true }).click()
@@ -21,6 +22,7 @@ for (const width of [1280]) test(`HELP-006 browsing preserves native file and pr
   await input.press('Enter')
   await expect(target).toHaveText('Keep native history')
   const before = await download(page)
+  await showRibbonItem(page, 'formula.insert-function')
   await page.getByRole('button', { name: 'Insert function', exact: true }).click()
   const search = page.getByRole('searchbox', { name: 'Search functions' })
   await search.fill('RANK.AVG')
@@ -45,6 +47,7 @@ for (const width of [1280]) test(`HELP-007 search recovery, category help and ca
   await page.setViewportSize({ width, height: 850 })
   await page.goto('/')
   const target = await select(page, 'B2', '1:1')
+  await showRibbonItem(page, 'formula.insert-function')
   const opener = page.getByRole('button', { name: 'Insert function', exact: true })
   await opener.click()
   const dialog = page.getByRole('dialog', { name: 'Insert function' })

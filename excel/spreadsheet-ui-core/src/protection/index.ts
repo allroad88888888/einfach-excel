@@ -5,7 +5,13 @@ export * from './types'
 // and UI-core never stores or hashes a protection password — see README.md
 // and the file-level notes in commands.ts / unlock-submit.ts.
 
-export { MAX_UNLOCKED_RANGES, DEFAULT_SHEET_PROTECTION, getSheetProtection } from './sheet-state'
+export {
+  MAX_UNLOCKED_RANGES,
+  DEFAULT_PROTECTION_PERMISSIONS,
+  DEFAULT_SHEET_PROTECTION,
+  getProtectionPermissions,
+  getSheetProtection,
+} from './sheet-state'
 export { rangesIntersect } from './range-guards'
 export { isCoordUnlocked, isRangeFullyUnlocked, isRangePartiallyUnlocked } from './range-coverage'
 export {

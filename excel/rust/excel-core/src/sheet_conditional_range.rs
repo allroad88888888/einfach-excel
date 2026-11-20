@@ -1,10 +1,13 @@
 //! 条件格式的范围统计只读稀疏成员；集合规则共享依赖与释放路径。
 use super::*;
+#[path = "conditional_numeric_mean.rs"]
+mod numeric_mean;
 
 pub(crate) enum ConditionalStatistic {
     Duplicates,
     DisplayTextDuplicates,
     SortedNumbers,
+    Average,
     Rank {
         count: u32,
         percent: bool,
@@ -110,6 +113,7 @@ impl Sheet {
 impl ConditionalStatistic {
     fn summarize(&self, numbers: &mut [f64]) -> Value {
         match *self {
+            Self::Average => Value::Number(numeric_mean::mean(numbers)),
             Self::Duplicates | Self::DisplayTextDuplicates => unreachable!("duplicate keys use the sparse value scan"),
             Self::SortedNumbers => {
                 numbers.sort_by(f64::total_cmp);

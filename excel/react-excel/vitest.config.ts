@@ -11,6 +11,7 @@ export default defineConfig({
   plugins: [react(), lingui({ cwd: directory, macroTransform: true, failOnMissing: 'catalog', failOnCompileError: true })],
   resolve: {
     alias: {
+      '@einfach-excel/react-excel': path.resolve(directory, 'src'),
       '@einfach-excel/canvas-cells': path.resolve(directory, '../../packages/canvas-cells/src'),
       '@einfach-excel/canvas': path.resolve(directory, '../../packages/canvas/src'),
       '@einfach-excel/react-cells': path.resolve(directory, '../../packages/react-cells/src'),

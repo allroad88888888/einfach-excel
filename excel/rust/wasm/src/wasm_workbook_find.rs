@@ -1,5 +1,5 @@
 // 查找替换的 WASM 数据边界；匹配、写入计划、历史都由 excel-core 执行。
-use einfach_excel_core::{FindLookIn, FindMatch, FindQuery};
+use einfach_excel_core::{FindFormatFilter, FindLookIn, FindMatch, FindQuery};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -20,6 +20,8 @@ struct FindQueryJSON {
     #[serde(default)]
     wildcards: bool,
     look_in: FindLookInJSON,
+    #[serde(default)]
+    format: Option<FindFormatFilter>,
 }
 
 #[derive(Deserialize)]
@@ -49,11 +51,13 @@ struct FindRequestJSON {
 }
 
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct ReplaceRequestJSON {
     targets: Vec<FindTargetJSON>,
     query: FindQueryJSON,
     replacement: String,
+    #[serde(default)]
+    replace_format: Option<FindFormatFilter>,
     current: Option<FindMatchJSON>,
 }
 
@@ -92,6 +96,7 @@ impl FindQueryJSON {
                 FindLookInJSON::Values => FindLookIn::Values,
                 FindLookInJSON::Formulas => FindLookIn::Formulas,
             },
+            format: self.format,
         }
     }
 }
@@ -142,11 +147,12 @@ impl WasmWorkbook {
         });
         let report = self
             .history
-            .replace_by_query(
+            .replace_by_query_with_format(
                 &mut self.workbook,
                 &targets,
                 &request.query.native(),
                 &request.replacement,
+                request.replace_format.as_ref(),
                 current.as_ref(),
             )
             .map_err(JsValue::from_str)?;

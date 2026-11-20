@@ -18,6 +18,10 @@ impl Sheet {
         self.filter.as_ref()
     }
 
+    pub(crate) fn set_filter_criteria_link(&mut self, link: crate::advanced_filter::range_state::CriteriaLink) {
+        if let Some(filter) = self.filter.as_mut() { filter.set_criteria_link(link); }
+    }
+
     /// 普通区域与所有 Table 筛选的隐藏行并集；只读派生索引，不拥有筛选条件。
     pub(crate) fn filter_hidden_rows(&self) -> Vec<u32> {
         self.combined_filter_hidden.borrow().iter().copied().collect()

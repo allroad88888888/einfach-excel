@@ -2,6 +2,13 @@ import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 第二张表展示跨表引用：改名后数值应保持，修改订单后仍应重算。 */
 export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
+  // F60:H61 按第 60 行的键调整三个列记录的顺序。
+  { sheet: 1, row: 59, col: 5, kind: 'number', value: 3 },
+  { sheet: 1, row: 59, col: 6, kind: 'number', value: 1 },
+  { sheet: 1, row: 59, col: 7, kind: 'number', value: 2 },
+  { sheet: 1, row: 60, col: 5, kind: 'text', value: '列记录甲' },
+  { sheet: 1, row: 60, col: 6, kind: 'text', value: '列记录乙' },
+  { sheet: 1, row: 60, col: 7, kind: 'text', value: '列记录丙' },
   // H57:H59 原始溢出，F57:F59 算术引用；H57 改成 SEQUENCE(1) 后仍可 SUM(F57#)。
   { sheet: 1, row: 55, col: 7, kind: 'text', value: 'Spill source', format: { bold: true } },
   { sheet: 1, row: 56, col: 7, kind: 'formula', value: '=SEQUENCE(3)' },
@@ -58,6 +65,11 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 28, col: 0, kind: 'text', value: 'East' },
   { sheet: 1, row: 28, col: 1, kind: 'number', value: 30 },
   { sheet: 1, row: 28, col: 2, kind: 'text', value: 'E30', format: { underline: true } },
+  // A43:B44 给 A25:C29 提供高级筛选条件，复制结果可放到 A51。
+  { sheet: 1, row: 42, col: 0, kind: 'text', value: 'Team', format: { bold: true } },
+  { sheet: 1, row: 42, col: 1, kind: 'text', value: 'Score', format: { bold: true } },
+  { sheet: 1, row: 43, col: 0, kind: 'text', value: 'East' },
+  { sheet: 1, row: 43, col: 1, kind: 'text', value: '>=20' },
   { sheet: 1, row: 59, col: 0, kind: 'text', value: '星期五' },
   { sheet: 1, row: 59, col: 2, kind: 'text', value: '11月' },
   { sheet: 1, row: 39, col: 4, kind: 'number', value: 0 },

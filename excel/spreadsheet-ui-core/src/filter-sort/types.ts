@@ -10,15 +10,9 @@ import type { HistoryEntryRecorder } from '../history'
 
 export type SortDirection = 'asc' | 'desc'
 
-export type ColumnFilterRule =
-  | { kind: 'equals'; colIndex: number; value: string; caseSensitive?: boolean }
-  | { kind: 'contains'; colIndex: number; value: string; caseSensitive?: boolean }
-  | { kind: 'range'; colIndex: number; min?: number; max?: number }
-  | { kind: 'list'; colIndex: number; values: readonly string[] }
-
-export interface ColumnFilterGroup {
-  readonly rules: readonly ColumnFilterRule[]
-}
+import type { ColumnFilterGroup, ColumnFilterRule } from '../filter/rule-types'
+export type { ColumnFilterGroup, ColumnFilterRule, FilterDatePeriod } from '../filter/rule-types'
+export { filterDatePeriods } from '../filter/rule-types'
 
 /**
  * Column filter visibility only. Sort is NOT part of this state: the display

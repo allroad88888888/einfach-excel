@@ -61,7 +61,7 @@ test('custom colors are validated, normalized, remembered independently and clea
   await run({ type: 'choose', value: '#123456' })
   await run({ type: 'open', kind: 'fill-color' })
   await run({ type: 'choose', value: null })
-  expect(write.mock.calls[3]![0]).toMatchObject({ format: {}, clearFormatFields: ['bgColor'] })
+  expect(write.mock.calls[3]![0]).toMatchObject({ format: {}, clearFormatFields: ['bgColor', 'fill'] })
   expect(store.getter(colorPaletteAtom).last).toEqual({
     'fill-color': '#abcdef', 'text-color': '#123456',
   })

@@ -3,6 +3,12 @@ import { chartPlugin } from '@einfach-excel/plugin-chart'
 import { imagePlugin } from '@einfach-excel/plugin-image'
 import { sparklinePlugin } from '@einfach-excel/plugin-sparkline'
 import { datePickerPlugin } from '@einfach-excel/plugin-date-picker'
+import { dataFilterPlugin } from '@einfach-excel/plugin-data-filter'
+import { dataSubtotalPlugin } from '@einfach-excel/plugin-data-subtotal'
+import { dataConsolidatePlugin } from '@einfach-excel/plugin-data-consolidate'
+import { dataSortPlugin } from '@einfach-excel/plugin-data-sort'
+import { textFormatPlugin } from '@einfach-excel/plugin-text-format'
+import { cellAppearancePlugin } from '@einfach-excel/plugin-cell-appearance'
 import { samplePlugin } from '@einfach-excel/plugin-sample'
 import { createWorkbookI18n, supportedUiLocale, type UiLocale } from '../../i18n/runtime'
 import type { SpreadsheetPlugin } from '../../plugin/types'
@@ -59,6 +65,9 @@ async function loadXlsx() {
 const DEMO_PLUGINS: Readonly<Record<string, SpreadsheetPlugin>> = {
   sample: samplePlugin, 'date-picker': datePickerPlugin, 'image-export': imageExportPlugin,
   chart: chartPlugin, image: imagePlugin, sparkline: sparklinePlugin,
+  'text-format': textFormatPlugin, 'data-sort': dataSortPlugin, 'data-filter': dataFilterPlugin,
+  'cell-appearance': cellAppearancePlugin, 'data-subtotal': dataSubtotalPlugin,
+  'data-consolidate': dataConsolidatePlugin,
 }
 
 function demoPlugins(query: string): readonly SpreadsheetPlugin[] {

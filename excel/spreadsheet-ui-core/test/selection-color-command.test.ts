@@ -47,7 +47,7 @@ for (const [type, field] of [['fill-color', 'bgColor'], ['text-color', 'fgColor'
       expect(write).toHaveBeenCalledTimes(2)
       expect(write.mock.calls[1]![0]).toMatchObject({
         scope: kind === 'range' ? 'cell' : kind,
-        format: {}, clearFormatFields: [field], writeMode: 'patch',
+        format: {}, clearFormatFields: type === 'fill-color' ? ['bgColor', 'fill'] : [field], writeMode: 'patch',
       })
     },
   )

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, paste } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 async function edit(page: Page, address: string, coord: string, value: string) {
@@ -71,6 +72,7 @@ test('font-size undo restores row geometry and redo restores the native format',
   await select(page, 'B3', '2:1')
   // I3 的原始换行文本已撑高第 3 行；撤销必须恢复原始行高。
   const originalHeight = (await cell(page, '2:1').boundingBox())!.height
+  await showRibbonItem(page, 'format.font-size')
   await page.getByRole('combobox', { name: 'Font size' }).selectOption('36')
   await expect(cell(page, '2:1')).toHaveCSS('font-size', '36px')
   await expect.poll(async () => (await cell(page, '2:1').boundingBox())!.height).toBeGreaterThan(36)

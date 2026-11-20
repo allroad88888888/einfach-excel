@@ -25,7 +25,7 @@ export function FilterTools() {
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const panel = useAtomValue(nativeFilterPanelAtom)
   const feedback = useAtomValue(nativeFilterFeedbackAtom)
-  const { table, rules, range } = useAtomValue(nativeFilterTargetAtom)
+  const { table, rules, range, rangeFilterActive } = useAtomValue(nativeFilterTargetAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
   const configure = useSetAtom(configureNativeFilterAtom)
   const run = useSetAtom(runNativeFilterAtom)
@@ -77,7 +77,7 @@ export function FilterTools() {
           <option value="open">
             {table ? t`${table} filter conditions…` : t`Filter conditions…`}
           </option>
-          <option value="reapply" disabled={!rules.length}>
+          <option value="reapply" disabled={!rules.length && !rangeFilterActive}>
             {table ? t`Reapply ${table} filter` : t`Reapply filter`}
           </option>
           <option value="clear" disabled={!rules.length && (table !== undefined || !range)}>

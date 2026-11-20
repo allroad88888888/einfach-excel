@@ -1,10 +1,12 @@
 import { expect, test } from '@playwright/test'
 import { start, open, save, icon, cell, button, cleanNeighbor, addIcons, go } from './support'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) {
   test(`hidden numeric members remain in advanced visual statistics at ${width}px`, async ({ page }) => {
     await start(page, width); await open(page, 'data-bar'); await save(page)
     await go(page, 'A3')
+    await showRibbonItem(page, 'view.row-and-column-visibility')
     await page.getByRole('combobox', { name: 'Row and column visibility', exact: true }).selectOption('hide-rows')
     await expect(cell(page, '2:0')).toHaveCount(0)
     const fill = cell(page, '1:0').locator('.cell-data-bar-fill')
@@ -16,6 +18,7 @@ for (const width of [1280]) {
 
   test(`merged anchor renders the native icon once at ${width}px`, async ({ page }) => {
     await start(page, width); await addIcons(page); await go(page, 'A3:B3')
+    await showRibbonItem(page, 'data.merge-cells')
     await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
     const merged = page.locator('[data-merged-cell="true"][data-cell="2:0"]')
     await expect(merged.locator('[data-conditional-icon]')).toHaveCount(1)
@@ -26,6 +29,7 @@ for (const width of [1280]) {
 
   test(`frozen pane renders the native icon once while scrolling at ${width}px`, async ({ page }) => {
     await start(page, width); await addIcons(page)
+    await showRibbonItem(page, 'view.freeze-panes')
     await page.getByRole('combobox', { name: 'Freeze panes', exact: true }).selectOption('first-row')
     await go(page, 'A50')
     const fixed = page.locator('[data-frozen-pane="top"] td[data-cell="0:0"]')
@@ -36,6 +40,7 @@ for (const width of [1280]) {
 
   test(`format painter copies base formatting without copying conditional icons at ${width}px`, async ({ page }) => {
     await start(page, width); await addIcons(page); await go(page, 'A2')
+    await showRibbonItem(page, 'format.format-painter')
     const brush = button(page, 'Format painter'); await brush.click()
     await expect(brush).toHaveAttribute('data-painter-mode', 'armed')
     await cell(page, '1:1').click()

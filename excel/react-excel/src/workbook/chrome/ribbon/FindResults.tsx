@@ -51,7 +51,7 @@ export function FindResults() {
                     </button>
                   </td>
                   <td>
-                    {match.start + 1}–{match.end}
+                    {match.end <= match.start ? '—' : `${match.start + 1}–${match.end}`}
                   </td>
                 </tr>
               )

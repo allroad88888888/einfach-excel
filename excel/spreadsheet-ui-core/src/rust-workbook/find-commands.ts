@@ -1,4 +1,5 @@
 import type {
+  SpreadsheetCellFormat,
   VisibleProjectionRequest,
   VisibleProjectionResult,
   ViewportRowHeight,
@@ -7,19 +8,51 @@ import type {
 import type { WorkerCommand } from '../rust-worker'
 import type { CellRange } from '../shared'
 
+export type FindNumberFormatKind =
+  | 'general'
+  | 'text'
+  | 'number'
+  | 'percent'
+  | 'currency'
+  | 'accounting'
+  | 'date'
+  | 'time'
+  | 'scientific'
+  | 'fraction'
+  | 'special'
+  | 'custom'
+
+export type FindAlign = 'default' | 'left' | 'center' | 'right' | 'center-across'
+
+export interface RustFindFormatFilter {
+  readonly bold?: boolean
+  readonly italic?: boolean
+  readonly underline?: boolean
+  readonly strikethrough?: boolean
+  readonly textColor?: string
+  readonly bgColor?: string
+  readonly fontSize?: number
+  readonly fontFamily?: string
+  readonly align?: FindAlign
+  readonly wrapText?: boolean
+  readonly numberFormat?: FindNumberFormatKind
+  readonly customFormatCode?: string
+}
+
 export interface RustFindQuery {
   readonly needle: string
   readonly caseSensitive: boolean
   readonly wholeCell: boolean
   readonly wildcards?: boolean
   readonly lookIn: 'values' | 'formulas'
+  readonly format?: RustFindFormatFilter
 }
 
 export interface RustFindMatch {
   readonly sheetId: string
   readonly row: number
   readonly col: number
-  /** 原生返回的非空 UTF-16 半开区间。 */
+  /** UTF-16 半开区间；仅按格式命中空白格时为 0..0。 */
   readonly start: number
   readonly end: number
 }
@@ -33,6 +66,7 @@ export interface RustFindRequest {
 
 export interface RustReplaceRequest extends Pick<RustFindRequest, 'targets' | 'query'> {
   readonly replacement: string
+  readonly replaceFormat?: RustFindFormatFilter
   readonly current?: RustFindMatch
   readonly expectedRevision: number
   readonly projection: VisibleProjectionRequest
@@ -51,6 +85,10 @@ export interface RustFindCommands {
       readonly matches: readonly RustFindMatch[]
       readonly revision: number
     }
+  >
+  readonly 'workbook.sampleBaseFormat': WorkerCommand<
+    { readonly sheetId: string; readonly row: number; readonly col: number },
+    { readonly format: SpreadsheetCellFormat | null }
   >
   readonly 'workbook.replace': WorkerCommand<
     RustReplaceRequest,
@@ -75,6 +113,7 @@ export interface NativeFindMatch extends Omit<RustFindMatch, 'sheetId'> {
 }
 export interface NativeReplaceRequest extends Pick<NativeFindRequest, 'targets' | 'query'> {
   readonly replacement: string
+  readonly replaceFormat?: RustFindFormatFilter
   readonly current?: NativeFindMatch
 }
 

@@ -1,6 +1,10 @@
 import type { ProjectionRevision, VisibleProjectionRequest, VisibleProjectionResult } from '../../contracts'
 import type { CellRange } from '../../shared'
-import type { SheetProtectionState } from '../../protection/types'
+import type {
+  SheetProtectionPermissions,
+  SheetProtectionState,
+} from '../../protection/types'
+import { isValidProtectionPermissions } from '../../protection/sheet-state'
 import type { WorkerCommand } from '../../rust-worker/types'
 import type { RustWorkbookSheet } from '../commands'
 import { validateProjectionRequest } from '../../projection/contracts'
@@ -9,6 +13,7 @@ export type NativeProtectionChange =
   | { readonly action: 'protect' | 'unprotect' }
   | { readonly action: 'allow-range'; readonly range: CellRange }
   | { readonly action: 'remove-range'; readonly index: number }
+  | { readonly action: 'set-permissions'; readonly permissions: SheetProtectionPermissions }
 
 export interface RustProtectionCommands {
   'protection.read': WorkerCommand<{ readonly sheetId: string }, SheetProtectionState>
@@ -32,6 +37,9 @@ export interface WasmProtectionQueries {
 export function validNativeProtection(value: unknown): value is SheetProtectionState {
   if (!value || typeof value !== 'object') return false
   const state = value as Partial<SheetProtectionState>
+  if (state.permissions !== undefined && !isValidProtectionPermissions(state.permissions)) {
+    return false
+  }
   return ['open', 'protected'].includes(state.mode ?? '') && Array.isArray(state.unlockedRanges) &&
     state.unlockedRanges.length <= 256 && state.unlockedRanges.every(validRange)
 }
@@ -66,8 +74,10 @@ export function changeProtection(workbook: WasmProtectionQueries,
     throw new Error('Invalid protection projection request.')
   if (input.revision !== revision) throw new Error('The workbook changed. Reopen worksheet protection.')
   const change = input.change
-  if (!change || !['protect', 'unprotect', 'allow-range', 'remove-range'].includes(change.action))
+  if (!change || !['protect', 'unprotect', 'allow-range', 'remove-range', 'set-permissions'].includes(change.action))
     throw new Error('Invalid protection change.')
+  if (change.action === 'set-permissions' && !isValidProtectionPermissions(change.permissions))
+    throw new Error('Invalid protection permissions.')
   if (change.action === 'allow-range' && (!validRange(change.range) ||
     change.range.rowEnd >= (sheet.rowCount ?? 1_048_576) ||
     change.range.colEnd >= (sheet.colCount ?? 16_384)))

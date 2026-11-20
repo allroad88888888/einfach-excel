@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { unmergeSalesFillRange } from '../support/fill-range'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Fill series', exact: true })
@@ -18,6 +19,7 @@ async function write(page: Page, address: string, value: string) {
 }
 async function open(page: Page, address: string, count = '1') {
   await select(page, address)
+  await showRibbonItem(page, 'data.fill-series')
   await page.getByRole('button', { name: 'Fill series', exact: true }).click()
   await dialog(page).getByLabel('Sequence type').selectOption('date')
   await dialog(page).getByLabel('Source sample count').fill(count)
@@ -69,6 +71,7 @@ test('cell and formula-bar input share numeric dates; undo restores both value a
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('45351')
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(cell(page, '79:0')).toHaveText('')
+  await showRibbonItem(page, 'format.general-format')
   await expect(page.getByRole('button', { name: 'General format' })).toHaveAttribute('aria-pressed', 'true')
   await write(page, 'A80', '2024-02-29')
   await write(page, 'B80', '=DAY(A80)')
@@ -78,6 +81,7 @@ test('cell and formula-bar input share numeric dates; undo restores both value a
   await write(page, 'D80', "'2024-02-29")
   await select(page, 'D80')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue("'2024-02-29")
+  await showRibbonItem(page, 'format.general-format')
   await expect(page.getByRole('button', { name: 'General format' })).toHaveAttribute('aria-pressed', 'true')
 })
 
@@ -87,9 +91,11 @@ test('date format changes display only and array formula anchors use the same na
   await expect(page.getByRole('tab', { name: 'Sheet3', exact: true })).toHaveAttribute('aria-selected', 'true')
   await write(page, 'A80', '60')
   await select(page, 'A80')
+  await showRibbonItem(page, 'format.date-format')
   await page.getByRole('button', { name: 'Date format' }).click()
   await expect(cell(page, '79:0')).toHaveText('1900-02-29')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('60')
+  await showRibbonItem(page, 'format.general-format')
   await page.getByRole('button', { name: 'General format' }).click()
   await expect(cell(page, '79:0')).toHaveText('60')
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
@@ -107,7 +113,8 @@ test('date series infers day, week and month ends from native samples', async ({
   await expect(cell(page, '22:0')).toHaveText('2024-03-02')
   await expect(cell(page, '22:0')).toHaveCSS('font-weight', '700')
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect(cell(page, '22:0')).toHaveText('')
+  // A23 is the Special ZIP seed; undo restores its value and formatting.
+  await expect(cell(page, '22:0')).toHaveText('00123')
   await open(page, 'C20:C24', '2')
   await apply(page)
   await expect(cell(page, '21:2')).toHaveText('2024-03-31')
@@ -152,6 +159,7 @@ test('auto-fit measures the native date display instead of a serial or JS leap-d
   await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('aria-label', 'Sheet3 cells')
   await write(page, 'A1', '=SEQUENCE(1,1,60)')
   await select(page, 'A1')
+  await showRibbonItem(page, 'format.date-format')
   await page.getByRole('button', { name: 'Date format' }).click()
   await expect(cell(page, '0:0')).toHaveText('1900-02-29')
   const handle = page.getByRole('separator', { name: 'Resize column A', exact: true })
@@ -179,15 +187,19 @@ test('external TSV preserves destination formatting; internal copy and Copy As r
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.evaluate(() => navigator.clipboard.writeText('2024-02-29'))
   await select(page, 'A80')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(cell(page, '79:0')).toHaveText('45351')
   await select(page, 'E20')
+  await showRibbonItem(page, 'clipboard.copy')
   await page.getByRole('button', { name: 'Copy', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Copied')
   await select(page, 'B80')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(cell(page, '79:1')).toHaveText('1900-02-29')
   await expect(cell(page, '79:1')).toHaveCSS('text-decoration-line', 'underline')
+  await showRibbonItem(page, 'clipboard.copy-as')
   await page.getByRole('combobox', { name: 'Copy as' }).selectOption('text')
   await expect(page.getByLabel('Clipboard status')).toContainText('as text.')
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('1900-02-29')
@@ -210,6 +222,7 @@ for (const width of [1280, 390]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     expect(errors).toEqual([])
     await page.keyboard.press('Escape')
+    await showRibbonItem(page, 'data.fill-series')
     await expect(page.getByRole('button', { name: 'Fill series', exact: true })).toBeFocused()
     await page.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect(cell(page, '29:0')).toHaveText('')

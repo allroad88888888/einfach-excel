@@ -1,8 +1,10 @@
+import { validFilterColorSource } from '../filter/rule-types'
 import type { RustFilterCommands } from './filter-commands'
 import { validFilterRange, validFilterRules } from './filter-commands'
 import type { WasmWorkbook } from './wasm-types'
 import type { RustWorkbookSheet } from './commands'
 import { validFilterGroups } from '../advanced-filter/contracts'
+import { nativeAdvancedFilterCriteria } from './advanced-filter-range-io'
 
 /** 只读当前版本的一页候选；Worker 不读取单元格，也不改变可见性或历史。 */
 export function readFilterValues(workbook: WasmWorkbook, sheet: RustWorkbookSheet | undefined,
@@ -17,12 +19,15 @@ export function readFilterValues(workbook: WasmWorkbook, sheet: RustWorkbookShee
     typeof input.search !== 'string' || input.search.length > 32767 ||
     (input.allMatches !== undefined && typeof input.allMatches !== 'boolean') ||
     (input.allMatches === true && input.offset !== 0) ||
+    (input.colorSource !== undefined &&
+      (!validFilterColorSource(input.colorSource) || input.allMatches === true)) ||
     (input.table !== undefined && (typeof input.table !== 'string' || !input.table)))
     throw new Error('Choose a valid filter column, search text and page.')
   if (!workbook.filter_values) throw new Error('Rust filter values are unavailable.')
   const page = workbook.filter_values({ sheet: sheet.index, column: input.column,
     search: input.search, offset: input.offset, limit: input.limit,
     ...(input.allMatches ? { allMatches: true } : {}),
+    ...(input.colorSource === undefined ? {} : { colorSource: input.colorSource }),
     ...(input.table === undefined ? {} : { table: input.table }) })
   return { ...page, revision }
 }
@@ -34,6 +39,7 @@ export function changeFilter(
   columns: number,
   input: RustFilterCommands['sheet.filter']['payload'],
   rows = 1_048_576,
+  sheets: ReadonlyMap<string, RustWorkbookSheet> = new Map(),
 ): number {
   if (input.sheetId !== input.projection.sheetId) throw new Error('PROJECTION_SHEET_MISMATCH')
   if (
@@ -66,12 +72,18 @@ export function changeFilter(
     !workbook.snapshot_format_range
   )
     throw new Error('Rust filter command is unavailable.')
+  const rangeCriteria = input.action === 'apply' && input.rangeCriteria
+  if (rangeCriteria && (!input.range || input.rules.length || input.groups?.length))
+    throw new Error('Choose a worksheet range with a single condition source.')
   const result =
     input.action === 'apply'
       ? workbook.applyFilter(sheet, {
           rules: input.rules,
           ...(input.groups?.length ? { groups: input.groups } : {}),
           ...(input.range ? { range: input.range } : {}),
+          ...(rangeCriteria ? {
+            rangeCriteria: nativeAdvancedFilterCriteria(sheets, rangeCriteria),
+          } : {}),
         })
       : input.action === 'clear'
         ? workbook.clearFilter(sheet)

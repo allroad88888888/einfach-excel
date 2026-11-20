@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, row: number) => page.locator(`td[data-cell="${row}:0"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -9,6 +10,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, 1)).toHaveText('SO-10001')
   await select(page, 'A1:H1001', '0:0')
+  await showRibbonItem(page, 'data.worksheet-filter')
   await page.getByRole('combobox', { name: 'Worksheet filter' }).selectOption('selection')
   await button(page, 'Filter column A').click()
   await button(page, 'Choose values for condition 1').click()

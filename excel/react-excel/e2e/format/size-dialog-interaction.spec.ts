@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
@@ -14,6 +15,7 @@ for (const width of [1280, 390]) test.describe(`${width}px size interaction`, ()
 
   for (const key of ['Tab', 'Shift+Tab'])
     test(`${key} size dialog cycles focus without writing at ${width}px`, async ({ page }, info) => {
+      await showRibbonItem(page, 'view.row-and-column-size')
       const opener = page.getByRole('button', { name: 'Row and column size', exact: true })
       await opener.click()
       const dialog = page.getByRole('dialog', { name: 'Row and column size', exact: true })
@@ -52,6 +54,7 @@ for (const width of [1280, 390]) test.describe(`${width}px size interaction`, ()
     })
     const handle = page.getByRole('separator', { name: 'Resize row 2', exact: true })
     const neighbor = (await cell(page, '2:2').boundingBox())!.height
+    await showRibbonItem(page, 'view.row-and-column-size')
     await page.getByRole('button', { name: 'Row and column size', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Row and column size', exact: true })
     const input = dialog.getByRole('spinbutton', { name: 'Row height' })

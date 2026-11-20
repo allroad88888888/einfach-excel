@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, row: number, col = 2) => page.locator(`td[data-cell="${row}:${col}"]`)
@@ -15,6 +16,7 @@ async function values(page: Page, expected: string[]) {
     await expect(cell(page, 80 + i)).toHaveText(expected[i])
 }
 async function openTable(page: Page) {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await button(page, 'Edit table DemoTable').click()
 }
@@ -117,6 +119,7 @@ test('manual exception prevents later formula input from overwriting other rows'
 test('inserting a row inherits the native formula and undo restores all moved rows', async ({ page }) => {
   await input(page, 'C82', '81:2', '=[@Amount]*2')
   await select(page, 'B82', '81:1')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   const menu = page.getByRole('combobox', { name: 'Insert or delete rows and columns' })
   await menu.selectOption('insert-rows')
   await expect(menu).toBeEnabled()

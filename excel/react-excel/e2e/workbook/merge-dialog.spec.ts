@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 // 合并确认的退出与键盘入口，保留原生多格内容及重做分支。
 for (const width of [1280, 390]) for (const action of ['Cancel', 'Escape', 'Tab', 'Shift+Tab', 'Open'] as const)
@@ -18,6 +19,7 @@ for (const width of [1280, 390]) for (const action of ['Cancel', 'Escape', 'Tab'
     await select(page, 'B2:C3', '1:1')
     const coords = ['1:1', '1:2', '2:1', '2:2', '1:3']
     const values = await Promise.all(coords.map(coord => page.locator(`td[data-cell="${coord}"]`).innerText()))
+    await showRibbonItem(page, 'data.merge-cells')
     const menu = page.getByRole('combobox', { name: 'Merge cells', exact: true })
     await menu.focus()
     await menu.selectOption('merge')

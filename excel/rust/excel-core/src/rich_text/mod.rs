@@ -23,6 +23,8 @@ pub struct RichTextFormat {
     pub font_family: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub font_size: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub font_baseline: Option<crate::FontBaseline>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -55,6 +57,33 @@ pub fn normalize_runs(runs: Vec<RichTextRun>) -> Result<Vec<RichTextRun>, &'stat
         } else { result.push(run); }
     }
     Ok(result)
+}
+
+/// Trims leading/trailing whitespace from rich text runs while preserving inner run formatting.
+pub(crate) fn trim_runs(mut runs: Vec<RichTextRun>) -> Result<Vec<RichTextRun>, &'static str> {
+    while let Some(first) = runs.first_mut() {
+        let trimmed = first.text.trim_start();
+        if trimmed.is_empty() {
+            runs.remove(0);
+        } else {
+            if trimmed.len() != first.text.len() {
+                first.text = trimmed.to_owned();
+            }
+            break;
+        }
+    }
+    while let Some(last) = runs.last_mut() {
+        let trimmed = last.text.trim_end();
+        if trimmed.is_empty() {
+            runs.pop();
+        } else {
+            if trimmed.len() != last.text.len() {
+                last.text = trimmed.to_owned();
+            }
+            break;
+        }
+    }
+    normalize_runs(runs)
 }
 
 impl Sheet {

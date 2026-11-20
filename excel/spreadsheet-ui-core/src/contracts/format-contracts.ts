@@ -5,6 +5,7 @@ import type { ProjectionRequestId, ProjectionRevision } from './projection-primi
 /** 边框位置由 Rust 根据范围决定，不在 JS 展开逐格命令。 */
 export interface RangeBorderPatch {
   preset: 'all' | 'outside' | 'inside' | 'horizontal' | 'vertical' | 'top' | 'right' | 'bottom' | 'left' | 'none'
+    | 'diagonal-down' | 'diagonal-up' | 'diagonal' | 'diagonal-none'
   style: Exclude<SpreadsheetBorderStyle, 'none'>
   color: string
 }

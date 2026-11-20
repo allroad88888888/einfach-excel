@@ -44,9 +44,16 @@ pub(super) fn prepare(
     let rules = FormulaRuleChange::prepare_row_band_insert(workbook, sheet, row, columns, row_count)?;
     let validations = ValidationShift::prepare(
         target.data_validations(), row, columns, row_count, &workbook.names[sheet])?;
+    let edit = crate::shift::ShiftEdit::RowInsert { at: row, count: 1 };
+    let mut filter_criteria = workbook.shifted_filter_criteria(sheet, edit, Some(columns));
     let filter = match target.filter() {
         Some(before) => before.after_row_band_insert(row, columns, row_count)?
-            .map(|after| (Some(before.clone()), Some(after))),
+            .map(|mut after| {
+                if let Some(index) = filter_criteria.iter().position(|change| change.owner == sheet) {
+                    filter_criteria.remove(index).apply_to(&mut after);
+                }
+                (Some(before.clone()), Some(after))
+            }),
         None => None,
     };
     let mut shifted_tables = Vec::new();
@@ -69,7 +76,11 @@ pub(super) fn prepare(
     // 恢复时先安装全部源码，再重投子格；不把计算结果当作待搬运的内容。
     let original = HistorySnapshot::capture_with_merges(target, range, true, true);
     if original.cells.as_ref().unwrap().iter().any(|cell| cell.addr.row + 1 >= row_count)
-        || original.formats.cell_styles.iter().any(|(addr, _)| addr.row + 1 >= row_count) {
+        || original.formats.cell_styles.iter().any(|(addr, _)| addr.row + 1 >= row_count)
+        || original.rich_text.iter().any(|(addr, _)| addr.row + 1 >= row_count)
+        || original.hyperlinks.iter().any(|(addr, _)| addr.row + 1 >= row_count)
+        || original.notes.iter().any(|(addr, _)| addr.row + 1 >= row_count)
+        || original.comments.iter().any(|(addr, _)| addr.row + 1 >= row_count) {
         return Err("The table row insertion would move cells outside this worksheet.".into());
     }
     // 只保存实际稀疏条目，不遍历百万行，也不把行高／列宽搬进 cellStyle。
@@ -97,6 +108,10 @@ pub(super) fn prepare(
             CellSnapshot::value(CellAddress::new(row, columns.0 + offset as u32), Value::Text(name.clone().into()))));
     }
     for (addr, _) in &mut next.formats.cell_styles { addr.row += 1; }
+    for (addr, _) in &mut next.rich_text { addr.row += 1; }
+    for (addr, _) in &mut next.hyperlinks { addr.row += 1; }
+    for (addr, _) in &mut next.notes { addr.row += 1; }
+    for (addr, _) in &mut next.comments { addr.row += 1; }
     for merged in next.merges.iter_mut().flatten() {
         merged.start.row += 1;
         merged.end.row += 1;
@@ -125,12 +140,14 @@ pub(super) fn prepare(
         }
     }
     next.cells.as_mut().unwrap().sort_by_key(|cell| (cell.addr.row, cell.addr.col));
+    next.reconcile_rich_text_with_cells();
     let lambdas = FormulaLambdaChange::prepare_with_context(workbook, &|scope_key, is_formula, expr| {
         let local = is_formula && match scope_key { Some(sk) => Some(sk) == workbook.sheet_key(sheet), None => sheet == 0 };
         rewrite_row_band_insert(expr, before.sheet_name(), local, row, columns)
     });
     let change = TableDefinitionChange { sheet, range: after.range, before, after: Some(after),
-        cells: vec![(original, next)], formulas, rules, lambdas, named_ranges, shifted_tables, filter, validations };
+        cells: vec![(original, next)], formulas, rules, lambdas, named_ranges, filter_criteria,
+        shifted_tables, filter, validations };
     if change.retained_bytes() > MAX_BYTES {
         return Err("Inserting a table row exceeds the 32 MiB undo budget.".into());
     }

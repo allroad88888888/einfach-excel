@@ -69,6 +69,7 @@ export type SortRangeRejectionCode =
   | 'invalid-payload'
   | 'source-too-large'
   | 'merge-in-range'
+  | 'protected-range'
 
 /**
  * Contract-level evidence that a physical sort was rejected before

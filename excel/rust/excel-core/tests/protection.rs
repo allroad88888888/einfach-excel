@@ -13,6 +13,8 @@ mod sheet_tabs;
 mod tables;
 #[path = "protection/names.rs"]
 mod names;
+#[path = "protection/permissions.rs"]
+mod permissions;
 use einfach_core::Value;
 use einfach_excel_core::{CellAddress, CellRange, CellStyle, StyleScope, Workbook};
 use einfach_excel_core::protection::{ProtectionChange, ProtectionMode, ProtectionRange, SheetProtection};
@@ -52,7 +54,7 @@ fn invalid_restore_is_atomic_and_legacy_default_is_open() {
     let before = book.read_protection(0).unwrap();
     let bad = SheetProtection { mode: ProtectionMode::Protected, unlocked_ranges: vec![
         ProtectionRange { row_start: 1, row_end: 0, col_start: 0, col_end: 1 },
-    ] };
+    ], ..Default::default() };
     assert!(book.restore_protection(vec![(0, bad)]).is_err());
     assert_eq!(book.read_protection(0).unwrap(), before);
     assert!(book.restore_protection(vec![(0, before.clone()), (0, before.clone())]).is_err());

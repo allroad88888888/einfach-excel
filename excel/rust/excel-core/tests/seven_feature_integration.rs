@@ -46,6 +46,7 @@ fn multi_area_format_preflights_later_neighbor_before_any_write_and_preserves_re
     let edge = Some(BorderSpec { style: BorderStyle::Thin, color: Some("#123456".into()) });
     let patch = CellStyle { bold: Some(true), borders: Some(CellBorders {
         top: edge.clone(), right: edge.clone(), bottom: edge.clone(), left: edge,
+        ..Default::default()
     }), ..Default::default() };
     let targets = [(range(1, 1, 1, 1), StyleScope::Cell),
         (range(5, 5, 5, 5), StyleScope::Cell)];
@@ -86,7 +87,7 @@ fn sparse_border_history_ignores_locked_corners_for_write_undo_and_redo() {
             let edge = Some(border);
             history.patch_format_selection(&mut book, 0, &[(range(1, 1, 1, 1), StyleScope::Cell)],
                 CellStyle { borders: Some(CellBorders { top: edge.clone(), right: edge.clone(),
-                    bottom: edge.clone(), left: edge }), ..Default::default() }).unwrap();
+                    bottom: edge.clone(), left: edge, ..Default::default() }), ..Default::default() }).unwrap();
         } else {
             history.patch_range_borders(&mut book, 0, range(1, 1, 1, 1), BorderPreset::All, border).unwrap();
         }
@@ -134,7 +135,7 @@ fn dimension_history_cannot_use_one_editable_cell_to_change_a_whole_axis() {
             book.set_cell(0, "B2", Value::Text("Measure".into()));
             history.begin(&book, 0, target, "Dimension", false).unwrap();
             if auto_fit {
-                book.auto_fit_dimensions(0, target, axis, 28, 96, |_, _, _| Ok(120.)).unwrap();
+                book.auto_fit_dimensions(0, target, axis, 28, 96, |_, _, _, _| Ok(120.)).unwrap();
             } else {
                 book.sheet_mut(0).unwrap().resize_range(target, axis, 120).unwrap();
             }

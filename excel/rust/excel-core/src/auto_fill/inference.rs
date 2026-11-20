@@ -19,6 +19,10 @@ impl Workbook {
             request.list = None;
         }
         match request.series {
+            AutoFillSeries::Geometric { .. } | AutoFillSeries::DateWeekday
+            | AutoFillSeries::DateYear | AutoFillSeries::FlashFill => {
+                return Err(AutoFillError::UnsupportedSeries)
+            }
             AutoFillSeries::Copy => {
                 // 日期格式的原生数字优先走日历规律，不能被普通等差序列抢走。
                 if let Ok((addresses, _)) = source_numbers(sheet, &request, 1) {
@@ -37,9 +41,12 @@ impl Workbook {
                 for series in [
                     AutoFillSeries::IntegerStep,
                     AutoFillSeries::TextNumber,
-                    AutoFillSeries::WeekdayName,
-                    AutoFillSeries::MonthName,
                 ] {
+                    if series == AutoFillSeries::TextNumber {
+                        if let Ok(candidate) = named::infer_automatic_named_series(sheet, request.clone()) {
+                            return Ok(candidate);
+                        }
+                    }
                     let mut candidate = request.clone();
                     candidate.series = series;
                     let Ok(candidate) = self.infer_auto_fill_request(candidate) else {

@@ -1,9 +1,10 @@
+import type { RustImportCell, RustImportStats } from './import-commands'
+export type { RustImportCell, RustImportStats } from './import-commands'
 import type { SheetDefaults } from '../runtime/sheet-defaults'
+import type { RustNumberFormatPreview } from './native-number-display'
 import type {
   SetCellInputRequest,
-  ProjectionRevision,
   SetFormatRangeRequest,
-  SpreadsheetCellFormat,
   SpreadsheetNumberFormat,
   VisibleProjectionRequest,
   VisibleProjectionResult,
@@ -11,7 +12,8 @@ import type {
   ViewportColumnWidth,
 } from '../contracts'
 import type { WorkerCommand, WorkerLike, WorkerTransport } from '../rust-worker'
-import type { FillSeriesKind } from '../auto-fill/series-options'
+import type { RustFillRangeRequest } from './fill-types'
+export type { RustFillRangeRequest } from './fill-types'
 import type { CellRange } from '../shared'
 import { createHostWorkbookConnection } from '../host/connection'
 import type { HostCommands } from '../host/types'
@@ -24,6 +26,9 @@ import type { RustSelectSpecialCommands } from './select-special-commands'
 import type { RustSortCommands } from './sort-commands'
 import type { RustFilterCommands } from './filter-commands'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
+import type { AdvancedFilterRangeCommands } from './advanced-filter-range-commands'
+import type { RustSubtotalCommands } from './subtotal-commands'
+import type { RustConsolidateCommands } from './consolidate-commands'
 import type { RustTextColumnsCommands } from './text-columns-commands'
 import type { RustShiftCellsCommands } from './shift-cells-commands'
 import type { RustRemoveDuplicatesCommands } from './remove-duplicates-commands'
@@ -127,59 +132,6 @@ export interface RustWorkbookSheet {
   readonly hideHeadings?: boolean
 }
 
-/** 导入坐标为零基：row=0、col=0 表示 A1。 */
-type RustImportCellValue =
-  | {
-      readonly sheet: number
-      readonly row: number
-      readonly col: number
-      readonly kind: 'number'
-      readonly value: number
-    }
-  | {
-      readonly sheet: number
-      readonly row: number
-      readonly col: number
-      readonly kind: 'text'
-      readonly value: string
-    }
-  | {
-      readonly sheet: number
-      readonly row: number
-      readonly col: number
-      readonly kind: 'boolean'
-      readonly value: boolean
-    }
-  | {
-      readonly sheet: number
-      readonly row: number
-      readonly col: number
-      readonly kind: 'error'
-      readonly value: string
-    }
-  | {
-      readonly sheet: number
-      readonly row: number
-      readonly col: number
-      readonly kind: 'formula'
-      readonly value: string
-    }
-  | { readonly sheet: number; readonly row: number; readonly col: number; readonly kind: 'null' }
-
-/** Rust 批量导入格；可选格式仍直接写入 Rust，不产生 React 数据副本。 */
-export type RustImportCell = RustImportCellValue & {
-  readonly format?: SpreadsheetCellFormat
-}
-
-export interface RustImportStats {
-  readonly accepted: number
-  readonly formulas: number
-  readonly rejectedFormulas: number
-  readonly cleared: number
-  readonly errors: number
-  readonly issues?: readonly unknown[]
-}
-
 export type RustClearRangeMode = 'contents' | 'formats' | 'all'
 export interface RustClearRangeRequest {
   readonly sheetId: string
@@ -196,6 +148,9 @@ export interface RustWorkbookCommands
   extends HostCommands, RustFindCommands, RustSelectSpecialCommands,
     RustSortCommands,
     RustFilterCommands,
+    AdvancedFilterRangeCommands,
+    RustSubtotalCommands,
+    RustConsolidateCommands,
     RustTextColumnsCommands,
     RustShiftCellsCommands,
     RustRemoveDuplicatesCommands,
@@ -225,7 +180,7 @@ export interface RustWorkbookCommands
       readonly addr: string
       readonly numberFormat: SpreadsheetNumberFormat
     },
-    string
+    RustNumberFormatPreview
   >
   readonly 'range.fill': WorkerCommand<
     { readonly request: RustFillRangeRequest; readonly projection: VisibleProjectionRequest },
@@ -390,24 +345,6 @@ export interface RustWorkbookCommands
 }
 
 export type RustWorkbookConnection = WorkerTransport<RustWorkbookCommands>
-
-export interface RustFillRangeRequest {
-  readonly validationConfirmation?: 'continue'
-  readonly validationRevision?: ProjectionRevision
-  readonly sheetId: string
-  readonly requestId: number
-  readonly range: CellRange
-  readonly direction: 'down' | 'right' | 'up' | 'left'
-  readonly sourceRange?: CellRange
-  readonly auto?: boolean
-  /** 双击只提交来源与工作表边界；相邻连续数据的末行由 Rust 决定。 */
-  readonly adjacent?: { readonly rowLimit: number }
-  readonly series?: {
-    readonly kind: FillSeriesKind
-    readonly sourceCount: number
-    readonly customValues?: readonly string[]
-  }
-}
 
 /** 创建 UI Core 唯一持有的 Rust 工作簿连接。 */
 export function createRustWorkbookConnection(

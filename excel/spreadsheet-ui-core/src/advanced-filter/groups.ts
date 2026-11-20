@@ -18,7 +18,10 @@ export function conditionRule(item: FilterCondition): ColumnFilterRule {
     ...(item.min.trim() ? { min: Number(item.min) } : {}),
     ...(item.max.trim() ? { max: Number(item.max) } : {}) }
   if (item.kind === 'list') return { kind: 'list', colIndex, values: item.values }
-  return { kind: item.kind, colIndex, value: item.value, caseSensitive: item.caseSensitive }
+  if (item.kind === 'equals' || item.kind === 'contains')
+    return { kind: item.kind, colIndex, value: item.value, caseSensitive: item.caseSensitive }
+  if (item.nativeRule?.kind === item.kind) return { ...item.nativeRule, colIndex }
+  throw new Error('Choose a valid filter condition.')
 }
 
 export function draftGroups(conditions: readonly FilterCondition[]): ColumnFilterGroup[] {
@@ -32,7 +35,8 @@ export function draftGroups(conditions: readonly FilterCondition[]): ColumnFilte
 
 export function ruleCondition(rule: ColumnFilterRule, group: number): FilterCondition {
   return { group, col: rule.colIndex, kind: rule.kind,
-    value: 'value' in rule ? rule.value : '', caseSensitive: 'caseSensitive' in rule && !!rule.caseSensitive,
+    nativeRule: rule,
+    value: rule.kind === 'equals' || rule.kind === 'contains' ? rule.value : '', caseSensitive: 'caseSensitive' in rule && !!rule.caseSensitive,
     min: rule.kind === 'range' ? rule.min?.toString() ?? '' : '',
     max: rule.kind === 'range' ? rule.max?.toString() ?? '' : '',
     values: rule.kind === 'list' ? rule.values : [''] }

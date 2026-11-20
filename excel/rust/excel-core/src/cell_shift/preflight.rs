@@ -60,6 +60,9 @@ impl Workbook {
         if target.filter().and_then(|filter| filter.range()).is_some_and(|range| range.intersects(area)) {
             return Err(FILTER_ERROR);
         }
+        if target.subtotal_regions.iter().any(|region| region.output().intersects(area)) {
+            return Err("Cannot shift cells inside a subtotal list. Insert or delete rows or columns instead.");
+        }
         Ok(())
     }
 }

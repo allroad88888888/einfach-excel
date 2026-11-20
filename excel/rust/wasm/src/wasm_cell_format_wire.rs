@@ -23,6 +23,8 @@ struct CellFormatJSON {
         skip_serializing_if = "Option::is_none"
     )]
     font_size: Option<Option<u32>>,
+    #[serde(default, rename = "fontBaseline", skip_serializing_if = "Option::is_none")]
+    font_baseline: Option<FontBaseline>,
     #[serde(
         default,
         rename = "fgColor",
@@ -39,6 +41,9 @@ struct CellFormatJSON {
         skip_serializing_if = "Option::is_none"
     )]
     bg_color: Option<Option<String>>,
+    #[serde(default, deserialize_with = "deserialize_optional_override",
+        skip_serializing_if = "Option::is_none")]
+    fill: Option<Option<CellFill>>,
     #[serde(
         default,
         rename = "fontFamily",
@@ -52,6 +57,8 @@ struct CellFormatJSON {
     strikethrough: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     wrap: Option<bool>,
+    #[serde(default, rename = "shrinkToFit", skip_serializing_if = "Option::is_none")]
+    shrink_to_fit: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     indent: Option<u8>,
     #[serde(
@@ -64,7 +71,7 @@ struct CellFormatJSON {
     rotation: Option<RotationJSON>,
     #[serde(
         default,
-        deserialize_with = "deserialize_optional_override",
+        deserialize_with = "deserialize_border_override",
         skip_serializing_if = "Option::is_none"
     )]
     borders: Option<Option<CellBordersJSON>>,
@@ -97,6 +104,10 @@ struct CellBordersJSON {
     bottom: Option<BorderSpecJSON>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     left: Option<BorderSpecJSON>,
+    #[serde(default, rename = "diagUp", skip_serializing_if = "Option::is_none")]
+    diag_up: Option<BorderSpecJSON>,
+    #[serde(default, rename = "diagDown", skip_serializing_if = "Option::is_none")]
+    diag_down: Option<BorderSpecJSON>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -140,12 +151,15 @@ impl CellFormatJSON {
             italic: self.italic.unwrap_or(false),
             align,
             font_size: self.font_size.flatten(),
+            font_baseline: self.font_baseline.unwrap_or_default(),
             color: self.fg_color.flatten(),
             background: self.bg_color.flatten(),
+            fill: self.fill.flatten(),
             font_family: self.font_family.flatten(),
             underline: self.underline.unwrap_or(false),
             strikethrough: self.strikethrough.unwrap_or(false),
             wrap_text: self.wrap.unwrap_or(false),
+            shrink_to_fit: self.shrink_to_fit.unwrap_or(false),
             indent: self.indent.unwrap_or(0),
             vertical_align,
             rotation,
@@ -171,12 +185,15 @@ impl CellFormatJSON {
                 _ => Align::Default,
             }),
             font_size: self.font_size,
+            font_baseline: self.font_baseline,
             color: self.fg_color,
             background: self.bg_color,
+            fill: self.fill,
             font_family: self.font_family,
             underline: self.underline,
             strikethrough: self.strikethrough,
             wrap_text: self.wrap,
+            shrink_to_fit: self.shrink_to_fit,
             indent: self.indent,
             vertical_align: self.vertical_align.map(|value| match value.as_str() {
                 "top" => VerticalAlign::Top,
@@ -210,12 +227,15 @@ impl CellFormatJSON {
                 Align::CenterAcross => "centerAcross".into(),
             }),
             font_size: fmt.font_size.map(Some),
+            font_baseline: (fmt.font_baseline != FontBaseline::Normal).then_some(fmt.font_baseline),
             fg_color: fmt.color.clone().map(Some),
             bg_color: fmt.background.clone().map(Some),
+            fill: fmt.fill.clone().map(Some),
             font_family: fmt.font_family.clone().map(Some),
             underline: if fmt.underline { Some(true) } else { None },
             strikethrough: if fmt.strikethrough { Some(true) } else { None },
             wrap: if fmt.wrap_text { Some(true) } else { None },
+            shrink_to_fit: fmt.shrink_to_fit.then_some(true),
             indent: if fmt.indent > 0 {
                 Some(fmt.indent)
             } else {

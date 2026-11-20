@@ -35,6 +35,69 @@ async function click(name: string) {
   await act(async () => { fireEvent.click(screen.getByRole('button', { name })) })
 }
 
+test('blank and error fields use one native command and exclude text-match fields', async () => {
+  const request = setup()
+  await click('Conditional formatting')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: 'cell-state' } })
+  })
+  expect(screen.getByLabelText('Cell condition')).toHaveValue('blank')
+  expect(screen.getByLabelText('Cell condition').querySelectorAll('option')).toHaveLength(4)
+  expect(screen.queryByLabelText('Matching text')).toBeNull()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Cell condition'), { target: { value: 'not-error' } })
+    fireEvent.click(screen.getByLabelText('Stop if true'))
+  })
+  expect(request).not.toHaveBeenCalled()
+  await click('Add rule')
+  expect(request).toHaveBeenCalledOnce()
+  expect(request.mock.calls[0][1]).toMatchObject({ action: 'set',
+    rule: { kind: 'cell-state', condition: 'not-error', stopIfTrue: true } })
+  expect(request.mock.calls[0][1]).not.toHaveProperty('rule.text')
+})
+
+test('mean fields dispatch direction and equality without writing before Save', async () => {
+  const request = setup()
+  await click('Conditional formatting')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: 'above-average' } })
+  })
+  expect(screen.getByLabelText('Average comparison')).toHaveValue('above')
+  expect(screen.getByLabelText('Include equal average')).not.toBeChecked()
+  expect(screen.queryByLabelText('Rank direction')).toBeNull()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Average comparison'), { target: { value: 'below' } })
+    fireEvent.click(screen.getByLabelText('Include equal average'))
+  })
+  expect(request).not.toHaveBeenCalled()
+  await click('Add rule')
+  expect(request).toHaveBeenCalledOnce()
+  expect(request.mock.calls[0][1]).toMatchObject({ action: 'set',
+    rule: { kind: 'above-average', direction: 'below', equalAverage: true } })
+  expect(request.mock.calls[0][1]).not.toHaveProperty('rule.operator')
+})
+
+test('date periods are editable drafts and save through one native command', async () => {
+  const request = setup()
+  await click('Conditional formatting')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: 'time-period' } })
+  })
+  expect(screen.getByLabelText('Date period')).toHaveValue('today')
+  expect(screen.getByLabelText('Date period').querySelectorAll('option')).toHaveLength(10)
+  expect(screen.queryByLabelText('Value', { exact: true })).toBeNull()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Date period'), { target: { value: 'nextMonth' } })
+    fireEvent.click(screen.getByLabelText('Stop if true'))
+  })
+  expect(request).not.toHaveBeenCalled()
+  await click('Add rule')
+  expect(request).toHaveBeenCalledOnce()
+  expect(request.mock.calls[0][1]).toMatchObject({ action: 'set',
+    rule: { kind: 'time-period', period: 'nextMonth', stopIfTrue: true } })
+  expect(request.mock.calls[0][1]).not.toHaveProperty('rule.operator')
+})
+
 test.each(['text', 'duplicate-values'])('edits %s and Stop using command atoms', async (kind) => {
   const request = setup()
   await click('Conditional formatting')

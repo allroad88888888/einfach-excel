@@ -6,7 +6,7 @@
 
 use einfach_core::{CellListener, Value, ValueError};
 use einfach_excel_core::{
-    Align, BorderSpec, BorderStyle, CellAddress, CellBorders, CellFormat, CellRange, CellStyle,
+    FontBaseline, Align, BorderSpec, BorderStyle, CellAddress, CellBorders, CellFill, CellFormat, CellRange, CellStyle,
     CellSubscription, ColumnFilterRule, ConditionalFormatConfigSnapshot,
     ConditionalFormatRuleEntry, CustomFunctionRegistry, DepGraphStats, FilterApplyReport,
     FilterError, FilterSnapshot, FormatRangeSnapshot, HiddenRowsSnapshot, NumberFormat, Rotation,
@@ -15,7 +15,7 @@ use einfach_excel_core::{
     TotalsFunction, VerticalAlign, Workbook, WorkbookError, MAX_FILTER_PREDICATE_CELLS,
 };
 use einfach_excel_core::{
-    AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillReport, AutoFillRequest,
+    AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillNamedList, AutoFillNamedLists, AutoFillReport, AutoFillRequest,
     AutoFillSeries, AutoFillTextPattern,
 };
 use serde::{de, Deserialize, Serialize};
@@ -28,13 +28,19 @@ use wasm_bindgen::JsCast;
 
 include!("wasm_autofill_wire.rs");
 include!("wasm_cell_format_wire.rs");
+include!("wasm_cell_coordinate_wire.rs");
+include!("wasm_diagonal_border_wire.rs");
 include!("wasm_number_format_wire.rs");
+include!("wasm_special_number_format_wire.rs");
 include!("wasm_cell_style_wire.rs");
+include!("wasm_font_baseline_tests.rs");
 include!("wasm_style_snapshot_wire.rs");
 include!("wasm_format_snapshot_wire.rs");
 include!("wasm_import_value_wire.rs");
 include!("wasm_import_cells_wire.rs");
+include!("wasm_import_rich_text.rs");
 include!("wasm_bulk_wire.rs");
+include!("wasm_cell_snapshot_wire.rs");
 include!("hyperlink/mod.rs");
 include!("rich_text.rs");
 include!("wasm_conditional_format_wire.rs");
@@ -129,6 +135,8 @@ include!("wasm_workbook_defaults.rs");
 include!("wasm_workbook_tables.rs");
 include!("wasm_workbook_table_commands.rs");
 include!("wasm_workbook_visibility.rs");
+include!("advanced_filter/range_wire.rs");
+include!("wasm_workbook_advanced_filter_copy.rs");
 include!("wasm_workbook_filter_values.rs");
 include!("wasm_workbook_manual_visibility.rs");
 include!("wasm_workbook_table_totals.rs");
@@ -164,6 +172,8 @@ include!("wasm_workbook_merge.rs");
 include!("wasm_workbook_shift_cells.rs");
 include!("wasm_workbook_freeze.rs");
 include!("wasm_workbook_outline.rs");
+include!("wasm_workbook_subtotal.rs");
+include!("wasm_workbook_consolidate.rs");
 include!("wasm_workbook_print_config.rs");
 include!("wasm_workbook_conditional_format.rs");
 include!("wasm_workbook_data_validation.rs");
@@ -199,8 +209,11 @@ mod tests {
     wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
     include!("wasm_tests/custom.rs");
+    include!("wasm_tests/named_lists.rs");
     include!("wasm_tests/advanced_number_formats.rs");
     include!("wasm_tests/number_format_preview.rs");
+    include!("wasm_tests/accounting_format.rs");
+    include!("wasm_tests/special_number_formats.rs");
     include!("wasm_tests/tables.rs");
     include!("wasm_tests/table_commands.rs");
     include!("wasm_tests/table_append.rs");
@@ -223,6 +236,9 @@ mod tests {
     include!("wasm_tests/filters_support.rs");
     include!("wasm_tests/filters_persistence.rs");
     include!("wasm_tests/filters_wire_contract.rs");
+    include!("wasm_tests/filter_top.rs");
+    include!("wasm_tests/filter_date_period.rs");
+    include!("wasm_tests/filter_colors.rs");
     include!("wasm_tests/filter_values.rs");
     include!("wasm_tests/table_restore.rs");
     include!("wasm_tests/table_style.rs");
@@ -230,6 +246,10 @@ mod tests {
     include!("wasm_tests/table_column_formula.rs");
     include!("wasm_tests/sort_and_sheet.rs");
     include!("wasm_tests/sort_options.rs");
+    include!("wasm_tests/sort_custom_list.rs");
+    include!("wasm_tests/sort_colors.rs");
+    include!("wasm_tests/sort_icons.rs");
+    include!("wasm_tests/sort_columns.rs");
     include!("wasm_tests/workbook_sparse.rs");
     include!("wasm_tests/persistence_roundtrip.rs");
     include!("wasm_tests/merge_persistence.rs");
@@ -246,4 +266,10 @@ mod tests {
     include!("wasm_tests/diagnostics.rs");
     include!("wasm_tests/history_topology.rs");
     include!("wasm_tests/center_across.rs");
+    include!("wasm_tests/import_rich_text.rs");
+    include!("wasm_tests/shrink_to_fit.rs");
+    include!("wasm_tests/diagonal_borders.rs");
+    include!("wasm_tests/pattern_fill.rs");
+    include!("wasm_tests/gradient_fill.rs");
+    include!("wasm_tests/consolidate.rs");
 }

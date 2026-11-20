@@ -12,12 +12,23 @@ pub struct DisplayFormatRangeSnapshot {
     pub formats: FormatRangeSnapshot,
     pub data_bars: Vec<(CellAddress, DataBarDisplay)>,
     pub conditional_icons: Vec<(CellAddress, ConditionalIconDisplay)>,
+    /// 条件格式改了字体色的格：显示层据此让条件色压过自定义数字格式的段颜色。
+    pub conditional_font_colors: Vec<CellAddress>,
 }
 impl Workbook {
     pub fn snapshot_display_format_range(
         &self,
         sheet: usize,
         range: CellRange,
+    ) -> Result<DisplayFormatRangeSnapshot, &'static str> {
+        self.snapshot_display_format_range_on(sheet, range, super::conditional_format_time_period::local_today_serial())
+    }
+
+    pub(crate) fn snapshot_display_format_range_on(
+        &self,
+        sheet: usize,
+        range: CellRange,
+        today: Option<f64>,
     ) -> Result<DisplayFormatRangeSnapshot, &'static str> {
         let range = range.normalize();
         if range.end.row >= EXCEL_MAX_ROWS
@@ -45,7 +56,7 @@ impl Workbook {
                                 self.conditional_range_statistics(sheet, entry, statistic)
                             })
                             .unwrap_or(Value::Null);
-                        rule.resolve(self, sheet, entry, &statistic).then_some((entry, rule, statistic))
+                        rule.resolve(self, sheet, entry, &statistic, today).then_some((entry, rule, statistic))
                     })
             })
             .collect();
@@ -54,6 +65,7 @@ impl Workbook {
                 formats: snapshot,
                 data_bars: Vec::new(),
                 conditional_icons: Vec::new(),
+                conditional_font_colors: Vec::new(),
             });
         }
         // 数字较小的优先级更高；同优先级时，列表中较前的规则优先。
@@ -65,6 +77,7 @@ impl Workbook {
             .collect();
         let mut data_bars = BTreeMap::new();
         let mut conditional_icons = BTreeMap::new();
+        let mut conditional_font_colors = Vec::new();
         for row in range.start.row..=range.end.row {
             for col in range.start.col..=range.end.col {
                 if !rules.iter().any(|(entry, _, _)| entry.contains(row, col)) {
@@ -83,8 +96,14 @@ impl Workbook {
                         continue;
                     }
                     let matched = match &rule.kind {
+                        NativeRuleKind::CellState(rule) => rule.matches(scalar),
                         NativeRuleKind::Numeric(rule) => matches!(scalar,
                             Some(Value::Number(number)) if rule.matches(*number)),
+                        NativeRuleKind::TimePeriod(rule) => matches!(scalar,
+                            Some(Value::Number(number)) if rule.matches(*number)),
+                        NativeRuleKind::Average(rule) => matches!(scalar,
+                            Some(Value::Number(number)) if rule.matches(*number,
+                                if let Value::Number(mean) = statistic { Some(*mean) } else { None })),
                         NativeRuleKind::Rank(rule) => matches!(scalar,
                             Some(Value::Number(number)) if rule.matches(*number,
                                 if let Value::Number(threshold) = statistic { Some(*threshold) } else { None })),
@@ -137,6 +156,9 @@ impl Workbook {
                 for patch in patches.iter().rev() {
                     styles.entry((row, col)).or_default().apply_patch(patch);
                 }
+                if patches.iter().any(|patch| matches!(patch.color, Some(Some(_)))) {
+                    conditional_font_colors.push(CellAddress::new(row, col));
+                }
             }
         }
         self.store.settle_pending_reads();
@@ -152,6 +174,7 @@ impl Workbook {
                 .collect(),
             conditional_icons: conditional_icons.into_iter()
                 .map(|((row, col), icon)| (CellAddress::new(row, col), icon)).collect(),
+            conditional_font_colors,
         })
     }
 }

@@ -1,12 +1,15 @@
+import type { FilterColorSource } from '../filter/rule-types'
 import type { VisibleProjectionRequest, VisibleProjectionResult } from '../contracts'
 import type { WorkerCommand } from '../rust-worker'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import { validFilterCondition } from '../advanced-filter/contracts'
 import type { CellRange } from '../shared'
+import type { AdvancedFilterRangeCriteria } from './advanced-filter-range-commands'
 
 export type RustFilterAction =
   | { readonly action: 'apply'; readonly rules: readonly ColumnFilterRule[];
-      readonly groups?: readonly ColumnFilterGroup[]; readonly range?: CellRange }
+      readonly groups?: readonly ColumnFilterGroup[]; readonly range?: CellRange;
+      readonly rangeCriteria?: AdvancedFilterRangeCriteria }
   | { readonly action: 'reapply' | 'clear' }
 export type RustFilterReport =
   | {
@@ -23,6 +26,7 @@ export interface RustFilterValuesQuery {
   readonly offset: number
   readonly limit: number
   readonly allMatches?: boolean
+  readonly colorSource?: FilterColorSource
 }
 export interface RustFilterValuesPage {
   readonly values: readonly { readonly value: string; readonly count: number }[]

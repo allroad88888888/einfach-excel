@@ -41,6 +41,7 @@ impl TableDefinitionChange {
             cells,
             filter: None,
             named_ranges: Vec::new(),
+            filter_criteria: Vec::new(),
             shifted_tables: Vec::new(),
             validations: ValidationShift::default(),
         };

@@ -60,6 +60,7 @@ impl TableDefinitionChange {
             rules: Vec::new(),
             lambdas: Vec::new(),
             named_ranges: Vec::new(),
+            filter_criteria: Vec::new(),
             shifted_tables: Vec::new(),
             filter: None,
             validations: ValidationShift::default(),

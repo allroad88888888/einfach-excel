@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test('native rejection retains number settings, fits 390px and retries as one history entry', async ({ page }, info) => {
   await page.addInitScript(() => {
@@ -21,6 +22,7 @@ test('native rejection retains number settings, fits 390px and retries as one hi
   await page.setViewportSize({ width: 390, height: 800 })
   await page.goto('/')
   const target = await select(page, 'F3', '2:5')
+  await showRibbonItem(page, 'format.number-format-settings')
   await page.getByRole('button', { name: 'Number format settings' }).click()
   await page.getByLabel('Number format category').selectOption('currency')
   await page.getByLabel('Currency symbol').fill('USD ')
@@ -58,6 +60,7 @@ test('pending format blocks duplicate apply, draft edits and cancellation until 
   })
   await page.goto('/')
   const target = await select(page, 'F3', '2:5')
+  await showRibbonItem(page, 'format.number-format-settings')
   const opener = page.getByRole('button', { name: 'Number format settings' })
   await opener.click()
   await page.getByRole('spinbutton', { name: 'Decimal places', exact: true }).fill('3')

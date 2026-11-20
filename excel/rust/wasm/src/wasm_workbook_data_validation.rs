@@ -52,4 +52,19 @@ impl WasmWorkbook {
             )
             .map_err(JsValue::from_str)
     }
+
+    #[wasm_bindgen(js_name = listInvalidValidationCells)]
+    pub fn list_invalid_validation_cells(
+        &self,
+        sheet: u32,
+        max_count: u32,
+    ) -> Result<JsValue, JsValue> {
+        let report = self
+            .workbook
+            .list_invalid_validation_cells(sheet as usize, max_count as usize)
+            .map_err(JsValue::from_str)?;
+        report
+            .serialize(&serde_wasm_bindgen::Serializer::json_compatible())
+            .map_err(|error| JsValue::from_str(&format!("serialize invalid validation cells: {error}")))
+    }
 }

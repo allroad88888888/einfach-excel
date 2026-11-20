@@ -5,6 +5,7 @@ import type {
   SpreadsheetCellFormat,
 } from '../contracts/types'
 import type { CellRange } from '../shared'
+import { freezeCellFill } from '../contracts/cell-fill'
 
 export function isProjectionRevision(value: unknown): value is ProjectionRevision {
   return (
@@ -50,6 +51,8 @@ export function snapshotBorders(
     ...(borders.right ? { right: snapshotBorderSpec(borders.right) } : {}),
     ...(borders.bottom ? { bottom: snapshotBorderSpec(borders.bottom) } : {}),
     ...(borders.left ? { left: snapshotBorderSpec(borders.left) } : {}),
+    ...(borders.diagUp ? { diagUp: snapshotBorderSpec(borders.diagUp) } : {}),
+    ...(borders.diagDown ? { diagDown: snapshotBorderSpec(borders.diagDown) } : {}),
   })
 }
 
@@ -58,6 +61,7 @@ export function snapshotFormat(format: SpreadsheetCellFormat | null): Spreadshee
   return Object.freeze({
     ...format,
     ...(format.numberFormat ? { numberFormat: Object.freeze({ ...format.numberFormat }) } : {}),
+    ...(format.fill ? { fill: freezeCellFill(format.fill) } : {}),
     ...(format.borders ? { borders: snapshotBorders(format.borders) } : {}),
   })
 }

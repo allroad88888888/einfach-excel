@@ -20,6 +20,15 @@ impl Workbook {
         state: &SheetVisibility,
     ) -> Result<(), &'static str> {
         self.ensure_sheet_unprotected(sheet_index)?;
+        self.restore_sheet_visibility_for_structure(sheet_index, state)
+    }
+
+    /// 结构插删及其历史回放已校验 `ensure_structural_edit_allowed`，不再重复要求整表未保护。
+    pub(crate) fn restore_sheet_visibility_for_structure(
+        &mut self,
+        sheet_index: usize,
+        state: &SheetVisibility,
+    ) -> Result<(), &'static str> {
         if self.is_inside_custom_call() {
             return Err("Cannot change visibility during a custom call.");
         }

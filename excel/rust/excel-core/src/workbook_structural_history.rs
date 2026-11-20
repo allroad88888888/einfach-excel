@@ -17,6 +17,7 @@ pub(crate) struct StructuralHistoryChange {
     before: StructuralSnapshot,
     after: StructuralSnapshot,
     named_ranges: Vec<NamedRangeShift>,
+    filter_criteria: Vec<super::workbook_filter_engine::CriteriaShift>,
     named_lambdas: Vec<FormulaLambdaChange>,
     templates: Vec<FormulaSourceChange>,
     /// 位移带外被改写的公式（本表与其他工作表）。
@@ -123,6 +124,7 @@ impl StructuralHistoryChange {
         let before =
             StructuralSnapshot::capture(workbook, sheet, &targets, &own_rules, &drawing_sheets);
         let named_ranges = workbook.shifted_named_ranges(sheet, edit);
+        let filter_criteria = workbook.shifted_filter_criteria(sheet, edit, None);
         if !inherited.is_empty() {
             let bytes = inherited
                 .iter()
@@ -195,6 +197,7 @@ impl StructuralHistoryChange {
                 before,
                 after,
                 named_ranges,
+                filter_criteria,
                 named_lambdas,
                 templates,
                 references,
@@ -230,6 +233,7 @@ impl StructuralHistoryChange {
             .map(|(sheet, _)| *sheet)
             .chain(self.templates.iter().chain(&self.references).map(|change| change.sheet))
             .chain(self.rules.iter().map(|(sheet, _)| *sheet))
+            .chain(self.filter_criteria.iter().map(|change| change.owner))
             .chain(
                 self.before
                     .conditional_formats
@@ -328,10 +332,12 @@ impl StructuralHistoryChange {
                 ));
             }
             workbook.sheets[sheet].outline.clone_from(&snapshot.outline);
+            workbook.sheets[sheet].subtotal_regions.clone_from(&snapshot.subtotal_regions);
             workbook
-                .restore_sheet_visibility(sheet, &snapshot.visibility)
+                .restore_sheet_visibility_for_structure(sheet, &snapshot.visibility)
                 .expect("preflight checked workbook state");
             workbook.sheets[sheet].commit_filter_state(snapshot.filter.clone());
+            for change in &self.filter_criteria { change.apply(workbook, undo); }
             workbook.sheets[sheet]
                 .merged_ranges
                 .clone_from(&snapshot.merges);
@@ -400,6 +406,7 @@ impl StructuralHistoryChange {
         self.name.len()
             + self.before.retained_bytes()
             + self.after.retained_bytes()
+            + self.filter_criteria.len() * std::mem::size_of::<super::workbook_filter_engine::CriteriaShift>()
             + crate::sheet::metadata_bytes(&self.named_lambdas)
             + self
                 .templates

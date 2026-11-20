@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Conditional formatting', exact: true })
@@ -6,6 +7,7 @@ const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}
 const red = 'rgb(255, 199, 206)'
 const blue = 'rgb(217, 234, 247)'
 async function open(page: Page) {
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await expect(dialog(page)).toBeVisible()
 }
@@ -18,6 +20,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await showRibbonItem(page, 'view.go-to')
   await button(page, 'Go to').click()
   await page.getByLabel('Reference', { exact: true }).fill('C65:E67')
   await button(page, 'Go').click()
@@ -111,6 +114,7 @@ for (const width of [1280, 390]) test(`management controls fit at ${width}px wit
   expect(await dialog(page).evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
   await page.screenshot({ path: info.outputPath(`conditional-management-${width}.png`), fullPage: true })
   await page.getByLabel('Applies to', { exact: true }).press('Escape')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await expect(button(page, 'Conditional formatting')).toBeFocused()
   expect(errors).toEqual([])
 })

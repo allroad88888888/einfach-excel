@@ -1,113 +1,5 @@
 include!("advanced_filter/wire.rs");
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "lowercase")]
-enum ColumnFilterRuleJSON {
-    Equals {
-        #[serde(rename = "colIndex")]
-        col_index: u32,
-        value: String,
-        #[serde(rename = "caseSensitive", default, skip_serializing_if = "is_false")]
-        case_sensitive: bool,
-    },
-    Contains {
-        #[serde(rename = "colIndex")]
-        col_index: u32,
-        value: String,
-        #[serde(rename = "caseSensitive", default, skip_serializing_if = "is_false")]
-        case_sensitive: bool,
-    },
-    Range {
-        #[serde(rename = "colIndex")]
-        col_index: u32,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        min: Option<f64>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        max: Option<f64>,
-    },
-    List {
-        #[serde(rename = "colIndex")]
-        col_index: u32,
-        values: Vec<String>,
-    },
-}
-
-fn is_false(value: &bool) -> bool {
-    !*value
-}
-
-impl ColumnFilterRuleJSON {
-    fn from_rule(rule: &ColumnFilterRule) -> Self {
-        match rule {
-            ColumnFilterRule::Equals {
-                col_index,
-                value,
-                case_sensitive,
-            } => ColumnFilterRuleJSON::Equals {
-                col_index: *col_index,
-                value: value.clone(),
-                case_sensitive: *case_sensitive,
-            },
-            ColumnFilterRule::Contains {
-                col_index,
-                value,
-                case_sensitive,
-            } => ColumnFilterRuleJSON::Contains {
-                col_index: *col_index,
-                value: value.clone(),
-                case_sensitive: *case_sensitive,
-            },
-            ColumnFilterRule::Range {
-                col_index,
-                min,
-                max,
-            } => ColumnFilterRuleJSON::Range {
-                col_index: *col_index,
-                min: *min,
-                max: *max,
-            },
-            ColumnFilterRule::List { col_index, values } => ColumnFilterRuleJSON::List {
-                col_index: *col_index,
-                values: values.clone(),
-            },
-        }
-    }
-
-    fn into_rule(self) -> ColumnFilterRule {
-        match self {
-            ColumnFilterRuleJSON::Equals {
-                col_index,
-                value,
-                case_sensitive,
-            } => ColumnFilterRule::Equals {
-                col_index,
-                value,
-                case_sensitive,
-            },
-            ColumnFilterRuleJSON::Contains {
-                col_index,
-                value,
-                case_sensitive,
-            } => ColumnFilterRule::Contains {
-                col_index,
-                value,
-                case_sensitive,
-            },
-            ColumnFilterRuleJSON::Range {
-                col_index,
-                min,
-                max,
-            } => ColumnFilterRule::Range {
-                col_index,
-                min,
-                max,
-            },
-            ColumnFilterRuleJSON::List { col_index, values } => {
-                ColumnFilterRule::List { col_index, values }
-            }
-        }
-    }
-}
+include!("filter/rule_wire.rs");
 
 /// `applyFilter` / `reapplyFilter` payload.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -138,6 +30,8 @@ struct ApplyFilterPayloadJSON {
     groups: Vec<ColumnFilterGroupJSON>,
     #[serde(default)]
     range: Option<FilterRangeJSON>,
+    #[serde(default, rename = "rangeCriteria")]
+    range_criteria: Option<FilterRangeCriteriaJSON>,
 }
 
 /// Success shape of the three filter commands, mirroring
@@ -169,6 +63,8 @@ struct SheetFilterStateJSON {
     rules: Vec<ColumnFilterRuleJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     groups: Vec<ColumnFilterGroupJSON>,
+    #[serde(default, rename = "rangeCriteria", skip_serializing_if = "Option::is_none")]
+    range_criteria: Option<StoredFilterCriteriaJSON>,
     /// The rows those rules hid. Carried alongside the rules, not re-derived
     /// on restore: re-deriving would evaluate against whatever the cells say
     /// at restore time, which is live evaluation wearing an undo costume.
@@ -177,7 +73,7 @@ struct SheetFilterStateJSON {
 }
 
 impl SheetFilterStateJSON {
-    fn from_entry(entry: &SheetFilterState) -> Self {
+    fn from_entry(entry: &SheetFilterState, range_criteria: Option<PersistedFilterCriteria>) -> Self {
         SheetFilterStateJSON {
             sheet: entry.sheet_index as u32,
             range: entry.range.map(FilterRangeJSON::from_range),
@@ -187,6 +83,7 @@ impl SheetFilterStateJSON {
                 .map(ColumnFilterRuleJSON::from_rule)
                 .collect(),
             groups: entry.groups.iter().map(ColumnFilterGroupJSON::from_group).collect(),
+            range_criteria: range_criteria.map(StoredFilterCriteriaJSON::from),
             hidden_rows: entry.hidden_rows.clone(),
         }
     }
@@ -224,6 +121,7 @@ fn filter_error_to_js(err: FilterError) -> JsValue {
             Some("Use nonempty groups with valid filter conditions.")),
         FilterError::InvalidRange => sort_error_to_js("invalid-range", None,
             Some("Choose a header and at least one data row; filter columns must be inside the range.")),
+        FilterError::InvalidCriteria(message) => sort_error_to_js("invalid-criteria", None, Some(message)),
         FilterError::HistoryPending => sort_error_to_js("history-pending", None, None),
         FilterError::InvalidSheet => sort_error_to_js("invalid-sheet", None, None),
         FilterError::ProtectedWorksheet => sort_error_to_js("protected-sheet", None,

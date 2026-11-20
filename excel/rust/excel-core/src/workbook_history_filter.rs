@@ -48,6 +48,14 @@ impl FilterChange {
 }
 
 impl WorkbookHistory {
+    pub fn apply_advanced_filter_range(&mut self, workbook: &mut Workbook,
+        selection: crate::advanced_filter::AdvancedFilterSelection,
+    ) -> Result<FilterApplyReport, FilterError> {
+        self.change_filter(workbook, selection.source.sheet, "Apply worksheet criteria", |book| {
+            book.apply_advanced_filter_range(selection)
+        })
+    }
+
     pub fn apply_filter_range(
         &mut self,
         workbook: &mut Workbook,

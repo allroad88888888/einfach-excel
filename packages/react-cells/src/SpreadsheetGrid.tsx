@@ -7,7 +7,13 @@ import {
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'
+import { CellDiagonalBorders } from './CellDiagonalBorders'
+import { fontBaselineText } from './font-baseline-text'
+import { shrinkToFitText } from './ShrinkToFitText'
 import { RichCellText } from './RichCellText'
+import {
+  NumberFormatText, numberFormatColorStyle, numberFormatLayout, numberFormatSpacingStyle,
+} from './NumberFormatText'
 import { CellHyperlink } from './hyperlink/CellHyperlink'
 import { CellMetadata, type CellMetadataLabels } from './cell-metadata/CellMetadata'
 import { SelectionOutlines } from './SelectionOutlines'
@@ -15,7 +21,7 @@ import { useMemo, type CSSProperties } from 'react'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { centerAcrossSpanWidth, centerAcrossStyles } from './center-across-style'
 import { createGridBorderStyles } from './grid-border-style'
-import { DEFAULT_CELL_ROW_HEIGHT } from './grid-defaults'
+import { DEFAULT_CELL_ROW_HEIGHT, DEFAULT_CELL_COLUMN_WIDTH } from './grid-defaults'
 // 样式随真正渲染表格的模块导入：纯转出的 index.ts 会被生产构建跳过，连同它的 CSS 一起丢失。
 import './cells.css'
 
@@ -92,18 +98,20 @@ export function SpreadsheetGrid({
         const run = !merged && columnWidths
           ? centerAcrossRun((r, c) => cellsByCoordinate.get(`${r}:${c}`), row, col, window.colEnd)
           : null
-        const across = run && run.colEnd > run.colStart && columnWidths
-          ? centerAcrossStyles(centerAcrossSpanWidth(run, window.colStart, columnWidths))
-          : undefined
         const formatStyle = {
           ...cellFormatStyle(
             cell?.format ? { ...cell.format, borders: undefined,
-              ...(cell.richText?.length && !showFormulas
+              ...((cell.richText?.length && !showFormulas) ||
+                (cell.format?.fontBaseline && cell.format.fontBaseline !== 'normal')
                 ? { underline: false, strikethrough: false } : {}) } : undefined, cell?.valueKind,
           ),
           ...borderStyle(row, col, cell?.format),
-          ...across?.cell,
+          ...numberFormatColorStyle(cell, showFormulas),
         }
+        const across = run && run.colEnd > run.colStart && columnWidths
+          ? centerAcrossStyles(
+            centerAcrossSpanWidth(run, window.colStart, columnWidths), formatStyle)
+          : undefined
         const height = rowHeights?.[row - window.rowStart] ?? DEFAULT_CELL_ROW_HEIGHT
         // table 的内容上限扣除真实边框；16px 行高也不能被大字或粗边框反向撑开。
         const topBorder = Number.parseFloat(
@@ -111,11 +119,22 @@ export function SpreadsheetGrid({
         )
         const bottomBorder = Number.parseFloat(String(formatStyle.borderBottomWidth ?? 1))
         const text = formulaViewText(cell, showFormulas)
+        const layout = numberFormatLayout(cell, showFormulas)
         // Keep the common plain-text path as a text node: thousands of redundant
         // component fibers otherwise delay buffered viewport replacement on scroll.
         const displayValue = cell?.richText?.length && !showFormulas
           ? <RichCellText cell={cell} text={text} showFormulas={false} />
-          : text
+          : layout ? <NumberFormatText display={layout} text={text} format={cell?.format} />
+            : fontBaselineText(text, cell?.format)
+        const rotated = Boolean(rotationStyle?.transform)
+        const contentHeight = Math.max(0, height - 6 - topBorder - bottomBorder)
+        const textContent = cell?.hyperlink && !showFormulas ? (
+          <CellHyperlink url={cell.hyperlink} color={cell.format?.fgColor}>
+            {rotationStyle ? <span className="cell-rotated-text" style={rotationStyle}>
+              {displayValue}</span> : displayValue}
+          </CellHyperlink>
+        ) : rotationStyle ? <span className="cell-rotated-text" style={rotationStyle}>
+          {displayValue}</span> : displayValue
         const filterTable = tableHeaders.find(({ range }) =>
           col >= range.colStart && col <= range.colEnd)?.table
         const filterHeader = !merged && (filterTable !== undefined || row === filterRange?.rowStart
@@ -130,28 +149,32 @@ export function SpreadsheetGrid({
             aria-hidden={merged || undefined}
             data-selected={isSelected ? 'true' : undefined}
             data-center-across={run && across ? run.colEnd - run.colStart + 1 : undefined}
-            style={formatStyle}
+            style={{ ...formatStyle, ...across?.cell }}
           >
             {!merged && cell?.dataBar && <CellDataBar bar={cell.dataBar} />}
+            {!merged && (cell?.format?.borders?.diagUp || cell?.format?.borders?.diagDown) &&
+              <CellDiagonalBorders borders={cell.format.borders} height={height}
+                width={columnWidths?.[col - window.colStart] ?? DEFAULT_CELL_COLUMN_WIDTH}
+                top={-topBorder}
+                left={-Number.parseFloat(String(formatStyle.borderLeftWidth ?? 0))} />}
             {!merged && (cell?.conditionalIcon || cell?.noteIndicator || cell?.commentIndicator ||
               cell?.commentThreadId) && <CellMetadata cell={cell} labels={metadataLabels} />}
             <span
-              className="cell-content"
+              className={`cell-content${rotated ? ' cell-rotation-frame' : ''}`}
               data-conditional-icon-value={!merged && cell?.conditionalIcon
                 ? cell.conditionalIcon.showValue ? 'visible' : 'hidden' : undefined}
               style={{
-                maxHeight: Math.max(0, height - 6 - topBorder - bottomBorder),
+                maxHeight: contentHeight,
+                height: rotated ? contentHeight : undefined,
+                justifyContent: rotated ? cell?.format?.verticalAlign === 'top' ? 'flex-start'
+                  : cell?.format?.verticalAlign === 'center' ? 'center' : 'flex-end' : undefined,
                 visibility: merged ? 'hidden' : undefined,
+                ...numberFormatSpacingStyle(cell),
                 ...across?.content,
               }}
             >
-              {cell?.hyperlink && !showFormulas ? (
-                <CellHyperlink url={cell.hyperlink} color={cell.format?.fgColor}>
-                  {rotationStyle ? <span className="cell-rotated-text" style={rotationStyle}>
-                    {displayValue}</span> : displayValue}
-                </CellHyperlink>
-              ) : rotationStyle ? <span className="cell-rotated-text" style={rotationStyle}>
-                {displayValue}</span> : displayValue}
+              {shrinkToFitText(rotated ? <span className="cell-rotation-line">{textContent}</span>
+                : textContent, text, cell?.format)}
             </span>
             {filterHeader && <CellFilterButton col={col} table={filterTable} />}
           </td>,

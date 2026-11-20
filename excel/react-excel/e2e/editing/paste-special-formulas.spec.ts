@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const modes = [
@@ -25,6 +26,7 @@ for (const width of [1280]) for (const option of modes)
     const sourceFont = await cell(page, '8:6').evaluate(node => getComputedStyle(node).fontFamily)
     await copy(page)
     await select(page, 'G2', '1:6')
+    await showRibbonItem(page, 'data.paste-special')
     await page.getByRole('button', { name: 'Paste special', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Paste special', exact: true })
     await dialog.getByRole('combobox', { name: 'Paste content', exact: true }).selectOption(option.mode)

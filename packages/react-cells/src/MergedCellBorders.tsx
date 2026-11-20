@@ -1,7 +1,7 @@
 import { useAtomValue } from '@einfach/react'
 import {
   getViewportColumnWidth, getViewportRowHeight, getViewportRangeRectangle,
-  viewportGeometrySizesAtom, viewportMetricsAtom, type CellRange,
+  viewportGeometrySizesAtom, viewportMetricsAtom, type CellRange, type DisplayCell,
   type VisibleProjectionResult, type ViewportMetrics, type ViewportSizeOverrideState,
 } from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
@@ -11,14 +11,20 @@ import { createGridBorderStyles } from './grid-border-style'
 export function createMergedBorderStyle(
   result: VisibleProjectionResult, window: CellRange,
   metrics: ViewportMetrics, sizes: ViewportSizeOverrideState,
+  splitCells?: readonly DisplayCell[],
 ) {
   const region = result.frozen?.regions.find((item) => item.window === window)
+  const isSplitPane = Boolean(splitCells)
   return createGridBorderStyles({
-    cells: region?.cells ?? result.cells, window, projection: result,
-    scrollTop: metrics.scrollTop, scrollLeft: metrics.scrollLeft,
+    cells: splitCells ?? region?.cells ?? result.cells,
+    window,
+    projection: result,
+    scrollTop: isSplitPane ? 0 : metrics.scrollTop,
+    scrollLeft: isSplitPane ? 0 : metrics.scrollLeft,
     isCellVisible: (row, col) => {
       const rect = getViewportRangeRectangle(metrics, sizes,
         { rowStart: row, rowEnd: row, colStart: col, colEnd: col })
+      if (isSplitPane) return rect.height > 0 && rect.width > 0
       const frozenRow = row < (result.freeze?.rows ?? 0)
       const frozenCol = col < (result.freeze?.cols ?? 0)
       const top = frozenRow ? 0 : metrics.scrollTop + (result.frozen?.height ?? 0)

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -21,6 +22,7 @@ test('Repeat button is disabled until a repeatable command ran and names it in t
   await select(page, 'B3', '2:1')
   await expect(button(page, 'Repeat')).toBeDisabled()
   await expect(button(page, 'Repeat')).toHaveAttribute('title', 'Repeat (F4)')
+  await showRibbonItem(page, 'format.bold')
   await button(page, 'Bold').click()
   await expect(cell(page, '2:1')).toHaveCSS('font-weight', '700')
   await expect(button(page, 'Repeat')).toBeEnabled()
@@ -29,6 +31,7 @@ test('Repeat button is disabled until a repeatable command ran and names it in t
 
 test('F4 repeats Bold on another range', async ({ page }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.bold')
   await button(page, 'Bold').click()
   await expect(cell(page, '2:1')).toHaveCSS('font-weight', '700')
   await select(page, 'D5:E6', '4:3')
@@ -40,6 +43,7 @@ test('F4 repeats Bold on another range', async ({ page }) => {
 
 test('The Repeat button repeats the last fill color on the current selection', async ({ page }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.fill-color')
   await button(page, 'Fill color').click()
   await expect(cell(page, '2:1')).toHaveCSS('background-color', 'rgb(255, 242, 204)')
   await select(page, 'C6', '5:2')
@@ -51,6 +55,7 @@ test('The Repeat button repeats the last fill color on the current selection', a
 test('F4 repeats Insert rows at the new selection', async ({ page }) => {
   const moved = (await cell(page, '4:0').textContent()) ?? ''
   await select(page, 'A3', '2:0')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await page.getByRole('combobox', { name: 'Insert or delete rows and columns' })
     .selectOption('insert-rows')
   await expect(cell(page, '2:0')).toHaveText('')
@@ -64,6 +69,7 @@ test('F4 repeats Insert rows at the new selection', async ({ page }) => {
 
 test('Ctrl+Y redoes when something can be redone and repeats otherwise', async ({ page }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.italic')
   await button(page, 'Italic').click()
   await expect(cell(page, '2:1')).toHaveCSS('font-style', 'italic')
   await button(page, 'Undo').click()
@@ -80,6 +86,7 @@ test('Ctrl+Y redoes when something can be redone and repeats otherwise', async (
 
 test('Each repeat is one new undo step', async ({ page }) => {
   await select(page, 'B3', '2:1')
+  await showRibbonItem(page, 'format.bold')
   await button(page, 'Bold').click()
   await expect(cell(page, '2:1')).toHaveCSS('font-weight', '700')
   expect(await undoCount(page)).toContain('1 undo · 0 redo')

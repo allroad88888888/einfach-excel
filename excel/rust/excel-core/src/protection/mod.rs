@@ -48,11 +48,34 @@ impl From<CellRange> for ProtectionRange {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ProtectionPermissions {
+    #[serde(default)]
+    pub sort: bool,
+    #[serde(default)]
+    pub insert_rows: bool,
+    #[serde(default)]
+    pub insert_columns: bool,
+    #[serde(default)]
+    pub delete_rows: bool,
+    #[serde(default)]
+    pub delete_columns: bool,
+}
+
+impl ProtectionPermissions {
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SheetProtection {
     pub mode: ProtectionMode,
     pub unlocked_ranges: Vec<ProtectionRange>,
+    #[serde(default, skip_serializing_if = "ProtectionPermissions::is_default")]
+    pub permissions: ProtectionPermissions,
 }
 
 impl SheetProtection {
@@ -71,6 +94,7 @@ pub enum ProtectionChange {
     Unprotect,
     AllowRange { range: ProtectionRange },
     RemoveRange { index: usize },
+    SetPermissions { permissions: ProtectionPermissions },
 }
 
 impl Workbook {
@@ -104,6 +128,10 @@ impl Workbook {
                 }
                 next.unlocked_ranges.remove(index);
             }
+            ProtectionChange::SetPermissions { permissions } => {
+                self.ensure_sheet_unprotected(sheet)?;
+                next.permissions = permissions;
+            }
         }
         next.validate()?;
         if next == before { return Ok(false); }
@@ -128,6 +156,121 @@ impl Workbook {
         if self.read_protection(sheet)?.mode == ProtectionMode::Protected {
             Err(PROTECTED_ERROR)
         } else { Ok(()) }
+    }
+
+    /// Sorting a protected sheet requires BOTH the `sort` permission AND every cell in the
+    /// sort range to be editable (unlocked), matching Excel's sheet protection semantics.
+    pub fn ensure_sort_allowed(&self, sheet: usize, range: CellRange)
+        -> Result<(), &'static str>
+    {
+        let target = ProtectionRange::from(range);
+        target.validate()?;
+        let state = self.read_protection(sheet)?;
+        if state.mode == ProtectionMode::Open
+            || (state.permissions.sort && coverage::fully_covered(target, &state.unlocked_ranges))
+        {
+            Ok(())
+        } else {
+            Err(PROTECTED_ERROR)
+        }
+    }
+
+    /// Row/column insertion and deletion on a protected sheet require the matching permission,
+    /// must not mutate or delete Excel Tables, and deletions must not destroy locked cells.
+    pub fn ensure_structural_edit_allowed(
+        &self,
+        sheet: usize,
+        edit: crate::shift::ShiftEdit,
+    ) -> Result<(), &'static str> {
+        let state = self.read_protection(sheet)?;
+        if state.mode == ProtectionMode::Open {
+            return Ok(());
+        }
+        let allowed = match edit {
+            crate::shift::ShiftEdit::RowInsert { .. } => state.permissions.insert_rows,
+            crate::shift::ShiftEdit::ColInsert { .. } => state.permissions.insert_columns,
+            crate::shift::ShiftEdit::RowDelete { .. } => state.permissions.delete_rows,
+            crate::shift::ShiftEdit::ColDelete { .. } => state.permissions.delete_columns,
+        };
+        if !allowed {
+            return Err(PROTECTED_ERROR);
+        }
+        self.ensure_structural_band_safe_on_protected(sheet, edit)
+    }
+
+    pub(crate) fn ensure_structural_band_safe_on_protected(
+        &self,
+        sheet: usize,
+        edit: crate::shift::ShiftEdit,
+    ) -> Result<(), &'static str> {
+        use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
+        use crate::shift::ShiftEdit;
+        let count = match edit {
+            ShiftEdit::RowInsert { count, .. }
+            | ShiftEdit::ColInsert { count, .. }
+            | ShiftEdit::RowDelete { count, .. }
+            | ShiftEdit::ColDelete { count, .. } => count,
+        };
+        if count == 0 {
+            return Ok(());
+        }
+        if let Some(sheet_name) = self.name(sheet) {
+            for table in self.tables.values().filter(|t| t.sheet_name() == sheet_name) {
+                let r = table.range();
+                let mutates_table = match edit {
+                    ShiftEdit::RowInsert { at, .. } => at > r.start.row && at <= r.end.row,
+                    ShiftEdit::ColInsert { at, .. } => at > r.start.col && at <= r.end.col,
+                    ShiftEdit::RowDelete { at, count } => {
+                        at <= r.end.row && r.start.row < at.saturating_add(count)
+                    }
+                    ShiftEdit::ColDelete { at, count } => {
+                        at <= r.end.col && r.start.col < at.saturating_add(count)
+                    }
+                };
+                if mutates_table {
+                    return Err(PROTECTED_ERROR);
+                }
+            }
+        }
+        let delete_band = match edit {
+            ShiftEdit::RowDelete { at, count } => Some(CellRange::new(
+                CellAddress::new(at, 0),
+                CellAddress::new(
+                    at.saturating_add(count - 1).min(EXCEL_MAX_ROWS - 1),
+                    EXCEL_MAX_COLS - 1,
+                ),
+            )),
+            ShiftEdit::ColDelete { at, count } => Some(CellRange::new(
+                CellAddress::new(0, at),
+                CellAddress::new(
+                    EXCEL_MAX_ROWS - 1,
+                    at.saturating_add(count - 1).min(EXCEL_MAX_COLS - 1),
+                ),
+            )),
+            ShiftEdit::RowInsert { .. } | ShiftEdit::ColInsert { .. } => None,
+        };
+        if let Some(band) = delete_band {
+            let target = self.sheet(sheet).ok_or("The worksheet no longer exists.")?;
+            for merged in target.merged_ranges() {
+                if merged.intersects(band) {
+                    self.ensure_range_editable(sheet, *merged)?;
+                }
+            }
+            let mut has_locked_cell = false;
+            target.for_each_non_empty_in_range(band, |addr| {
+                if !has_locked_cell
+                    && self
+                        .ensure_range_editable(sheet, CellRange::single(addr))
+                        .is_err()
+                {
+                    has_locked_cell = true;
+                }
+            });
+            if has_locked_cell {
+                return Err(PROTECTED_ERROR);
+            }
+        }
+        Ok(())
     }
 
     /// A Table's definition is part of its own worksheet; structured references elsewhere follow it.

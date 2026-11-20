@@ -1,4 +1,5 @@
-import { useId, useLayoutEffect, useRef, type CSSProperties } from 'react'
+import { richTextRunStyle } from '@einfach-excel/react-cells'
+import { useId, useLayoutEffect, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui, Trans } from '@lingui/react/macro'
 import {
@@ -9,6 +10,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../chrome/ribbon/dialog-focus'
 import { translateFeedback } from '../../i18n/translate-feedback'
+import { RichTextContributions } from '../../plugin/RichTextContributions'
 import './rich-text.css'
 
 export function RichTextDialog() {
@@ -33,10 +35,13 @@ export function RichTextDialog() {
       if (opener?.isConnected) opener.focus({ preventScroll: true })
     }
   }, [state.open])
-  const format = (value: RichTextFormat | null) => {
-    void run({ format: value })
+  const restoreSelection = () => {
     inputRef.current?.focus()
     inputRef.current?.setSelectionRange(state.start, state.end)
+  }
+  const format = (value: RichTextFormat | null) => {
+    void run({ format: value })
+    restoreSelection()
   }
   if (!state.open) return null
   return (
@@ -108,6 +113,7 @@ export function RichTextDialog() {
                 {icon}
               </button>
             ))}
+            <RichTextContributions restoreSelection={restoreSelection} />
             <label>
               <Trans>Font family</Trans>
               <select
@@ -164,23 +170,12 @@ export function RichTextDialog() {
             className="rich-text-preview"
             style={{
               fontFamily: state.base?.fontFamily,
-              fontSize: state.base?.fontSize,
+              fontSize: state.base?.fontSize ?? 12,
               color: state.base?.fgColor,
             }}
           >
             {state.runs.map((segment, index) => {
-              const f = { ...state.base, ...segment.format }
-              const style: CSSProperties = {
-                fontWeight: f.bold ? 700 : 400,
-                fontStyle: f.italic ? 'italic' : 'normal',
-                fontSize: f.fontSize,
-                fontFamily: f.fontFamily,
-                color: segment.format.color,
-                textDecoration:
-                  [f.underline && 'underline', f.strikethrough && 'line-through']
-                    .filter(Boolean)
-                    .join(' ') || 'none',
-              }
+              const style = richTextRunStyle(segment, { format: state.base })
               return (
                 <span key={index} style={style}>
                   {segment.text}

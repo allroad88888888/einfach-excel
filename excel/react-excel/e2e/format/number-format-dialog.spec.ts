@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape', 'Tab', 'Shift+Tab'])
   test(`${action} number settings keeps the native format formula and redo at ${width}px`, async ({ page }, info) => {
@@ -15,6 +16,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     await expect(cell('1:6')).toHaveText('158')
     await button('Undo').click()
     await select(page, 'G9', '8:6')
+    await showRibbonItem(page, 'format.number-format-settings')
     await button('Number format settings').click()
     const dialog = page.getByRole('dialog', { name: 'Number format', exact: true })
     const category = dialog.getByRole('combobox', { name: 'Number format category', exact: true })
@@ -46,12 +48,14 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     if (action === 'Escape') await page.keyboard.press('Escape')
     else await button('Cancel').click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'format.number-format-settings')
     await expect(button('Number format settings')).toBeFocused()
     await expect(bar).toHaveValue('=E9*F9')
     await expect(cell('8:6')).toHaveText('2,632.00')
     await expect(cell('8:5')).toHaveText('329')
     await expect(cell('9:6')).toHaveText('1341')
     await expect(button('Undo')).toBeDisabled()
+    await showRibbonItem(page, 'format.number-format-settings')
     await button('Number format settings').click()
     await expect(category).toHaveValue('number')
     await expect(digits).toHaveValue('2')

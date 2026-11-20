@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
@@ -11,6 +12,7 @@ async function input(page: Page, address: string, coord: string, value: string) 
   await expect(bar).toBeEnabled()
 }
 async function toggle(page: Page, enabled: boolean) {
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await button(page, 'Edit table Orders').click()
   const headers = page.getByLabel('Header row', { exact: true })
@@ -29,6 +31,7 @@ for (const width of [1280, 390]) test(`split conditional scope remains one edita
   await button(page, 'New sheet').click()
   await expect(page.getByRole('tab', { name: 'Sheet3', exact: true })).toHaveAttribute('aria-selected', 'true')
   await select(page, 'B1:C3', '0:1')
+  await showRibbonItem(page, 'insert.tables')
   await button(page, 'Tables').click()
   await page.getByLabel('Table name', { exact: true }).fill('Orders')
   await button(page, 'Create table').click()
@@ -39,6 +42,7 @@ for (const width of [1280, 390]) test(`split conditional scope remains one edita
     ['C5', '4:2', '100'], ['D5', '4:3', '1000'], ['A7', '6:0', '-999'],
   ]) await input(page, address, coord, value)
   await select(page, 'A5:D6', '4:0')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await page.getByLabel('Rule type').selectOption('color-scale')
   await page.getByLabel('Minimum color').fill('#000000')
@@ -50,6 +54,7 @@ for (const width of [1280, 390]) test(`split conditional scope remains one edita
   await select(page, 'B6', '5:1')
   await expect(cell(page, '5:1')).toHaveText('50')
   await expect(cell(page, '5:1')).toHaveCSS('background-color', 'rgb(13, 13, 13)')
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   const dialog = page.getByRole('dialog', { name: 'Conditional formatting', exact: true })
   await expect(dialog.getByRole('listitem')).toHaveCount(1)
@@ -63,6 +68,7 @@ for (const width of [1280, 390]) test(`split conditional scope remains one edita
   await expect(cell(page, '4:1')).toHaveText('50')
   await expect(cell(page, '4:1')).toHaveCSS('background-color', 'rgb(13, 13, 13)')
   await button(page, 'Redo').click()
+  await showRibbonItem(page, 'format.conditional-formatting')
   await button(page, 'Conditional formatting').click()
   await button(page, 'Edit rule 1').click()
   await page.getByLabel('Maximum color').fill('#ff0000')

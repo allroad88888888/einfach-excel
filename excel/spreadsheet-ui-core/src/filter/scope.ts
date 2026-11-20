@@ -23,7 +23,8 @@ export const nativeTableFiltersAtom = atom((get) => {
   return (get(filterProjectionAtom)?.tables ?? []).flatMap((table) => {
     const range = parseA1Range(table.range)
     return table.sheetIndex === sheet?.index && table.hasHeaders && range
-      ? [{ table: table.name, range, groups: table.autoFilter?.groups ?? [],
+      ? [{ table: table.name, range, rangeFilterActive: false,
+          groups: table.autoFilter?.groups ?? [],
           rules: table.autoFilter?.groups?.length
             ? table.autoFilter.groups.flatMap((group) => group.rules)
             : table.autoFilter?.rules ?? [] }] : []
@@ -36,5 +37,6 @@ export const nativeFilterTargetAtom = atom((get) => {
   return get(nativeTableFiltersAtom).find(({ range }) =>
     row >= range.rowStart && row <= range.rowEnd && col >= range.colStart && col <= range.colEnd)
     ?? { table: undefined, range: get(nativeFilterRangeAtom), rules: get(nativeFilterRulesAtom),
+      rangeFilterActive: get(filterProjectionAtom)?.visibility?.rangeFilterActive === true,
       groups: get(nativeFilterGroupsAtom) }
 })

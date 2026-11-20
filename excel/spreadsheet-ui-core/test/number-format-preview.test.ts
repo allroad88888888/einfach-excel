@@ -4,6 +4,7 @@ import {
   selectCellAtom, setRustWorkbookConnectionAtom, setSelectionBoundsAtom,
   type RustWorkbookCommands, type SetFormatRangeRequest, type VisibleProjectionRequest,
 } from '../src'
+import type { RustNumberFormatPreview } from '../src/rust-workbook/native-number-display'
 import { createTestRustWorkbookConnection } from './support/rust-workbook-connection'
 
 function deferred<T>() {
@@ -14,7 +15,7 @@ function deferred<T>() {
 }
 
 async function setup() {
-  const preview = vi.fn(async (_: RustWorkbookCommands['format.preview']['payload']) => '12.50')
+  const preview = vi.fn(async (_: RustWorkbookCommands['format.preview']['payload']) => ({ text: '12.50' }) as RustNumberFormatPreview)
   const write = vi.fn(async (
     request: SetFormatRangeRequest, projection: VisibleProjectionRequest,
   ) => ({
@@ -44,7 +45,7 @@ test('opens from the actual active cell and forwards the same format for preview
   expect(preview).toHaveBeenLastCalledWith({ sheetId: 's', addr: 'B3',
     numberFormat: { kind: 'number', digits: 2, thousands: false } })
   expect(store.getter(numberFormatPanelAtom).preview).toEqual({ text: '12.50' })
-  preview.mockResolvedValueOnce('29-Feb-24')
+  preview.mockResolvedValueOnce({ text: '29-Feb-24' })
   await store.setter(runNumberFormatPanelAtom, { type: 'draft', patch: {
     category: 'date', datePattern: 'dd-mmm-yy', digits: '',
   } })
@@ -57,14 +58,14 @@ test('opens from the actual active cell and forwards the same format for preview
 
 test.each([false, true])('latest draft wins over an older preview, rejection: %s', async (reject) => {
   const { store, preview } = await setup()
-  const first = deferred<string>()
+  const first = deferred<RustNumberFormatPreview>()
   preview.mockReturnValueOnce(first.promise)
   const open = store.setter(runNumberFormatPanelAtom, 'open')
   expect(store.getter(numberFormatPanelAtom).preview).toBeNull()
   await store.setter(runNumberFormatPanelAtom, { type: 'draft', patch: { category: 'text' } })
   const latest = store.getter(numberFormatPanelAtom)
   if (reject) first.reject(new Error('old request'))
-  else first.resolve('obsolete')
+  else first.resolve({ text: 'obsolete' })
   await open
   expect(store.getter(numberFormatPanelAtom)).toBe(latest)
   expect(latest.draft.category).toBe('text')
@@ -72,13 +73,13 @@ test.each([false, true])('latest draft wins over an older preview, rejection: %s
 
 test('close and reopen ignores an earlier response without reviving the old dialog', async () => {
   const { store, preview } = await setup()
-  const first = deferred<string>()
+  const first = deferred<RustNumberFormatPreview>()
   preview.mockReturnValueOnce(first.promise)
   const open = store.setter(runNumberFormatPanelAtom, 'open')
   await store.setter(runNumberFormatPanelAtom, 'close')
   await store.setter(runNumberFormatPanelAtom, 'open')
   const reopened = store.getter(numberFormatPanelAtom)
-  first.resolve('obsolete')
+  first.resolve({ text: 'obsolete' })
   await open
   expect(store.getter(numberFormatPanelAtom)).toBe(reopened)
   await store.setter(runNumberFormatPanelAtom, 'close')
@@ -87,7 +88,7 @@ test('close and reopen ignores an earlier response without reviving the old dial
 
 test('a late preview cannot clear the busy flag or interfere with the pending mutation', async () => {
   const { store, preview, write } = await setup()
-  const reading = deferred<string>()
+  const reading = deferred<RustNumberFormatPreview>()
   const writing = deferred<void>()
   preview.mockReturnValueOnce(reading.promise)
   const perform = write.getMockImplementation()!
@@ -100,7 +101,7 @@ test('a late preview cannot clear the busy flag or interfere with the pending mu
   await Promise.resolve()
   const pending = store.getter(numberFormatPanelAtom)
   expect(pending.busy).toBe(true)
-  reading.resolve('late')
+  reading.resolve({ text: 'late' })
   await open
   expect(store.getter(numberFormatPanelAtom)).toBe(pending)
   writing.resolve()
@@ -111,12 +112,12 @@ test('a late preview cannot clear the busy flag or interfere with the pending mu
 
 test.each(['selection', 'connection'] as const)('pending preview rejects a changed %s target', async (change) => {
   const { store, preview, write } = await setup()
-  const reading = deferred<string>()
+  const reading = deferred<RustNumberFormatPreview>()
   preview.mockReturnValueOnce(reading.promise)
   const open = store.setter(runNumberFormatPanelAtom, 'open')
   if (change === 'selection') store.setter(selectCellAtom, { sheetId: 's', coord: { row: 4, col: 2 } })
   else store.setter(setRustWorkbookConnectionAtom, createTestRustWorkbookConnection())
-  reading.resolve('wrong target')
+  reading.resolve({ text: 'wrong target' })
   await open
   expect(store.getter(numberFormatPanelAtom).preview).toEqual({ error: expect.stringContaining('changed') })
   expect(await store.setter(runNumberFormatPanelAtom, 'apply')).toBe(false)
@@ -126,14 +127,14 @@ test.each(['selection', 'connection'] as const)('pending preview rejects a chang
 
 test('a rejected Apply while preview is pending does not leave an orphan loading indicator', async () => {
   const { store, preview, write } = await setup()
-  const reading = deferred<string>()
+  const reading = deferred<RustNumberFormatPreview>()
   preview.mockReturnValueOnce(reading.promise)
   write.mockRejectedValueOnce(new Error('write failed'))
   const open = store.setter(runNumberFormatPanelAtom, 'open')
   expect(await store.setter(runNumberFormatPanelAtom, 'apply')).toBe(false)
   expect(store.getter(numberFormatPanelAtom).preview)
     .toEqual({ error: expect.stringContaining('unavailable') })
-  reading.resolve('old preview')
+  reading.resolve({ text: 'old preview' })
   await open
   expect(store.getter(numberFormatPanelAtom).preview)
     .toEqual({ error: expect.stringContaining('unavailable') })
@@ -160,7 +161,7 @@ test('invalid date draft skips native preview and Apply; switching to Text ignor
 
 test('empty result stays empty; read errors recover on a draft change without writing', async () => {
   const { store, preview, write } = await setup()
-  preview.mockResolvedValueOnce('')
+  preview.mockResolvedValueOnce({ text: '' })
   await store.setter(runNumberFormatPanelAtom, 'open')
   expect(store.getter(numberFormatPanelAtom).preview).toEqual({ text: '' })
   preview.mockRejectedValueOnce(new Error('Worker unavailable'))

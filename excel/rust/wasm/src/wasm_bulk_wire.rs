@@ -140,38 +140,6 @@ struct SparseCellJSON {
     value: Option<ImportValueJSON>,
 }
 
-#[derive(Clone, Debug, Serialize)]
-struct CellSnapshotJSON {
-    sheet: usize,
-    addr: String,
-    display: String,
-    #[serde(rename = "formattedDisplay", skip_serializing_if = "Option::is_none")]
-    formatted_display: Option<String>,
-    #[serde(rename = "inputText")]
-    input_text: String,
-    #[serde(rename = "type")]
-    cell_type: String,
-    #[serde(rename = "isError")]
-    is_error: bool,
-    formula: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    hyperlink: Option<String>,
-    #[serde(rename = "richText", skip_serializing_if = "Option::is_none")]
-    rich_text: Option<Vec<einfach_excel_core::rich_text::RichTextRun>>,
-    #[serde(rename = "noteIndicator", skip_serializing_if = "Option::is_none")]
-    note_indicator: Option<bool>,
-    #[serde(rename = "commentIndicator", skip_serializing_if = "Option::is_none")]
-    comment_indicator: Option<bool>,
-}
-
-/// 原生格式文本与原始数值分开返回；display 仍供统计与输入使用。
-fn native_number_display(workbook: &Workbook, sheet: usize, addr: &str, value: &Value) -> Option<String> {
-    let value = collapse_array_for_js(value);
-    let Value::Number(number) = value.as_ref() else { return None };
-    let format = workbook.sheet(sheet)?.get_format(addr);
-    uses_native_number_display(&format.number_format).then(|| format.format_number(*number))
-}
-
 /// 表元数据 = 表身份，**仅此而已**：`{ idx, name }` 就是 `restore_persistence_v1`
 /// 会读的全部内容（它按 idx 校验连续、按 name 建表）。
 ///

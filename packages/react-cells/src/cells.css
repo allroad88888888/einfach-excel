@@ -39,6 +39,18 @@
   text-overflow: ellipsis;
 }
 
+/* 角度文字使用整格内容区裁剪；内层保留正常行框及原来的文字对齐。 */
+:where(.einfach-spreadsheet) .cell-rotation-frame {
+  display: flex;
+  flex-direction: column;
+}
+
+:where(.einfach-spreadsheet) .cell-rotation-line {
+  display: block;
+  flex: none;
+  width: 100%;
+}
+
 :where(.einfach-spreadsheet) .selection-outline {
   position: absolute;
   z-index: 1;

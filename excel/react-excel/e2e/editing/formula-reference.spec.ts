@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
 
@@ -97,9 +98,11 @@ test('F4 cycles locks in both editors and Rust keeps absolute references fixed a
   await formula(page).press('F4')
   await expect(formula(page)).toHaveValue('=$E$2')
   await formula(page).press('Enter')
+  await showRibbonItem(page, 'clipboard.copy')
   await page.getByRole('button', { name: 'Copy', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Copied')
   await select(page, 'B11', '10:1')
+  await showRibbonItem(page, 'clipboard.paste')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(cell(page, '10:1')).toHaveText('1')
   await expect(formula(page)).toHaveValue('=$E$2')

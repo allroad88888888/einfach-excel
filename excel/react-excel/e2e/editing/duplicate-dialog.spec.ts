@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape', 'Tab', 'Shift+Tab'])
   test(`${action} duplicate dialog resets its draft and preserves native redo at ${width}px`, async ({ page }, info) => {
@@ -16,6 +17,7 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     await expect(cell('93:7')).toHaveText('duplicate redo')
     await button('Undo').click()
     await select(page, 'D32:F37', '31:3')
+    await showRibbonItem(page, 'data.remove-duplicates')
     await button('Remove duplicates').click()
     const dialog = page.getByRole('dialog', { name: 'Remove duplicates', exact: true })
     const first = dialog.getByRole('checkbox', { name: 'First row contains headers', exact: true })
@@ -44,9 +46,11 @@ for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape
     if (action === 'Escape') await page.keyboard.press('Escape')
     else await button('Cancel').click()
     await expect(dialog).toHaveCount(0)
+    await showRibbonItem(page, 'data.remove-duplicates')
     await expect(button('Remove duplicates')).toBeFocused()
     await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('D32:F37')
     await expect(button('Undo')).toBeDisabled()
+    await showRibbonItem(page, 'data.remove-duplicates')
     await button('Remove duplicates').click()
     await expect(first).toBeChecked()
     await expect(policy).toHaveValue('ignoreCase')

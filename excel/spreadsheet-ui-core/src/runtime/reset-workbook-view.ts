@@ -5,6 +5,7 @@ import { viewportSizeOverridesAtom, DEFAULT_VIEWPORT_SIZE_OVERRIDES,
   rotateViewportMetadataProjectionIdentity } from '../viewport/size-overrides'
 import { findReplaceStateAtom } from '../find-replace/state'
 import { cancelPointerAtom } from '../pointer'
+import { savedFillListsBackingAtom, EMPTY_SAVED_FILL_LISTS } from '../auto-fill/saved-list-state'
 import { fillSeriesStateAtom, INITIAL_FILL_SERIES_STATE } from '../auto-fill/series-state'
 import { resetSheetProtectionProjectionAtom } from '../protection'
 import { validationConfirmationBackingAtom } from '../data-validation/advanced/confirmation-state'
@@ -15,6 +16,7 @@ export const resetWorkbookViewAtom = atom(null, (get, set): void => {
   set(resetSheetProtectionProjectionAtom)
   set(validationConfirmationBackingAtom, null)
   set(fillSeriesStateAtom, INITIAL_FILL_SERIES_STATE)
+  set(savedFillListsBackingAtom, EMPTY_SAVED_FILL_LISTS)
   set(projectionLaneBackingAtom, { visibleWindow: { active: null, queued: null }, range: null })
   set(projectionSnapshotBackingAtom, IDLE_PROJECTION_SNAPSHOT)
   forgetActiveCellFact(set)

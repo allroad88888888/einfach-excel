@@ -156,6 +156,7 @@ impl TableDefinitionChange {
             cells,
             filter: None,
             named_ranges: Vec::new(),
+            filter_criteria: Vec::new(),
             shifted_tables: Vec::new(),
             validations: ValidationShift::default(),
         }))
@@ -183,5 +184,6 @@ fn new_headers(
             })
             .collect(),
     );
+    next.reconcile_rich_text_with_cells();
     (original, next)
 }

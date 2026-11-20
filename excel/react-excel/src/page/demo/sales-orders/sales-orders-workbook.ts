@@ -1,9 +1,23 @@
+import { SUMMARY_TOP_FILTER_CELLS } from './data/top-filter-seed'
+import { SUMMARY_DATE_FILTER_CELLS } from './data/date-filter-seed'
+import { SUMMARY_FONT_BASELINE_CELLS } from './data/font-baseline-seed'
+import { SUMMARY_RICH_BASELINE_CELLS } from './data/rich-baseline-seed'
+import { SUMMARY_SHRINK_TO_FIT_CELLS } from './data/shrink-to-fit-seed'
+import { SUMMARY_DIAGONAL_BORDER_CELLS } from './data/diagonal-border-seed'
+import { SUMMARY_PATTERN_FILL_CELLS } from './data/pattern-fill-seed'
+import { SUMMARY_GRADIENT_FILL_CELLS } from './data/gradient-fill-seed'
+import { SUMMARY_COLOR_SORT_CELLS } from './data/color-sort-seed'
+import { SUMMARY_CUSTOM_LIST_DRAG_CELLS } from './data/custom-list-drag-seed'
 import type { RustWorkbookDefinition, RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 import { applySalesOrderMerge, SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
   SALES_ORDER_EXTRA_MERGE_CELLS } from './data/merge-seed'
-import { createSalesOrderImportChunks } from './data/import-seed'
+import { createSalesOrderImportChunks, SALES_ORDER_NUMBER_FORMAT_EXAMPLES, SALES_ORDER_SPECIAL_FORMAT_EXAMPLES } from './data/import-seed'
 import { SUMMARY_BANDING_CELLS, SUMMARY_BANDING_RULE } from './data/alternating-colors-seed'
+import { SUMMARY_CALENDAR_CELLS } from './data/calendar-seed'
 import { SUMMARY_FILL_CELLS } from './data/fill-seed'
+import { SUMMARY_CONDITIONAL_DATE_CELLS, SUMMARY_CONDITIONAL_DATE_RULE } from './data/conditional-date-seed'
+import { SUMMARY_CONDITIONAL_STATE_CELLS, SUMMARY_CONDITIONAL_STATE_RULES } from './data/conditional-cell-state-seed'
+import { SUMMARY_CONDITIONAL_AVERAGE_CELLS, SUMMARY_CONDITIONAL_AVERAGE_RULE } from './data/conditional-average-seed'
 import { SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
 import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from './data/validation-seed'
 import { SUMMARY_OUTLINE, SUMMARY_OUTLINE_CELLS } from './data/outline-seed'
@@ -68,6 +82,9 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
             },
           },
           SUMMARY_BANDING_RULE,
+          SUMMARY_CONDITIONAL_DATE_RULE,
+          SUMMARY_CONDITIONAL_AVERAGE_RULE,
+          ...SUMMARY_CONDITIONAL_STATE_RULES,
         ],
         dataValidations: SUMMARY_VALIDATIONS,
         outline: SUMMARY_OUTLINE,
@@ -79,13 +96,29 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       ...createSalesOrderImportChunks().map((chunk) => chunk.map(applySalesOrderMerge)),
       SALES_ORDER_EXTRA_MERGE_CELLS,
       SALES_ORDER_SUMMARY_CELLS,
+      SUMMARY_FONT_BASELINE_CELLS,
+      SUMMARY_RICH_BASELINE_CELLS,
+      SUMMARY_SHRINK_TO_FIT_CELLS,
+      SUMMARY_DIAGONAL_BORDER_CELLS,
+      SUMMARY_PATTERN_FILL_CELLS,
+      SUMMARY_GRADIENT_FILL_CELLS,
+      SUMMARY_COLOR_SORT_CELLS,
+      SUMMARY_TOP_FILTER_CELLS,
+      SUMMARY_DATE_FILTER_CELLS,
+      SALES_ORDER_NUMBER_FORMAT_EXAMPLES,
+      SALES_ORDER_SPECIAL_FORMAT_EXAMPLES,
       SUMMARY_VALIDATION_CELLS,
       SUMMARY_OUTLINE_CELLS,
       SUMMARY_NAMED_RANGE_CELLS,
       SUMMARY_TABLE_CELLS,
       SUMMARY_CONDITIONAL_TEXT_CELLS,
       SUMMARY_FILL_CELLS,
+      SUMMARY_CALENDAR_CELLS,
+      SUMMARY_CUSTOM_LIST_DRAG_CELLS,
       SUMMARY_BANDING_CELLS,
+      SUMMARY_CONDITIONAL_DATE_CELLS,
+      SUMMARY_CONDITIONAL_AVERAGE_CELLS,
+      SUMMARY_CONDITIONAL_STATE_CELLS,
       [
         { sheet: 1, row: 81, col: 7, kind: 'text', value: 'ORDER_NET', format: { bold: true } },
         { sheet: 1, row: 82, col: 7, kind: 'formula', value: '=ORDER_NET(3,25)' },

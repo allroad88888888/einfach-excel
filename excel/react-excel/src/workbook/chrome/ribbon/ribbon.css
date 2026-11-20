@@ -1,9 +1,8 @@
 :where(.einfach-spreadsheet) .ribbon-shell {
+  /* 与 Univer 相同：分类标签独占一行，下面是两行高的分组工具栏。 */
   display: flex;
-  min-height: 46px;
   flex: none;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
   overflow: hidden;
   padding: 0 10px;
   border-bottom: 1px solid var(--border);
@@ -12,17 +11,15 @@
 
 :where(.einfach-spreadsheet) .ribbon-tabs {
   display: flex;
-  height: 34px;
+  height: 32px;
   flex: none;
-  align-items: center;
+  align-items: flex-end;
   gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-:where(.einfach-spreadsheet) .ribbon-panel { display: flex; flex: 1; min-width: 0; }
-:where(.einfach-spreadsheet) .ribbon-tool-group { display: flex; flex: none; align-items: center; gap: 2px; }
-/* 分类只隐藏入口，不卸载或遮住由网格快捷键打开的模态弹窗。 */
-:where(.einfach-spreadsheet) .ribbon-tool-group[data-inactive='true'] { display: contents; }
-:where(.einfach-spreadsheet) .ribbon-tool-group[data-inactive='true'] > :not(dialog) { display: none; }
+:where(.einfach-spreadsheet) .ribbon-panel { display: flex; min-width: 0; }
 
 :where(.einfach-spreadsheet) .ribbon-tab {
   height: 28px;
@@ -44,7 +41,6 @@
   font-weight: 650;
 }
 
-:where(.einfach-spreadsheet) .toolbar-divider,
 :where(.einfach-spreadsheet) .tool-separator {
   display: block;
   width: 1px;
@@ -54,22 +50,16 @@
 }
 
 :where(.einfach-spreadsheet) .ribbon-tools {
+  position: relative;
   display: flex;
   min-width: 0;
-  flex: 1;
-  align-items: center;
-  gap: 2px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-}
-
-:where(.einfach-spreadsheet) .ribbon-tools::-webkit-scrollbar {
-  display: none;
+  height: 72px;
+  flex: 1 1 0;
+  align-items: stretch;
 }
 
 :where(.einfach-spreadsheet) .text-layout-tools { display: inline-flex; flex: none; align-items: center; gap: 2px; }
-:where(.einfach-spreadsheet) .text-layout-select { width: 76px; padding: 0 4px; }
+:where(.einfach-spreadsheet) .text-layout-select { width: 66px; padding: 0 4px; }
 :where(.einfach-spreadsheet) .text-layout-error { display: inline-flex; align-items: center; max-width: 260px; color: #a12622; }
 
 :where(.einfach-spreadsheet) .tool-button,
@@ -121,7 +111,13 @@
 }
 
 :where(.einfach-spreadsheet) .font-family-select {
-  width: 108px;
+  width: 100px;
+}
+
+/* 字体组自身的两行布局不依赖可选插件；保持 1280px 全部分组可见。 */
+:where(.einfach-spreadsheet) [data-ribbon-group='font'] .ribbon-row { gap: 1px; }
+:where(.einfach-spreadsheet) [data-ribbon-group='font'] .tool-button:not(.tool-dropdown-button):not(.color-open) {
+  width: 24px;
 }
 
 :where(.einfach-spreadsheet) .paste-options-select {
@@ -158,37 +154,8 @@
   margin: 0 3px;
 }
 
-:where(.einfach-spreadsheet) .toolbar-spacer {
-  min-width: 8px;
-  flex: 1;
-}
-
 @container einfach-spreadsheet (max-width: 760px) {
   :where(.einfach-spreadsheet) .ribbon-shell {
-    min-height: 43px;
-    gap: 5px;
-    flex-wrap: wrap;
     padding-inline: 7px;
-  }
-
-  :where(.einfach-spreadsheet) .ribbon-tabs {
-    /* 分类独占一行，全部可达；下方工具独立横向滚动。 */
-    padding-right: 5px;
-    background: #ffffff;
-    width: 100%;
-    overflow-x: auto;
-  }
-
-  :where(.einfach-spreadsheet) .toolbar-divider {
-    display: none;
-  }
-
-  :where(.einfach-spreadsheet) .ribbon-tools {
-    min-width: 0;
-    overflow-x: auto;
-  }
-
-  :where(.einfach-spreadsheet) .toolbar-spacer {
-    display: none;
   }
 }

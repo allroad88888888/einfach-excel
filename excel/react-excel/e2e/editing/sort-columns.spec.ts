@@ -1,0 +1,145 @@
+import { expect, test } from '@playwright/test'
+import { select } from '../support/clipboard'
+import { downloadDateFile, openDateFile } from '../support/conditional-dates'
+import { showRibbonItem } from '../support/ribbon'
+import { button, cell, enable, menu, open as openFilter } from '../support/date-filter'
+import {
+  applyHorizontal, expectRecords, horizontalDialog, launchHorizontal, openHorizontal, original,
+} from '../support/horizontal-sort'
+import { icon, open, save, threshold } from '../advanced-conditional-format/support'
+
+test('Left-to-right value sort moves complete columns with one undo step', async ({ page }) => {
+  await launchHorizontal(page)
+  await openHorizontal(page)
+  await expect(horizontalDialog(page).getByLabel('Sort row 1', { exact: true })).toHaveValue('1')
+  await applyHorizontal(page)
+  const sorted = ['low', 'first tie', 'second tie', 'alpha', 'hidden']
+  await expectRecords(page, sorted)
+  await expect(cell(page, '1:0')).toHaveCSS('background-color', 'rgb(192, 0, 0)')
+  await select(page, 'A1', '0:0')
+  await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('=3-2')
+  await button(page, 'Undo').click()
+  await expectRecords(page, original)
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click()
+  await expectRecords(page, sorted)
+  const native = await downloadDateFile(page)
+  const xlsx = await downloadDateFile(page, true)
+  for (const [bytes, extension] of [[native, 'einfach.json'], [xlsx, 'xlsx']] as const) {
+    await openDateFile(page, bytes, extension)
+    await expectRecords(page, sorted)
+    await expect(button(page, 'Undo')).toBeDisabled()
+  }
+})
+
+test('Horizontal levels break ties by the selected row and direction', async ({ page }) => {
+  await launchHorizontal(page)
+  await openHorizontal(page)
+  const panel = horizontalDialog(page)
+  await panel.getByRole('button', { name: 'Add level', exact: true }).click()
+  await panel.getByLabel('Sort row 2', { exact: true }).fill('3')
+  await panel.getByRole('group', { name: 'Sort level 2' })
+    .getByLabel('Sort order 2', { exact: true }).selectOption('desc')
+  await applyHorizontal(page)
+  await expectRecords(page, ['low', 'second tie', 'first tie', 'alpha', 'hidden'])
+})
+
+test('Horizontal sorting leaves hidden column positions and groups equal values stably', async ({ page }) => {
+  await launchHorizontal(page)
+  await select(page, 'B1', '0:1')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
+  const visibility = page.getByRole('combobox', { name: 'Row and column visibility' })
+  await visibility.selectOption('hide-columns')
+  await expect(cell(page, '1:1')).toHaveCount(0)
+  await openHorizontal(page)
+  await applyHorizontal(page)
+  await expect(cell(page, '1:0')).toHaveText('low')
+  await expect(cell(page, '1:1')).toHaveCount(0)
+  await expect(cell(page, '1:2')).toHaveText('first tie')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
+  await visibility.selectOption('unhide-all')
+  await expectRecords(page, ['low', 'hidden', 'first tie', 'second tie', 'alpha'])
+})
+
+test('Displayed icon and fill row keys honor On right and On left in one sort', async ({ page }) => {
+  await launchHorizontal(page)
+  await select(page, 'A1:E1', '0:0')
+  await open(page, 'icon-set')
+  await threshold(page, 'Lower icon', 'number', '2')
+  await threshold(page, 'Upper icon', 'number', '50')
+  await page.getByLabel('Reverse icon order', { exact: true }).check()
+  await save(page)
+  await expect(icon(page, '0:3')).toHaveAttribute('data-icon-index', '2')
+  await openHorizontal(page)
+  const panel = horizontalDialog(page)
+  const first = panel.getByRole('group', { name: 'Sort level 1' })
+  await first.getByLabel('Sort on', { exact: true }).selectOption('icon')
+  await first.getByLabel('Target icon', { exact: true }).selectOption('three-arrows:2')
+  await first.getByLabel('Sort order 1', { exact: true }).selectOption('right')
+  await panel.getByRole('button', { name: 'Add level', exact: true }).click()
+  const second = panel.getByRole('group', { name: 'Sort level 2' })
+  await second.getByLabel('Sort row 2', { exact: true }).fill('2')
+  await second.getByLabel('Sort on', { exact: true }).selectOption('cell-color')
+  await second.getByLabel('Target color', { exact: true }).fill('#00ff00')
+  await expect(second.getByLabel('Sort order 2', { exact: true })).toHaveValue('left')
+  await applyHorizontal(page)
+  await expectRecords(page, ['second tie', 'alpha', 'hidden', 'first tie', 'low'])
+  await button(page, 'Undo').click()
+  await expectRecords(page, original)
+})
+
+test('A horizontal sort rejects an active worksheet filter without moving records', async ({ page }) => {
+  await launchHorizontal(page)
+  await enable(page, 'A1:E3')
+  await openFilter(page, 'A')
+  await page.getByLabel('Filter condition 1', { exact: true }).selectOption('contains')
+  await page.getByLabel('Filter value 1', { exact: true }).fill('alpha')
+  await button(page, 'Apply filter').click()
+  await expect(cell(page, '2:0')).toHaveCount(0)
+  await openHorizontal(page, 'A1:E2')
+  await button(page, 'Apply sort').click()
+  await expect(horizontalDialog(page).getByRole('alert')).toContainText('Clear the active filter')
+  await button(page, 'Cancel').click()
+  await expectRecords(page, original)
+  await showRibbonItem(page, 'data.worksheet-filter')
+  await menu(page).selectOption('clear')
+  await expect(cell(page, '2:0')).toHaveText('4')
+})
+
+test('Horizontal sort rejects a range that intersects a Table', async ({ page }) => {
+  await page.goto('/?plugins=data-sort&locale=en')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await openHorizontal(page, 'A80:B83', '79:0')
+  await button(page, 'Apply sort').click()
+  await expect(horizontalDialog(page).getByRole('alert')).toContainText('Convert the table to a range')
+  await button(page, 'Cancel').click()
+  await expect(cell(page, '80:0')).toHaveText('Keyboard')
+  await expect(cell(page, '81:0')).toHaveText('Mouse')
+  await expect(button(page, 'Undo')).toBeDisabled()
+})
+
+test('A single selected row can be sorted left to right', async ({ page }) => {
+  await launchHorizontal(page)
+  await openHorizontal(page, 'A1:E1')
+  await applyHorizontal(page)
+  for (const [col, value] of ['1', '2', '2', '3', '99'].entries())
+    await expect(cell(page, `0:${col}`)).toHaveText(value)
+  await expectRecords(page, original)
+})
+
+test('Summary horizontal sort sample moves only the selected column records', async ({ page }) => {
+  await page.goto('/?plugins=data-sort&locale=en')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await openHorizontal(page, 'F60:H61', '59:5')
+  await expect(horizontalDialog(page).getByLabel('Sort row 1', { exact: true })).toHaveValue('60')
+  await applyHorizontal(page)
+  await expect(cell(page, '60:5')).toHaveText('列记录丙')
+  await expect(cell(page, '60:6')).toHaveCount(0)
+  await expect(cell(page, '60:7')).toHaveText('列记录甲')
+  await expect(cell(page, '60:4')).toHaveText('RAND × 2')
+  await showRibbonItem(page, 'view.row-and-column-visibility')
+  await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
+  await expect(cell(page, '60:6')).toHaveText('列记录乙')
+})

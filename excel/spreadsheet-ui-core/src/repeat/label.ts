@@ -8,9 +8,11 @@ const FORMAT_FIELD_LABELS: Readonly<Record<string, RepeatLabel>> = {
   strikethrough: 'strikethrough',
   wrap: 'wrap-text',
   bgColor: 'fill-color',
+  fill: 'fill-color',
   fgColor: 'text-color',
   fontFamily: 'font-family',
   fontSize: 'font-size',
+  fontBaseline: 'font-baseline',
   align: 'alignment',
   verticalAlign: 'alignment',
   rotation: 'alignment',
@@ -22,6 +24,8 @@ function mutationLabel(mutation: SelectionMutation): RepeatLabel {
   if (mutation.kind === 'clear') return `clear-${mutation.mode}`
   if (mutation.borderPatch || mutation.format.borders) return 'borders'
   const fields = [...Object.keys(mutation.format), ...(mutation.clearFormatFields ?? [])]
+  if (fields.length === 2 && mutation.format.wrap === true && mutation.format.shrinkToFit === false)
+    return 'wrap-text'
   const labels = new Set(fields.map((field) => FORMAT_FIELD_LABELS[field] ?? 'format'))
   return labels.size === 1 ? [...labels][0]! : 'format'
 }

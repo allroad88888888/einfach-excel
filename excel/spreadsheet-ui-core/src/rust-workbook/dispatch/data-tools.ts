@@ -2,13 +2,31 @@ import { applyRemoveDuplicates, previewRemoveDuplicates } from '../remove-duplic
 import { applyTextColumns, previewTextColumns } from '../text-columns-io'
 import { changeFilter, readFilterValues } from '../filter-io'
 import { sortRange } from '../sort-io'
+import { applyAdvancedFilterCopy, previewAdvancedFilterCopy } from '../advanced-filter-range-io'
 import { replaceWorkbook } from '../find-io'
 import { readSizes } from '../size-io'
 import { readVisibleProjection } from '../visible-projection'
+import { inspectSubtotals, changeSubtotals } from '../subtotal-io'
+import { applyConsolidate, previewConsolidate } from '../consolidate-io'
 import type { WorkbookHandlers } from './context'
 
-/** 数据工具：删除重复项、分列、筛选、排序与替换。 */
+/** 数据工具：删除重复项、分列、筛选、排序、合并计算与替换。 */
 export const dataToolHandlers: WorkbookHandlers = {
+  'subtotal.inspect': inspectSubtotals,
+  'subtotal.change': changeSubtotals,
+  'consolidate.preview': (context, current, input) => previewConsolidate(
+    current, context.sheetsById, input, context.revision),
+  'consolidate.apply': (context, current, input) => {
+    const result = applyConsolidate(current, context.sheetsById, input, context.revision)
+    const changed = result.changedCells > 0 || result.linkedGroups > 0
+    if (changed && context.clipboard?.cut) context.clipboard.invalidated = true
+    return {
+      ...result,
+      projection: context.projectChange(changed, {
+        sheetId: input.projection.sheetId, projection: input.projection,
+      }).projection,
+    }
+  },
   'duplicates.preview': (context, current, input) => previewRemoveDuplicates(
     current, context.sheetsById.get(input.sheetId), input, context.revision),
   'duplicates.apply': (context, current, input) => {
@@ -34,13 +52,22 @@ export const dataToolHandlers: WorkbookHandlers = {
       ),
     }
   },
+  'advancedFilter.previewCopy': (context, current, input) => previewAdvancedFilterCopy(
+    current, context.sheetsById, input, context.revision),
+  'advancedFilter.copy': (context, current, input) => {
+    const result = applyAdvancedFilterCopy(current, context.sheetsById, input, context.revision)
+    return { ...result, projection: context.projectChange(result.changedCells > 0, {
+      sheetId: input.projection.sheetId, projection: input.projection,
+    }).projection }
+  },
   'sheet.filterValues': (context, current, input) => readFilterValues(
     current, context.sheetsById.get(input.sheetId), input, context.revision),
   'sheet.filter': (context, current, input) => {
     const index = context.sheetIndex(input.sheetId)
     const columns = context.sheetsById.get(input.sheetId)!.colCount ?? 16_384
     const hiddenRows = changeFilter(
-      current, index, columns, input, context.sheetsById.get(input.sheetId)!.rowCount,
+      current, index, columns, input,
+      context.sheetsById.get(input.sheetId)!.rowCount, context.sheetsById,
     )
     context.revision += 1
     return {
@@ -50,14 +77,14 @@ export const dataToolHandlers: WorkbookHandlers = {
   },
   'range.sort': (context, current, input) => {
     const index = context.sheetIndex(input.sheetId)
-    const movedRows = sortRange(current, index, input)
-    if (movedRows > 0) {
+    const movement = sortRange(current, index, input)
+    if (movement.movedRows > 0 || (movement.movedColumns ?? 0) > 0) {
       context.revision += 1
       // 剪切快照的坐标不再代表原记录；排序后必须重新剪切。
       if (context.clipboard?.cut) context.clipboard.invalidated = true
     }
     return {
-      movedRows,
+      ...movement,
       projection: readVisibleProjection(current, index, input.projection, context.revision),
     }
   },

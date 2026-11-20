@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { cell, drag, openOrders } from './pointer'
+import { showRibbonItem } from '../support/ribbon'
 
 for (const width of [1280]) {
   test(`clearing manually appended areas preserves gap values and undoes in one step at ${width}px`, async ({ page }) => {
@@ -9,6 +10,7 @@ for (const width of [1280]) {
       .map(([row, col]) => cell(page, row, col).textContent()))
     await cell(page, 2, 0).click()
     await drag(page, [5, 0], [6, 1], 'Meta')
+    await showRibbonItem(page, 'clear.contents')
     await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
     for (const [row, col] of [[2, 0], [5, 0], [5, 1], [6, 0], [6, 1]])
       await expect(cell(page, row, col)).toHaveText('')

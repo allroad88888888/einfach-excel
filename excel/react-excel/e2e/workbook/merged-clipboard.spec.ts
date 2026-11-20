@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, paste, pasteOption } from '../support/clipboard'
+import { showRibbonItem } from '../support/ribbon'
 
 const merged = (page: Page, coord = '1:1') =>
   page.locator(`[data-merged-cell][data-cell="${coord}"]`)
@@ -7,6 +8,7 @@ const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 async function mergeSource(page: Page, address = 'B2:C3') {
   await select(page, address, '1:1')
+  await showRibbonItem(page, 'data.merge-cells')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await page
     .getByRole('alertdialog')
@@ -99,6 +101,7 @@ test('partial-copy rejection is readable and a corrected selection can retry', a
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 800 })
     await button(page, 'Select row 2').click()
+    await showRibbonItem(page, 'clipboard.copy')
     await button(page, 'Copy').click()
     await expect(page.getByLabel('Clipboard status')).toContainText('whole merged cells')
     await page.getByLabel('Clipboard status').scrollIntoViewIfNeeded()

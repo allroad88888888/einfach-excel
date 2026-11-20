@@ -52,6 +52,7 @@ impl TableDefinitionChange {
                 header,
                 Value::Text(new_column.into()),
             )]);
+            next.rich_text.clear();
             Some((original, next))
         } else {
             None
@@ -105,5 +106,19 @@ impl TableDefinitionChange {
             shifted_tables: Vec::new(),
             validations: ValidationShift::default(),
         }))
+    }
+
+    pub(crate) fn set_header_rich_text(
+        &mut self,
+        addr: CellAddress,
+        runs: Vec<crate::rich_text::RichTextRun>,
+    ) {
+        if let Some((_, after_snap)) = self.cells.first_mut() {
+            after_snap.rich_text = if runs.is_empty() {
+                Vec::new()
+            } else {
+                vec![(addr, runs)]
+            };
+        }
     }
 }

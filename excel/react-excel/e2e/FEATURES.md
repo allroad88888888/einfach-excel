@@ -1538,3 +1538,11 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | SPLIT-001 | 水平拆分窗格独立滚动远端行并保持与公式栏及主窗格实时同步编辑/撤销 | `workbook/split-window.spec.ts` | `SPLIT-001: horizontal split scrolls independently and keeps edits live across panes` |
 | SPLIT-002 | 四向拆分联动行列滚动轴、支持双击分割条移除单轴且与冻结窗格互斥 | `workbook/split-window.spec.ts` | `SPLIT-002: quad split couples scroll axes, supports divider double-click, and excludes freeze` |
 | SPLIT-003 | 拆分窗口兼容 Canvas 渲染器并按工作表独立隔离与取消拆分 | `workbook/split-window.spec.ts` | `SPLIT-003: split window renders in Canvas mode and stays isolated per sheet` |
+
+### Table 内富文本编辑
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| TABLERICH-001 | Table 数据格支持局部富文本样式编辑与单步撤销/重做 | `rich-text/table-rich-text.spec.ts` | `TABLERICH-001: table data cell supports rich text editing with atomic undo and redo` |
+| TABLERICH-002 | Table 表头富文本编辑支持原子改名、结构化引用改写、重名校验与单步撤销 | `rich-text/table-rich-text.spec.ts` | `TABLERICH-002: table header rich text renames column, rewrites structured refs, and rejects duplicates` |
+| TABLERICH-003 | Table 内富文本随原生工作簿下载与重新打开完整保留 | `rich-text/table-rich-text.spec.ts` | `TABLERICH-003: table rich text survives native workbook download and reopen` |

@@ -11,8 +11,9 @@ impl WasmWorkbook {
     pub fn change_rich_text(&mut self, sheet: u32, row: u32, col: u32, runs: JsValue) -> Result<bool, JsValue> {
         let runs = serde_wasm_bindgen::from_value(runs)
             .map_err(|error| JsValue::from_str(&format!("Invalid rich text: {error}")))?;
-        self.history.change_rich_text(&mut self.workbook, sheet as usize, CellAddress::new(row, col), runs)
-            .map_err(JsValue::from_str)
+        self.history
+            .change_rich_text(&mut self.workbook, sheet as usize, CellAddress::new(row, col), runs)
+            .map_err(|error| JsValue::from_str(&error))
     }
 }
 

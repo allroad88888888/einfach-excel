@@ -44,6 +44,7 @@ interface ClippedMerge {
   rows: number
   cols: number
   sourceCell: DisplayCell | undefined
+  showContent: boolean
 }
 
 /**
@@ -72,16 +73,14 @@ interface ClippedMerge {
  */
 function planMerges(
   cells: ReadonlyArray<DisplayCell>,
+  index: CellIndex,
   rect: CopyAsRect,
   hiddenRows: ReadonlySet<number>,
+  mergedRanges: CopyAsInput['mergedRanges'],
 ): { coveredKeys: Set<string>; mergesByAnchorKey: Map<string, ClippedMerge> } {
   const coveredKeys = new Set<string>()
   const mergesByAnchorKey = new Map<string, ClippedMerge>()
 
-  // First pass: collect every merge by its true anchor. Anchors that carry
-  // `mergedSpan` give us span dimensions directly. Covered cells that arrive
-  // with `mergeAnchor` but without the anchor cell in the projection still
-  // need a placeholder so we can clip; we resolve that in a second pass.
   type AnchorEntry = {
     row: number
     col: number
@@ -90,6 +89,19 @@ function planMerges(
     cell: DisplayCell | undefined
   }
   const anchorByKey = new Map<string, AnchorEntry>()
+
+  for (const range of mergedRanges ?? []) {
+    const rows = Math.max(1, range.rowEnd - range.rowStart + 1)
+    const cols = Math.max(1, range.colEnd - range.colStart + 1)
+    const key = makeKey(range.rowStart, range.colStart)
+    anchorByKey.set(key, {
+      row: range.rowStart,
+      col: range.colStart,
+      rows,
+      cols,
+      cell: index.byKey.get(key),
+    })
+  }
 
   for (const cell of cells) {
     const span = cell.mergedSpan
@@ -177,12 +189,15 @@ function planMerges(
       }
     }
 
+    const showContent =
+      entry.cell !== undefined && entry.row === anchorRow && entry.col === anchorCol
     mergesByAnchorKey.set(makeKey(anchorRow, anchorCol), {
       anchorRow,
       anchorCol,
       rows: clippedRows,
       cols: clippedCols,
-      sourceCell: entry.cell,
+      sourceCell: showContent ? entry.cell : undefined,
+      showContent,
     })
   }
 
@@ -193,7 +208,13 @@ export function encodeSelectionAsHtml(input: CopyAsInput): string {
   const { rect, cells } = input
   const index = indexCells(cells)
   const hiddenRows = normalizeCopyAsHiddenRows(input.hiddenRows)
-  const { coveredKeys, mergesByAnchorKey } = planMerges(cells, rect, hiddenRows)
+  const { coveredKeys, mergesByAnchorKey } = planMerges(
+    cells,
+    index,
+    rect,
+    hiddenRows,
+    input.mergedRanges,
+  )
 
   const parts: string[] = []
   parts.push('<table style="border-collapse: collapse; border: 1px solid #ccc">')
@@ -229,10 +250,8 @@ export function encodeSelectionAsHtml(input: CopyAsInput): string {
         continue
       }
       const merge = mergesByAnchorKey.get(key)
-      // Prefer the merge's source cell (true anchor's content/format); fall
-      // back to whatever cell happens to live at this rect-local position.
       const cellAtKey = index.byKey.get(key)
-      const cell = merge?.sourceCell ?? cellAtKey
+      const cell = merge ? merge.sourceCell : cellAtKey
 
       const attrs: string[] = []
       const cellStyle: string[] = ['border: 1px solid #ccc', 'padding: 2px 4px']
@@ -244,14 +263,8 @@ export function encodeSelectionAsHtml(input: CopyAsInput): string {
         if (merge.cols > 1) attrs.push(`colspan="${merge.cols}"`)
       }
 
-      // `style` payload is built from the whitelisted values above; we
-      // attribute-escape as defence-in-depth so a future bug can't break
-      // out of the `"`-quoted attribute.
       attrs.push(`style="${escapeHtmlAttr(cellStyle.join('; '))}"`)
-      // Only render content when the cell is the true merge anchor (or no
-      // merge applies). Synthetic clipped anchors with no source cell stay
-      // blank so we don't leak content from outside the selection.
-      const renderContent = merge ? merge.sourceCell !== undefined : true
+      const renderContent = merge ? merge.showContent : true
       const content = renderContent ? buildCellContent(cell) : ''
       parts.push(`<td ${attrs.join(' ')}>${content}</td>`)
     }

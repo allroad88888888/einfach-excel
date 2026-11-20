@@ -209,6 +209,7 @@ impl WasmWorkbook :: [] :: pub fn set_cell_input_with_table_expansion( &mut self
 impl WasmWorkbook :: [] :: pub fn set_cell_number(&mut self, sheet_idx: usize, addr: &str, value: f64)
 impl WasmWorkbook :: [] :: pub fn set_cell_text(&mut self, sheet_idx: usize, addr: &str, value: &str)
 impl WasmWorkbook :: [] :: pub fn set_col_width(&mut self, sheet_idx: u32, col_index: u32, width_px: u32) -> bool
+impl WasmWorkbook :: [] :: pub fn set_date_input_order(&mut self, order: &str) -> Result<(), JsValue>
 impl WasmWorkbook :: [] :: pub fn set_drawing(&mut self, sheet: u32, drawing_json: &str) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn set_error(&mut self, sheet_idx: u32, addr: &str, value: &str)
 impl WasmWorkbook :: [] :: pub fn set_format_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, fmt: JsValue, ) -> Result<u32, JsValue>

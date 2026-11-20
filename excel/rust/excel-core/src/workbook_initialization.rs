@@ -34,6 +34,7 @@ impl Workbook {
             print_configs: Vec::new(),
             conditional_formats: Vec::new(),
             conditional_range_atoms: Default::default(),
+            date_input_order: crate::DateInputOrder::default(),
         };
         // Default sheet so users can `wb.active_mut()` without first calling
         // add_sheet — matches the Excel "blank file already has Sheet1" UX.

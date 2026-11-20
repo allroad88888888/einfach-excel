@@ -1,6 +1,10 @@
 //! 超链接只保存地址；显示文字仍是原有单元格值，不建立第二份内容模型。
 use crate::{CellAddress, CellRange, Sheet};
 
+mod internal;
+pub(crate) mod sheet_refs;
+pub use internal::INVALID_INTERNAL_HYPERLINK;
+
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
@@ -8,9 +12,12 @@ mod clipboard_tests;
 
 pub const MAX_HYPERLINK_BYTES: usize = 8192;
 
-/// 统一用于用户写入和文件恢复；禁止脚本、相对地址及含身份凭据的链接。
+/// 统一用于用户写入和文件恢复；支持外部 http(s) 与 `#` 工作簿内位置，禁止脚本与身份凭据链接。
 pub fn normalize_url(input: &str) -> Result<String, &'static str> {
     let input = input.trim();
+    if input.starts_with('#') {
+        return internal::normalize_internal_hyperlink(input);
+    }
     if input.is_empty() || input.len() > MAX_HYPERLINK_BYTES
         || input.chars().any(|c| c.is_control()) || input.contains('\\') {
         return Err("Enter a valid http:// or https:// address.");

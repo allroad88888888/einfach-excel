@@ -17,7 +17,10 @@ impl WorkbookHistory {
         }
         let range = CellRange::single(addr);
         validate_target(workbook, sheet, range)?;
-        let url = url.map(crate::hyperlink::normalize_url).transpose()?;
+        let url = url
+            .map(crate::hyperlink::normalize_url)
+            .transpose()?
+            .map(|normalized| workbook.canonicalize_hyperlink_sheet_case(&normalized));
         let target = workbook.sheet(sheet).unwrap();
         if target
             .spill_anchor_for(addr)

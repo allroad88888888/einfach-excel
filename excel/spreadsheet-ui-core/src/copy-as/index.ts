@@ -2,7 +2,7 @@ import { atom, type Atom, type WritableAtom } from '@einfach/core'
 import type { DisplayCell } from '../contracts/types'
 import type { CopyAsError, CopyAsInput, CopyAsResult, CopyAsTextResult } from './types'
 import { encodeSelectionAsHtml } from './html-encoder'
-import { encodeSelectionAsMarkdown } from './markdown-encoder'
+import { collectMergeCovered, encodeSelectionAsMarkdown } from './markdown-encoder'
 import { copyAsVisibleRows } from './visible-rows'
 
 export * from './types'
@@ -52,23 +52,6 @@ function indexCells(cells: ReadonlyArray<DisplayCell>): Map<string, DisplayCell>
   return m
 }
 
-function collectMergeCovered(cells: ReadonlyArray<DisplayCell>): Set<string> {
-  const covered = new Set<string>()
-  for (const cell of cells) {
-    const span = cell.mergedSpan
-    if (!span) continue
-    const rows = Math.max(1, span.rows)
-    const cols = Math.max(1, span.cols)
-    for (let r = cell.row; r < cell.row + rows; r += 1) {
-      for (let c = cell.col; c < cell.col + cols; c += 1) {
-        if (r === cell.row && c === cell.col) continue
-        covered.add(makeKey(r, c))
-      }
-    }
-  }
-  return covered
-}
-
 /**
  * Escape a cell's display value for plain-text (TSV) output. Inner tabs and
  * line breaks become single spaces — this matches what Excel does when it
@@ -82,7 +65,7 @@ function escapePlainText(raw: string): string {
 export function encodeSelectionAsPlainText(input: CopyAsInput): string {
   const { rect, cells } = input
   const index = indexCells(cells)
-  const covered = collectMergeCovered(cells)
+  const covered = collectMergeCovered(cells, rect, input.mergedRanges)
 
   const rowLines: string[] = []
   // Filter-hidden rows produce no TSV line at all — not even a blank one.

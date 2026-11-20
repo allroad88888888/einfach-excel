@@ -177,7 +177,12 @@ export * from './formula-auditing'
 export { createCellBorderResolver, sharedBorder } from './viewport/cell-border-resolver'
 export { richTextPanelAtom, runRichTextAtom, type RichTextAction } from './rich-text/command'
 export { hyperlinkPanelAtom, runHyperlinkAtom, readCellHyperlinkAtom } from './hyperlink/command'
-export { externalHyperlink } from './hyperlink/url'
+export {
+  clearHyperlinkNoticeAtom,
+  hyperlinkNoticeAtom,
+  openInternalHyperlinkAtom,
+} from './hyperlink/navigate'
+export { externalHyperlink, internalHyperlink, safeHyperlink } from './hyperlink/url'
 export * from './shift-cells'
 export { notePanelAtom, runNoteAtom } from './notes/command'
 export { nativeCommentPanelAtom, runNativeCommentAtom } from './comments/native/command'

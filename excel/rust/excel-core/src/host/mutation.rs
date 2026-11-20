@@ -61,8 +61,10 @@ impl HistoryEntry {
                     stable_positions.extend(mutation.iter().cloned());
                 }
                 if let SheetHistoryChange::Rename { before_refs, after_refs, templates,
-                    before_rules, after_rules, before_validations, after_validations, .. } = change.as_ref() {
-                    for ((sheet, addr, before), (_, _, after)) in before_refs.iter().zip(after_refs) {
+                    before_rules, after_rules, before_validations, after_validations,
+                    before_hyperlinks, after_hyperlinks, .. } = change.as_ref() {
+                    for ((sheet, addr, before), (_, _, after)) in before_refs.iter().zip(after_refs)
+                        .chain(before_hyperlinks.iter().zip(after_hyperlinks)) {
                         if before != after { add(*sheet, Some(CellRange::single(*addr))); }
                     }
                     for change in templates { add(change.sheet, change.mutation_range()); }

@@ -1407,6 +1407,14 @@ msgstr "请补齐每个重复组内的必填参数。"
 msgid "Condition"
 msgstr "条件"
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Conditional formats (all)"
+msgstr "条件格式（全部）"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Conditional formats (same)"
+msgstr "条件格式（相同）"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Conditional formatting"
@@ -1829,6 +1837,14 @@ msgstr "数据工具"
 msgid "Data validation"
 msgstr "数据验证"
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Data validation (all)"
+msgstr "数据验证（全部）"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Data validation (same)"
+msgstr "数据验证（相同）"
+
 #: src/i18n/feedback-messages.ts
 msgid "Database"
 msgstr "数据库"
@@ -2029,6 +2045,14 @@ msgstr "分隔符"
 msgid "Denominator"
 msgstr "分母"
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Dependents (all levels)"
+msgstr "从属单元格（所有级别）"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Dependents (direct only)"
+msgstr "从属单元格（仅直接）"
+
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Descending"
 msgstr "降序"
@@ -2061,6 +2085,10 @@ msgstr "丢弃本地副本"
 #: src/workbook/comments/CommentTools.tsx
 msgid "Discussion for cell {address}"
 msgstr "单元格 {address} 的讨论"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Dismiss hyperlink notice"
+msgstr "关闭超链接提示"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Dismiss layout error"
@@ -2421,6 +2449,10 @@ msgstr "请输入有效的阈值公式。"
 #: src/i18n/seven-feature-feedback.ts
 msgid "Enter a valid validation formula."
 msgstr "请输入有效的验证公式。"
+
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "Enter a valid workbook location such as #Sheet2!A1 or #DefinedName."
+msgstr "请输入有效的工作簿内部位置，例如 #Sheet2!A1 或 #DefinedName。"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Enter a validation formula."
@@ -4293,6 +4325,10 @@ msgstr "尚无可编辑区域。"
 msgid "No fill"
 msgstr "无填充颜色"
 
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "No floating objects found on this worksheet."
+msgstr "当前工作表没有浮动对象。"
+
 #: src/workbook/advanced-validation/ValidationCirclesOverlay.tsx
 msgid "No invalid cells found."
 msgstr "未发现无效单元格。"
@@ -4404,6 +4440,10 @@ msgstr "备注内容不能包含空字符。"
 msgid "Note text cannot exceed 32767 characters."
 msgstr "备注内容不能超过 32767 个字符。"
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Notes and comments"
+msgstr "备注和批注"
+
 #: src/i18n/feedback-messages.ts
 msgid "Notes and validation cannot be combined with arithmetic, transpose or skip blanks."
 msgstr "备注和数据验证不能与运算、转置或跳过空白同时使用。"
@@ -4465,6 +4505,10 @@ msgstr "对象操作"
 msgid "Object settings cannot exceed 64 KiB."
 msgstr "对象设置不能超过 64 KiB。"
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Objects"
+msgstr "对象"
+
 #: src/i18n/feedback-messages.ts
 msgid "Objects changed outside history."
 msgstr "对象已在历史记录之外被修改。"
@@ -4518,6 +4562,10 @@ msgstr "打开此文件并替换当前工作簿？请先下载以保留未保存
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "Open workbook"
 msgstr "打开工作簿"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Open workbook location"
+msgstr "跳转到工作簿位置"
 
 #: src/i18n/translate-feedback.ts
 msgid "Opened Excel workbook. Skipped: {items}."
@@ -4794,6 +4842,14 @@ msgstr "发表回复"
 #: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
 msgid "Postal Code"
 msgstr "邮政编码"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Precedents (all levels)"
+msgstr "引用单元格（所有级别）"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Precedents (direct only)"
+msgstr "引用单元格（仅直接）"
 
 #: src/i18n/feedback-messages.ts
 msgid "Preparing download…"
@@ -5889,6 +5945,14 @@ msgstr "已选中 {areas} 个区域中的 {cells} 个单元格，搜索范围为
 msgid "Selected {cells} visible cells in {areas} areas."
 msgstr "已选中 {areas} 个区域中的 {cells} 个可见单元格。"
 
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "Selected 1 floating object."
+msgstr "已选中 1 个浮动对象。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Selected 1 of {count} floating objects."
+msgstr "已选中 {count} 个浮动对象中的第 1 个。"
+
 #: src/i18n/translate-select-special.ts
 msgid "Selected current region {range}."
 msgstr "已选中当前区域 {range}。"
@@ -6602,6 +6666,18 @@ msgstr "此插入操作会将批注移出工作表。"
 #: src/i18n/seven-feature-feedback.ts
 msgid "The insertion would move a note outside the worksheet."
 msgstr "插入操作会将备注移出工作表。"
+
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "The linked cell or range is outside the worksheet canvas."
+msgstr "链接的目标单元格或区域超出了工作表范围。"
+
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "The linked worksheet is hidden. Unhide it before opening this link."
+msgstr "链接的目标工作表已隐藏，请先取消隐藏再打开此链接。"
+
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "The linked worksheet or named range does not exist."
+msgstr "链接的目标工作表或已定义名称不存在。"
 
 #: src/i18n/feedback-messages.ts
 msgid "The matched cell is outside the current worksheet."

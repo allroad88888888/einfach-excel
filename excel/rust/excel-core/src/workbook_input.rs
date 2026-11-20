@@ -1,9 +1,17 @@
 //! 将用户输入作为一次工作簿写入；自动数字格式也在同一命令内完成。
 use super::*;
-use crate::cell_input::{parse_formatted_input, CellInput};
-use crate::{CellStyle, NumberFormat, StyleScope};
+use crate::cell_input::{parse_formatted_input_with_order, CellInput};
+use crate::{CellStyle, DateInputOrder, NumberFormat, StyleScope};
 
 impl Workbook {
+    pub fn date_input_order(&self) -> DateInputOrder {
+        self.date_input_order
+    }
+
+    pub fn set_date_input_order(&mut self, order: DateInputOrder) {
+        self.date_input_order = order;
+    }
+
     pub fn set_cell_input(
         &mut self,
         sheet_idx: usize,
@@ -26,10 +34,11 @@ impl Workbook {
             return Err("MERGED_CELL_WRITE");
         }
         // 读取最终生效的行／列／格格式；Text 只影响新输入，不回写已有值。
-        let parsed = parse_formatted_input(
+        let parsed = parse_formatted_input_with_order(
             input,
             true,
             &self.sheets[sheet_idx].get_format(address).number_format,
+            self.date_input_order,
         );
         self.apply_validated_input(sheet_idx, addr, |book| {
             book.install_parsed_input(sheet_idx, addr, parsed)

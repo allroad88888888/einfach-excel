@@ -11,14 +11,44 @@ import { rangeToA1 } from '../name-box/address'
 import type { RustWorkbookConnection } from '../rust-workbook/commands'
 import type { LocatedCells, LocateKind } from '../rust-workbook/find-commands'
 import type { CellRange } from '../shared'
+import { locateSheetObjects } from './locator-objects'
 import { GO_TO_REGION_CAP } from './types'
+
+export type GoToSpecialAction = 'open' | 'close' | 'objects' | LocateKind
+
+const LOCATE_KINDS: ReadonlySet<LocateKind> = new Set<LocateKind>([
+  'constants',
+  'formulas',
+  'blanks',
+  'comments',
+  'conditional-format',
+  'conditional-format-same',
+  'data-validation',
+  'data-validation-same',
+  'precedents',
+  'precedents-all',
+  'dependents',
+  'dependents-all',
+])
+const FULL_SHEET_TRACE_KINDS: ReadonlySet<LocateKind> = new Set<LocateKind>([
+  'precedents',
+  'precedents-all',
+  'dependents',
+  'dependents-all',
+])
 
 const EMPTY = { open: false, busy: false, error: null as string | null, notice: '' }
 const stateAtom = atom({ ...EMPTY, connection: null as RustWorkbookConnection | null })
+stateAtom.debugLabel = 'spreadsheet.goTo.specialState'
+
 const canQueryAtom = atom((get) =>
   get(quickFormulaAvailableAtom) && !get(nativeTableFeedbackAtom).busy)
+canQueryAtom.debugLabel = 'spreadsheet.goTo.specialCanQuery'
+
 export const goToSpecialAvailableAtom = atom((get) => get(canQueryAtom) &&
   !(get(stateAtom).connection === get(rustWorkbookConnectionAtom) && get(stateAtom).busy))
+goToSpecialAvailableAtom.debugLabel = 'spreadsheet.goTo.specialAvailable'
+
 export const goToSpecialPanelAtom = atom((get) => {
   const state = get(stateAtom)
   const sheet = get(activeWorkbookSheetAtom)
@@ -31,6 +61,7 @@ export const goToSpecialPanelAtom = atom((get) => {
     scope: `${single ? 'Entire worksheet canvas' : 'Selected range'}: ${rangeToA1(range)}`,
     continuous: get(selectionRegionsAtom).length === 1 }
 })
+goToSpecialPanelAtom.debugLabel = 'spreadsheet.goTo.specialPanel'
 
 function validRange(range: CellRange, rows: number, cols: number): boolean {
   return Boolean(range && [range.rowStart, range.colStart, range.rowEnd, range.colEnd]
@@ -62,7 +93,7 @@ function validResult(result: LocatedCells, range: CellRange, rows: number, cols:
 
 /** 一个只读往返后原子发布全部区域；失败、取消或过期回复都不碰原选区。 */
 export const runGoToSpecialAtom = atom(null, async (get, set,
-  action: 'open' | 'close' | LocateKind,
+  action: GoToSpecialAction,
 ): Promise<boolean> => {
   if (action === 'close') { set(stateAtom, { ...get(stateAtom), ...EMPTY }); return true }
   if (!get(goToSpecialAvailableAtom)) return false
@@ -70,17 +101,44 @@ export const runGoToSpecialAtom = atom(null, async (get, set,
   const sheet = get(activeWorkbookSheetAtom)!
   if (action === 'open') { set(stateAtom, { ...EMPTY, connection, open: true }); return true }
   const panel = get(goToSpecialPanelAtom)
-  if (!panel.open || !['constants', 'formulas', 'blanks'].includes(action)) return false
+  if (!panel.open) return false
+  if (action === 'objects') {
+    const pending = { ...EMPTY, connection, open: true, busy: true }
+    set(stateAtom, pending)
+    const outcome = await locateSheetObjects(get, set)
+    if (get(rustWorkbookConnectionAtom) !== connection || get(stateAtom) !== pending) return false
+    if (outcome.count === 0) {
+      set(stateAtom, { ...pending, busy: false,
+        error: 'No floating objects found on this worksheet.' })
+      return false
+    }
+    set(stateAtom, { ...EMPTY, connection,
+      notice: outcome.count === 1
+        ? 'Selected 1 floating object.'
+        : `Selected 1 of ${outcome.count} floating objects.` })
+    return true
+  }
+  if (!LOCATE_KINDS.has(action)) return false
   if (!panel.continuous) {
     set(stateAtom, { ...get(stateAtom), error: 'Select one continuous range before using Go to special.' })
     return false
   }
+  const selection = get(selectionSnapshotAtom)
+  const queryRange = FULL_SHEET_TRACE_KINDS.has(action)
+    ? { rowStart: 0, colStart: 0, rowEnd: sheet.rowCount - 1, colEnd: sheet.colCount - 1 }
+    : panel.range
+  const extraContext = action === 'constants' || action === 'formulas' || action === 'blanks'
+    ? {}
+    : {
+        origin: selection.range,
+        anchor: { row: selection.activeCell.row, col: selection.activeCell.col },
+      }
   const authority = get(selectionAuthorityWitnessAtom)
   const pending = { ...EMPTY, connection, open: true, busy: true }
   set(stateAtom, pending)
   try {
     const response = connection.request('workbook.locate', {
-      sheetId: sheet.id, range: panel.range, kind: action, limit: GO_TO_REGION_CAP,
+      sheetId: sheet.id, range: queryRange, ...extraContext, kind: action, limit: GO_TO_REGION_CAP,
     })
     await Promise.resolve()
     if (get(stateAtom) === pending) set(stateAtom, pending)
@@ -93,16 +151,15 @@ export const runGoToSpecialAtom = atom(null, async (get, set,
     if (!Number.isSafeInteger(result.revision) || result.revision < 0 ||
       (typeof revision === 'number' && result.revision < revision))
       throw new Error('The workbook changed. Try locating cells again.')
-    if (!validResult(result, panel.range, sheet.rowCount, sheet.colCount))
+    if (!validResult(result, queryRange, sheet.rowCount, sheet.colCount))
       throw new Error('The locate result is invalid or outside the current worksheet canvas.')
     if (!result.ranges.length) throw new Error('No matching cells found. Choose another condition or range.')
     set(setMultiRegionSelectionAtom, { regions: result.ranges.map((range) => ({
       kind: 'range' as const, sheetId: sheet.id,
-      // focus 是活动格，须与下方滚动目标一致；反向 anchor 不改变选区范围。
       anchor: { row: range.rowEnd, col: range.colEnd },
       focus: { row: range.rowStart, col: range.colStart },
     })), primaryIndex: 0 })
-    const first = result.ranges[0]
+    const first = result.ranges[0]!
     set(scrollToCellAtom, { coord: { row: first.rowStart, col: first.colStart },
       rowAlign: 'nearest', colAlign: 'nearest' })
     set(stateAtom, { ...EMPTY, connection,
@@ -115,3 +172,4 @@ export const runGoToSpecialAtom = atom(null, async (get, set,
     return false
   }
 })
+runGoToSpecialAtom.debugLabel = 'spreadsheet.goTo.runSpecial'

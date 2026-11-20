@@ -18,6 +18,8 @@ pub(crate) enum SheetHistoryChange {
         after_rules: ConditionalRuleSources,
         before_validations: ValidationRuleSources,
         after_validations: ValidationRuleSources,
+        before_hyperlinks: FormulaSources,
+        after_hyperlinks: FormulaSources,
         lambdas: Vec<FormulaLambdaChange>,
         templates: Vec<FormulaSourceChange>,
     },
@@ -84,37 +86,27 @@ impl SheetHistoryChange {
                 .into_iter().chain(workbook.validation_sheet_ref_rewrites(&after, Some(&before)))
                 .map(|(key, _)| key).collect();
             let before_validations = workbook.capture_validation_rule_sources(&validation_keys);
+            let hyperlink_coords = workbook.capture_hyperlink_sheet_refs(&before, &after);
+            let before_hyperlinks = workbook.snapshot_hyperlinks_at(&hyperlink_coords);
             workbook.validate_sheet_name(Some(index), name)?;
             let lambdas = FormulaLambdaChange::for_sheet_refs(workbook, &before, Some(&after));
             let templates = FormulaSourceChange::for_sheet_templates(workbook, &before, Some(&after));
             if !workbook.rename_sheet_with_formula_consumers(
-                index,
-                &after,
-                None,
-                None,
-                Some((&lambdas, false)),
-                Some((&templates, false)),
+                index, &after, None, None, Some((&lambdas, false)), Some((&templates, false)),
             ) {
                 return Err("Could not rename the worksheet.");
             }
             let after_refs = capture(workbook);
             let after_rules = workbook.capture_conditional_rule_sources(&rule_keys);
             let after_validations = workbook.capture_validation_rule_sources(&validation_keys);
+            let after_hyperlinks = workbook.snapshot_hyperlinks_at(&hyperlink_coords);
             Ok((
                 index,
                 Some(Self::Rename {
-                    index,
-                    key: workbook.sheet_key(index).unwrap(),
-                    before,
-                    after,
-                    before_refs,
-                    after_refs,
-                    before_rules,
-                    after_rules,
-                    before_validations,
-                    after_validations,
-                    lambdas,
-                    templates,
+                    index, key: workbook.sheet_key(index).unwrap(), before, after,
+                    before_refs, after_refs, before_rules, after_rules,
+                    before_validations, after_validations, before_hyperlinks, after_hyperlinks,
+                    lambdas, templates,
                 }),
             ))
         } else {
@@ -185,24 +177,15 @@ impl SheetHistoryChange {
         }
         match self {
             Self::Rename {
-                index,
-                key,
-                before,
-                after,
-                before_refs,
-                after_refs,
-                before_rules,
-                after_rules,
-                before_validations,
-                after_validations,
-                lambdas,
-                templates,
+                index, key, before, after, before_refs, after_refs,
+                before_rules, after_rules, before_validations, after_validations,
+                before_hyperlinks, after_hyperlinks, lambdas, templates,
             } => {
                 require_key(workbook, *index, *key)?;
-                let (expected, next, sources) = if undo {
-                    (after, before, before_refs)
+                let (expected, next, sources, links) = if undo {
+                    (after, before, before_refs, before_hyperlinks)
                 } else {
-                    (before, after, after_refs)
+                    (before, after, after_refs, after_hyperlinks)
                 };
                 if workbook.name(*index) != Some(expected.as_str()) {
                     return Err("The worksheet changed outside history.");
@@ -217,12 +200,8 @@ impl SheetHistoryChange {
                 store.batch(|_| {
                     result = workbook
                         .rename_sheet_with_formula_consumers(
-                            *index,
-                            next,
-                            Some(rules),
-                            Some(validations),
-                            Some((lambdas, undo)),
-                            Some((templates, undo)),
+                            *index, next, Some(rules), Some(validations),
+                            Some((lambdas, undo)), Some((templates, undo)),
                         )
                         .then_some(())
                         .ok_or("Could not rename the worksheet.")
@@ -230,6 +209,7 @@ impl SheetHistoryChange {
                             for (sheet, addr, source) in sources {
                                 workbook.install_formula_source(*sheet, *addr, source);
                             }
+                            workbook.apply_hyperlink_sheet_snapshot(links);
                         });
                 });
                 result
@@ -282,17 +262,9 @@ impl SheetHistoryChange {
     pub(crate) fn retained_bytes(&self) -> usize {
         match self {
             Self::Rename {
-                before,
-                after,
-                before_refs,
-                after_refs,
-                before_rules,
-                after_rules,
-                before_validations,
-                after_validations,
-                lambdas,
-                templates,
-                ..
+                before, after, before_refs, after_refs, before_rules, after_rules,
+                before_validations, after_validations, before_hyperlinks, after_hyperlinks,
+                lambdas, templates, ..
             } => {
                 before.len()
                     + after.len()
@@ -305,6 +277,8 @@ impl SheetHistoryChange {
                     + before_refs
                         .iter()
                         .chain(after_refs)
+                        .chain(before_hyperlinks)
+                        .chain(after_hyperlinks)
                         .map(|(_, _, source)| 32 + source.len())
                         .sum::<usize>()
             }

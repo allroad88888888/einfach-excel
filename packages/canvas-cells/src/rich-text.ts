@@ -1,6 +1,6 @@
 import type { Rect } from '@einfach-excel/canvas'
 import {
-  externalHyperlink, fontBaselineLayout, fontVerticalMetrics,
+  safeHyperlink, fontBaselineLayout, fontVerticalMetrics,
   textShrinkBlockedReason, textShrinkScale,
   type DisplayCell,
   type RichTextFormat,
@@ -38,7 +38,7 @@ export function paintRichText(
   const base = cell.format
   const baselineAware = Boolean(base?.fontBaseline && base.fontBaseline !== 'normal') ||
     (cell.richText ?? []).some(run => run.format.fontBaseline !== undefined)
-  const hyperlink = Boolean(externalHyperlink(cell.hyperlink))
+  const hyperlink = Boolean(safeHyperlink(cell.hyperlink))
   const indent = Math.max(0, Math.min(250, base?.indent ?? 0)) * 8
   const width = Math.max(0, bounds.width - 14 - indent - (filter ? 22 : 0))
   const height = Math.max(0, bounds.height - 7)

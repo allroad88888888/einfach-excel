@@ -6,6 +6,7 @@ import { effectiveHiddenAtom, viewportMetricsAtom } from '../viewport'
 import { workspaceActiveSheetAuthorityWitnessAtom, workspaceSessionAtom } from '../workspace'
 import { nextGoToSpecialRequestId } from './identity'
 import { runGoToSpecialScan } from './locator-engine'
+import { runObjectsSessionScan } from './locator-objects'
 import { goToSpecialLaunchIsCurrent, goToSpecialTicketIsCurrent } from './scan-currency'
 import {
   cellIsInsideRange,
@@ -106,6 +107,11 @@ export const runGoToSpecialScanAtom = atom(
       }
 
       const locator = snapshotLocator(get(goToLocatorAtom))
+      if (locator.kind === 'objects') {
+        await runObjectsSessionScan(get, set, () =>
+          goToSpecialLaunchIsCurrent(get, sessionId, workspaceWitness, launchSelectionWitness))
+        return
+      }
       const selectionRange = selection.range
       const differenceLocator =
         locator.kind === 'row-differences' || locator.kind === 'column-differences'

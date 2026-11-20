@@ -31,6 +31,19 @@ fn clock_elapsed_and_am_pm_are_numeric_days_with_native_display() {
         wb.set_cell_input(0, "B1", "=ROUND(A1*86400,0)").unwrap();
         assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(seconds as f64));
     }
+    for (input, millis, display) in [
+        ("1:00:00.5", 3_600_500, "01:00:00.5"),
+        ("12:30:15.250", 45_015_250, "12:30:15.250"),
+        ("2:30:15.5 AM", 9_015_500, "2:30:15.5 AM"),
+        ("25:30:00.125", 91_800_125, "25:30:00.125"),
+    ] {
+        wb.set_cell_input(0, "A1", input).unwrap();
+        let Value::Number(actual) = wb.get_cell("Sheet1", "A1") else {
+            panic!("expected numeric serial for {input}");
+        };
+        assert!((actual - (millis as f64 / 86_400_000.0)).abs() < 1e-12, "{input}");
+        assert_eq!(wb.sheet(0).unwrap().formatted_display("A1"), display, "{input}");
+    }
 }
 
 #[test]
@@ -86,7 +99,9 @@ fn invalid_ambiguous_and_escaped_inputs_remain_text() {
         "9.5 AM",
         "71003184:00",
         "999999999999999999999:00",
-        "1:00:00.5",
+        "1:00:00.",
+        "1:00:5.5",
+        "1:00:00.1234567890",
     ] {
         assert_eq!(
             parse_cell_input(text, true),

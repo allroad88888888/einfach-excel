@@ -44,6 +44,18 @@ impl WasmWorkbook {
             .map_err(|error| JsValue::from_str(&error))
     }
 
+    /// 宿主显式声明单元格输入日期顺序（YMD / MDY / DMY）；默认 YMD 只接受四位年在前无歧义日期。
+    pub fn set_date_input_order(&mut self, order: &str) -> Result<(), JsValue> {
+        let parsed = match order.trim().to_ascii_uppercase().as_str() {
+            "YMD" => einfach_excel_core::DateInputOrder::Ymd,
+            "MDY" => einfach_excel_core::DateInputOrder::Mdy,
+            "DMY" => einfach_excel_core::DateInputOrder::Dmy,
+            _ => return Err(JsValue::from_str("Invalid date input order.")),
+        };
+        self.workbook.set_date_input_order(parsed);
+        Ok(())
+    }
+
     pub fn set_cell_number(&mut self, sheet_idx: usize, addr: &str, value: f64) {
         self.workbook
             .set_cell(sheet_idx, addr, Value::Number(value));

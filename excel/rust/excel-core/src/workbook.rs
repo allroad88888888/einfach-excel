@@ -269,6 +269,7 @@ pub struct Workbook {
     print_configs: Vec<workbook_print_config::SheetPrintConfig>,
     conditional_formats: Vec<workbook_conditional_format_types::SheetConditionalFormatConfig>,
     conditional_range_atoms: conditional_range::RangeAtoms,
+    pub(crate) date_input_order: crate::DateInputOrder,
 }
 
 #[cfg(test)]

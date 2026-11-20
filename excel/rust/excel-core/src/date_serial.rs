@@ -4,6 +4,15 @@ use chrono::{Datelike, Duration, NaiveDate};
 /// 9999-12-31；当天的小数部分仍表示时间。
 pub(crate) const MAX_DATE_SERIAL: f64 = 2_958_465.0;
 
+/// 宿主显式声明的单元格输入日期顺序；默认严格仅接受四位年在前的无歧义日期。
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum DateInputOrder {
+    #[default]
+    Ymd,
+    Mdy,
+    Dmy,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct ExcelDateParts {
     pub year: i32,
@@ -101,6 +110,51 @@ pub(crate) fn parse_iso_date(input: &str) -> Option<f64> {
     let year = parts[0].parse().ok()?;
     let month = parts[1].parse().ok()?;
     let day = parts[2].parse().ok()?;
+    if !(1900..=9999).contains(&year) || day == 0 {
+        return None;
+    }
+    excel_date_parts_to_serial(ExcelDateParts {
+        year,
+        month,
+        day,
+        fraction: 0.0,
+    })
+}
+
+/// 在宿主显式配置 MDY / DMY 时识别对应顺序的斜杠或连字符日期；默认 YMD 保持严格四位年在前行为。
+pub(crate) fn parse_date_with_order(input: &str, order: DateInputOrder) -> Option<f64> {
+    if let Some(serial) = parse_iso_date(input) {
+        return Some(serial);
+    }
+    if order == DateInputOrder::Ymd {
+        return None;
+    }
+    let has_slash = input.contains('/');
+    let has_dash = input.contains('-');
+    if has_slash == has_dash {
+        return None;
+    }
+    let separator = if has_slash { '/' } else { '-' };
+    let parts: Vec<_> = input.split(separator).collect();
+    if parts.len() != 3
+        || parts[0].is_empty()
+        || parts[0].len() > 2
+        || parts[1].is_empty()
+        || parts[1].len() > 2
+        || !matches!(parts[2].len(), 2 | 4)
+        || parts.iter().any(|p| !p.bytes().all(|b| b.is_ascii_digit()))
+    {
+        return None;
+    }
+    let mut year: i32 = parts[2].parse().ok()?;
+    if parts[2].len() == 2 {
+        year += if year < 30 { 2000 } else { 1900 };
+    }
+    let (month, day) = match order {
+        DateInputOrder::Mdy => (parts[0].parse().ok()?, parts[1].parse().ok()?),
+        DateInputOrder::Dmy => (parts[1].parse().ok()?, parts[0].parse().ok()?),
+        DateInputOrder::Ymd => unreachable!(),
+    };
     if !(1900..=9999).contains(&year) || day == 0 {
         return None;
     }

@@ -39,8 +39,25 @@ function indexCells(cells: ReadonlyArray<DisplayCell>): Map<string, DisplayCell>
  * | no             | yes             | covered renders blank (no leakage)   |
  * | no             | no              | merge irrelevant                     |
  */
-function collectMergeCovered(cells: ReadonlyArray<DisplayCell>, rect: CopyAsRect): Set<string> {
+export function collectMergeCovered(
+  cells: ReadonlyArray<DisplayCell>,
+  rect: CopyAsRect,
+  mergedRanges?: CopyAsInput['mergedRanges'],
+): Set<string> {
   const covered = new Set<string>()
+
+  for (const range of mergedRanges ?? []) {
+    const rStart = Math.max(rect.startRow, range.rowStart)
+    const rEnd = Math.min(rect.endRow, range.rowEnd)
+    const cStart = Math.max(rect.startCol, range.colStart)
+    const cEnd = Math.min(rect.endCol, range.colEnd)
+    for (let r = rStart; r <= rEnd; r += 1) {
+      for (let c = cStart; c <= cEnd; c += 1) {
+        if (r === range.rowStart && c === range.colStart) continue
+        covered.add(makeKey(r, c))
+      }
+    }
+  }
 
   for (const cell of cells) {
     const span = cell.mergedSpan
@@ -114,7 +131,7 @@ function buildCellContent(cell: DisplayCell | undefined): string {
 export function encodeSelectionAsMarkdown(input: CopyAsInput): string {
   const { rect, cells } = input
   const index = indexCells(cells)
-  const covered = collectMergeCovered(cells, rect)
+  const covered = collectMergeCovered(cells, rect, input.mergedRanges)
   const colCount = rect.endCol - rect.startCol + 1
 
   const renderRow = (row: number): string => {

@@ -27,15 +27,20 @@ export type GoToLocator =
   | { kind: 'constants'; valueKind: GoToValueKindFilter }
   | { kind: 'blanks' }
   | { kind: 'comments' }
+  | { kind: 'objects' }
   | { kind: 'conditional-format' }
+  | { kind: 'conditional-format-same' }
   | { kind: 'data-validation' }
+  | { kind: 'data-validation-same' }
   | { kind: 'last-cell' }
   | { kind: 'current-region' }
   | { kind: 'visible-cells-only' }
   | { kind: 'row-differences' }
   | { kind: 'column-differences' }
   | { kind: 'precedents' }
+  | { kind: 'precedents-all' }
   | { kind: 'dependents' }
+  | { kind: 'dependents-all' }
 
 export type GoToLocatorKind = GoToLocator['kind']
 

@@ -7,6 +7,7 @@ import { selectSpecialFeedback } from './select-special-feedback'
 import { shiftCellsFeedback } from './shift-cells-feedback'
 import { xlsxReportFeedback } from './xlsx-report-feedback'
 import { richTextFeedback } from './rich-text-feedback'
+import { internalHyperlinkFeedback } from './internal-hyperlink-feedback'
 
 /** Core 提示的展现层词典：键保留原文以兼容现有结果；翻译由 Lingui 提取和切换。 */
 export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
@@ -17,6 +18,7 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   ...shiftCellsFeedback,
   ...xlsxReportFeedback,
   ...richTextFeedback,
+  ...internalHyperlinkFeedback,
   'Choose a supported date period and highlight.': msg`Choose a supported date period and highlight.`,
   'Choose a supported average comparison and highlight.': msg`Choose a supported average comparison and highlight.`,
   'Choose a supported blank or error condition and highlight.': msg`Choose a supported blank or error condition and highlight.`,

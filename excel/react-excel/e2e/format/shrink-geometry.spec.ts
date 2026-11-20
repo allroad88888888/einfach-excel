@@ -92,7 +92,10 @@ test('late fonts and remounted cells remeasure without writing workbook history'
   const target = cell(page, '6:0')
   const original = await shrinkScale(target)
   await page.evaluate(async () => {
-    const face = new FontFace('ShrinkLate', 'local("Arial")')
+    const face = new FontFace(
+      'ShrinkLate',
+      'local("Arial"), local("Liberation Sans"), local("LiberationSans-Regular"), local("DejaVu Sans")',
+    )
     document.fonts.add(face)
     await face.load()
     await document.fonts.ready

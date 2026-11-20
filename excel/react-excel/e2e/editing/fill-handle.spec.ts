@@ -167,7 +167,7 @@ test('merged target rejects atomically and retains source selection for retry', 
   await begin(page, 'A13')
   await move(page, '15:0')
   await page.mouse.up()
-  await expect(page.getByLabel('Fill status')).toContainText('unmerge cells')
+  await expect(page.getByLabel('Fill status')).toContainText('Unmerge cells')
   await expect(name(page)).toHaveValue('A13')
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   await begin(page, 'A40:A41')

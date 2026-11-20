@@ -11,7 +11,7 @@ export const SUMMARY_SHRINK_TO_FIT_CELLS: readonly RustImportCell[] = [
         { text: 'O sample', format: {} },
       ] },
       { sheet: 1, row: 15, col, kind: 'text', value: 'INV-2026-0000000123456789', format },
-      { sheet: 1, row: 16, col, kind: 'number', value: 123456789.25,
+      { sheet: 1, row: 16, col, kind: 'number', value: 12345678901.25,
         format: { ...format, numberFormat: { kind: 'number', digits: 2 } } },
       { sheet: 1, row: 17, col, kind: 'formula', value: col === 3 ? '=D17*2' : '=E17*2',
         format: { ...format, numberFormat: { kind: 'number', digits: 2 } } },

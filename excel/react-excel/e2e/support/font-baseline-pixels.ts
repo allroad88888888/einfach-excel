@@ -9,7 +9,7 @@ export const baselinePixelFile = Buffer.from(JSON.stringify({
     formats: [{ sheet: 0, startRow: 0, endRow: 0, startCol: 0, endCol: 2,
       cellStyles: ['normal', 'superscript', 'subscript'].map((fontBaseline, col) => ({
         addr: `${String.fromCharCode(65 + col)}1`,
-        format: { fontSize: 20, fontFamily: 'Arial', fgColor: ['#d00000', '#008000', '#0000d0'][col], fontBaseline },
+        format: { fontSize: 32, fontFamily: 'Arial', fgColor: ['#d00000', '#008000', '#0000d0'][col], fontBaseline },
       })) }],
   },
 }))

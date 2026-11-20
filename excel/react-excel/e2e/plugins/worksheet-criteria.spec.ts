@@ -36,7 +36,7 @@ test('Summary worksheet criteria copy only the matching native sample record', a
   await button(page, 'Advanced filter').click()
   const dialogue = criteriaDialog(page)
   await dialogue.getByRole('radio', { name: 'Copy to another location' }).check()
-  await dialogue.getByLabel('Criteria range', { exact: true }).fill('A43:B44')
+  await dialogue.getByLabel('Criteria range', { exact: true }).fill('B33:C34')
   await dialogue.getByLabel('Copy to', { exact: true }).fill('A51')
   await dialogue.getByRole('button', { name: 'Preview results', exact: true }).click()
   await expect(dialogue.getByRole('status')).toHaveText('1 matching record')

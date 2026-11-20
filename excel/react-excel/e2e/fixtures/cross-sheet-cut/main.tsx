@@ -5,7 +5,6 @@ import { WorkbookRuntimeProvider } from '../../../src/page/WorkbookRuntimeProvid
 import { demoPresentation } from '../../../src/page/demo/demo-presentation'
 import { CROSS_SHEET_CUT_WORKBOOK } from '../../../src/page/demo/cross-sheet-cut/cross-sheet-cut-workbook'
 import { WorkbookView } from '../../../src/workbook/shell/WorkbookView'
-import '../../../src/app/app.css'
 import '../../../src/page/demo-page.css'
 
 // Only the workbook definition differs; DOM, Core, Worker and WASM remain the product path.

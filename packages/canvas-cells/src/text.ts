@@ -66,7 +66,7 @@ export function paintText(
     const wrapping = format?.overflow === 'wrap' || format?.wrap
     const vertical = format?.rotation === 'vertical'
     const baseline = fontBaselineLayout(fontSize, format?.fontBaseline)
-    const baselineAware = baseline.shift !== 0
+    const baselineAware = Boolean(format?.fontBaseline)
     const nominalMetrics = fontVerticalMetrics(ctx.measureText('Mg'), fontSize)
     ctx.font = font(baseline.size)
     const naturalWidth = numberFormatLineWidth(ctx, text, numberDisplay)

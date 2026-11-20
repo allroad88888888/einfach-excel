@@ -11,15 +11,16 @@ test('DOM glyphs and exported PNG preserve baseline ordering and nominal font si
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await openFile(page, baselinePixelFile)
   await expect(cell(page, '0:2')).toHaveText('Hg')
+  await select(page, 'A5', '4:0')
   const name = page.getByRole('textbox', { name: 'Name box' })
-  await name.fill('A1:C1'); await name.press('Enter')
-  for (const col of [0, 1, 2]) await expect(cell(page, `0:${col}`)).toHaveCSS('font-size', '20px')
+  for (const col of [0, 1, 2]) await expect(cell(page, `0:${col}`)).toHaveCSS('font-size', '32px')
   const first = (await cell(page, '0:0').boundingBox())!
   const last = (await cell(page, '0:2').boundingBox())!
   const dom = await page.screenshot({ path: info.outputPath('baseline-dom-pixels.png'),
     clip: { x: first.x, y: first.y, width: last.x + last.width - first.x, height: first.height } })
   const domPixels = await glyphPixels(page, dom)
   expectBaselinePixels(domPixels)
+  await name.fill('A1:C1'); await name.press('Enter')
   await showRibbonControl(page, 'Export selection as image')
   await button(page, 'Export selection as image').click()
   await expect(button(page, 'Download PNG')).toBeEnabled()
@@ -41,7 +42,7 @@ test('actual Canvas renderer paints smaller raised and lowered glyphs inside unc
   await expect(canvas).toBeVisible()
   await openFile(page, baselinePixelFile)
   const name = page.getByRole('textbox', { name: 'Name box' })
-  await name.fill('A1:C1'); await name.press('Enter')
+  await name.fill('A5'); await name.press('Enter')
   await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
   const png = async () => Buffer.from(await canvas.evaluate(element =>
     (element as HTMLCanvasElement).toDataURL('image/png').split(',')[1]!), 'base64')
@@ -65,7 +66,7 @@ test('auto-fit measures the scaled baseline glyphs without changing their nomina
     await handle.dblclick()
     await expect(handle).not.toHaveAttribute('aria-valuenow', '120')
     widths.push(Number(await handle.getAttribute('aria-valuenow')))
-    await expect(cell(page, `0:${index}`)).toHaveCSS('font-size', '20px')
+    await expect(cell(page, `0:${index}`)).toHaveCSS('font-size', '32px')
     expect(await cell(page, `0:${index}`).locator('.cell-content').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true)
   }
   expect(widths[1]).toBeLessThan(widths[0]!)

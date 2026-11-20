@@ -18,6 +18,7 @@ export interface FindReplaceForm extends RustFindQuery {
 export interface FindReplacePanel {
   readonly open: boolean
   readonly tab: 'find' | 'replace'
+  readonly formatOpen?: boolean
   readonly form: FindReplaceForm
   /** 打开时捕获作用域，结果导航不能把原选区或原工作表改成下一次搜索范围。 */
   readonly origin: {
@@ -114,6 +115,7 @@ export function extractFormatFromCell(
 export const findReplaceStateAtom = atom<FindReplacePanel>({
   open: false,
   tab: 'find',
+  formatOpen: false,
   origin: null,
   busy: null,
   result: null,

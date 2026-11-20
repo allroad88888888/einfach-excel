@@ -38,6 +38,7 @@ export type FindReplaceAction =
   | { readonly page: number }
   | { readonly match: number }
   | { readonly open: 'find' | 'replace' }
+  | { readonly formatOpen: boolean }
   | { readonly form: Partial<FindReplaceForm> }
 
 /** 一个事件对应一个命令；Rust 拥有匹配与写入，atom 只保存可见面板状态。 */
@@ -50,12 +51,17 @@ export const runFindReplaceAtom = atom(
       set(findReplaceStateAtom, {
         ...state,
         open: false,
+        formatOpen: false,
         origin: null,
         busy: null,
         result: null,
         error: null,
         notice: null,
       })
+      return true
+    }
+    if (typeof action === 'object' && 'formatOpen' in action) {
+      set(findReplaceStateAtom, { ...state, formatOpen: action.formatOpen })
       return true
     }
     const connection = get(rustWorkbookConnectionAtom)
@@ -115,6 +121,7 @@ export const runFindReplaceAtom = atom(
       const isFind = action === 'sample-find-format'
       set(findReplaceStateAtom, {
         ...latest,
+        formatOpen: true,
         form: isFind
           ? { ...latest.form, format: sampled }
           : { ...latest.form, replaceFormat: sampled },

@@ -65,11 +65,11 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 28, col: 0, kind: 'text', value: 'East' },
   { sheet: 1, row: 28, col: 1, kind: 'number', value: 30 },
   { sheet: 1, row: 28, col: 2, kind: 'text', value: 'E30', format: { underline: true } },
-  // A43:B44 给 A25:C29 提供高级筛选条件，复制结果可放到 A51。
-  { sheet: 1, row: 42, col: 0, kind: 'text', value: 'Team', format: { bold: true } },
-  { sheet: 1, row: 42, col: 1, kind: 'text', value: 'Score', format: { bold: true } },
-  { sheet: 1, row: 43, col: 0, kind: 'text', value: 'East' },
-  { sheet: 1, row: 43, col: 1, kind: 'text', value: '>=20' },
+  // B33:C34 给 A25:C29 提供高级筛选条件，复制结果可放到 A51。
+  { sheet: 1, row: 32, col: 1, kind: 'text', value: 'Team', format: { bold: true } },
+  { sheet: 1, row: 32, col: 2, kind: 'text', value: 'Score', format: { bold: true } },
+  { sheet: 1, row: 33, col: 1, kind: 'text', value: 'East' },
+  { sheet: 1, row: 33, col: 2, kind: 'text', value: '>=20' },
   { sheet: 1, row: 59, col: 0, kind: 'text', value: '星期五' },
   { sheet: 1, row: 59, col: 2, kind: 'text', value: '11月' },
   { sheet: 1, row: 39, col: 4, kind: 'number', value: 0 },

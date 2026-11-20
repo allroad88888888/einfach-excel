@@ -334,7 +334,7 @@ impl StructuralHistoryChange {
             workbook.sheets[sheet].outline.clone_from(&snapshot.outline);
             workbook.sheets[sheet].subtotal_regions.clone_from(&snapshot.subtotal_regions);
             workbook
-                .restore_sheet_visibility(sheet, &snapshot.visibility)
+                .restore_sheet_visibility_for_structure(sheet, &snapshot.visibility)
                 .expect("preflight checked workbook state");
             workbook.sheets[sheet].commit_filter_state(snapshot.filter.clone());
             for change in &self.filter_criteria { change.apply(workbook, undo); }

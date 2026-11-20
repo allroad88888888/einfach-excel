@@ -120,7 +120,7 @@ impl Workbook {
         excluded_rows: &[u32],
     ) -> Result<SortRangeReport, SortRangeError> {
         if self.sheet(sheet_idx).is_none() { return Err(SortRangeError::InvalidRange); }
-        self.ensure_range_editable(sheet_idx, range.normalize())
+        self.ensure_sort_allowed(sheet_idx, range.normalize())
             .map_err(|_| SortRangeError::ProtectedRange)?;
         let Some(sheet) = self.sheet_mut(sheet_idx) else {
             return Err(SortRangeError::InvalidRange);

@@ -50,9 +50,13 @@ export const sortSelectionAtom = atom(null, async (
   } else if (range.rowEnd <= range.rowStart) {
     return fail('Select at least two data rows. Include all columns to move together.')
   }
-  if (getSheetProtection(get(sheetProtectionAtom), sheetId).mode === 'protected')
+  const protection = getSheetProtection(get(sheetProtectionAtom), sheetId)
+  if (protection.mode === 'protected' && !protection.permissions?.sort)
     return fail('Unprotect the worksheet before sorting cells.')
-  if (set(resolveContentMutationAtom, { kind: 'clear-range', sheetId, range }).status === 'blocked')
+  const editableRange = settings.hasHeader && range.rowStart < range.rowEnd
+    ? { ...range, rowStart: range.rowStart + 1 }
+    : range
+  if (set(resolveContentMutationAtom, { kind: 'clear-range', sheetId, range: editableRange }).status === 'blocked')
     return fail('The selected range cannot be changed.')
   const requestId = set(issueProjectionRequestIdAtom)
   if (requestId === null) return false

@@ -57,8 +57,17 @@ export const runSelectionStructureAtom = atom(
       set(selectionStructureFeedbackAtom, { busy: false, error })
       return false
     }
-    // 与 Rust 一致：只锁被编辑工作表的几何，其他工作表里的引用照常改写。
-    if (getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected')
+    // 与 Rust 一致：只锁被编辑工作表的几何；勾选对应保护权限时放行。
+    const protection = getSheetProtection(get(sheetProtectionAtom), sheet.id)
+    const allowedByPermission =
+      action === 'insert-rows'
+        ? Boolean(protection.permissions?.insertRows)
+        : action === 'insert-columns'
+          ? Boolean(protection.permissions?.insertColumns)
+          : action === 'delete-rows'
+            ? Boolean(protection.permissions?.deleteRows)
+            : Boolean(protection.permissions?.deleteColumns)
+    if (protection.mode === 'protected' && !allowedByPermission)
       return fail('Unprotect the worksheet before inserting or deleting rows and columns.')
     try {
       const rows = action.endsWith('rows')

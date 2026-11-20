@@ -48,11 +48,34 @@ impl From<CellRange> for ProtectionRange {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ProtectionPermissions {
+    #[serde(default)]
+    pub sort: bool,
+    #[serde(default)]
+    pub insert_rows: bool,
+    #[serde(default)]
+    pub insert_columns: bool,
+    #[serde(default)]
+    pub delete_rows: bool,
+    #[serde(default)]
+    pub delete_columns: bool,
+}
+
+impl ProtectionPermissions {
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SheetProtection {
     pub mode: ProtectionMode,
     pub unlocked_ranges: Vec<ProtectionRange>,
+    #[serde(default, skip_serializing_if = "ProtectionPermissions::is_default")]
+    pub permissions: ProtectionPermissions,
 }
 
 impl SheetProtection {
@@ -71,6 +94,7 @@ pub enum ProtectionChange {
     Unprotect,
     AllowRange { range: ProtectionRange },
     RemoveRange { index: usize },
+    SetPermissions { permissions: ProtectionPermissions },
 }
 
 impl Workbook {
@@ -104,6 +128,10 @@ impl Workbook {
                 }
                 next.unlocked_ranges.remove(index);
             }
+            ProtectionChange::SetPermissions { permissions } => {
+                self.ensure_sheet_unprotected(sheet)?;
+                next.permissions = permissions;
+            }
         }
         next.validate()?;
         if next == before { return Ok(false); }
@@ -128,6 +156,42 @@ impl Workbook {
         if self.read_protection(sheet)?.mode == ProtectionMode::Protected {
             Err(PROTECTED_ERROR)
         } else { Ok(()) }
+    }
+
+    /// Sorting a protected sheet requires BOTH the `sort` permission AND every cell in the
+    /// sort range to be editable (unlocked), matching Excel's sheet protection semantics.
+    pub fn ensure_sort_allowed(&self, sheet: usize, range: CellRange)
+        -> Result<(), &'static str>
+    {
+        let target = ProtectionRange::from(range);
+        target.validate()?;
+        let state = self.read_protection(sheet)?;
+        if state.mode == ProtectionMode::Open
+            || (state.permissions.sort && coverage::fully_covered(target, &state.unlocked_ranges))
+        {
+            Ok(())
+        } else {
+            Err(PROTECTED_ERROR)
+        }
+    }
+
+    /// Row/column insertion and deletion on a protected sheet require the matching permission.
+    pub fn ensure_structural_edit_allowed(
+        &self,
+        sheet: usize,
+        edit: crate::shift::ShiftEdit,
+    ) -> Result<(), &'static str> {
+        let state = self.read_protection(sheet)?;
+        if state.mode == ProtectionMode::Open {
+            return Ok(());
+        }
+        let allowed = match edit {
+            crate::shift::ShiftEdit::RowInsert { .. } => state.permissions.insert_rows,
+            crate::shift::ShiftEdit::ColInsert { .. } => state.permissions.insert_columns,
+            crate::shift::ShiftEdit::RowDelete { .. } => state.permissions.delete_rows,
+            crate::shift::ShiftEdit::ColDelete { .. } => state.permissions.delete_columns,
+        };
+        if allowed { Ok(()) } else { Err(PROTECTED_ERROR) }
     }
 
     /// A Table's definition is part of its own worksheet; structured references elsewhere follow it.

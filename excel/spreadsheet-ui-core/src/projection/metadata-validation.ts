@@ -2,6 +2,7 @@ import type { DisplayCell } from '../contracts'
 import { validRichText } from '../contracts/rich-text'
 import { snapshotSheetDefaults } from '../runtime/sheet-defaults'
 import type { ProjectionResult } from './types'
+import { isValidProtectionPermissions } from '../protection/sheet-state'
 import { validateCustomFormulaDefinitions } from '../custom-formulas/expression-types'
 
 /** Transport validation only: native code owns thresholds, permissions and content. */
@@ -35,6 +36,9 @@ export function validProjectionMetadata(result: ProjectionResult): boolean {
   }
   const state = result.protection
   if (state === undefined) return true
+  if (state.permissions !== undefined && !isValidProtectionPermissions(state.permissions)) {
+    return false
+  }
   return !!state && ['open', 'protected'].includes(state.mode) &&
     Array.isArray(state.unlockedRanges) && state.unlockedRanges.length <= 256 &&
     state.unlockedRanges.every((range) => range &&

@@ -1522,3 +1522,11 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | FINDFMT-001 | 按格式查找定位粗体/填充色单元格（含从活动格提取与已设样式空白格） | `editing/find-by-format.spec.ts` | `Find by format locates bold and fill-colored cells including styled blanks` |
 | FINDFMT-002 | 仅替换格式原子更新匹配单元格样式（保留公式与值）并支持单步撤销 | `editing/find-by-format.spec.ts` | `Replace format updates matched cells atomically with one undo step` |
 | FINDFMT-003 | 文本与格式组合查找替换同时更新内容与样式并支持单步撤销 | `editing/find-by-format.spec.ts` | `Combined text and format find-replace filters matches and replaces both atomically` |
+
+### 保护下允许排序与插删
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| PROTPERM-001 | 受保护工作表勾选排序权限后可对可编辑区域排序与撤销，仍拒绝锁定格 | `protection/permissions.spec.ts` | `PROTPERM-001: protected sheet allows sorting unlocked range when permitted and rejects locked cells` |
+| PROTPERM-002 | 受保护工作表按轴独立放行插入/删除行或列并支持撤销，未授权轴仍拒绝 | `protection/permissions.spec.ts` | `PROTPERM-002: protected sheet allows only granted row or column insertions and deletions with undo` |
+| PROTPERM-003 | 原生工作簿下载与重新打开保留工作表保护细粒度权限 | `protection/permissions.spec.ts` | `PROTPERM-003: native workbook download and reopen preserve worksheet protection permissions` |

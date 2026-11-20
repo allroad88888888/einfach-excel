@@ -65,7 +65,7 @@ impl Workbook {
     ) -> Result<SortRangeReport, SortRangeError> {
         let range = range.normalize();
         let target = self.sheet(sheet).ok_or(SortRangeError::InvalidRange)?;
-        self.ensure_range_editable(sheet, range).map_err(|_| SortRangeError::ProtectedRange)?;
+        self.ensure_sort_allowed(sheet, range).map_err(|_| SortRangeError::ProtectedRange)?;
         let slots = target.sort_slots(range, keys.iter().map(SortCriterion::key_index), excluded_rows)?;
         let result = self.sort_prepared_slots(sheet, range, SortAxis::Rows, &slots, keys.iter())?;
         Ok(SortRangeReport {
@@ -85,7 +85,7 @@ impl Workbook {
         if self.sheet(sheet).is_none() {
             return Err(SortRangeError::InvalidRange);
         }
-        self.ensure_range_editable(sheet, range).map_err(|_| SortRangeError::ProtectedRange)?;
+        self.ensure_sort_allowed(sheet, range).map_err(|_| SortRangeError::ProtectedRange)?;
         let keys = keys.iter().map(RowSortCriterion::criterion);
         let slots = self.sort_column_slots(sheet, range, keys.clone().map(SortCriterion::key_index))?;
         let result = self.sort_prepared_slots(sheet, range, SortAxis::Columns, &slots, keys)?;

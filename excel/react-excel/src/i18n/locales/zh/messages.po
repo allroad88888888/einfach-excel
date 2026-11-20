@@ -391,6 +391,10 @@ msgstr "允许编辑选区"
 msgid "Allow trailing minus (123- becomes -123)"
 msgstr "允许末尾负号（123- 转为 -123）"
 
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Allowed actions while protected"
+msgstr "受保护时允许的操作"
+
 #: src/i18n/feedback-messages.ts
 msgid "Already in order."
 msgstr "数据已按此顺序排列。"
@@ -1862,6 +1866,7 @@ msgid "Delete cells…"
 msgstr "删除单元格…"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/protection/ProtectionTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Delete columns"
 msgstr "删除列"
@@ -1891,6 +1896,7 @@ msgid "Delete object"
 msgstr "删除对象"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/protection/ProtectionTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Delete rows"
 msgstr "删除行"
@@ -3371,6 +3377,7 @@ msgid "Insert cells…"
 msgstr "插入单元格…"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/protection/ProtectionTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Insert columns"
 msgstr "插入列"
@@ -3405,6 +3412,7 @@ msgid "Insert or delete rows and columns"
 msgstr "插入或删除行列"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/protection/ProtectionTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Insert rows"
 msgstr "插入行"
@@ -5945,6 +5953,10 @@ msgstr "排序列 {0}"
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Sort descending"
 msgstr "降序排序"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Sort editable ranges"
+msgstr "排序可编辑区域"
 
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/SortTools.tsx

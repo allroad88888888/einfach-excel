@@ -391,6 +391,10 @@ msgstr "Allow editing in selection"
 msgid "Allow trailing minus (123- becomes -123)"
 msgstr "Allow trailing minus (123- becomes -123)"
 
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Allowed actions while protected"
+msgstr "Allowed actions while protected"
+
 #: src/i18n/feedback-messages.ts
 msgid "Already in order."
 msgstr "Already in order."
@@ -1862,6 +1866,7 @@ msgid "Delete cells…"
 msgstr "Delete cells…"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/protection/ProtectionTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Delete columns"
 msgstr "Delete columns"
@@ -1891,6 +1896,7 @@ msgid "Delete object"
 msgstr "Delete object"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/protection/ProtectionTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Delete rows"
 msgstr "Delete rows"
@@ -3371,6 +3377,7 @@ msgid "Insert cells…"
 msgstr "Insert cells…"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/protection/ProtectionTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Insert columns"
 msgstr "Insert columns"
@@ -3405,6 +3412,7 @@ msgid "Insert or delete rows and columns"
 msgstr "Insert or delete rows and columns"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/protection/ProtectionTools.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Insert rows"
 msgstr "Insert rows"
@@ -5945,6 +5953,10 @@ msgstr "Sort column {0}"
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Sort descending"
 msgstr "Sort descending"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Sort editable ranges"
+msgstr "Sort editable ranges"
 
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/SortTools.tsx

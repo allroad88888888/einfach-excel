@@ -74,7 +74,10 @@ test('PROTPERM-002: protected sheet allows only granted row or column insertions
   page,
 }) => {
   await openSummarySortRegion(page)
+  await selectAddress(page, 'A26:C26')
   await openProtection(page)
+  await button(page, 'Allow editing in selection A26:C26').click()
+  await expect(button(page, 'Remove editable range A26:C26')).toBeVisible()
   await enablePermission(page, 'Insert rows')
   await enablePermission(page, 'Delete rows')
   await protect(page)
@@ -91,13 +94,20 @@ test('PROTPERM-002: protected sheet allows only granted row or column insertions
   await button(page, 'Undo').click()
   await expect(cell(page, '24:0')).toHaveText('Team')
 
-  // Row delete is permitted and undo restores it
+  // Deleting locked header row A25 is rejected even with Delete rows enabled
   await selectAddress(page, 'A25')
   await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
   await structureMenu(page).selectOption('delete-rows')
-  await expect(cell(page, '24:0')).not.toHaveText('Team')
-  await button(page, 'Undo').click()
+  await expect(page.getByRole('alert')).toContainText('Unprotect')
   await expect(cell(page, '24:0')).toHaveText('Team')
+
+  // Deleting unlocked row A26 ('W20') is permitted and undo restores it
+  await selectAddress(page, 'A26')
+  await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')
+  await structureMenu(page).selectOption('delete-rows')
+  await expect(cell(page, '25:2')).toHaveText('E10')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '25:2')).toHaveText('W20')
 
   // Column insert was NOT granted and must be rejected
   await showRibbonItem(page, 'structure.insert-or-delete-rows-and-columns')

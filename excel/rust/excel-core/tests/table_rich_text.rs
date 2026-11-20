@@ -227,3 +227,66 @@ fn protected_sheet_table_rich_text_enforces_unlocked_ranges_and_blocks_header_re
         .change_rich_text(&mut wb, 0, addr("A1"), vec![bold_run("Renamed")])
         .is_err());
 }
+
+#[test]
+fn table_mutations_reconcile_rich_text_and_reject_formula_cells() {
+    let (mut wb, mut hist) = setup_sales_table();
+
+    // Formula cells cannot be overwritten via change_rich_text
+    assert!(hist
+        .change_rich_text(&mut wb, 0, addr("D1"), vec![bold_run("Overwrite")])
+        .is_err());
+    assert_eq!(
+        wb.sheet(0).unwrap().formula_text_at(addr("D1")).as_deref(),
+        Some("=COUNTA(Sales[Item])")
+    );
+
+    // Enable totals row, add rich text to A4 ("Total"), then change Item total function to Count:
+    // A4 becomes =SUBTOTAL(103,Sales[Item]) and must drop its rich text cleanly!
+    hist.set_table_totals_row(&mut wb, "Sales", true).unwrap();
+    let total_runs = vec![bold_run("Total")];
+    hist.change_rich_text(&mut wb, 0, addr("A4"), total_runs.clone())
+        .unwrap();
+    assert_eq!(
+        wb.sheet(0).unwrap().rich_text(addr("A4")),
+        Some(total_runs.as_slice())
+    );
+    hist.set_table_total_function(
+        &mut wb,
+        "Sales",
+        "Item",
+        einfach_excel_core::TotalsFunction::Count,
+    )
+    .unwrap();
+    assert!(wb.sheet(0).unwrap().rich_text(addr("A4")).is_none());
+    assert!(hist.undo(&mut wb).unwrap());
+    assert_eq!(
+        wb.sheet(0).unwrap().rich_text(addr("A4")),
+        Some(total_runs.as_slice())
+    );
+
+    // Appending a data row shifts A4 ("Total") rich text down to A5 cleanly
+    hist.append_table_row(&mut wb, "Sales", 100).unwrap();
+    assert!(wb.sheet(0).unwrap().rich_text(addr("A4")).is_none());
+    assert_eq!(
+        wb.sheet(0).unwrap().rich_text(addr("A5")),
+        Some(total_runs.as_slice())
+    );
+
+    // Resizing table to A1:B7 moves Totals row rich text from A5 to A7 cleanly
+    hist.resize_table(&mut wb, "Sales", CellRange::new(addr("A1"), addr("B7")))
+        .unwrap();
+    assert!(wb.sheet(0).unwrap().rich_text(addr("A5")).is_none());
+    assert_eq!(
+        wb.sheet(0).unwrap().rich_text(addr("A7")),
+        Some(total_runs.as_slice())
+    );
+
+    // Hiding header row clears header rich text cleanly
+    let header_runs = vec![bold_run("It"), plain_run("em")];
+    hist.change_rich_text(&mut wb, 0, addr("A1"), header_runs)
+        .unwrap();
+    hist.set_table_headers(&mut wb, "Sales", false, 100)
+        .unwrap();
+    assert!(wb.sheet(0).unwrap().rich_text(addr("A1")).is_none());
+}

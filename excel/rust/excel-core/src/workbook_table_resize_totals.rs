@@ -34,6 +34,7 @@ pub(super) fn prepare(
     }
     let mut new_source = old_source.clone();
     new_source.cells = Some(Vec::new());
+    new_source.reconcile_rich_text_with_cells();
     let mut new_destination = old_destination.clone();
     let mut moved = old_source.cells.clone().unwrap_or_default();
     for cell in &mut moved {
@@ -47,6 +48,13 @@ pub(super) fn prepare(
         cell.addr.row = new_row;
     }
     new_destination.cells = Some(moved);
+    new_destination.rich_text.extend(
+        old_source
+            .rich_text
+            .iter()
+            .map(|(addr, runs)| (CellAddress::new(new_row, addr.col), runs.clone())),
+    );
+    new_destination.reconcile_rich_text_with_cells();
     Ok(vec![
         (old_source, new_source),
         (old_destination, new_destination),

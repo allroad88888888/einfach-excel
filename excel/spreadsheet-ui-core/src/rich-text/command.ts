@@ -3,6 +3,7 @@ import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustWorkbookConnection } from '../rust-workbook/commands'
 import { editingSessionAtom } from '../editing/session-atoms'
+import { normalizeInputErrorMessage } from '../editing/commit-feedback'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import {
@@ -210,7 +211,8 @@ export const runRichTextAtom = atom(
       return true
     } catch (error) {
       if (get(rustWorkbookConnectionAtom) !== connection || get(panelAtom) !== pending) return false
-      return fail(error instanceof Error ? error.message : String(error))
+      const raw = error instanceof Error ? error.message : String(error)
+      return fail(normalizeInputErrorMessage(raw) ?? raw)
     }
   },
 )

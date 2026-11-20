@@ -1,34 +1,7 @@
 use super::*;
-use crate::rich_text::{normalize_runs, RichTextRun};
+use crate::rich_text::{normalize_runs, trim_runs, RichTextRun};
 use crate::TableError;
 use einfach_core::Value;
-
-/// Trims leading/trailing whitespace from rich text runs while preserving inner run formatting.
-fn trim_rich_text_runs(mut runs: Vec<RichTextRun>) -> Result<Vec<RichTextRun>, &'static str> {
-    while let Some(first) = runs.first_mut() {
-        let trimmed = first.text.trim_start();
-        if trimmed.is_empty() {
-            runs.remove(0);
-        } else {
-            if trimmed.len() != first.text.len() {
-                first.text = trimmed.to_owned();
-            }
-            break;
-        }
-    }
-    while let Some(last) = runs.last_mut() {
-        let trimmed = last.text.trim_end();
-        if trimmed.is_empty() {
-            runs.pop();
-        } else {
-            if trimmed.len() != last.text.len() {
-                last.text = trimmed.to_owned();
-            }
-            break;
-        }
-    }
-    normalize_runs(runs)
-}
 
 impl WorkbookHistory {
     pub fn change_rich_text(
@@ -49,6 +22,9 @@ impl WorkbookHistory {
             || target.merged_range_at(addr).is_some_and(|range| range.start != addr)
         {
             return Err("Select the anchor cell before editing rich text.".into());
+        }
+        if target.formula_text_at(addr).is_some() {
+            return Err("Rich text cannot be applied to a formula cell.".into());
         }
 
         let table_info = workbook.name(sheet).and_then(|sheet_name| {
@@ -76,7 +52,7 @@ impl WorkbookHistory {
         if let Some((table_name, old_column, is_header, is_insert_row, has_calculated)) = table_info
         {
             if is_header {
-                runs = trim_rich_text_runs(runs).map_err(str::to_string)?;
+                runs = trim_runs(runs).map_err(str::to_string)?;
                 let trimmed_text: String = runs.iter().map(|run| run.text.as_str()).collect();
                 if trimmed_text.is_empty() {
                     return Err(TableError::InvalidColumnName.to_string());

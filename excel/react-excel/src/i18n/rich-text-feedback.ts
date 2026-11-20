@@ -7,7 +7,9 @@ export const richTextFeedback: Readonly<Record<string, MessageDescriptor>> = {
   'Rich text colors must use #RRGGBB.': msg`Rich text colors must use #RRGGBB.`,
   'Rich text must match the cell\'s literal text.': msg`Rich text must match the cell's literal text.`,
   'Select the anchor cell before editing rich text.': msg`Select the anchor cell before editing rich text.`,
-  'Rich text editing is unavailable inside a table.': msg`Rich text editing is unavailable inside a table.`,
+  'Rich text cannot be applied to a formula cell.': msg`Rich text cannot be applied to a formula cell.`,
+  'This column rename cannot rewrite one of its formula references.':
+    msg`This column rename cannot rewrite one of its formula references.`,
   'Could not update rich text.': msg`Could not update rich text.`,
   'The workbook changed. Reopen the rich text editor.': msg`The workbook changed. Reopen the rich text editor.`,
   'Finish the current operation before editing rich text.': msg`Finish the current operation before editing rich text.`,

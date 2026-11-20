@@ -175,7 +175,8 @@ impl Workbook {
         }
     }
 
-    /// Row/column insertion and deletion on a protected sheet require the matching permission.
+    /// Row/column insertion and deletion on a protected sheet require the matching permission,
+    /// must not mutate or delete Excel Tables, and deletions must not destroy locked cells.
     pub fn ensure_structural_edit_allowed(
         &self,
         sheet: usize,
@@ -191,7 +192,85 @@ impl Workbook {
             crate::shift::ShiftEdit::RowDelete { .. } => state.permissions.delete_rows,
             crate::shift::ShiftEdit::ColDelete { .. } => state.permissions.delete_columns,
         };
-        if allowed { Ok(()) } else { Err(PROTECTED_ERROR) }
+        if !allowed {
+            return Err(PROTECTED_ERROR);
+        }
+        self.ensure_structural_band_safe_on_protected(sheet, edit)
+    }
+
+    pub(crate) fn ensure_structural_band_safe_on_protected(
+        &self,
+        sheet: usize,
+        edit: crate::shift::ShiftEdit,
+    ) -> Result<(), &'static str> {
+        use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
+        use crate::shift::ShiftEdit;
+        let count = match edit {
+            ShiftEdit::RowInsert { count, .. }
+            | ShiftEdit::ColInsert { count, .. }
+            | ShiftEdit::RowDelete { count, .. }
+            | ShiftEdit::ColDelete { count, .. } => count,
+        };
+        if count == 0 {
+            return Ok(());
+        }
+        if let Some(sheet_name) = self.name(sheet) {
+            for table in self.tables.values().filter(|t| t.sheet_name() == sheet_name) {
+                let r = table.range();
+                let mutates_table = match edit {
+                    ShiftEdit::RowInsert { at, .. } => at > r.start.row && at <= r.end.row,
+                    ShiftEdit::ColInsert { at, .. } => at > r.start.col && at <= r.end.col,
+                    ShiftEdit::RowDelete { at, count } => {
+                        at <= r.end.row && r.start.row < at.saturating_add(count)
+                    }
+                    ShiftEdit::ColDelete { at, count } => {
+                        at <= r.end.col && r.start.col < at.saturating_add(count)
+                    }
+                };
+                if mutates_table {
+                    return Err(PROTECTED_ERROR);
+                }
+            }
+        }
+        let delete_band = match edit {
+            ShiftEdit::RowDelete { at, count } => Some(CellRange::new(
+                CellAddress::new(at, 0),
+                CellAddress::new(
+                    at.saturating_add(count - 1).min(EXCEL_MAX_ROWS - 1),
+                    EXCEL_MAX_COLS - 1,
+                ),
+            )),
+            ShiftEdit::ColDelete { at, count } => Some(CellRange::new(
+                CellAddress::new(0, at),
+                CellAddress::new(
+                    EXCEL_MAX_ROWS - 1,
+                    at.saturating_add(count - 1).min(EXCEL_MAX_COLS - 1),
+                ),
+            )),
+            ShiftEdit::RowInsert { .. } | ShiftEdit::ColInsert { .. } => None,
+        };
+        if let Some(band) = delete_band {
+            let target = self.sheet(sheet).ok_or("The worksheet no longer exists.")?;
+            for merged in target.merged_ranges() {
+                if merged.intersects(band) {
+                    self.ensure_range_editable(sheet, *merged)?;
+                }
+            }
+            let mut has_locked_cell = false;
+            target.for_each_non_empty_in_range(band, |addr| {
+                if !has_locked_cell
+                    && self
+                        .ensure_range_editable(sheet, CellRange::single(addr))
+                        .is_err()
+                {
+                    has_locked_cell = true;
+                }
+            });
+            if has_locked_cell {
+                return Err(PROTECTED_ERROR);
+            }
+        }
+        Ok(())
     }
 
     /// A Table's definition is part of its own worksheet; structured references elsewhere follow it.

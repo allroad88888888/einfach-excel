@@ -59,6 +59,33 @@ pub fn normalize_runs(runs: Vec<RichTextRun>) -> Result<Vec<RichTextRun>, &'stat
     Ok(result)
 }
 
+/// Trims leading/trailing whitespace from rich text runs while preserving inner run formatting.
+pub(crate) fn trim_runs(mut runs: Vec<RichTextRun>) -> Result<Vec<RichTextRun>, &'static str> {
+    while let Some(first) = runs.first_mut() {
+        let trimmed = first.text.trim_start();
+        if trimmed.is_empty() {
+            runs.remove(0);
+        } else {
+            if trimmed.len() != first.text.len() {
+                first.text = trimmed.to_owned();
+            }
+            break;
+        }
+    }
+    while let Some(last) = runs.last_mut() {
+        let trimmed = last.text.trim_end();
+        if trimmed.is_empty() {
+            runs.pop();
+        } else {
+            if trimmed.len() != last.text.len() {
+                last.text = trimmed.to_owned();
+            }
+            break;
+        }
+    }
+    normalize_runs(runs)
+}
+
 impl Sheet {
     pub fn rich_text(&self, addr: CellAddress) -> Option<&[RichTextRun]> {
         self.rich_text.get(&addr).map(Vec::as_slice)

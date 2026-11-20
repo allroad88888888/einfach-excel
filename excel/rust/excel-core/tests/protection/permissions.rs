@@ -67,7 +67,8 @@ fn structural_permissions_gate_insert_delete_rows_and_cols_individually_with_und
     let mut history = WorkbookHistory::default();
     book.set_cell(0, "A1", Value::Text("Top".into()));
     book.set_cell(0, "A2", Value::Text("Row2".into()));
-    allow(&mut book, range(1, 0, 2, 0));
+    book.set_cell(0, "A3", Value::Text("LockedTail".into()));
+    allow(&mut book, range(1, 0, 1, 0));
     book.change_protection(
         0,
         ProtectionChange::SetPermissions {
@@ -96,7 +97,7 @@ fn structural_permissions_gate_insert_delete_rows_and_cols_individually_with_und
     assert_eq!(book.get_cell("Sheet1", "A3"), Value::Text("Row2".into()));
     assert_eq!(
         book.read_protection(0).unwrap().unlocked_ranges,
-        vec![ProtectionRange::from(range(2, 0, 3, 0))]
+        vec![ProtectionRange::from(range(2, 0, 2, 0))]
     );
 
     assert!(history.undo(&mut book).unwrap());
@@ -104,11 +105,48 @@ fn structural_permissions_gate_insert_delete_rows_and_cols_individually_with_und
     assert!(history.redo(&mut book).unwrap());
     assert_eq!(book.get_cell("Sheet1", "A3"), Value::Text("Row2".into()));
 
-    // Row delete succeeds while protected
+    // Row delete succeeds on unlocked row A3 while rejecting locked header A1, and Undo succeeds
+    // even after locked row A4 ("LockedTail") shifts into row A3!
+    assert!(history
+        .edit_structure(&mut book, 0, ShiftEdit::RowDelete { at: 0, count: 1 })
+        .is_err());
     history
-        .edit_structure(&mut book, 0, ShiftEdit::RowDelete { at: 1, count: 1 })
+        .edit_structure(&mut book, 0, ShiftEdit::RowDelete { at: 2, count: 1 })
         .unwrap();
-    assert_eq!(book.get_cell("Sheet1", "A2"), Value::Text("Row2".into()));
+    assert_eq!(book.get_cell("Sheet1", "A3"), Value::Text("LockedTail".into()));
+    assert!(history.undo(&mut book).unwrap());
+    assert_eq!(book.get_cell("Sheet1", "A3"), Value::Text("Row2".into()));
+    assert_eq!(book.get_cell("Sheet1", "A4"), Value::Text("LockedTail".into()));
+
+    // Structural edits on a protected sheet cannot mutate or delete Excel Tables
+    let mut table_book = Workbook::new();
+    let mut table_hist = WorkbookHistory::default();
+    table_book.set_cell(0, "A1", Value::Text("Col1".into()));
+    table_book.set_cell(0, "A2", Value::Number(1.0));
+    table_book
+        .define_table(Some("ProtectedTbl"), 0, range(0, 0, 1, 0), true)
+        .unwrap();
+    allow(&mut table_book, range(0, 0, 5, 5));
+    table_book
+        .change_protection(
+            0,
+            ProtectionChange::SetPermissions {
+                permissions: ProtectionPermissions {
+                    insert_rows: true,
+                    delete_rows: true,
+                    ..Default::default()
+                },
+            },
+        )
+        .unwrap();
+    protect(&mut table_book);
+    assert!(table_hist
+        .edit_structure(&mut table_book, 0, ShiftEdit::RowInsert { at: 1, count: 1 })
+        .is_err());
+    assert!(table_hist
+        .edit_structure(&mut table_book, 0, ShiftEdit::RowDelete { at: 0, count: 2 })
+        .is_err());
+    assert!(table_book.get_table("ProtectedTbl").is_some());
 }
 
 #[test]

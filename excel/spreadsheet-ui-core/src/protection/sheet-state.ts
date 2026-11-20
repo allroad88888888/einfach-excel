@@ -53,7 +53,7 @@ export function isValidProtectionPermissions(
   )
 }
 
-function hasCustomPermissions(perms: SheetProtectionPermissions | undefined): boolean {
+export function hasCustomPermissions(perms: SheetProtectionPermissions | undefined): boolean {
   return Boolean(
     perms &&
       (perms.sort ||

@@ -194,6 +194,7 @@ impl TableDefinitionChange {
                 .find(|(_, next)| next.range.contains(addr))
                 .unwrap();
             header.cells = Some(vec![CellSnapshot::value(addr, Value::Text(name.into()))]);
+            header.reconcile_rich_text_with_cells();
         }
         Ok(Some(change))
     }

@@ -184,5 +184,6 @@ fn new_headers(
             })
             .collect(),
     );
+    next.reconcile_rich_text_with_cells();
     (original, next)
 }

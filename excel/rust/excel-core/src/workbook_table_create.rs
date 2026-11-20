@@ -43,6 +43,7 @@ impl TableCreation {
                 })
                 .collect(),
         );
+        after.reconcile_rich_text_with_cells();
         Ok(Self {
             sheet,
             entry,

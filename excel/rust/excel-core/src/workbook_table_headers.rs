@@ -50,6 +50,7 @@ impl TableDefinitionChange {
                 CellAddress::new(row, range.start.col + offset as u32), Value::Text(name.clone().into()),
             )).collect()
         } else { Vec::new() });
+        next.reconcile_rich_text_with_cells();
         // 保留既有普通区域行为：只清理同表头、同列跨度且不超出表的筛选。
         // 其它区域的筛选、手动隐藏行和大纲都不属于这个开关。
         let filter = if !enabled {

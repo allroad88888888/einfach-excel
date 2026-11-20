@@ -99,6 +99,7 @@ impl TableDefinitionChange {
         let original = HistorySnapshot::capture(&workbook.sheets[sheet], range, true);
         let mut next = original.clone();
         next.cells = Some(cells);
+        next.reconcile_rich_text_with_cells();
         if before == after && original == next {
             return Ok(None);
         }

@@ -111,6 +111,7 @@ fn horizontal_sort_checks_protection_and_dimensions_before_layout_scans() {
         einfach_excel_core::protection::SheetProtection {
             mode: einfach_excel_core::protection::ProtectionMode::Protected,
             unlocked_ranges: Vec::new(),
+            ..Default::default()
         },
     )])
     .unwrap();

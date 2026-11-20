@@ -1546,3 +1546,11 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | TABLERICH-001 | Table 数据格支持局部富文本样式编辑与单步撤销/重做 | `rich-text/table-rich-text.spec.ts` | `TABLERICH-001: table data cell supports rich text editing with atomic undo and redo` |
 | TABLERICH-002 | Table 表头富文本编辑支持原子改名、结构化引用改写、重名校验与单步撤销 | `rich-text/table-rich-text.spec.ts` | `TABLERICH-002: table header rich text renames column, rewrites structured refs, and rejects duplicates` |
 | TABLERICH-003 | Table 内富文本随原生工作簿下载与重新打开完整保留 | `rich-text/table-rich-text.spec.ts` | `TABLERICH-003: table rich text survives native workbook download and reopen` |
+
+### Flash Fill（快速填充）
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| FLASHFILL-001 | 数据栏快速填充从相邻列推断拆分重组模式并支持单步撤销 | `editing/flash-fill.spec.ts` | `FLASHFILL-001: Flash Fill via ribbon splits and reformats names with single undo` |
+| FLASHFILL-002 | `Ctrl/⌘+E` 快捷键快速填充跨多列拼接邮箱并自动跳过表头行 | `editing/flash-fill.spec.ts` | `FLASHFILL-002: Flash Fill via Ctrl+E combines columns into emails and skips headers` |
+| FLASHFILL-003 | 快速填充安全拒绝多列选区与无规律示例且不修改单元格 | `editing/flash-fill.spec.ts` | `FLASHFILL-003: Flash Fill rejects multi-column selection and unresolvable patterns safely` |

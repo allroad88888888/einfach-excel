@@ -24,6 +24,7 @@ enum AutoFillSeriesJSON {
     WeekdayName,
     MonthName,
     CustomList,
+    FlashFill,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -144,6 +145,7 @@ impl TryFrom<AutoFillRequestJSON> for AutoFillRequest {
                 AutoFillSeriesJSON::WeekdayName => AutoFillSeries::WeekdayName,
                 AutoFillSeriesJSON::MonthName => AutoFillSeries::MonthName,
                 AutoFillSeriesJSON::CustomList => AutoFillSeries::CustomList,
+                AutoFillSeriesJSON::FlashFill => AutoFillSeries::FlashFill,
             },
             step: value.step,
             text_pattern: value.text_pattern.map(|pattern| AutoFillTextPattern {

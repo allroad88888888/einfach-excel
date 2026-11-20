@@ -252,7 +252,7 @@ function getGridKeyboardInput(
   if (event.key === 'F9' && !event.ctrlKey && !event.metaKey && !event.altKey) return input
   if ((event.ctrlKey || event.metaKey) && !event.altKey && ['z', 'y'].includes(event.key.toLowerCase())) return input
   if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey &&
-    ['d', 'r'].includes(event.key.toLowerCase())) return input
+    ['d', 'r', 'e'].includes(event.key.toLowerCase())) return input
   if (
     isArrowKey(event.key) ||
     event.key === 'Home' ||

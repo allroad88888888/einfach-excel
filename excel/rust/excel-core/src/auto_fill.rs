@@ -15,6 +15,7 @@ mod geometric;
 mod calendar;
 mod named_series;
 mod named_lists;
+mod flash;
 use named_series::plan_named_series;
 use crate::named_list::{supported_locale_language, fold_named_value, MAX_LIST_ITEMS as LIST_MAX_ITEMS};
 pub use named_lists::{AutoFillNamedList, AutoFillNamedLists};

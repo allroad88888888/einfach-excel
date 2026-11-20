@@ -182,6 +182,7 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries, WasmAd
       | 'date-day'
       | 'date-weekday'
       | 'date-year'
+      | 'flash-fill'
     readonly step?: number
     readonly stop?: number
     readonly namedLists?: readonly RustFillNamedList[]

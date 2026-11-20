@@ -16,6 +16,49 @@ export function fillRange(
 ): CellRange | undefined {
   const { direction } = input
   let { range } = input
+  if (input.flash) {
+    const rows = range.rowEnd - range.rowStart + 1
+    const cols = range.colEnd - range.colStart + 1
+    if (
+      !Object.values(range).every((n) => Number.isSafeInteger(n) && n >= 0) ||
+      rows < 1 ||
+      cols !== 1 ||
+      range.rowEnd >= 1_048_576 ||
+      range.colEnd >= 16_384
+    ) {
+      throw new Error('Select a single column for Flash Fill.')
+    }
+    if (!workbook.apply_auto_fill) throw new Error('Rust fill command is unavailable.')
+    const report = workbook.apply_auto_fill({
+      sheet,
+      sourceRange: nativeRange(range),
+      targetRange: nativeRange(range),
+      direction: 'down',
+      series: 'flash-fill',
+      ...(input.validationConfirmation
+        ? { validationConfirmation: input.validationConfirmation }
+        : {}),
+    })
+    if (report.written === 0 && report.writeRange == null) return undefined
+    const actual = report.writeRange
+    if (
+      !actual ||
+      !Number.isSafeInteger(report.written) ||
+      report.written < 1 ||
+      !Object.values(actual).every(Number.isSafeInteger) ||
+      actual.startCol !== range.colStart ||
+      actual.endCol !== range.colEnd ||
+      actual.startRow > actual.endRow
+    ) {
+      throw new Error('Rust returned an invalid fill report.')
+    }
+    return {
+      rowStart: actual.startRow,
+      rowEnd: actual.endRow,
+      colStart: actual.startCol,
+      colEnd: actual.endCol,
+    }
+  }
   if (input.adjacent) {
     if (direction !== 'down' || !input.sourceRange || input.series ||
       !Number.isSafeInteger(input.adjacent.rowLimit) || input.adjacent.rowLimit < 1 ||

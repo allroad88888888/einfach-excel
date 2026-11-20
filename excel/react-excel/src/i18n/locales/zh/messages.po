@@ -2896,6 +2896,18 @@ msgstr "固定：{0}"
 msgid "Fixed: {value}"
 msgstr "固定：{value}"
 
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Flash fill (Ctrl/⌘+E)"
+msgstr "快速填充 (Ctrl/⌘+E)"
+
+#: src/i18n/feedback-messages.ts
+msgid "Flash filled."
+msgstr "已完成快速填充。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Flash filling…"
+msgstr "正在快速填充…"
+
 #: src/workbook/chrome/ribbon/ribbon-groups.tsx
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Font"
@@ -4618,6 +4630,10 @@ msgstr "电话号码"
 msgid "pivot tables"
 msgstr "数据透视表"
 
+#: src/i18n/feedback-messages.ts
+msgid "Place Flash Fill next to a column with source data."
+msgstr "请将快速填充放在包含源数据的相邻列中。"
+
 #: src/workbook/notes/NoteTools.tsx
 msgid "Plain text, up to {NOTE_MAX_CHARACTERS} characters. Use Delete note to remove it."
 msgstr "纯文本，最多 {NOTE_MAX_CHARACTERS} 个字符。请使用“删除备注”移除。"
@@ -4701,6 +4717,10 @@ msgstr "保护工作表"
 #: src/i18n/seven-feature-feedback.ts
 msgid "Protection refers to a missing worksheet."
 msgstr "保护配置引用了不存在的工作表。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Provide at least one example in the target column next to source data."
+msgstr "请在相邻源数据旁的目标列中提供至少一个示例。"
 
 #: src/workbook/sheet-management/tab-colors.ts
 msgid "Purple"
@@ -5546,6 +5566,10 @@ msgstr "按字面文本搜索，包含屏幕外的单元格。"
 #: src/i18n/feedback-messages.ts
 msgid "Select a header and at least one data row for the filter range."
 msgstr "筛选区域需包含表头和至少一行数据。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select a single column for Flash Fill."
+msgstr "请为快速填充选择单列。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Select a source column first."
@@ -7483,6 +7507,10 @@ msgstr "监视窗口"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "waterfall subtotals"
 msgstr "瀑布图汇总柱"
+
+#: src/i18n/feedback-messages.ts
+msgid "We couldn't find a pattern for your data. Provide one or two clear examples."
+msgstr "未找到数据规律，请提供一到两个清晰的示例。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Weekday date sequence"

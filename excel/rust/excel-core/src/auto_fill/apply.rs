@@ -26,14 +26,32 @@ impl Workbook {
     }
 
     fn plan_auto_fill(&self, request: &AutoFillRequest) -> Result<FillPlan, AutoFillError> {
-        validate_geometry(request)?;
-        let mut write_range = fill_write_range(request);
         if self.is_inside_custom_call() {
             return Err(AutoFillError::MutationDuringCustomCall);
         }
         let sheet = self
             .sheet(request.sheet_idx)
             .ok_or(AutoFillError::SheetOutOfRange)?;
+        if request.series == AutoFillSeries::FlashFill {
+            let (cells, write_range) = flash::plan(self, sheet, request)?;
+            if write_range.is_none() {
+                return Ok(FillPlan::default());
+            }
+            let borders = sheet.plan_replacement_borders(
+                cells
+                    .iter()
+                    .map(|cell| (cell.addr, cell.format.borders.clone())),
+                sheet.merged_ranges(),
+            );
+            self.ensure_fill_protection(request.sheet_idx, &cells, &borders)?;
+            return Ok(FillPlan {
+                cells,
+                write_range,
+                borders,
+            });
+        }
+        validate_geometry(request)?;
+        let mut write_range = fill_write_range(request);
         // 无扩展复制是空操作；序列仍须验证原有 witness 合同。
         if write_range.is_none() && request.series == AutoFillSeries::Copy {
             return Ok(FillPlan::default());
@@ -66,6 +84,7 @@ impl Workbook {
             AutoFillSeries::WeekdayName
             | AutoFillSeries::MonthName
             | AutoFillSeries::CustomList => plan_named_series(sheet, request, write_range)?,
+            AutoFillSeries::FlashFill => unreachable!("handled above"),
         };
         if write_range.is_none() {
             return Ok(FillPlan::default());
@@ -222,14 +241,24 @@ impl WorkbookHistory {
         let plan = workbook.plan_auto_fill(request)?;
         // Stop decides the history range before protection/validation snapshot preflight.
         // Existing callers may already own a transaction; the geometric wire path does not.
-        if matches!(request.series, AutoFillSeries::Geometric { .. }) && !self.is_pending() {
+        if matches!(
+            request.series,
+            AutoFillSeries::Geometric { .. } | AutoFillSeries::FlashFill
+        ) && !self.is_pending()
+        {
             let Some(range) = plan.write_range else {
                 return workbook.apply_fill_plan(request.sheet_idx, plan);
             };
-            self.begin(workbook, request.sheet_idx, range, "Fill geometric series", true)
+            let label = if request.series == AutoFillSeries::FlashFill {
+                "Flash Fill"
+            } else {
+                "Fill geometric series"
+            };
+            self.begin(workbook, request.sheet_idx, range, label, true)
                 .map_err(AutoFillError::InvalidGeometry)?;
             let result = self.apply_planned_fill(workbook, request.sheet_idx, plan);
-            self.finish(workbook, result.is_ok()).map_err(AutoFillError::InvalidGeometry)?;
+            self.finish(workbook, result.is_ok())
+                .map_err(AutoFillError::InvalidGeometry)?;
             return result;
         }
         self.apply_planned_fill(workbook, request.sheet_idx, plan)

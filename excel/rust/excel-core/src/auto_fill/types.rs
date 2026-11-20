@@ -28,6 +28,7 @@ pub enum AutoFillSeries {
     WeekdayName,
     MonthName,
     CustomList,
+    FlashFill,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

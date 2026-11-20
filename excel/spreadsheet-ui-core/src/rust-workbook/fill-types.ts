@@ -9,6 +9,7 @@ export interface RustFillRangeRequest {
   readonly requestId: number
   readonly range: CellRange
   readonly direction: 'down' | 'right' | 'up' | 'left'
+  readonly flash?: boolean
   readonly sourceRange?: CellRange
   readonly auto?: boolean
   readonly namedLists?: readonly RustFillNamedList[]

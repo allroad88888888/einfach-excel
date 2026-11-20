@@ -26,7 +26,9 @@ export function FillTools() {
           disabled={editing || feedback.busy}
           onChange={(event) => {
             const direction = event.currentTarget.value
-            if (direction === 'down' || direction === 'right') void fill(direction)
+            if (direction === 'down' || direction === 'right' || direction === 'flash') {
+              void fill(direction)
+            }
           }}
         >
           <option value="" disabled>
@@ -37,6 +39,9 @@ export function FillTools() {
           </option>
           <option value="right">
             <Trans>Fill right (Ctrl/⌘+R)</Trans>
+          </option>
+          <option value="flash">
+            <Trans>Flash fill (Ctrl/⌘+E)</Trans>
           </option>
         </select>
       </RibbonItem>

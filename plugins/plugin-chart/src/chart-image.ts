@@ -9,8 +9,10 @@ async function withOffscreenChart<T>(renderer: 'canvas' | 'svg', option: ChartOp
   width: number, height: number, read: (chart: EChartsType) => T): Promise<T> {
   const { init } = await import('./echarts-runtime')
   const chart = init(document.createElement('div'), undefined, { renderer, width, height })
+  const bg = typeof option.backgroundColor === 'string' && option.backgroundColor !== 'transparent'
+    ? option.backgroundColor : BACKGROUND
   try {
-    chart.setOption({ ...option, animation: false, backgroundColor: BACKGROUND },
+    chart.setOption({ ...option, animation: false, backgroundColor: bg },
       { notMerge: true })
     return read(chart)
   } finally {
@@ -18,7 +20,7 @@ async function withOffscreenChart<T>(renderer: 'canvas' | 'svg', option: ChartOp
   }
 }
 
-/** 2× PNG（白底）。 */
+/** 2× PNG（跟随画布底色，默认白底）。 */
 export async function renderChartPng(option: ChartOption, width: number,
   height: number): Promise<Blob> {
   const url = await withOffscreenChart('canvas', option, width, height,
@@ -26,7 +28,7 @@ export async function renderChartPng(option: ChartOption, width: number,
   return (await fetch(url)).blob()
 }
 
-/** 矢量 SVG（白底），文字保持为文本。 */
+/** 矢量 SVG（跟随画布底色，默认白底），文字保持为文本。 */
 export async function renderChartSvg(option: ChartOption, width: number,
   height: number): Promise<Blob> {
   const svg = await withOffscreenChart('svg', option, width, height,

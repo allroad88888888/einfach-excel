@@ -12,7 +12,7 @@ import { radarOption } from './radar'
 import { scatterOption } from './scatter'
 import { stockOption } from './stock'
 import { sunburstOption } from './sunburst'
-import { withPalette } from './theme'
+import { DARK_CHART_THEME, LIGHT_CHART_THEME, withPalette } from './theme'
 import { applyTrendlines } from './trendlines'
 import { treemapOption } from './treemap'
 import type { ChartOption, ConvertInput, OptionOperator } from './types'
@@ -51,7 +51,9 @@ const OPERATORS: readonly OptionOperator[] = [
  * 再经一串小步骤依次加工；不碰 DOM，不读 atom。
  */
 export function toEChartsOption(source: ConvertInput): ChartOption {
-  const input = { ...source, theme: withPalette(source.theme, source.spec.palette) }
+  const baseTheme =
+    source.spec.dark && source.theme === LIGHT_CHART_THEME ? DARK_CHART_THEME : source.theme
+  const input = { ...source, theme: withPalette(baseTheme, source.spec.palette) }
   return OPERATORS.reduce((option, operate) => operate(option, input), BASE[input.spec.type](input))
 }
 

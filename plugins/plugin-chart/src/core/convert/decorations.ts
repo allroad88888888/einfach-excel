@@ -4,11 +4,11 @@ import type { ChartOption, ChartPoint, OptionOperator } from './types'
 
 const pointLabel = (data: unknown) => (data as ChartPoint | undefined)?.label ?? ''
 
-/** 全局文字、配色与背景；背景透明，交给对象框的表面色。 */
+/** 全局文字、配色与背景；浅色模式背景透明交给对象框，深色模式自带卡片深底。 */
 export const applyTheme: OptionOperator = (option, { spec, theme }) => ({
   ...option,
   color: [...theme.palette],
-  backgroundColor: 'transparent',
+  backgroundColor: spec.dark || theme.background !== '#ffffff' ? theme.background : 'transparent',
   textStyle: { color: theme.text, fontFamily: theme.fontFamily, fontSize: spec.fontSize ?? 12 },
   animation: false,
 })
@@ -34,7 +34,7 @@ export const applyColors: OptionOperator = (option, { spec }) => {
 }
 
 export const applyTitle: OptionOperator = (option, { spec, theme }) => spec.title
-  ? { ...option, title: { text: spec.title, left: 'center', top: 8,
+  ? { ...option, title: { text: spec.title, left: 'center', top: 8, triggerEvent: true,
     textStyle: { color: theme.text, fontSize: (spec.fontSize ?? 12) + 2, fontWeight: 600,
       fontFamily: theme.fontFamily } } }
   : option
@@ -47,11 +47,13 @@ export const applyLegend: OptionOperator = (option, { spec, theme }) => {
     ...option,
     legend: {
       type: 'scroll',
+      triggerEvent: true,
       orient: vertical ? 'vertical' : 'horizontal',
       ...(vertical ? { [spec.legend]: 8, top: 'middle' } : { left: 'center',
         [spec.legend]: spec.legend === 'top' && spec.title ? 34 : 8 }),
       textStyle: { color: theme.text, fontFamily: theme.fontFamily, fontSize: spec.fontSize ?? 12 },
       pageTextStyle: { color: theme.muted },
+      ...(spec.dark ? { pageIconColor: theme.text, pageIconInactiveColor: theme.axisLine } : {}),
     },
   }
 }

@@ -35,7 +35,7 @@ msgstr "条重复记录（一次撤销即可恢复）"
 msgid " Every condition must match. After editing values, use Reapply filter."
 msgstr "所有条件必须同时满足。修改数据后，请重新应用筛选。"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid " occupied destination cells"
 msgstr "个已有内容的目标单元格"
 
@@ -49,7 +49,7 @@ msgstr "（空白）"
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "(Empty)"
 msgstr "（空）"
 
@@ -559,7 +559,7 @@ msgstr "正在应用布局…"
 msgid "Applying number format…"
 msgstr "正在应用数字格式…"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Applying split…"
 msgstr "正在分列…"
 
@@ -3465,6 +3465,10 @@ msgstr "图片或绘图"
 msgid "Implementation limits"
 msgstr "实现限制"
 
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Import file…"
+msgstr "从文件导入…"
+
 #: src/workbook/chrome/header/WorkbookHeader.tsx
 msgid "In memory"
 msgstr "保存在内存中"
@@ -3862,7 +3866,7 @@ msgstr "正在加载备注…"
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Loading preview…"
 msgstr "正在加载预览…"
 
@@ -4630,7 +4634,7 @@ msgstr "输出"
 
 #. placeholder {0}: toA1(preview.target.rowStart, preview.target.colStart)
 #. placeholder {1}: toA1(preview.target.rowEnd, preview.target.colEnd)
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Output: {0}:{1}"
 msgstr "输出：{0}:{1}"
 
@@ -4638,7 +4642,7 @@ msgstr "输出：{0}:{1}"
 msgid "Outside borders"
 msgstr "外侧框线"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Overwrite "
 msgstr "覆盖"
 
@@ -4868,7 +4872,7 @@ msgstr "预览"
 msgid "Preview · {0}"
 msgstr "预览 · {0}"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Preview cells"
 msgstr "预览单元格"
 
@@ -5483,7 +5487,7 @@ msgid "row"
 msgstr "行"
 
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Row"
 msgstr "行"
 
@@ -5618,7 +5622,7 @@ msgstr "原生工作表保护不可用。"
 msgid "Rust/WASM ready"
 msgstr "Rust/WASM 已就绪"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Sample shortened: up to 20 rows, 12 columns and 120 characters per field. Apply processes all source rows."
 msgstr "样本已截断：最多显示 20 行、12 列，每个字段最多 120 个字符。应用时处理全部源数据行。"
 
@@ -6252,6 +6256,10 @@ msgstr "正在排序…"
 msgid "Source field number"
 msgstr "源字段编号"
 
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Source file: {fileName} ({fileRowCount} rows)"
+msgstr "源文件：{fileName}（{fileRowCount} 行）"
+
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 msgid "Source sample count"
 msgstr "源样本数量"
@@ -6313,10 +6321,10 @@ msgid "Split mode"
 msgstr "分列方式"
 
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
-msgid "Split one source column. Fields keep text unless you select a different type. Empty fields clear destination cells. Hidden rows are included."
-msgstr "拆分一个源列。除非选择其他类型，字段均保留文本。空字段会清空目标单元格。包含隐藏行。"
+msgid "Split one source column or import a local text file. Fields keep text unless you select a different type. Empty fields clear destination cells. Hidden rows are included."
+msgstr "拆分一个源列或导入本地文本文件。除非选择其他类型，字段均保留文本。空字段会清空目标单元格。包含隐藏行。"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Split preview"
 msgstr "分列预览"
 
@@ -7530,7 +7538,7 @@ msgstr "应用前，请先更新预览。"
 msgid "Update the preview before removing records."
 msgstr "删除记录前，请先更新预览。"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Update the preview to apply your changes."
 msgstr "请更新预览后应用更改。"
 
@@ -7629,6 +7637,10 @@ msgstr "自定义公式表达式只能使用已声明的参数及 LET 或 LAMBDA
 #: src/workbook/chrome/ribbon/number-format-code-errors.ts
 msgid "Use only one decimal point in each section."
 msgstr "每一节只能有一个小数点。"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Use selected cells"
+msgstr "使用所选单元格"
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Use thousands separator"

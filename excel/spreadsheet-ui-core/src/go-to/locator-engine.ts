@@ -7,6 +7,7 @@ import type {
 } from './types'
 import { GO_TO_SCAN_MAX_CELLS } from './types'
 import { keyOf, packMatches, toCellSelection } from './match-packing'
+import { sameRulePayload, scanFormulaGraph } from './locator-trace'
 import { scanCurrentRegion } from './region-scan'
 
 /**
@@ -29,8 +30,17 @@ import { scanCurrentRegion } from './region-scan'
  * the union stays exhaustive.
  */
 export function runGoToSpecialScan(locator: GoToLocator, context: GoToScanContext): GoToScanResult {
-  if (locator.kind === 'precedents' || locator.kind === 'dependents') {
+  if (locator.kind === 'objects') {
     return { regions: [], truncated: false, totalMatchCount: 0 }
+  }
+
+  if (
+    locator.kind === 'precedents' ||
+    locator.kind === 'precedents-all' ||
+    locator.kind === 'dependents' ||
+    locator.kind === 'dependents-all'
+  ) {
+    return scanFormulaGraph(locator.kind, context)
   }
 
   if (locator.kind === 'last-cell') {
@@ -53,6 +63,13 @@ export function runGoToSpecialScan(locator: GoToLocator, context: GoToScanContex
     return scanDifferences(locator.kind, context)
   }
 
+  const activeCandidate =
+    locator.kind === 'conditional-format-same' || locator.kind === 'data-validation-same'
+      ? context.cells.find(
+          (c) => c.row === context.activeCell.row && c.col === context.activeCell.col,
+        )
+      : undefined
+
   // Predicate-driven locators that walk the (sparse) cell list directly.
   const matches: { row: number; col: number }[] = []
   for (const cell of context.cells) {
@@ -74,8 +91,14 @@ export function runGoToSpecialScan(locator: GoToLocator, context: GoToScanContex
       case 'conditional-format':
         matched = cell.conditionalFormat != null
         break
+      case 'conditional-format-same':
+        matched = sameRulePayload(cell.conditionalFormat, activeCandidate?.conditionalFormat)
+        break
       case 'data-validation':
         matched = cell.validation != null
+        break
+      case 'data-validation-same':
+        matched = sameRulePayload(cell.validation, activeCandidate?.validation)
         break
       default:
         matched = false

@@ -136,6 +136,7 @@ export function installHostWorkerGateway(context: WorkerHostContext,
         throw new Error('HOST_LIFECYCLE_CLOSED')
       if (message.command === 'host.configure') {
         controls = validateHostControls(message.payload as HostControls)
+        context.workbook()?.set_date_input_order?.(controls.dateInputOrder ?? 'YMD')
         initialized = true
       }
       assertHostCommandAllowed(controls, message.command)

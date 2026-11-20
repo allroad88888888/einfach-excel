@@ -109,6 +109,13 @@ impl ClipboardSnapshot {
                     }
                 }
             }
+            if let (Some(url), Some(next_name)) = (&mut cell.hyperlink, new) {
+                if let Some(rewritten) =
+                    crate::hyperlink::sheet_refs::rewrite_hyperlink_sheet_ref(url, old, next_name)
+                {
+                    *url = rewritten;
+                }
+            }
         }
     }
 

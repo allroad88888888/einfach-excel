@@ -75,6 +75,8 @@ export interface RustReplaceRequest extends Pick<RustFindRequest, 'targets' | 'q
 export interface RustFindCommands {
   readonly 'workbook.locate': WorkerCommand<
     { readonly sheetId: string; readonly range: CellRange;
+      readonly origin?: CellRange;
+      readonly anchor?: { readonly row: number; readonly col: number };
       readonly kind: LocateKind; readonly limit: number },
     LocatedCells & { readonly revision: number }
   >
@@ -117,7 +119,19 @@ export interface NativeReplaceRequest extends Pick<NativeFindRequest, 'targets' 
   readonly current?: NativeFindMatch
 }
 
-export type LocateKind = 'constants' | 'formulas' | 'blanks'
+export type LocateKind =
+  | 'constants'
+  | 'formulas'
+  | 'blanks'
+  | 'comments'
+  | 'conditional-format'
+  | 'conditional-format-same'
+  | 'data-validation'
+  | 'data-validation-same'
+  | 'precedents'
+  | 'precedents-all'
+  | 'dependents'
+  | 'dependents-all'
 export interface LocatedCells {
   /** 原生实际查询范围，包含与输入范围相交的完整合并格。 */
   readonly scope: CellRange
@@ -130,5 +144,7 @@ export interface WasmFindQueries {
   find_cells?: (request: NativeFindRequest) => { total: number; matches: NativeFindMatch[] }
   replace_by_query?: (request: NativeReplaceRequest) => { cells: number; occurrences: number }
   locate_cells?: (request: { readonly sheet: number; readonly range: CellRange;
+    readonly origin?: CellRange;
+    readonly anchor?: { readonly row: number; readonly col: number };
     readonly kind: LocateKind; readonly limit: number }) => LocatedCells
 }

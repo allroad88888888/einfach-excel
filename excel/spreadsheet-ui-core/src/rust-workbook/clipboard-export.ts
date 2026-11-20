@@ -1,6 +1,7 @@
 import { encodeSelectionAsPlainText } from '../copy-as'
 import { encodeSelectionAsHtml } from '../copy-as/html-encoder'
 import { encodeSelectionAsMarkdown } from '../copy-as/markdown-encoder'
+import type { DisplayCell } from '../contracts/types'
 import type { RustClipboardExport, RustClipboardExportRequest } from './clipboard-commands'
 import type { WasmWorkbook } from './wasm-types'
 import { readVisibleProjection } from './visible-projection'
@@ -9,7 +10,24 @@ import { readVisibleProjection } from './visible-projection'
 const MAX_EXPORT_CELLS = 100_000
 const MAX_EXPORT_BYTES = 16 * 1024 * 1024
 
-/** Worker 内从 Rust 读取完整选区，复用视图编码器，只把最终字符串传回浏览器。 */
+function mergeProjectionCells(
+  cells: readonly DisplayCell[],
+  mergeAnchors: readonly DisplayCell[] | undefined,
+): DisplayCell[] {
+  if (!mergeAnchors || mergeAnchors.length === 0) return [...cells]
+  const byCoord = new Map<string, DisplayCell>()
+  for (const cell of cells) {
+    byCoord.set(`${cell.row},${cell.col}`, cell)
+  }
+  for (const anchor of mergeAnchors) {
+    const key = `${anchor.row},${anchor.col}`
+    const existing = byCoord.get(key)
+    byCoord.set(key, existing ? { ...anchor, ...existing, mergedSpan: anchor.mergedSpan } : anchor)
+  }
+  return [...byCoord.values()]
+}
+
+/** Worker 内从 Rust 读取完整选区（含合并锚点与筛选隐藏行），复用视图编码器输出字符串。 */
 export function exportClipboard(
   workbook: WasmWorkbook,
   sheet: number,
@@ -41,7 +59,8 @@ export function exportClipboard(
     0,
   )
   const input = {
-    cells: projection.cells,
+    cells: mergeProjectionCells(projection.cells, projection.mergeAnchors),
+    mergedRanges: projection.mergedRanges,
     hiddenRows: projection.visibility?.filterRows,
     rect: {
       startRow: range.rowStart,

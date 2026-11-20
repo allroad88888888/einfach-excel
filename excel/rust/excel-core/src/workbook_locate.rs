@@ -7,6 +7,15 @@ pub enum LocateKind {
     Constants,
     Formulas,
     Blanks,
+    Comments,
+    ConditionalFormat,
+    ConditionalFormatSame,
+    DataValidation,
+    DataValidationSame,
+    Precedents,
+    PrecedentsAll,
+    Dependents,
+    DependentsAll,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -22,29 +31,59 @@ impl Workbook {
     pub fn locate_cells(
         &self,
         sheet: usize,
+        range: CellRange,
+        kind: LocateKind,
+        region_limit: usize,
+    ) -> Result<LocatedCells, &'static str> {
+        self.locate_cells_with_context(sheet, range, range, range.start, kind, region_limit)
+    }
+
+    pub fn locate_cells_with_context(
+        &self,
+        sheet: usize,
         mut range: CellRange,
+        origin: CellRange,
+        anchor: CellAddress,
         kind: LocateKind,
         region_limit: usize,
     ) -> Result<LocatedCells, &'static str> {
         let source = self.sheet(sheet).ok_or("Invalid locate worksheet.")?;
-        if range != range.normalize() || range.end.row >= 1_048_576 || range.end.col >= 16_384 {
+        if range != range.normalize()
+            || origin != origin.normalize()
+            || range.end.row >= 1_048_576
+            || range.end.col >= 16_384
+            || origin.end.row >= 1_048_576
+            || origin.end.col >= 16_384
+            || anchor.row >= 1_048_576
+            || anchor.col >= 16_384
+        {
             return Err("Invalid locate range.");
         }
         if region_limit == 0 || region_limit > 500 {
             return Err("Locate region limit must be between 1 and 500.");
         }
-        // 与普通选区一致：范围碰到合并格时包住整格，连锁相交直到稳定。
-        loop {
-            let previous = range;
-            for merged in source.merged_ranges() {
-                if merged.intersects(range) {
-                    range.start.row = range.start.row.min(merged.start.row);
-                    range.start.col = range.start.col.min(merged.start.col);
-                    range.end.row = range.end.row.max(merged.end.row);
-                    range.end.col = range.end.col.max(merged.end.col);
-                }
+        range = crate::locate_special::expand_merges(source, range);
+        let origin = crate::locate_special::expand_merges(source, origin);
+        if !matches!(
+            kind,
+            LocateKind::Constants | LocateKind::Formulas | LocateKind::Blanks
+        ) {
+            let (rectangles, merged_matches) = crate::locate_special::collect_special_matches(
+                self, sheet, range, origin, anchor, kind,
+            );
+            let mut result = pack_rectangles(range, &rectangles, false, region_limit)?;
+            if result.ranges.len() + merged_matches.len() > region_limit {
+                return Err("Too many separate areas. Select a smaller range and try again.");
             }
-            if range == previous { break; }
+            for merged in merged_matches {
+                result.cell_count += u64::from(merged.end.row - merged.start.row + 1)
+                    * u64::from(merged.end.col - merged.start.col + 1);
+                result.ranges.push(merged);
+            }
+            result
+                .ranges
+                .sort_by_key(|r| (r.start.row, r.start.col, r.end.row, r.end.col));
+            return Ok(result);
         }
         let mut rectangles = Vec::new();
         let matches = |formula: bool| match kind {
@@ -52,6 +91,7 @@ impl Workbook {
             LocateKind::Constants => !formula,
             // 空白的事件是已有内容，扫描线最后取补集。
             LocateKind::Blanks => true,
+            _ => unreachable!(),
         };
         source.for_each_non_empty_in_range(range, |address| {
             if source.merged_range_at(address).is_none() && !source.is_spilled(address)

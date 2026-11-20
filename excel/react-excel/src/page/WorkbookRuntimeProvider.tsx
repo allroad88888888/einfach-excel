@@ -2,9 +2,11 @@ import { createStore, type Store } from '@einfach/core'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { Provider as AtomProvider } from '@einfach/react'
 import {
+  configureHostControlsAtom,
   disposeRustWorkbookRuntimeAtom,
   spreadsheetRuntimeAtom,
   startRustWorkbookRuntimeAtom,
+  type DateInputOrder,
   type RustWorkbookDefinition,
   type SheetDefaults,
 } from '@einfach-excel/spreadsheet-ui-core'
@@ -20,6 +22,8 @@ export interface WorkbookRuntimeProviderProps extends WorkbookPresentationProps 
   readonly definition: RustWorkbookDefinition
   /** Captured per definition at startup; changing this prop alone does not replace workbook data. */
   readonly defaults?: SheetDefaults
+  /** Optional host-configured date input order (`'YMD' | 'MDY' | 'DMY'`). Defaults to strict `'YMD'`. */
+  readonly dateInputOrder?: DateInputOrder
   /**
    * 宿主上次保存的原生快照（`exportWorkbookSnapshotAtom` 的结果）。只在首次挂载时读取：
    * 给出时从快照恢复，打不开则退回 definition，错误见 `workbookReplacementErrorAtom`。
@@ -34,17 +38,26 @@ function WorkbookRuntimeMount({
   definition,
   initialSnapshot,
   defaults,
+  dateInputOrder,
   workerFactory = createDefaultWorkbookWorker,
 }: Omit<WorkbookRuntimeProviderProps, 'store'>): ReactNode {
   const { i18n } = useLingui()
   const state = useAtomValue(spreadsheetRuntimeAtom)
   const startRuntime = useSetAtom(startRustWorkbookRuntimeAtom)
   const disposeRuntime = useSetAtom(disposeRustWorkbookRuntimeAtom)
+  const configureControls = useSetAtom(configureHostControlsAtom)
   // 非渲染身份：快照只配挂载时的那份 definition，宿主之后换 definition 就按新定义启动。
   const mounted = useRef({ definition, initialSnapshot })
   const initial = useRef({ definition, defaults })
+  const configuredOrder = useRef<DateInputOrder | undefined>(undefined)
   if (initial.current.definition !== definition) initial.current = { definition, defaults }
   const initialDefaults = initial.current.defaults
+
+  useEffect(() => {
+    if (dateInputOrder === undefined && configuredOrder.current === undefined) return
+    configuredOrder.current = dateInputOrder
+    void configureControls({ dateInputOrder: dateInputOrder ?? 'YMD' })
+  }, [configureControls, dateInputOrder])
 
   useEffect(() => {
     const snapshot = definition === mounted.current.definition
@@ -78,6 +91,7 @@ export function WorkbookRuntimeProvider({
   definition,
   initialSnapshot,
   defaults,
+  dateInputOrder,
   store,
   workerFactory,
   ...presentation
@@ -87,7 +101,7 @@ export function WorkbookRuntimeProvider({
   return (
     <WorkbookPresentationProvider {...presentation}><AtomProvider store={runtimeStore}>
       <WorkbookRuntimeMount definition={definition} initialSnapshot={initialSnapshot}
-        workerFactory={workerFactory} defaults={defaults}>
+        workerFactory={workerFactory} defaults={defaults} dateInputOrder={dateInputOrder}>
         {children}
       </WorkbookRuntimeMount>
     </AtomProvider></WorkbookPresentationProvider>

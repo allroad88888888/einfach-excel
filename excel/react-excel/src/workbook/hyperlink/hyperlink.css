@@ -25,3 +25,6 @@
 :where(.einfach-spreadsheet) .hyperlink-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 :where(.einfach-spreadsheet) .hyperlink-panel button[type="submit"] { background: var(--primary, #315cda); border-color: var(--primary, #315cda); color: #fff; }
 :where(.einfach-spreadsheet) .hyperlink-open { display: inline-block; margin-top: 14px; color: var(--primary, #315cda); }
+:where(.einfach-spreadsheet) .hyperlink-panel .hyperlink-open-button { display: inline-block; margin-top: 14px; padding: 0; min-height: auto; border: 0; background: none; color: var(--primary, #315cda); text-decoration: underline; }
+:where(.einfach-spreadsheet) .hyperlink-notice { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border: 1px solid #fecdca; border-radius: 4px; background: #fef3f2; color: #b42318; font-size: 12px; }
+:where(.einfach-spreadsheet) .hyperlink-notice-dismiss { border: 0; background: none; color: inherit; cursor: pointer; padding: 0 2px; font-size: 14px; line-height: 1; }

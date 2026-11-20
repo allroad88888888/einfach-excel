@@ -14,29 +14,73 @@ impl From<CellRange> for LocateRangeJSON {
     }
 }
 
+#[derive(Deserialize, Serialize, Clone, Copy)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct LocateCoordJSON {
+    row: u32,
+    col: u32,
+}
+
 #[derive(Deserialize)]
-#[serde(rename_all = "lowercase")]
-enum LocateKindJSON { Constants, Formulas, Blanks }
+#[serde(rename_all = "kebab-case")]
+enum LocateKindJSON {
+    Constants,
+    Formulas,
+    Blanks,
+    Comments,
+    ConditionalFormat,
+    ConditionalFormatSame,
+    DataValidation,
+    DataValidationSame,
+    Precedents,
+    PrecedentsAll,
+    Dependents,
+    DependentsAll,
+}
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct LocateRequestJSON {
     sheet: usize,
     range: LocateRangeJSON,
+    #[serde(default)]
+    origin: Option<LocateRangeJSON>,
+    #[serde(default)]
+    anchor: Option<LocateCoordJSON>,
     kind: LocateKindJSON,
     limit: usize,
 }
 
 impl LocateRequestJSON {
     fn query(self, workbook: &Workbook) -> Result<LocatedCells, &'static str> {
-        let range = CellRange::new(CellAddress::new(self.range.row_start, self.range.col_start),
-            CellAddress::new(self.range.row_end, self.range.col_end));
+        let range = CellRange::new(
+            CellAddress::new(self.range.row_start, self.range.col_start),
+            CellAddress::new(self.range.row_end, self.range.col_end),
+        );
+        let origin = self.origin.map_or(range, |o| {
+            CellRange::new(
+                CellAddress::new(o.row_start, o.col_start),
+                CellAddress::new(o.row_end, o.col_end),
+            )
+        });
+        let anchor = self
+            .anchor
+            .map_or(origin.start, |a| CellAddress::new(a.row, a.col));
         let kind = match self.kind {
             LocateKindJSON::Constants => LocateKind::Constants,
             LocateKindJSON::Formulas => LocateKind::Formulas,
             LocateKindJSON::Blanks => LocateKind::Blanks,
+            LocateKindJSON::Comments => LocateKind::Comments,
+            LocateKindJSON::ConditionalFormat => LocateKind::ConditionalFormat,
+            LocateKindJSON::ConditionalFormatSame => LocateKind::ConditionalFormatSame,
+            LocateKindJSON::DataValidation => LocateKind::DataValidation,
+            LocateKindJSON::DataValidationSame => LocateKind::DataValidationSame,
+            LocateKindJSON::Precedents => LocateKind::Precedents,
+            LocateKindJSON::PrecedentsAll => LocateKind::PrecedentsAll,
+            LocateKindJSON::Dependents => LocateKind::Dependents,
+            LocateKindJSON::DependentsAll => LocateKind::DependentsAll,
         };
-        workbook.locate_cells(self.sheet, range, kind, self.limit)
+        workbook.locate_cells_with_context(self.sheet, range, origin, anchor, kind, self.limit)
     }
 }
 

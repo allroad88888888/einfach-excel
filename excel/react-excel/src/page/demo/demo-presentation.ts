@@ -12,7 +12,7 @@ import { cellAppearancePlugin } from '@einfach-excel/plugin-cell-appearance'
 import { samplePlugin } from '@einfach-excel/plugin-sample'
 import { createWorkbookI18n, supportedUiLocale, type UiLocale } from '../../i18n/runtime'
 import type { SpreadsheetPlugin } from '../../plugin/types'
-import type { SheetDefaults } from '@einfach-excel/spreadsheet-ui-core'
+import type { DateInputOrder, SheetDefaults } from '@einfach-excel/spreadsheet-ui-core'
 import type { WorkbookUiOptions } from '../workbook-ui-options'
 
 export const UI_LOCALE_STORAGE_KEY = 'react-excel.ui-locale'
@@ -106,8 +106,16 @@ const defaults: SheetDefaults = Object.fromEntries(
   }),
 )
 
+function resolveDateInputOrder(query: string): DateInputOrder | undefined {
+  const raw = new URLSearchParams(query).get('dateInputOrder')?.toUpperCase()
+  return raw === 'YMD' || raw === 'MDY' || raw === 'DMY' ? raw : undefined
+}
+
 export function demoPresentation(options: { readonly chart?: boolean } = {}) {
+  const search = typeof window === 'undefined' ? '' : window.location.search
+  const dateInputOrder = resolveDateInputOrder(search)
   return { i18n, xlsx: loadXlsx, plugins: options.chart ? pluginsWithChart : plugins, ui, defaults,
-    renderer: new URLSearchParams(window.location.search).get('renderer') === 'canvas'
+    ...(dateInputOrder ? { dateInputOrder } : {}),
+    renderer: new URLSearchParams(search).get('renderer') === 'canvas'
       ? 'canvas' as const : 'dom' as const }
 }

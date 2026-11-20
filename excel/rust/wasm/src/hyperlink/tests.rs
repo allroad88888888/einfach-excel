@@ -19,6 +19,27 @@ fn hyperlink_file_roundtrip_keeps_blank_cells_and_legacy_files_still_open() {
     restored.restore_persistence_v1_json(serde_json::from_value(legacy).unwrap()).unwrap();
     assert!(restored.hyperlinks_json().is_empty());
     assert_eq!(restored.get_display(0, "A1"), "Customer");
+
+    source.add_sheet("Sales Orders");
+    source
+        .change_hyperlink(0, 1, 0, Some("#'Sales Orders'!B5:D10".into()), Some("Jump".into()))
+        .unwrap();
+    source
+        .change_hyperlink(0, 1, 1, Some("#SampleAmounts".into()), None)
+        .unwrap();
+    let internal_json = serde_json::to_value(source.snapshot_persistence_v1_json()).unwrap();
+    let mut restored_internal = WasmWorkbook::new();
+    restored_internal
+        .restore_persistence_v1_json(serde_json::from_value(internal_json).unwrap())
+        .unwrap();
+    assert_eq!(
+        restored_internal.workbook.sheet(0).unwrap().hyperlink(CellAddress::new(1, 0)),
+        Some("#'Sales Orders'!B5:D10")
+    );
+    assert_eq!(
+        restored_internal.workbook.sheet(0).unwrap().hyperlink(CellAddress::new(1, 1)),
+        Some("#SampleAmounts")
+    );
 }
 
 #[test]

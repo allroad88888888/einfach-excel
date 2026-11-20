@@ -1562,3 +1562,19 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CELLSTYLE-001 | 内置单元格样式库原子应用填充、字体与边框，支持单步撤销及常规重置 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-001: built-in cell style presets apply fill, font, and borders atomically with single undo and Normal reset` |
 | CELLSTYLE-002 | 切换工作簿主题实时联动主题样式预览、单元格着色及颜色面板主题色行 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-002: switching workbook theme updates themed cell styles and Fill color palette theme row` |
 | CELLSTYLE-003 | 单元格样式遵循工作表保护并在原生工作簿下载重开后完整保留 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-003: cell styles respect worksheet protection and survive native workbook roundtrip` |
+
+### 亚秒时间与地区日期输入、工作簿内部超链接、定位条件补齐与复制保真
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| TIMEIN-001 | 格内与公式栏键入亚秒时间自动赋予亚秒时间格式并支持重编辑与公式运算 | `editing/subsecond-locale-date.spec.ts` | `TIMEIN-001: sub-second time inputs parse as day fractions, format milliseconds, and recalculate` |
+| TIMEIN-002 | 宿主配置地区日期顺序（MDY / DMY）解析斜杠日期且默认保持 YMD 零回归 | `editing/subsecond-locale-date.spec.ts` | `TIMEIN-002: host dateInputOrder parses MDY and DMY slash dates while default YMD keeps ambiguous dates as text` |
+| LINK-013 | 插入指向工作簿内部区域与已定义名称的超链接并通过 Ctrl/⌘+单击跨表定位 | `hyperlink/internal-hyperlink.spec.ts` | `LINK-013: Ctrl or Command click on internal hyperlink switches sheet and selects target range or defined name` |
+| LINK-014 | 超链接弹窗点击跳转到工作簿位置执行内部定位并对隐藏或不存在工作表给出非阻塞提示 | `hyperlink/internal-hyperlink.spec.ts` | `LINK-014: hyperlink dialog opens internal location and reports hidden or missing targets without opening a new tab` |
+| LINK-015 | 工作表重命名自动改写内部超链接表名并支持单步撤销重做与原生文件往返 | `hyperlink/internal-hyperlink.spec.ts` | `LINK-015: renaming a worksheet retargets internal hyperlinks with single undo/redo and native file roundtrip` |
+| NAV-065 | 定位条件「对象」激活当前表首个浮动对象选中态并在无对象时保留选区提示 | `navigation/go-to-special-remaining.spec.ts` | `NAV-065: Go to special Objects selects the first floating object on Charts demo and reports empty sheets` |
+| NAV-066 | 定位条件「条件格式（相同）」仅选中与活动格具有相同条件格式规则的单元格 | `navigation/go-to-special-remaining.spec.ts` | `NAV-066: Go to special Conditional formats (same) selects only cells matching the active cell rule` |
+| NAV-067 | 定位条件「数据验证（相同）」仅选中与活动格具有相同数据验证规则的单元格 | `navigation/go-to-special-remaining.spec.ts` | `NAV-067: Go to special Data validation (same) selects only cells matching the active cell rule` |
+| NAV-068 | 定位条件「引用单元格（仅直接 / 所有级别）」区分单跳与递归多级前置引用 | `navigation/go-to-special-remaining.spec.ts` | `NAV-068: Go to special Precedents distinguishes direct-only from all-levels recursive precedents` |
+| NAV-069 | 定位条件「从属单元格（仅直接 / 所有级别）」区分单跳与递归多级下游公式 | `navigation/go-to-special-remaining.spec.ts` | `NAV-069: Go to special Dependents distinguishes direct-only from all-levels recursive dependents` |
+| CLIP-049 | 复制为 HTML / Markdown / 纯文本保留选区合并格 rowspan/colspan、跳过合并从属格并过滤已隐藏筛选行 | `editing/copy-as-merge-filter.spec.ts` | `CLIP-049: Copy as HTML, Markdown, and plain text emit merged rowspan/colspan, skip covered cells, and exclude filtered rows` |

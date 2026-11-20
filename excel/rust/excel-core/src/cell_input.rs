@@ -1,4 +1,5 @@
 //! 单元格输入文本的往返语义；编辑和外部剪贴板共用，不解析显示格式。
+use crate::date_serial::DateInputOrder;
 use einfach_core::Value;
 
 #[derive(Debug, PartialEq)]
@@ -15,15 +16,32 @@ pub enum CellInput {
 pub(crate) fn parse_formatted_input(
     input: &str, allow_formula: bool, format: &crate::NumberFormat,
 ) -> CellInput {
+    parse_formatted_input_with_order(input, allow_formula, format, DateInputOrder::Ymd)
+}
+
+pub(crate) fn parse_formatted_input_with_order(
+    input: &str,
+    allow_formula: bool,
+    format: &crate::NumberFormat,
+    order: DateInputOrder,
+) -> CellInput {
     if !input.is_empty() && *format == crate::NumberFormat::Text {
         CellInput::Literal(Value::Text(input.strip_prefix('\'').unwrap_or(input).into()))
     } else {
-        parse_cell_input(input, allow_formula)
+        parse_cell_input_with_order(input, allow_formula, order)
     }
 }
 
 /// 只识别明确的输入语法；不完整数字、非有限数、歧义日期仍保留为文字。
 pub fn parse_cell_input(input: &str, allow_formula: bool) -> CellInput {
+    parse_cell_input_with_order(input, allow_formula, DateInputOrder::Ymd)
+}
+
+pub fn parse_cell_input_with_order(
+    input: &str,
+    allow_formula: bool,
+    order: DateInputOrder,
+) -> CellInput {
     if let Some(text) = input.strip_prefix('\'') {
         return CellInput::Literal(Value::Text(text.into()));
     }
@@ -52,7 +70,7 @@ pub fn parse_cell_input(input: &str, allow_formula: bool) -> CellInput {
             };
         }
     }
-    if let Some(serial) = crate::date_serial::parse_iso_date(trimmed) {
+    if let Some(serial) = crate::date_serial::parse_date_with_order(trimmed, order) {
         return CellInput::Date(serial);
     }
     if let Some(time) = crate::time_input::parse_time(trimmed) {
@@ -77,12 +95,20 @@ fn finite_number(input: &str) -> Option<f64> {
 
 /// 前导引号只是输入标记，不写进文字；再次编辑时为可能被误识别的文字补回标记。
 pub fn editable_cell_text(value: &Value, formula: &str) -> String {
+    editable_cell_text_with_order(value, formula, DateInputOrder::Ymd)
+}
+
+pub fn editable_cell_text_with_order(
+    value: &Value,
+    formula: &str,
+    order: DateInputOrder,
+) -> String {
     if !formula.is_empty() {
         return formula.to_owned();
     }
     match value {
         Value::Number(number) => number.to_string(),
-        Value::Text(text) => match parse_cell_input(text, true) {
+        Value::Text(text) => match parse_cell_input_with_order(text, true, order) {
             CellInput::Literal(Value::Text(parsed)) if parsed == *text => text.to_string(),
             _ => format!("'{text}"),
         },

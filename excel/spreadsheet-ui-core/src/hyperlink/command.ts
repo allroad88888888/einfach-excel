@@ -15,6 +15,7 @@ import { sheetTabsAtom } from '../sheet-tabs/state'
 import { showFormulasAtom } from '../calculation/formula-view'
 import type { CellCoord } from '../shared'
 import type { ProjectionRevision, VisibleProjectionResult } from '../contracts'
+import { clearHyperlinkNoticeAtom, resolveAndNavigateInternalHyperlink } from './navigate'
 
 function projectedCell(result: VisibleProjectionResult, cell: CellCoord) {
   return [...result.mergeAnchors ?? [], ...result.cells,
@@ -38,6 +39,7 @@ interface Panel {
 const CLOSED: Panel = { connection: null, sheetId: '', cell: { row: 0, col: 0 },
   url: '', text: '', originalText: '', existing: false, busy: false, error: '' }
 const panelAtom = atom<Panel>(CLOSED)
+panelAtom.debugLabel = 'spreadsheet.hyperlink.panelState'
 
 /** 只有弹窗草稿，不缓存每格链接；关闭/换连接后旧操作不能更新新弹窗。 */
 export const hyperlinkPanelAtom = atom((get) => {
@@ -62,6 +64,7 @@ export const hyperlinkPanelAtom = atom((get) => {
       !get(editingSessionAtom).source && !get(rustHistoryPanelAtom).busy &&
       !get(sheetTabsAtom).mutation) }
 })
+hyperlinkPanelAtom.debugLabel = 'spreadsheet.hyperlink.panel'
 
 /** 打开链接前从当前投影读事实；编辑/加载/切表期间不会打开旧帧地址。 */
 export const readCellHyperlinkAtom = atom(null, (get, _set, cell: CellCoord): string | null => {
@@ -71,9 +74,10 @@ export const readCellHyperlinkAtom = atom(null, (get, _set, cell: CellCoord): st
     result?.kind !== 'visible-window' || result.sheetId !== get(activeWorkbookSheetAtom)?.id) return null
   return projectedCell(result, cell)?.hyperlink ?? null
 })
+readCellHyperlinkAtom.debugLabel = 'spreadsheet.hyperlink.readCell'
 
 export const runHyperlinkAtom = atom(null, async (get, set,
-  action: 'open' | 'close' | 'save' | 'remove' | { url?: string; text?: string },
+  action: 'open' | 'close' | 'save' | 'remove' | 'jump' | { url?: string; text?: string },
 ): Promise<boolean> => {
   const state = get(panelAtom)
   const panel = get(hyperlinkPanelAtom)
@@ -91,6 +95,7 @@ export const runHyperlinkAtom = atom(null, async (get, set,
   }
   if (action === 'open') {
     if (!panel.available || result?.kind !== 'visible-window') return false
+    set(clearHyperlinkNoticeAtom)
     const cell = get(selectionSnapshotAtom).activeCell
     const source = get(activeCellFactAtom)
     const text = source?.displayValue ?? ''
@@ -103,6 +108,12 @@ export const runHyperlinkAtom = atom(null, async (get, set,
   if (!panel.open) return false
   if (typeof action === 'object') {
     set(panelAtom, { ...state, ...action, error: '' }); return true
+  }
+  if (action === 'jump') {
+    const outcome = resolveAndNavigateInternalHyperlink(get, set, state.url)
+    if (!outcome.ok) return fail(outcome.error)
+    set(panelAtom, CLOSED)
+    return true
   }
   if (!panel.available || visible?.kind !== 'visible-window' || result?.kind !== 'visible-window')
     return fail('Finish the current operation before changing a hyperlink.')
@@ -141,3 +152,4 @@ export const runHyperlinkAtom = atom(null, async (get, set,
     return fail(error instanceof Error ? error.message : String(error))
   }
 })
+runHyperlinkAtom.debugLabel = 'spreadsheet.hyperlink.run'

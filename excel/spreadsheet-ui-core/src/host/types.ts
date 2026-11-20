@@ -62,10 +62,13 @@ export interface WorkbookChangeEvent {
   readonly changes: readonly { readonly sheetId: string; readonly ranges: readonly CellRange[] }[]
 }
 
+export type DateInputOrder = 'YMD' | 'MDY' | 'DMY'
+
 export interface HostControls {
   readonly readOnly: boolean
   readonly busy: boolean
   readonly allowSheetStructure: boolean
+  readonly dateInputOrder?: DateInputOrder
 }
 
 export interface HostCommands {
@@ -83,6 +86,7 @@ export interface NativeMutationState {
   readonly changes: readonly { readonly sheetKey: string; readonly ranges: readonly CellRange[] }[]
 }
 export interface HostWasmCommands {
+  readonly set_date_input_order?: (order: DateInputOrder) => void
   readonly suspend_calculation?: () => number
   readonly resume_calculation?: () => number
   readonly calculation_suspension_depth?: () => number

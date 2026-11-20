@@ -17,7 +17,7 @@ import { translateSelectSpecial } from '../../../i18n/translate-select-special'
 import { cycleDialogFocus } from './dialog-focus'
 import './go-to.css'
 
-/** 三种条件共享一个原生查询命令；组件只负责选项、提示与 DOM 焦点。 */
+/** 全部定位条件共享同一个原生查询命令与浮动对象定位；组件只负责选项、提示与 DOM 焦点。 */
 export function GoToSpecialTools() {
   const { i18n, t } = useLingui()
   const panel = useAtomValue(goToSpecialPanelAtom)
@@ -28,7 +28,6 @@ export function GoToSpecialTools() {
   const clearHelper = useSetAtom(clearSelectSpecialFeedbackAtom)
   const selectVisible = useSetAtom(selectVisibleCellsAtom)
   const selectRegion = useSetAtom(selectCurrentRegionAtom)
-  /** 两个选择助手与三类条件共用对话框；成功后关闭，失败留在弹窗里显示原因。 */
   const helper = async (command: typeof selectVisible) => {
     if (await command()) void run('close')
   }
@@ -36,6 +35,7 @@ export function GoToSpecialTools() {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const firstRef = useRef<HTMLButtonElement>(null)
   const id = useId()
+  const canRunRangeCondition = available && panel.continuous
   useEffect(() => {
     const dialog = dialogRef.current
     if (!panel.open || !dialog) return
@@ -71,7 +71,7 @@ export function GoToSpecialTools() {
         </button>
       </RibbonItem>
       {panel.notice && (
-        <span role="status" className="visually-hidden">
+        <span role="status" className="visually-hidden" data-go-to-special-notice="true">
           {translateFeedback(i18n, panel.notice)}
         </span>
       )}
@@ -101,15 +101,15 @@ export function GoToSpecialTools() {
           >
             <button
               ref={firstRef}
-              disabled={!available || !panel.continuous}
+              disabled={!canRunRangeCondition}
               onClick={() => void run('constants')}
             >
               <Trans>Constants</Trans>
             </button>
-            <button disabled={!available || !panel.continuous} onClick={() => void run('formulas')}>
+            <button disabled={!canRunRangeCondition} onClick={() => void run('formulas')}>
               <Trans>Formulas</Trans>
             </button>
-            <button disabled={!available || !panel.continuous} onClick={() => void run('blanks')}>
+            <button disabled={!canRunRangeCondition} onClick={() => void run('blanks')}>
               <Trans>Blanks</Trans>
             </button>
             <button disabled={!helperAvailable} onClick={() => void helper(selectVisible)}>
@@ -117,6 +117,42 @@ export function GoToSpecialTools() {
             </button>
             <button disabled={!helperAvailable} onClick={() => void helper(selectRegion)}>
               <Trans>Current region</Trans>
+            </button>
+            <button disabled={!available} onClick={() => void run('objects')}>
+              <Trans>Objects</Trans>
+            </button>
+            <button disabled={!canRunRangeCondition} onClick={() => void run('comments')}>
+              <Trans>Notes and comments</Trans>
+            </button>
+            <button disabled={!canRunRangeCondition} onClick={() => void run('conditional-format')}>
+              <Trans>Conditional formats (all)</Trans>
+            </button>
+            <button
+              disabled={!canRunRangeCondition}
+              onClick={() => void run('conditional-format-same')}
+            >
+              <Trans>Conditional formats (same)</Trans>
+            </button>
+            <button disabled={!canRunRangeCondition} onClick={() => void run('data-validation')}>
+              <Trans>Data validation (all)</Trans>
+            </button>
+            <button
+              disabled={!canRunRangeCondition}
+              onClick={() => void run('data-validation-same')}
+            >
+              <Trans>Data validation (same)</Trans>
+            </button>
+            <button disabled={!canRunRangeCondition} onClick={() => void run('precedents')}>
+              <Trans>Precedents (direct only)</Trans>
+            </button>
+            <button disabled={!canRunRangeCondition} onClick={() => void run('precedents-all')}>
+              <Trans>Precedents (all levels)</Trans>
+            </button>
+            <button disabled={!canRunRangeCondition} onClick={() => void run('dependents')}>
+              <Trans>Dependents (direct only)</Trans>
+            </button>
+            <button disabled={!canRunRangeCondition} onClick={() => void run('dependents-all')}>
+              <Trans>Dependents (all levels)</Trans>
             </button>
           </div>
           {!panel.continuous && (

@@ -1,6 +1,6 @@
 //! 单格输入触发的 Table 扩展；复用输入校验与局部历史，不复制数据区。
 use super::*;
-use crate::cell_input::{parse_formatted_input, CellInput};
+use crate::cell_input::{parse_formatted_input, parse_formatted_input_with_order, CellInput};
 use crate::CellSnapshot;
 
 impl TableDefinitionChange {
@@ -256,12 +256,13 @@ impl TableDefinitionChange {
             && self.before.calculated_columns.iter().any(Option::is_some);
         // 所有输入类型的 custom 约束都可能依赖稍后继承的计算列，整行完成后统一验证。
         let (deferred_formula, mut deferred_literal) = if inherited_row {
-            match parse_formatted_input(
+            match parse_formatted_input_with_order(
                 input,
                 true,
                 &workbook.sheets[self.sheet]
                     .get_format(&addr.to_string())
                     .number_format,
+                workbook.date_input_order,
             ) {
                 CellInput::Formula(source) => (Some(source), None),
                 other => (None, Some(other)),

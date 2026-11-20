@@ -20,8 +20,21 @@ fn value_to_display(val: &Value) -> String {
 }
 
 /// 编辑文本不走 General 显示的有效位舍入，保证 f64 往返不丢精度。
+#[cfg(test)]
 fn value_to_input_text(val: &Value, formula: &str) -> String {
-    einfach_excel_core::cell_input::editable_cell_text(&collapse_array_for_js(val), formula)
+    value_to_input_text_with_order(val, formula, einfach_excel_core::DateInputOrder::Ymd)
+}
+
+fn value_to_input_text_with_order(
+    val: &Value,
+    formula: &str,
+    order: einfach_excel_core::DateInputOrder,
+) -> String {
+    einfach_excel_core::cell_input::editable_cell_text_with_order(
+        &collapse_array_for_js(val),
+        formula,
+        order,
+    )
 }
 
 fn value_to_cell_type(val: &Value) -> String {

@@ -93,6 +93,7 @@ impl Workbook {
             return false;
         }
         let rewrites = self.sheet_ref_rewrites(&self.names[idx], Some(new_name));
+        let hyperlink_rewrites = self.hyperlink_sheet_ref_rewrites(&self.names[idx], new_name);
         let conditional = restored.cloned().unwrap_or_else(|| {
             self.conditional_sheet_ref_rewrites(&self.names[idx], Some(new_name))
         });
@@ -166,6 +167,7 @@ impl Workbook {
             for (sheet, addr, text) in rewrites {
                 self.install_formula_source(sheet, addr, &text);
             }
+            self.apply_hyperlink_sheet_snapshot(&hyperlink_rewrites);
         });
         true
     }

@@ -25,9 +25,14 @@ export const isPersistentHostCommand = (command: string): boolean => !NON_PERSIS
 
 export function validateHostControls(input: HostControls): HostControls {
   if (typeof input?.readOnly !== 'boolean' || typeof input.busy !== 'boolean' ||
-      typeof input.allowSheetStructure !== 'boolean') throw new Error('Invalid host controls.')
+      typeof input.allowSheetStructure !== 'boolean' ||
+      (input.dateInputOrder !== undefined &&
+        input.dateInputOrder !== 'YMD' &&
+        input.dateInputOrder !== 'MDY' &&
+        input.dateInputOrder !== 'DMY')) throw new Error('Invalid host controls.')
   return Object.freeze({ readOnly: input.readOnly, busy: input.busy,
-    allowSheetStructure: input.allowSheetStructure })
+    allowSheetStructure: input.allowSheetStructure,
+    ...(input.dateInputOrder ? { dateInputOrder: input.dateInputOrder } : {}) })
 }
 
 export function assertHostCommandAllowed(controls: HostControls, command: string): void {

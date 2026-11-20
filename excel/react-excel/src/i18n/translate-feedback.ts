@@ -65,6 +65,11 @@ export function translateFeedback(i18n: I18n, message: string | null | undefined
     const [, cells, areas, range] = match
     return t(i18n)`Selected ${cells} cells in ${areas} areas. Searched ${range}.`
   }
+  match = /^Selected 1 of (\d+) floating objects\.$/.exec(message)
+  if (match) {
+    const count = match[1]
+    return t(i18n)`Selected 1 of ${count} floating objects.`
+  }
   match = /^(.+)\. Argument help is not available yet\.$/.exec(message)
   if (match) {
     const category = translateFeedback(i18n, match[1])

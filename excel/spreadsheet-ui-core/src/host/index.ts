@@ -1,5 +1,5 @@
 export type { RawCellValue, RawWorkbookCell, RawWorkbookRange, WorkbookChangeEvent,
-  HostControls, HostCommandError, HostCommandFailure,
+  DateInputOrder, HostControls, HostCommandError, HostCommandFailure,
   ReadWorkbookRangesInput, ReadWorkbookRangesResult,
   WriteWorkbookCellsInput, WriteWorkbookCellsResult, ConfigureHostControlsResult,
   ExportWorkbookSnapshotResult, OpenWorkbookSnapshotResult } from './types'

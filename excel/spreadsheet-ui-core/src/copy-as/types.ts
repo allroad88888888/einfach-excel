@@ -45,6 +45,13 @@ export interface CopyAsInput {
    * adapter flip stops compacting filtered rows out of the display range.
    */
   hiddenRows?: ReadonlySet<number> | readonly number[]
+  /** Optional explicit worksheet merge rectangles intersecting or covering `rect`. */
+  mergedRanges?: readonly {
+    readonly rowStart: number
+    readonly colStart: number
+    readonly rowEnd: number
+    readonly colEnd: number
+  }[]
 }
 
 /**

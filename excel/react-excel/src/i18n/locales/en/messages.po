@@ -1407,6 +1407,14 @@ msgstr "Complete every required parameter in each repeated group."
 msgid "Condition"
 msgstr "Condition"
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Conditional formats (all)"
+msgstr "Conditional formats (all)"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Conditional formats (same)"
+msgstr "Conditional formats (same)"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Conditional formatting"
@@ -1829,6 +1837,14 @@ msgstr "Data tools"
 msgid "Data validation"
 msgstr "Data validation"
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Data validation (all)"
+msgstr "Data validation (all)"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Data validation (same)"
+msgstr "Data validation (same)"
+
 #: src/i18n/feedback-messages.ts
 msgid "Database"
 msgstr "Database"
@@ -2029,6 +2045,14 @@ msgstr "Delimiters"
 msgid "Denominator"
 msgstr "Denominator"
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Dependents (all levels)"
+msgstr "Dependents (all levels)"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Dependents (direct only)"
+msgstr "Dependents (direct only)"
+
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Descending"
 msgstr "Descending"
@@ -2061,6 +2085,10 @@ msgstr "Discard saved copy"
 #: src/workbook/comments/CommentTools.tsx
 msgid "Discussion for cell {address}"
 msgstr "Discussion for cell {address}"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Dismiss hyperlink notice"
+msgstr "Dismiss hyperlink notice"
 
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Dismiss layout error"
@@ -2421,6 +2449,10 @@ msgstr "Enter a valid threshold formula."
 #: src/i18n/seven-feature-feedback.ts
 msgid "Enter a valid validation formula."
 msgstr "Enter a valid validation formula."
+
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "Enter a valid workbook location such as #Sheet2!A1 or #DefinedName."
+msgstr "Enter a valid workbook location such as #Sheet2!A1 or #DefinedName."
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Enter a validation formula."
@@ -4293,6 +4325,10 @@ msgstr "No editable ranges."
 msgid "No fill"
 msgstr "No fill"
 
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "No floating objects found on this worksheet."
+msgstr "No floating objects found on this worksheet."
+
 #: src/workbook/advanced-validation/ValidationCirclesOverlay.tsx
 msgid "No invalid cells found."
 msgstr "No invalid cells found."
@@ -4404,6 +4440,10 @@ msgstr "Note text cannot contain a null character."
 msgid "Note text cannot exceed 32767 characters."
 msgstr "Note text cannot exceed 32767 characters."
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Notes and comments"
+msgstr "Notes and comments"
+
 #: src/i18n/feedback-messages.ts
 msgid "Notes and validation cannot be combined with arithmetic, transpose or skip blanks."
 msgstr "Notes and validation cannot be combined with arithmetic, transpose or skip blanks."
@@ -4465,6 +4505,10 @@ msgstr "Object actions"
 msgid "Object settings cannot exceed 64 KiB."
 msgstr "Object settings cannot exceed 64 KiB."
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Objects"
+msgstr "Objects"
+
 #: src/i18n/feedback-messages.ts
 msgid "Objects changed outside history."
 msgstr "Objects changed outside history."
@@ -4518,6 +4562,10 @@ msgstr "Open this file and replace the current workbook? Download first to keep 
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "Open workbook"
 msgstr "Open workbook"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Open workbook location"
+msgstr "Open workbook location"
 
 #: src/i18n/translate-feedback.ts
 msgid "Opened Excel workbook. Skipped: {items}."
@@ -4794,6 +4842,14 @@ msgstr "Post reply"
 #: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
 msgid "Postal Code"
 msgstr "Postal Code"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Precedents (all levels)"
+msgstr "Precedents (all levels)"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Precedents (direct only)"
+msgstr "Precedents (direct only)"
 
 #: src/i18n/feedback-messages.ts
 msgid "Preparing download…"
@@ -5889,6 +5945,14 @@ msgstr "Selected {cells} cells in {areas} areas. Searched {range}."
 msgid "Selected {cells} visible cells in {areas} areas."
 msgstr "Selected {cells} visible cells in {areas} areas."
 
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "Selected 1 floating object."
+msgstr "Selected 1 floating object."
+
+#: src/i18n/translate-feedback.ts
+msgid "Selected 1 of {count} floating objects."
+msgstr "Selected 1 of {count} floating objects."
+
 #: src/i18n/translate-select-special.ts
 msgid "Selected current region {range}."
 msgstr "Selected current region {range}."
@@ -6602,6 +6666,18 @@ msgstr "The insertion would move a comment outside the worksheet."
 #: src/i18n/seven-feature-feedback.ts
 msgid "The insertion would move a note outside the worksheet."
 msgstr "The insertion would move a note outside the worksheet."
+
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "The linked cell or range is outside the worksheet canvas."
+msgstr "The linked cell or range is outside the worksheet canvas."
+
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "The linked worksheet is hidden. Unhide it before opening this link."
+msgstr "The linked worksheet is hidden. Unhide it before opening this link."
+
+#: src/i18n/internal-hyperlink-feedback.ts
+msgid "The linked worksheet or named range does not exist."
+msgstr "The linked worksheet or named range does not exist."
 
 #: src/i18n/feedback-messages.ts
 msgid "The matched cell is outside the current worksheet."

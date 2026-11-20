@@ -10,7 +10,7 @@ export const dialog = (page: Page) => page.getByRole('dialog', { name: /filter c
 
 export async function start(page: Page, width = 1280) {
   await page.setViewportSize({ width, height: 850 })
-  await page.goto('/?plugins=data-filter&locale=en')
+  await page.goto('/e2e/fixtures/top-filter/?plugins=data-filter&locale=en')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'E2:F9', '1:4')

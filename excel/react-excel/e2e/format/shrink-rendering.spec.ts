@@ -39,15 +39,26 @@ for (const renderer of ['dom', 'canvas']) {
     else await expect(cell(page, '1:0')).toHaveText('SO-10001')
     await openFile(page, source)
     const name = page.getByRole('textbox', { name: 'Name box' })
-    await name.fill('A1:C1'); await name.press('Enter')
+    await name.fill('A5'); await name.press('Enter')
     await page.evaluate(() => document.fonts.ready)
-    const screenshot = async () => renderer === 'canvas'
-      ? Buffer.from(await canvas.evaluate(node => (node as HTMLCanvasElement).toDataURL('image/png').split(',')[1]!), 'base64')
-      : page.getByTestId('sheet-scroll').screenshot()
-    await expect.poll(async () => (await glyphPixels(page, await screenshot())).every(box => box.count > 20)).toBe(true)
+    const screenshot = async () => {
+      if (renderer === 'canvas') {
+        return Buffer.from(
+          await canvas.evaluate(node => (node as HTMLCanvasElement).toDataURL('image/png').split(',')[1]!),
+          'base64',
+        )
+      }
+      const first = (await cell(page, '0:0').boundingBox())!
+      const last = (await cell(page, '0:2').boundingBox())!
+      return page.screenshot({
+        clip: { x: first.x, y: first.y, width: last.x + last.width - first.x, height: first.height },
+      })
+    }
+    await expect.poll(async () => (await glyphPixels(page, await screenshot(), true)).every(box => box.count > 20)).toBe(true)
     const screen = await screenshot()
-    assertRaster(await glyphPixels(page, screen))
+    assertRaster(await glyphPixels(page, screen, true))
     await info.attach(`shrink-${renderer}.png`, { body: screen, contentType: 'image/png' })
+    await name.fill('A1:C1'); await name.press('Enter')
     await showRibbonControl(page, 'Export selection as image')
     await button(page, 'Export selection as image').click()
     const evidence = []
@@ -56,7 +67,7 @@ for (const renderer of ['dom', 'canvas']) {
       await expect(button(page, 'Download PNG')).toBeEnabled()
       const pending = page.waitForEvent('download'); await button(page, 'Download PNG').click()
       const png = await readFile((await (await pending).path())!)
-      const pixels = await glyphPixels(page, png)
+      const pixels = await glyphPixels(page, png, true)
       assertRaster(pixels, scale)
       evidence.push({ scale, pixels })
       await info.attach(`shrink-${renderer}-${scale}x.png`, { body: png, contentType: 'image/png' })

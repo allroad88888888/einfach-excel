@@ -5,7 +5,9 @@ export const SUMMARY_TOP_FILTER_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 1, col: 4, kind: 'text', value: 'Rank record', format: { bold: true } },
   { sheet: 1, row: 1, col: 5, kind: 'text', value: 'Rank score', format: { bold: true } },
   ...['Exclude 100', 'Keep 90 A', 'Keep 90 B', 'Keep 80', 'Keep text', 'Keep blank', 'Keep 70']
-    .map((value, index): RustImportCell => ({ sheet: 1, row: 2 + index, col: 4, kind: 'text', value })),
+    .map((value, index): RustImportCell => ({
+      sheet: 1, row: 2 + index, col: 4, kind: 'text', value,
+    })),
   ...[100, 90, 90, 80].map((value, index): RustImportCell => ({
     sheet: 1, row: 2 + index, col: 5, kind: 'number', value,
   })),

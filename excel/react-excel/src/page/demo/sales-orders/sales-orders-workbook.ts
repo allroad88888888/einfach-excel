@@ -1,4 +1,3 @@
-import { SUMMARY_TOP_FILTER_CELLS } from './data/top-filter-seed'
 import { SUMMARY_DATE_FILTER_CELLS } from './data/date-filter-seed'
 import { SUMMARY_FONT_BASELINE_CELLS } from './data/font-baseline-seed'
 import { SUMMARY_RICH_BASELINE_CELLS } from './data/rich-baseline-seed'
@@ -103,7 +102,6 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition =
       SUMMARY_PATTERN_FILL_CELLS,
       SUMMARY_GRADIENT_FILL_CELLS,
       SUMMARY_COLOR_SORT_CELLS,
-      SUMMARY_TOP_FILTER_CELLS,
       SUMMARY_DATE_FILTER_CELLS,
       SALES_ORDER_NUMBER_FORMAT_EXAMPLES,
       SALES_ORDER_SPECIAL_FORMAT_EXAMPLES,

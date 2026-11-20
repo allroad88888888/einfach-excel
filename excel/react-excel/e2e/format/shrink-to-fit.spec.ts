@@ -69,7 +69,7 @@ test('native shrink examples retain numeric formulas and mixed run sizes beside 
   }
   await select(page, 'D18', '17:3')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('=D17*2')
-  await expect(cell(page, '17:3')).toHaveText('246913578.50')
+  await expect(cell(page, '17:3')).toHaveText('24691357802.50')
   await select(page, 'D12', '11:3')
   await expect(cell(page, '11:3').locator('[data-font-baseline="subscript"]')).toHaveText('2')
   const glyph = await baselineGlyphBox(cell(page, '11:3'))

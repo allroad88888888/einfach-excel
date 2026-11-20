@@ -105,16 +105,18 @@ test('an entire column includes offscreen formulas and scrolling keeps the same 
   // 原五个数值合计 36；D75:D79 的色阶样例另有五个、合计 25。
   // D30:D31 合计 23；D62 RAND、D13 日期、D14 均值样本、D23 特殊格式原值也参与。
   // 自定义列表的 D55/D56 是文本，D59 的 901 哨兵参与数值统计。
-  // D5/D6 的上下标样例是文本，D7 的公式结果 24690 参与数值统计。
-  const expectedSum = 84 + randomValue + dateSerial + 20 + 12_345_678 + 901 + 24_690
-  await expect(status(page)).toContainText('Numerical count: 18')
+  // D5/D6、D8/D9、D11/D12、D16 的基线与缩小字体样例是文本；D7、D17、D18 参与数值统计。
+  const expectedSum =
+    84 + randomValue + dateSerial + 20 + 12_345_678 + 901 + 24_690
+    + 12_345_678_901.25 + 24_691_357_802.5
+  await expect(status(page)).toContainText('Numerical count: 20')
   await expect(status(page)).not.toContainText('Calculating selection')
-  for (const [name, expected] of [['Sum', expectedSum], ['Average', expectedSum / 18]] as const) {
+  for (const [name, expected] of [['Sum', expectedSum], ['Average', expectedSum / 20]] as const) {
     // The visible number uses 12 significant digits; its tooltip retains the native scalar.
     const raw = await status(page).getByRole('button', { name: `Copy ${name}`, exact: true }).getAttribute('title')
-    expect(Number(raw)).toBeCloseTo(expected, 8)
+    expect(Number(raw)).toBeCloseTo(expected, 4)
   }
-  await extrema(page, 31, '-10', '12,345,678')
+  await extrema(page, 38, '-10', '24,691,357,802.5')
   const before = await status(page).textContent()
   await page.getByTestId('sheet-scroll').evaluate((element) => { element.scrollTop = element.scrollHeight })
   await expect(page.locator('td[data-cell="92:3"]')).toBeVisible()

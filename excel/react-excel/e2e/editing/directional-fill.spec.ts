@@ -117,7 +117,7 @@ test('single cell and merged destinations fail visibly without damaging data or 
   await select(page, 'A14:D15')
   await showRibbonItem(page, 'data.fill-selected-range')
   await menu(page).selectOption('down')
-  await expect(page.getByRole('alert', { name: 'Fill status' })).toContainText('unmerge')
+  await expect(page.getByRole('alert', { name: 'Fill status' })).toContainText('Unmerge cells')
   await expect(cell(page, '14:0')).toHaveText('Merged heading')
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   await select(page, 'B71:B73')

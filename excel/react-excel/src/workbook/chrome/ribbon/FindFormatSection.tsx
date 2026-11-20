@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react'
+import { useId } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui, Trans } from '@lingui/react/macro'
 import {
@@ -171,52 +171,53 @@ function FormatFields({
 }
 
 export function FindFormatSection() {
-  const detailsRef = useRef<HTMLDetailsElement>(null)
   const state = useAtomValue(findReplacePanelAtom)
   const run = useSetAtom(runFindReplaceAtom)
   const busy = state.busy !== null
   const hasFind = hasFindFormatCriteria(state.form.format)
   const hasReplace = hasFindFormatCriteria(state.form.replaceFormat)
   const badgeActive = state.tab === 'replace' ? hasFind || hasReplace : hasFind
-
-  useEffect(() => {
-    if (badgeActive && detailsRef.current) {
-      detailsRef.current.open = true
-    }
-  }, [badgeActive])
+  const open = Boolean(state.formatOpen) || badgeActive
 
   return (
-    <details ref={detailsRef} className="find-format-details">
-      <summary>
+    <details className="find-format-details" open={open}>
+      <summary
+        onClick={(event) => {
+          event.preventDefault()
+          void run({ formatOpen: !open })
+        }}
+      >
         <Trans>Format criteria</Trans>
         {badgeActive && <span className="find-format-badge">●</span>}
       </summary>
-      <div className="find-format-body">
-        <FormatFields
-          kind="find"
-          value={state.form.format}
-          disabled={busy}
-          onPatch={(patch) =>
-            void run({ form: { format: { ...state.form.format, ...patch } } })
-          }
-          onSample={() => void run('sample-find-format')}
-          onClear={() => void run({ form: { format: undefined } })}
-        />
-        {state.tab === 'replace' && (
+      {open && (
+        <div className="find-format-body">
           <FormatFields
-            kind="replace"
-            value={state.form.replaceFormat}
+            kind="find"
+            value={state.form.format}
             disabled={busy}
             onPatch={(patch) =>
-              void run({
-                form: { replaceFormat: { ...state.form.replaceFormat, ...patch } },
-              })
+              void run({ form: { format: { ...state.form.format, ...patch } } })
             }
-            onSample={() => void run('sample-replace-format')}
-            onClear={() => void run({ form: { replaceFormat: undefined } })}
+            onSample={() => void run('sample-find-format')}
+            onClear={() => void run({ form: { format: undefined } })}
           />
-        )}
-      </div>
+          {state.tab === 'replace' && (
+            <FormatFields
+              kind="replace"
+              value={state.form.replaceFormat}
+              disabled={busy}
+              onPatch={(patch) =>
+                void run({
+                  form: { replaceFormat: { ...state.form.replaceFormat, ...patch } },
+                })
+              }
+              onSample={() => void run('sample-replace-format')}
+              onClear={() => void run({ form: { replaceFormat: undefined } })}
+            />
+          )}
+        </div>
+      )}
     </details>
   )
 }

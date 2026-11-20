@@ -4,11 +4,11 @@ import { showRibbonItem } from '../support/ribbon'
 import { start, enable, open, rank, apply, visible, button, cell, dialog, menu } from '../support/top-filter'
 
 test('data-filter is absent by default and composes with text-format through the existing header', async ({ page }) => {
-  await page.goto('/?locale=en'); await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await page.goto('/e2e/fixtures/top-filter/?locale=en'); await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await enable(page); await open(page)
   await expect(dialog(page).getByRole('button', { name: 'Top / Bottom…' })).toHaveCount(0)
-  await page.goto('/?plugins=data-filter,text-format&locale=en')
+  await page.goto('/e2e/fixtures/top-filter/?plugins=data-filter,text-format&locale=en')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await enable(page); await open(page); await rank(page); await apply(page); await visible(page, [0, 1, 2])

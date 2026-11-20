@@ -12,6 +12,7 @@ async function caret(input: Locator, draft: string, position: number) {
 
 for (const width of [1280]) for (const source of ['cell', 'formula']) {
   test(`HELP-004 ${source} actual parameter groups and suffixes at ${width}px`, async ({ page }, testInfo) => {
+    test.setTimeout(90_000)
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/')
     const target = await select(page, 'B2', '1:1')

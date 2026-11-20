@@ -21,6 +21,26 @@ export default mergeConfig(demoConfig, {
     // 失败时的堆栈与 trace 仍能回到源码；页面本身不加载 map。
     sourcemap: true,
     chunkSizeWarningLimit: 8_000,
-    rollupOptions: { input: pages },
+    rollupOptions: {
+      input: pages,
+      output: {
+        manualChunks(id: string) {
+          const normalized = id.replaceAll('\\', '/')
+          if (
+            normalized.endsWith('/excel/react-excel/src/index.ts') ||
+            normalized.endsWith('/excel/react-excel/src/Spreadsheet.tsx') ||
+            normalized.endsWith('/excel/react-excel/src/style.css') ||
+            normalized.includes('/excel/react-excel/src/workbook/') ||
+            normalized.includes('/excel/react-excel/src/plugin/') ||
+            normalized.includes('/excel/react-excel/src/i18n/') ||
+            normalized.includes('/excel/react-excel/src/page/Workbook') ||
+            normalized.includes('/excel/react-excel/src/page/workbook-')
+          ) {
+            return 'spreadsheet-lib'
+          }
+          return undefined
+        },
+      },
+    },
   },
 })

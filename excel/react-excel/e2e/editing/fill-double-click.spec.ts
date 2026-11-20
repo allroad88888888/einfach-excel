@@ -79,7 +79,7 @@ test('merged destination rejects atomically and succeeds after unmerge', async (
   await expect(merge).toBeEnabled()
   await select(page, 'B71', '70:1')
   await handle(page).dblclick()
-  await expect(page.getByLabel('Fill status')).toContainText('unmerge cells')
+  await expect(page.getByLabel('Fill status')).toContainText('Unmerge cells')
   await expect(name(page)).toHaveValue('B71')
   await expect(cell(page, '70:1')).toHaveText('4')
   await select(page, 'B72:C72', '71:1')

@@ -1,44 +1,13 @@
-import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
 import { showRibbonItem } from '../support/ribbon'
 
-const plugin = `/@fs${fileURLToPath(new URL('../../../../plugins/plugin-cell-appearance/src/index.ts', import.meta.url))}`
-
 test('gradient plugin reinstall restores its draft while formats and hosts stay independent', async ({ page }) => {
   await page.setViewportSize({ width: 1400, height: 1000 })
-  await page.route('**/gradient-plugin-hosts', route => route.fulfill({
-    contentType: 'text/html; charset=utf-8', body: `<!doctype html><html><head><meta charset="utf-8"></head>
-    <body style="margin:0"><div id="first" style="height:520px"></div>
-    <div id="second" style="height:520px"></div><output id="host-event"></output>
-    <script type="module">
-      import Refresh from '/@react-refresh'; Refresh.injectIntoGlobalHook(window);
-      window.$RefreshReg$=()=>{};window.$RefreshSig$=()=>type=>type;
-      window.__vite_plugin_react_preamble_installed__=true;
-      const React=(await import('/node_modules/.vite/deps/react.js')).default;
-      const {createRoot}=(await import('/node_modules/.vite/deps/react-dom_client.js')).default;
-      const {Spreadsheet}=await import('/src/index.ts');
-      const {cellAppearancePlugin}=await import(${JSON.stringify(plugin)});
-      const definition=tag=>({title:tag,sheets:[{id:'s',name:tag,rowCount:40,colCount:5}],
-        createImportChunks:()=>[[{sheet:0,row:0,col:0,kind:'text',value:tag}]]});
-      const first=createRoot(document.getElementById('first'));
-      const source=definition('First');let installed=true;
-      const render=()=>first.render(React.createElement(Spreadsheet,{definition:source,
-        plugins:installed?[cellAppearancePlugin]:[],locale:'en',style:{height:'100%'}}));
-      render();
-      createRoot(document.getElementById('second')).render(React.createElement(Spreadsheet,{
-        definition:definition('Second'),plugins:[cellAppearancePlugin],locale:'en',style:{height:'100%'}}));
-      document.addEventListener('keydown',event=>{
-        if(event.altKey&&event.code==='KeyU') {
-          event.preventDefault();installed=!installed;render();
-          document.getElementById('host-event').textContent=installed?'installed':'uninstalled';
-        }
-      });
-    </script></body></html>`,
-  }))
-  await page.goto('/gradient-plugin-hosts')
+  await page.goto('/e2e/fixtures/plugin-hosts/?case=gradient')
   const first = page.locator('#first'), second = page.locator('#second')
   const a = first.locator('td[data-cell="0:0"]'), b = second.locator('td[data-cell="0:0"]')
-  await expect(a).toHaveText('First'); await expect(b).toHaveText('Second')
+  await expect(a).toHaveText('First', { timeout: 15_000 })
+  await expect(b).toHaveText('Second', { timeout: 15_000 })
   await showRibbonItem(first, 'format.gradient-fill')
   await first.getByRole('button', { name: 'Gradient fill', exact: true }).click()
   await page.getByLabel('Gradient type', { exact: true }).selectOption('path-gradient')

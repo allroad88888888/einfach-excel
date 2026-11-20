@@ -31,6 +31,7 @@ export const workbookRibbonItemIds = [
   'format.bold',
   'format.border-settings',
   'format.borders',
+  'format.cell-styles',
   'format.conditional-formatting',
   'format.currency-format',
   'format.date-format',

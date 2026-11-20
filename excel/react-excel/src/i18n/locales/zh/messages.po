@@ -199,6 +199,30 @@ msgstr "双色"
 msgid "2-color scale"
 msgstr "双色色阶"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 1"
+msgstr "20% - 强调文字颜色 1"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 2"
+msgstr "20% - 强调文字颜色 2"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 3"
+msgstr "20% - 强调文字颜色 3"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 4"
+msgstr "20% - 强调文字颜色 4"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 5"
+msgstr "20% - 强调文字颜色 5"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 6"
+msgstr "20% - 强调文字颜色 6"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "3 colors"
 msgstr "三色"
@@ -255,6 +279,30 @@ msgstr "高于 / 低于平均值"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Above average"
 msgstr "高于平均值"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 1"
+msgstr "强调文字颜色 1"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 2"
+msgstr "强调文字颜色 2"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 3"
+msgstr "强调文字颜色 3"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 4"
+msgstr "强调文字颜色 4"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 5"
+msgstr "强调文字颜色 5"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 6"
+msgstr "强调文字颜色 6"
 
 #: src/workbook/chrome/ribbon/FindFormatSection.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
@@ -606,6 +654,10 @@ msgstr "AVERAGE — 平均值"
 msgid "Average comparison"
 msgstr "平均值比较"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Bad"
+msgstr "差"
+
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "Band color"
 msgstr "交替填充色"
@@ -737,6 +789,7 @@ msgstr "失效的名称定义"
 msgid "Calculating selection…"
 msgstr "正在计算选区…"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
 #: src/workbook/chrome/ribbon/ribbon-groups.tsx
 msgid "Calculation"
 msgstr "计算"
@@ -868,6 +921,10 @@ msgstr "单元格有批注"
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 msgid "Cell or Sheet!A1 (blank = selection)"
 msgstr "单元格或 Sheet!A1（留空使用当前选区）"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Cell styles and themes"
+msgstr "单元格样式与主题"
 
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Cell text"
@@ -1182,6 +1239,7 @@ msgstr "无法写入剪贴板，请使用浏览器复制快捷键。"
 #: src/components/formula-auditing/EvaluateFormulaDialog.tsx
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 #: src/workbook/protection/ProtectionTools.tsx
@@ -1487,6 +1545,10 @@ msgstr "正在复制统计值…"
 msgid "Correct the format code to see a preview."
 msgstr "更正格式代码后即可预览。"
 
+#: src/i18n/feedback-messages.ts
+msgid "Could not apply cell style to the current selection."
+msgstr "无法对当前选区应用单元格样式。"
+
 #: src/i18n/translate-feedback.ts
 msgid "Could not capture formatting: {detail}"
 msgstr "无法读取格式：{detail}"
@@ -1753,6 +1815,10 @@ msgstr "虚线"
 #: src/workbook/chrome/ribbon/RibbonTabs.tsx
 msgid "Data"
 msgstr "数据"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Data and model"
+msgstr "数据和模型"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Data bar"
@@ -2507,6 +2573,10 @@ msgstr "展开分组"
 msgid "Expected an icon-set rule."
 msgstr "此处需要图标集规则。"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Explanatory"
+msgstr "解释性文本"
+
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 msgid "Extending series…"
 msgstr "正在扩展序列…"
@@ -2514,6 +2584,10 @@ msgstr "正在扩展序列…"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "external links"
 msgstr "外部链接"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Facet"
+msgstr "切面"
 
 #: src/workbook/chrome/ribbon/RibbonMore.tsx
 msgid "Fewer tools"
@@ -3152,6 +3226,14 @@ msgstr "定位条件"
 msgid "Go to table {0}"
 msgstr "定位到表格 {0}"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Good"
+msgstr "好"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Good, bad and neutral"
+msgstr "好、差和适中"
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "gradients with no color stops"
 msgstr "无色标的渐变填充"
@@ -3202,6 +3284,22 @@ msgstr "将选中行分组"
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Header row"
 msgstr "表头行"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Heading 1"
+msgstr "标题 1"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Heading 2"
+msgstr "标题 2"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Heading 3"
+msgstr "标题 3"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Heading 4"
+msgstr "标题 4"
 
 #: src/workbook/chrome/ribbon/ViewOptionsTools.tsx
 msgid "Headings"
@@ -3375,6 +3473,10 @@ msgstr "独立的图案与底色跨层继承"
 msgid "Information"
 msgstr "信息"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Input"
+msgstr "输入"
+
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Input message"
 msgstr "输入提示内容"
@@ -3464,6 +3566,10 @@ msgstr "内部横框线"
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Inside vertical"
 msgstr "内部竖框线"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Integral"
+msgstr "积分"
 
 #: src/workbook/chrome/header/LanguageSelect.tsx
 msgid "Interface language"
@@ -4055,6 +4161,10 @@ msgstr "仅支持原生 .einfach.json 文件，最大 64 MiB，不支持 XLSX。
 msgid "Negative bar color"
 msgstr "负值数据条颜色"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Neutral"
+msgstr "适中"
+
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "New blank workbook"
 msgstr "新建空白工作簿"
@@ -4250,6 +4360,10 @@ msgstr "不换行空格"
 msgid "None"
 msgstr "无"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Normal"
+msgstr "常规"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Not between"
@@ -4260,6 +4374,7 @@ msgstr "不介于"
 msgid "Not equal to"
 msgstr "不等于"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
 #: src/workbook/notes/NoteTools.tsx
 msgid "Note"
 msgstr "备注"
@@ -4344,6 +4459,10 @@ msgstr "对象设置不能超过 64 KiB。"
 #: src/i18n/feedback-messages.ts
 msgid "Objects changed outside history."
 msgstr "对象已在历史记录之外被修改。"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Office"
+msgstr "Office"
 
 #: src/workbook/protection/LockedCellDialog.tsx
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
@@ -4447,6 +4566,10 @@ msgstr "大纲分组"
 #: src/workbook/chrome/ribbon/OutlineTools.tsx
 msgid "Outline groups"
 msgstr "大纲分组"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Output"
+msgstr "输出"
 
 #. placeholder {0}: toA1(preview.target.rowStart, preview.target.colStart)
 #. placeholder {1}: toA1(preview.target.rowEnd, preview.target.colEnd)
@@ -5976,6 +6099,10 @@ msgstr "跳过空白单元格"
 msgid "Skip field"
 msgstr "跳过字段"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Slate"
+msgstr "石板灰"
+
 #: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
 msgid "Social Security Number"
 msgstr "社会安全号码"
@@ -6754,9 +6881,21 @@ msgstr "工作表尺寸已在历史记录之外更改。"
 msgid "The worksheet no longer exists."
 msgstr "工作表已不存在。"
 
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Theme color {color}"
+msgstr "主题颜色 {color}"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Theme colors"
+msgstr "主题颜色"
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "theme fonts"
 msgstr "主题字体"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Themed cell styles"
+msgstr "主题单元格样式"
 
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/SortTools.tsx
@@ -6946,6 +7085,14 @@ msgstr "时间"
 msgid "Time format"
 msgstr "时间格式"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Title"
+msgstr "大标题"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Titles and headings"
+msgstr "标题与表头"
+
 #: src/workbook/protection/LockedCellDialog.tsx
 msgid "To edit this cell, unprotect the worksheet first."
 msgstr "若要修改此单元格，请先解除工作表保护。"
@@ -6990,6 +7137,10 @@ msgstr "上框线"
 #: src/workbook/grid/viewport/SplitPaneView.tsx
 msgid "Top-right split pane"
 msgstr "右上拆分窗格"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Total"
+msgstr "汇总"
 
 #: src/workbook/chrome/ribbon/TableTotals.tsx
 msgid "Total column"
@@ -7491,9 +7642,17 @@ msgstr "请等待工作表加载完成。"
 msgid "Waiting for the table list…"
 msgstr "正在等待表格列表…"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Warm"
+msgstr "暖色"
+
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Warning"
 msgstr "警告"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Warning text"
+msgstr "警告文本"
 
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 msgid "Watch cell reference"
@@ -7581,6 +7740,10 @@ msgstr "工作簿工作表"
 #: src/workbook/chrome/ribbon/NamedTableList.tsx
 msgid "Workbook tables"
 msgstr "工作簿表格"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Workbook theme"
+msgstr "工作簿主题"
 
 #: src/i18n/feedback-messages.ts
 msgid "Workbook title must contain 1–256 characters."

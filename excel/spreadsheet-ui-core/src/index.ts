@@ -116,6 +116,7 @@ export {
 export type { WorkbookRibbonOverflow } from './toolbar/ribbon-overflow'
 export * from './toolbar/selection-format-command'
 export { colorPaletteAtom, runColorPaletteAtom } from './toolbar/color-palette'
+export * from './toolbar/cell-styles'
 export { borderPanelAtom, runBorderPanelAtom, BORDER_PRESETS, BORDER_STYLES,
   DIAGONAL_BORDER_PRESETS } from './toolbar/border-panel'
 export { textLayoutFeedbackAtom, runTextLayoutAtom } from './toolbar/text-layout-command'

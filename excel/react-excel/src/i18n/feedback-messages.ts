@@ -177,6 +177,8 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'Unprotect the worksheet before filling cells.': msg`Unprotect the worksheet before filling cells.`,
   'No adjacent continuous data to fill.': msg`No adjacent continuous data to fill.`,
   'The selected range cannot be changed.': msg`The selected range cannot be changed.`,
+  'Could not apply cell style to the current selection.':
+    msg`Could not apply cell style to the current selection.`,
   'The selection changed. Close and reopen Series.': msg`The selection changed. Close and reopen Series.`,
   'Select one row or column with enough samples and at least one destination.': msg`Select one row or column with enough samples and at least one destination.`,
   'Custom list is limited to 16384 characters.': msg`Custom list is limited to 16384 characters.`,

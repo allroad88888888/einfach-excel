@@ -9,6 +9,7 @@ import { AlignmentTools } from './AlignmentTools'
 import { NumberTools } from './NumberTools'
 import { ConditionalFormatTools } from './ConditionalFormatTools'
 import { AlternatingColorsTools } from './AlternatingColorsTools'
+import { CellStylesTools } from './CellStylesTools'
 import { ClearTools } from './ClearTools'
 import { StructureTools } from './StructureTools'
 import { TableTools } from './TableTools'
@@ -75,7 +76,8 @@ export const BUILT_IN_RIBBON_GROUPS: readonly WorkbookRibbonGroup[] = [
   group('font', 'Start', msg`Font`, FontTools, 'rows'),
   group('alignment', 'Start', msg`Alignment`, AlignmentTools, 'rows'),
   group('number', 'Start', msg`Number`, NumberTools, 'rows'),
-  group('styles', 'Start', msg`Styles`, tools(ConditionalFormatTools, AlternatingColorsTools, ClearTools)),
+  group('styles', 'Start', msg`Styles`,
+    tools(ConditionalFormatTools, AlternatingColorsTools, CellStylesTools, ClearTools)),
   group('cells', 'Insert', msg`Cells`, StructureTools),
   group('tables', 'Insert', msg`Tables`, TableTools),
   group('annotations', 'Insert', msg`Links and notes`, tools(HyperlinkTools, NoteTools, CommentTools)),

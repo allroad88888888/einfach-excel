@@ -7,7 +7,9 @@ import {
   colorPaletteAtom,
   editingSessionAtom,
   runColorPaletteAtom,
+  tintHexColor,
   toolbarActiveSurfaceAtom,
+  workbookThemeAtom,
   type ToolbarPaletteKind,
 } from '@einfach-excel/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef, type CSSProperties } from 'react'
@@ -21,7 +23,13 @@ export function ColorTools({ kind }: { readonly kind: ToolbarPaletteKind }) {
   const state = useAtomValue(colorPaletteAtom)
   const surface = useAtomValue(toolbarActiveSurfaceAtom)
   const format = useAtomValue(activeCellFormatAtom)
+  const theme = useAtomValue(workbookThemeAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
+  const themeColors = [
+    theme.headingColor,
+    ...theme.accents,
+    tintHexColor(theme.accents[0], 0.78),
+  ]
   const run = useSetAtom(runColorPaletteAtom)
   const trigger = useRef<HTMLButtonElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -132,6 +140,25 @@ export function ColorTools({ kind }: { readonly kind: ToolbarPaletteKind }) {
           >
             {fill ? t`No fill` : t`Automatic text color`}
           </button>
+          <p className="color-theme-label">
+            <Trans>Theme colors</Trans>
+          </p>
+          <div className="color-swatches" role="group" aria-label={t`Theme colors`}>
+            {themeColors.map((color) => (
+              <button
+                key={`theme-${color}`}
+                type="button"
+                title={color}
+                aria-label={t`Theme color ${color}`}
+                aria-pressed={current?.toLowerCase() === color}
+                disabled={state.busy}
+                style={{ backgroundColor: color }}
+                onClick={() => void run({ type: 'choose', value: color })}
+              >
+                {current?.toLowerCase() === color && <span aria-hidden="true">✓</span>}
+              </button>
+            ))}
+          </div>
           <div className="color-swatches" role="group" aria-label={t`Standard colors`}>
             {COLORS.map((color) => (
               <button

@@ -199,6 +199,30 @@ msgstr "2 colors"
 msgid "2-color scale"
 msgstr "2-color scale"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 1"
+msgstr "20% Accent 1"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 2"
+msgstr "20% Accent 2"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 3"
+msgstr "20% Accent 3"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 4"
+msgstr "20% Accent 4"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 5"
+msgstr "20% Accent 5"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "20% Accent 6"
+msgstr "20% Accent 6"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "3 colors"
 msgstr "3 colors"
@@ -255,6 +279,30 @@ msgstr "Above / below average"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Above average"
 msgstr "Above average"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 1"
+msgstr "Accent 1"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 2"
+msgstr "Accent 2"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 3"
+msgstr "Accent 3"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 4"
+msgstr "Accent 4"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 5"
+msgstr "Accent 5"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Accent 6"
+msgstr "Accent 6"
 
 #: src/workbook/chrome/ribbon/FindFormatSection.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
@@ -606,6 +654,10 @@ msgstr "AVERAGE — Mean"
 msgid "Average comparison"
 msgstr "Average comparison"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Bad"
+msgstr "Bad"
+
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "Band color"
 msgstr "Band color"
@@ -737,6 +789,7 @@ msgstr "broken defined names"
 msgid "Calculating selection…"
 msgstr "Calculating selection…"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
 #: src/workbook/chrome/ribbon/ribbon-groups.tsx
 msgid "Calculation"
 msgstr "Calculation"
@@ -868,6 +921,10 @@ msgstr "Cell has comments"
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 msgid "Cell or Sheet!A1 (blank = selection)"
 msgstr "Cell or Sheet!A1 (blank = selection)"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Cell styles and themes"
+msgstr "Cell styles and themes"
 
 #: src/workbook/rich-text/RichTextDialog.tsx
 msgid "Cell text"
@@ -1182,6 +1239,7 @@ msgstr "Clipboard write is unavailable. Use the browser copy shortcut."
 #: src/components/formula-auditing/EvaluateFormulaDialog.tsx
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 #: src/workbook/protection/ProtectionTools.tsx
@@ -1487,6 +1545,10 @@ msgstr "Copying statistic…"
 msgid "Correct the format code to see a preview."
 msgstr "Correct the format code to see a preview."
 
+#: src/i18n/feedback-messages.ts
+msgid "Could not apply cell style to the current selection."
+msgstr "Could not apply cell style to the current selection."
+
 #: src/i18n/translate-feedback.ts
 msgid "Could not capture formatting: {detail}"
 msgstr "Could not capture formatting: {detail}"
@@ -1753,6 +1815,10 @@ msgstr "Dashed"
 #: src/workbook/chrome/ribbon/RibbonTabs.tsx
 msgid "Data"
 msgstr "Data"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Data and model"
+msgstr "Data and model"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Data bar"
@@ -2507,6 +2573,10 @@ msgstr "Expand group"
 msgid "Expected an icon-set rule."
 msgstr "Expected an icon-set rule."
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Explanatory"
+msgstr "Explanatory"
+
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 msgid "Extending series…"
 msgstr "Extending series…"
@@ -2514,6 +2584,10 @@ msgstr "Extending series…"
 #: src/i18n/xlsx-report-feedback.ts
 msgid "external links"
 msgstr "external links"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Facet"
+msgstr "Facet"
 
 #: src/workbook/chrome/ribbon/RibbonMore.tsx
 msgid "Fewer tools"
@@ -3152,6 +3226,14 @@ msgstr "Go to special"
 msgid "Go to table {0}"
 msgstr "Go to table {0}"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Good"
+msgstr "Good"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Good, bad and neutral"
+msgstr "Good, bad and neutral"
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "gradients with no color stops"
 msgstr "gradients with no color stops"
@@ -3202,6 +3284,22 @@ msgstr "Group selected rows"
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Header row"
 msgstr "Header row"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Heading 1"
+msgstr "Heading 1"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Heading 2"
+msgstr "Heading 2"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Heading 3"
+msgstr "Heading 3"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Heading 4"
+msgstr "Heading 4"
 
 #: src/workbook/chrome/ribbon/ViewOptionsTools.tsx
 msgid "Headings"
@@ -3375,6 +3473,10 @@ msgstr "independent pattern/background inheritance"
 msgid "Information"
 msgstr "Information"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Input"
+msgstr "Input"
+
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Input message"
 msgstr "Input message"
@@ -3464,6 +3566,10 @@ msgstr "Inside horizontal"
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Inside vertical"
 msgstr "Inside vertical"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Integral"
+msgstr "Integral"
 
 #: src/workbook/chrome/header/LanguageSelect.tsx
 msgid "Interface language"
@@ -4055,6 +4161,10 @@ msgstr "Native .einfach.json files only, up to 64 MiB. Not XLSX. Opening or crea
 msgid "Negative bar color"
 msgstr "Negative bar color"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Neutral"
+msgstr "Neutral"
+
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "New blank workbook"
 msgstr "New blank workbook"
@@ -4250,6 +4360,10 @@ msgstr "Nonbreaking space"
 msgid "None"
 msgstr "None"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Normal"
+msgstr "Normal"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Not between"
@@ -4260,6 +4374,7 @@ msgstr "Not between"
 msgid "Not equal to"
 msgstr "Not equal to"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
 #: src/workbook/notes/NoteTools.tsx
 msgid "Note"
 msgstr "Note"
@@ -4344,6 +4459,10 @@ msgstr "Object settings cannot exceed 64 KiB."
 #: src/i18n/feedback-messages.ts
 msgid "Objects changed outside history."
 msgstr "Objects changed outside history."
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Office"
+msgstr "Office"
 
 #: src/workbook/protection/LockedCellDialog.tsx
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
@@ -4447,6 +4566,10 @@ msgstr "outline grouping"
 #: src/workbook/chrome/ribbon/OutlineTools.tsx
 msgid "Outline groups"
 msgstr "Outline groups"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Output"
+msgstr "Output"
 
 #. placeholder {0}: toA1(preview.target.rowStart, preview.target.colStart)
 #. placeholder {1}: toA1(preview.target.rowEnd, preview.target.colEnd)
@@ -5976,6 +6099,10 @@ msgstr "Skip blanks"
 msgid "Skip field"
 msgstr "Skip field"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Slate"
+msgstr "Slate"
+
 #: src/workbook/chrome/ribbon/SpecialNumberFormatFields.tsx
 msgid "Social Security Number"
 msgstr "Social Security Number"
@@ -6754,9 +6881,21 @@ msgstr "The worksheet dimensions changed outside history."
 msgid "The worksheet no longer exists."
 msgstr "The worksheet no longer exists."
 
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Theme color {color}"
+msgstr "Theme color {color}"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Theme colors"
+msgstr "Theme colors"
+
 #: src/i18n/xlsx-report-feedback.ts
 msgid "theme fonts"
 msgstr "theme fonts"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Themed cell styles"
+msgstr "Themed cell styles"
 
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/SortTools.tsx
@@ -6946,6 +7085,14 @@ msgstr "Time"
 msgid "Time format"
 msgstr "Time format"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Title"
+msgstr "Title"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Titles and headings"
+msgstr "Titles and headings"
+
 #: src/workbook/protection/LockedCellDialog.tsx
 msgid "To edit this cell, unprotect the worksheet first."
 msgstr "To edit this cell, unprotect the worksheet first."
@@ -6990,6 +7137,10 @@ msgstr "Top border"
 #: src/workbook/grid/viewport/SplitPaneView.tsx
 msgid "Top-right split pane"
 msgstr "Top-right split pane"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Total"
+msgstr "Total"
 
 #: src/workbook/chrome/ribbon/TableTotals.tsx
 msgid "Total column"
@@ -7491,9 +7642,17 @@ msgstr "Wait for the worksheet to finish loading."
 msgid "Waiting for the table list…"
 msgstr "Waiting for the table list…"
 
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Warm"
+msgstr "Warm"
+
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Warning"
 msgstr "Warning"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Warning text"
+msgstr "Warning text"
 
 #: src/components/formula-auditing/WatchWindowPanel.tsx
 msgid "Watch cell reference"
@@ -7581,6 +7740,10 @@ msgstr "Workbook sheets"
 #: src/workbook/chrome/ribbon/NamedTableList.tsx
 msgid "Workbook tables"
 msgstr "Workbook tables"
+
+#: src/workbook/chrome/ribbon/CellStylesTools.tsx
+msgid "Workbook theme"
+msgstr "Workbook theme"
 
 #: src/i18n/feedback-messages.ts
 msgid "Workbook title must contain 1–256 characters."

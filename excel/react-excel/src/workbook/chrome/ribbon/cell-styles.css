@@ -1,0 +1,130 @@
+/* Cell Styles & Workbook Themes gallery dialog. */
+:where(.einfach-spreadsheet) .cell-styles-panel {
+  width: min(560px, calc(100vw - 24px));
+  max-height: min(640px, calc(100vh - 32px));
+  padding: 16px 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 12px 32px rgb(15 23 42 / 18%);
+  overflow: auto;
+}
+
+:where(.einfach-spreadsheet) .cell-styles-panel::backdrop {
+  background: rgb(20 25 45 / 25%);
+}
+
+:where(.einfach-spreadsheet) .cell-styles-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+:where(.einfach-spreadsheet) .cell-styles-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+:where(.einfach-spreadsheet) .cell-styles-close {
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+:where(.einfach-spreadsheet) .cell-styles-section {
+  margin: 12px 0 0;
+}
+
+:where(.einfach-spreadsheet) .cell-styles-section h3 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+:where(.einfach-spreadsheet) .theme-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+:where(.einfach-spreadsheet) .theme-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+:where(.einfach-spreadsheet) .theme-chip[aria-checked='true'] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  font-weight: 600;
+}
+
+:where(.einfach-spreadsheet) .theme-dots {
+  display: inline-flex;
+  gap: 2px;
+}
+
+:where(.einfach-spreadsheet) .theme-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+:where(.einfach-spreadsheet) .cell-styles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 6px;
+}
+
+:where(.einfach-spreadsheet) .cell-style-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where(.einfach-spreadsheet) .cell-style-swatch:hover:enabled,
+:where(.einfach-spreadsheet) .cell-style-swatch:focus-visible,
+:where(.einfach-spreadsheet) .theme-chip:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+:where(.einfach-spreadsheet) .cell-styles-panel [role='alert'] {
+  margin: 10px 0 0;
+  color: var(--danger, #b91c1c);
+  font-size: 12px;
+}
+
+:where(.einfach-spreadsheet) .color-theme-label {
+  margin: 8px 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}

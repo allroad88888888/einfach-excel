@@ -1554,3 +1554,11 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | FLASHFILL-001 | 数据栏快速填充从相邻列推断拆分重组模式并支持单步撤销 | `editing/flash-fill.spec.ts` | `FLASHFILL-001: Flash Fill via ribbon splits and reformats names with single undo` |
 | FLASHFILL-002 | `Ctrl/⌘+E` 快捷键快速填充跨多列拼接邮箱并自动跳过表头行 | `editing/flash-fill.spec.ts` | `FLASHFILL-002: Flash Fill via Ctrl+E combines columns into emails and skips headers` |
 | FLASHFILL-003 | 快速填充安全拒绝多列选区与无规律示例且不修改单元格 | `editing/flash-fill.spec.ts` | `FLASHFILL-003: Flash Fill rejects multi-column selection and unresolvable patterns safely` |
+
+### 单元格样式与主题
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| CELLSTYLE-001 | 内置单元格样式库原子应用填充、字体与边框，支持单步撤销及常规重置 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-001: built-in cell style presets apply fill, font, and borders atomically with single undo and Normal reset` |
+| CELLSTYLE-002 | 切换工作簿主题实时联动主题样式预览、单元格着色及颜色面板主题色行 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-002: switching workbook theme updates themed cell styles and Fill color palette theme row` |
+| CELLSTYLE-003 | 单元格样式遵循工作表保护并在原生工作簿下载重开后完整保留 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-003: cell styles respect worksheet protection and survive native workbook roundtrip` |

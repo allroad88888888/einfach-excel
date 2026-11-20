@@ -94,11 +94,13 @@ export const configureConsolidateAtom = atom(
 
     if (typeof action === 'object' && 'patch' in action) {
       const nextDraft = { ...panel.draft, ...action.patch }
-      const onlyInputChanged =
-        Object.keys(action.patch).length === 1 && 'referenceInput' in action.patch
+      const keepPreview =
+        Object.keys(action.patch).length === 1 &&
+        'referenceInput' in action.patch &&
+        nextDraft.referenceInput.trim() === panel.draft.referenceInput.trim()
       set(
         stateAtom,
-        onlyInputChanged
+        keepPreview
           ? { ...panel, draft: nextDraft, error: null }
           : resetPreview(panel, nextDraft),
       )

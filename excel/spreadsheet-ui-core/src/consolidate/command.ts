@@ -1,10 +1,12 @@
 import { atom, type Getter } from '@einfach/core'
 import { readWorksheetReference } from '../advanced-filter/reference'
+import { systemClipboardFeedbackAtom } from '../clipboard/system-clipboard-command'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { nativeFilterFeedbackAtom } from '../filter/command'
+import { hostControlsAtom } from '../host/state'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
-import { coordToA1, rangeToA1 } from '../name-box/address'
+import { coordToA1 } from '../name-box/address'
 import {
   applyVisibleProjectionAtom,
   createVisibleProjectionRequest,
@@ -12,12 +14,17 @@ import {
   projectionSnapshotAtom,
   validateProjectionResult,
 } from '../projection'
+import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
-import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
+import { selectionSnapshotAtom } from '../selection'
+import { sheetTabsAtom } from '../sheet-tabs/state'
 import { sortFeedbackAtom } from '../sort/command'
 import { nativeTableFeedbackAtom } from '../tables/native-feedback'
+import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
+import { selectionSizePanelAtom } from '../toolbar/selection-size-command'
 import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-state'
+import { selectionVisibilityFeedbackAtom } from '../toolbar/selection-visibility-command'
 import type {
   ConsolidateFunction,
   ConsolidatePreview,
@@ -30,11 +37,8 @@ import type { CellCoord } from '../shared'
 export interface ConsolidateContext {
   readonly connection: RustWorkbookConnection
   readonly sheetId: string
-  readonly sheetName: string
   readonly destination: CellCoord
   readonly destinationA1: string
-  readonly selectionRef: string
-  readonly editing: boolean
   readonly busy: boolean
   readonly disabled: boolean
 }
@@ -57,8 +61,13 @@ function isWorkbookBusy(get: Getter): boolean {
   return (
     get(editingSessionAtom).source !== null ||
     get(rustHistoryPanelAtom).busy ||
+    get(sheetTabsAtom).mutation !== null ||
     get(nativeFilterFeedbackAtom).busy ||
     get(nativeTableFeedbackAtom).busy ||
+    get(selectionMergeFeedbackAtom).busy ||
+    get(systemClipboardFeedbackAtom).busy ||
+    get(selectionVisibilityFeedbackAtom).busy ||
+    get(selectionSizePanelAtom).busy ||
     get(selectionStructureFeedbackAtom).busy ||
     get(sortFeedbackAtom).busy
   )
@@ -70,19 +79,16 @@ export const consolidateContextAtom = atom((get): ConsolidateContext | null => {
   if (!sheet || !connection) return null
   const selection = get(selectionSnapshotAtom)
   const destination = selection.activeCell
-  const editing = get(editingSessionAtom).source !== null
+  const host = get(hostControlsAtom)
   const busy = isWorkbookBusy(get)
   const ready = get(projectionSnapshotAtom).status === 'ready'
   return {
     connection,
     sheetId: sheet.id,
-    sheetName: sheet.name,
     destination,
     destinationA1: coordToA1(destination),
-    selectionRef: get(selectionRegionsAtom).length === 1 ? rangeToA1(selection.range) : '',
-    editing,
     busy,
-    disabled: !ready || busy,
+    disabled: !ready || busy || host.readOnly || host.busy,
   }
 })
 consolidateContextAtom.debugLabel = 'spreadsheet.consolidate.context'
@@ -153,12 +159,19 @@ export const applyConsolidateAtom = atom(
     ) {
       throw new Error('Wait for the worksheet to finish loading.')
     }
-    if (isWorkbookBusy(get)) {
+    const host = get(hostControlsAtom)
+    if (isWorkbookBusy(get) || host.busy) {
       throw new Error('Finish the current worksheet operation first.')
     }
     const { preview, confirmOverwrite } = input
     if (preview.overwrittenCells > 0 && !confirmOverwrite) {
       throw new Error('Confirm overwriting the occupied destination cells before consolidating.')
+    }
+    if (
+      preview.request.createLinks &&
+      getSheetProtection(get(sheetProtectionAtom), preview.request.sheetId).mode === 'protected'
+    ) {
+      throw new Error('This worksheet is protected. Unprotect it before changing locked cells.')
     }
     const permission = set(resolveContentMutationAtom, {
       kind: 'consolidate',

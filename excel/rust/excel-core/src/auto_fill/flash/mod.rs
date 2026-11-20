@@ -7,25 +7,21 @@ mod synth;
 const MAX_SOURCE_COLS: usize = 8;
 const MAX_SCAN_ROWS: u32 = 50_000;
 
-fn value_to_flash_string(value: &Value) -> Option<String> {
-    match value {
+fn cell_text(sheet: &Sheet, row: u32, col: u32) -> Option<String> {
+    let addr = CellAddress::new(row, col);
+    let val = crate::sheet::collapse_array_for_eval(sheet.peek_value(addr));
+    match val {
         Value::Null => None,
         Value::Text(s) => (!s.is_empty()).then(|| s.to_string()),
         Value::Number(n) if n.is_finite() => {
-            if n.fract() == 0.0 && n.abs() < 1e15 {
-                Some(format!("{}", *n as i64))
-            } else {
-                Some(n.to_string())
-            }
+            let fmt = sheet.get_format(&addr.to_string());
+            let formatted = fmt.format_number(n);
+            let trimmed = formatted.trim();
+            (!trimmed.is_empty()).then(|| trimmed.to_owned())
         }
-        Value::Boolean(b) => Some(if *b { "TRUE" } else { "FALSE" }.to_owned()),
+        Value::Boolean(b) => Some(if b { "TRUE" } else { "FALSE" }.to_owned()),
         _ => None,
     }
-}
-
-fn cell_text(sheet: &Sheet, row: u32, col: u32) -> Option<String> {
-    let val = crate::sheet::collapse_array_for_eval(sheet.peek_value(CellAddress::new(row, col)));
-    value_to_flash_string(&val)
 }
 
 fn cell_is_non_empty(sheet: &Sheet, row: u32, col: u32) -> bool {
@@ -34,11 +30,37 @@ fn cell_is_non_empty(sheet: &Sheet, row: u32, col: u32) -> bool {
 }
 
 fn discover_source_columns(
+    workbook: &Workbook,
     sheet: &Sheet,
-    target_col: u32,
-    probe_rows: impl Iterator<Item = u32> + Clone,
+    sheet_idx: usize,
+    target: CellRange,
 ) -> Vec<u32> {
-    let has_data = |col: u32| probe_rows.clone().any(|r| cell_is_non_empty(sheet, r, col));
+    let target_col = target.start.col;
+    if let Some(sheet_name) = workbook.name(sheet_idx) {
+        if let Some(entry) = workbook
+            .list_tables()
+            .into_iter()
+            .find(|entry| entry.sheet_name() == sheet_name && entry.range().contains(target.start))
+        {
+            let range = entry.range();
+            let left: Vec<u32> = (range.start.col..target_col)
+                .rev()
+                .take(MAX_SOURCE_COLS)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect();
+            if !left.is_empty() {
+                return left;
+            }
+            return ((target_col + 1)..=range.end.col)
+                .take(MAX_SOURCE_COLS)
+                .collect();
+        }
+    }
+    let probe_start = target.start.row.saturating_sub(8);
+    let probe_end = (target.end.row + 8).min(EXCEL_MAX_ROWS - 1);
+    let has_data = |col: u32| (probe_start..=probe_end).any(|r| cell_is_non_empty(sheet, r, col));
     let mut left = Vec::new();
     let mut col = target_col;
     while col > 0 && left.len() < MAX_SOURCE_COLS {
@@ -154,9 +176,7 @@ pub(super) fn plan(
         ));
     }
     let target_col = target.start.col;
-    let probe_start = target.start.row.saturating_sub(2);
-    let probe_end = (target.end.row + 2).min(EXCEL_MAX_ROWS - 1);
-    let source_cols = discover_source_columns(sheet, target_col, probe_start..=probe_end);
+    let source_cols = discover_source_columns(workbook, sheet, request.sheet_idx, target);
     if source_cols.is_empty() {
         return Err(AutoFillError::InvalidSource(
             "Place Flash Fill next to a column with source data.",
@@ -170,6 +190,9 @@ pub(super) fn plan(
         });
     }
 
+    let filter_hidden = sheet.filter_hidden_set();
+    let is_hidden_row = |row: u32| filter_hidden.as_ref().is_some_and(|rows| rows.contains(&row));
+
     let read_inputs = |row: u32| -> Vec<String> {
         source_cols
             .iter()
@@ -179,6 +202,9 @@ pub(super) fn plan(
 
     let mut examples: Vec<(u32, Vec<String>, String, bool)> = Vec::new();
     for row in block_start..=block_end {
+        if is_hidden_row(row) {
+            continue;
+        }
         if let Some(output) = cell_text(sheet, row, target_col) {
             let inputs = read_inputs(row);
             if inputs.iter().any(|s| !s.is_empty()) {
@@ -231,6 +257,9 @@ pub(super) fn plan(
     let mut max_row = 0u32;
 
     for row in data_start..=block_end {
+        if is_hidden_row(row) {
+            continue;
+        }
         let addr = CellAddress::new(row, target_col);
         if cell_is_non_empty(sheet, row, target_col) {
             continue;

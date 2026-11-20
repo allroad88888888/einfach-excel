@@ -201,6 +201,7 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'Stop requires a non-zero start and a positive step other than 1.': msg`Stop requires a non-zero start and a positive step other than 1.`,
   'auto-fill rejected: Stop requires a non-zero start and a positive step other than 1.': msg`Stop requires a non-zero start and a positive step other than 1.`,
   'No cells filled.': msg`No cells filled.`,
+  'Flash Fill': msg`Flash Fill`,
   'Flash filled.': msg`Flash filled.`,
   'Flash filling…': msg`Flash filling…`,
   'Select a single column for Flash Fill.': msg`Select a single column for Flash Fill.`,
@@ -210,6 +211,9 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
     msg`Provide at least one example in the target column next to source data.`,
   "We couldn't find a pattern for your data. Provide one or two clear examples.":
     msg`We couldn't find a pattern for your data. Provide one or two clear examples.`,
+  'unmerge cells before filling this range': msg`Unmerge cells before filling this range.`,
+  'Finish the current worksheet operation first.':
+    msg`Finish the current worksheet operation first.`,
   'Number sequence': msg`Number sequence`,
   'Date sequence': msg`Date sequence`,
   'Month names': msg`Month names`,

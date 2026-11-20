@@ -1529,10 +1529,6 @@ msgstr "Copy one continuous range before pasting validation."
 msgid "Copy rule {0}"
 msgstr "Copy rule {0}"
 
-#: src/workbook/chrome/ribbon/FillTools.tsx
-msgid "Copy the first selected row down or the first selected column right"
-msgstr "Copy the first selected row down or the first selected column right"
-
 #: src/i18n/feedback-messages.ts
 msgid "copy…"
 msgstr "copy…"
@@ -2652,6 +2648,10 @@ msgstr "Fill down"
 msgid "Fill down (Ctrl/⌘+D)"
 msgstr "Fill down (Ctrl/⌘+D)"
 
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill down, fill right, or flash fill"
+msgstr "Fill down, fill right, or flash fill"
+
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
 msgstr "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
@@ -2928,6 +2928,10 @@ msgstr "Finish the current operation before editing rich text."
 msgid "Finish the current operation before navigating."
 msgstr "Finish the current operation before navigating."
 
+#: src/i18n/feedback-messages.ts
+msgid "Finish the current worksheet operation first."
+msgstr "Finish the current worksheet operation first."
+
 #: src/i18n/next-version-feedback.ts
 msgid "Finish the wildcard escape with *, ? or ~."
 msgstr "Finish the wildcard escape with *, ? or ~."
@@ -2969,6 +2973,10 @@ msgstr "Fixed: {0}"
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Fixed: {value}"
 msgstr "Fixed: {value}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Flash Fill"
+msgstr "Flash Fill"
 
 #: src/workbook/chrome/ribbon/FillTools.tsx
 msgid "Flash fill (Ctrl/⌘+E)"
@@ -7279,6 +7287,10 @@ msgstr "Unique values"
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Unmerge cells"
 msgstr "Unmerge cells"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unmerge cells before filling this range."
+msgstr "Unmerge cells before filling this range."
 
 #: src/i18n/feedback-messages.ts
 msgid "Unmerge cells before sorting this range."

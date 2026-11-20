@@ -115,6 +115,22 @@ const pairs = {
     'One of the source worksheets no longer exists.',
     '某个来源工作表已不存在。',
   ],
+  errSourceDestOverlap: [
+    'Destination cannot overlap a source range on the same worksheet.',
+    '目标位置不能与同一工作表上的来源区域重叠。',
+  ],
+  errUndoLimit: [
+    'Consolidated output exceeds the undo memory limit. Choose smaller ranges.',
+    '合并计算输出超出撤销内存上限，请缩小区域范围。',
+  ],
+  errBusy: [
+    'Finish the current worksheet operation first.',
+    '请先完成当前工作表操作。',
+  ],
+  errSourceWithinSheet: [
+    'Choose valid source ranges within each worksheet.',
+    '请在各工作表范围内选择有效的来源区域。',
+  ],
 } as const
 
 type Label = keyof typeof pairs
@@ -144,6 +160,10 @@ export const consolidateErrors = [
   consolidateLabels.errConfirmOverwrite,
   consolidateLabels.errWorkbookChanged,
   consolidateLabels.errMissingSourceSheet,
+  consolidateLabels.errSourceDestOverlap,
+  consolidateLabels.errUndoLimit,
+  consolidateLabels.errBusy,
+  consolidateLabels.errSourceWithinSheet,
 ] as const
 
 function catalog(locale: 0 | 1): Messages {

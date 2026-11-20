@@ -142,6 +142,10 @@ impl ConsolidateChange {
         ))
     }
 
+    pub(crate) fn changes_outline(&self) -> bool {
+        self.before_outline != self.after_outline
+    }
+
     pub(crate) fn apply(
         &self,
         workbook: &mut Workbook,
@@ -167,7 +171,9 @@ impl ConsolidateChange {
             &self.after_outline
         };
         cells.restore(workbook, sheet)?;
-        workbook.set_outline(sheet, outline.clone())?;
+        if self.changes_outline() {
+            workbook.set_outline(sheet, outline.clone())?;
+        }
         Ok(())
     }
 

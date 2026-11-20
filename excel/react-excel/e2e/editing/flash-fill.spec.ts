@@ -99,7 +99,14 @@ test('FLASHFILL-003: Flash Fill rejects multi-column selection and unresolvable 
   await expect(page.getByLabel('Fill status')).toHaveAttribute('role', 'alert')
   await expect(page.getByLabel('Fill status')).toContainText('single column')
 
-  // Unresolvable pattern leaves destination untouched
+  // Unresolvable pattern and unrelated single-example word leave destination untouched
+  await selectAddress(page, 'B2')
+  await fillMenu(page).selectOption('flash')
+  await expect(page.getByLabel('Fill status')).toHaveAttribute('role', 'alert')
+  await expect(page.getByLabel('Fill status')).not.toContainText('auto-fill rejected')
+  await expect(cell(page, '1:1')).toHaveText('')
+
+  await writeCell(page, 'B1', 'Approved')
   await selectAddress(page, 'B2')
   await fillMenu(page).selectOption('flash')
   await expect(page.getByLabel('Fill status')).toHaveAttribute('role', 'alert')

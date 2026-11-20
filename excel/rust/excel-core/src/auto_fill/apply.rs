@@ -15,6 +15,33 @@ struct FillPlan {
     borders: BorderPlan,
 }
 
+fn coalesce_planned_ranges(sheet: usize, cells: &[PlannedCell]) -> Vec<(usize, CellRange, bool)> {
+    let mut coords: Vec<CellAddress> = cells.iter().map(|cell| cell.addr).collect();
+    coords.sort_by_key(|addr| (addr.col, addr.row));
+    coords.dedup();
+    let mut ranges: Vec<(usize, CellRange, bool)> = Vec::new();
+    for addr in coords {
+        if let Some((_, last, _)) = ranges.last_mut() {
+            if last.start.col == addr.col
+                && last.end.col == addr.col
+                && last.end.row + 1 == addr.row
+            {
+                last.end.row = addr.row;
+                continue;
+            }
+            if last.start.row == addr.row
+                && last.end.row == addr.row
+                && last.end.col + 1 == addr.col
+            {
+                last.end.col = addr.col;
+                continue;
+            }
+        }
+        ranges.push((sheet, CellRange::single(addr), true));
+    }
+    ranges
+}
+
 impl Workbook {
     /// 所有源样本、目标约束和公式先验证；失败时不修改工作簿。
     pub fn apply_auto_fill(
@@ -155,8 +182,9 @@ impl Workbook {
         // 公式与跨格条件必须读取整批新值；私有回滚事务不会成为用户的额外一条历史。
         let mut rollback = WorkbookHistory::default();
         if !validations.is_empty() {
+            let targets = coalesce_planned_ranges(sheet, &cells);
             rollback
-                .begin(self, sheet, write_range.unwrap(), "Validate fill", true)
+                .begin_ranges(self, sheet, write_range.unwrap(), "Validate fill", &targets, false)
                 .map_err(AutoFillError::InvalidGeometry)?;
             for range in border_plan_ranges(&borders) {
                 rollback.capture_extra_formats(self.sheet(sheet).unwrap(), sheet, range);
@@ -254,7 +282,8 @@ impl WorkbookHistory {
             } else {
                 "Fill geometric series"
             };
-            self.begin(workbook, request.sheet_idx, range, label, true)
+            let targets = coalesce_planned_ranges(request.sheet_idx, &plan.cells);
+            self.begin_ranges(workbook, request.sheet_idx, range, label, &targets, false)
                 .map_err(AutoFillError::InvalidGeometry)?;
             let result = self.apply_planned_fill(workbook, request.sheet_idx, plan);
             self.finish(workbook, result.is_ok())

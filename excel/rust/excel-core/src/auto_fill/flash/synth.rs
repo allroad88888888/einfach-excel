@@ -5,7 +5,9 @@ use std::collections::{BinaryHeap, HashMap};
 const MAX_SYNTH_OUTPUT_CHARS: usize = 256;
 const MAX_SEARCH_POPS: usize = 4_000;
 const MAX_CANDIDATE_PROGRAMS: usize = 32;
-const DELIMS: [char; 8] = ['@', '-', '_', '.', ',', '/', ':', ' '];
+const DELIMS: [char; 13] = [
+    '@', '-', '_', '.', ',', '/', ':', ' ', '：', '，', '、', '（', '）',
+];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(super) enum CaseMode {
@@ -117,7 +119,9 @@ impl Extractor {
             Self::WordToken(_) | Self::BetweenDelim(_, _) => 7,
             Self::AlphaRun(_) | Self::DigitRun(_) => 8,
             Self::SpaceInitial(_) | Self::WordInitial(_) => 9,
+            Self::PrefixChars(1) | Self::SuffixChars(1) => 19,
             Self::PrefixChars(_) | Self::SuffixChars(_) => 15,
+            Self::CharSlice(_, 1) => 20,
             Self::CharSlice(_, _) => 18,
         }
     }
@@ -190,7 +194,24 @@ fn is_word_sep(ch: char) -> bool {
     ch.is_whitespace()
         || matches!(
             ch,
-            '-' | '_' | '.' | ',' | '/' | '\\' | '@' | ':' | ';' | '(' | ')' | '[' | ']' | '|'
+            '-' | '_'
+                | '.'
+                | ','
+                | '/'
+                | '\\'
+                | '@'
+                | ':'
+                | ';'
+                | '('
+                | ')'
+                | '['
+                | ']'
+                | '|'
+                | '：'
+                | '，'
+                | '、'
+                | '（'
+                | '）'
         )
 }
 
@@ -295,6 +316,35 @@ impl FlashProgram {
     fn has_expr(&self) -> bool {
         self.parts.iter().any(|part| matches!(part, Part::Expr(_)))
     }
+
+    fn is_plausible(&self, has_varying_examples: bool) -> bool {
+        if !self.has_expr() {
+            return false;
+        }
+        if has_varying_examples {
+            return true;
+        }
+        let all_subtoken_single = self.parts.iter().all(|part| match part {
+            Part::Expr(expr) => is_subtoken_single_char(*expr),
+            Part::Literal(_) => true,
+        });
+        let has_alnum_literal = self.parts.iter().any(|part| match part {
+            Part::Literal(lit) => lit.chars().any(char::is_alphanumeric),
+            Part::Expr(_) => false,
+        });
+        !(all_subtoken_single && has_alnum_literal)
+    }
+}
+
+fn is_subtoken_single_char(expr: SourceExpr) -> bool {
+    matches!(
+        expr.extractor,
+        Extractor::SpaceInitial(_)
+            | Extractor::WordInitial(_)
+            | Extractor::PrefixChars(1)
+            | Extractor::SuffixChars(1)
+            | Extractor::CharSlice(_, 1)
+    )
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -303,7 +353,7 @@ enum EdgeKind {
     Literal(char),
 }
 
-fn generate_extractors(input: &str) -> Vec<Extractor> {
+fn generate_extractors(input: &str, multi_example: bool) -> Vec<Extractor> {
     let trimmed = input.trim();
     if trimmed.is_empty() {
         return Vec::new();
@@ -354,13 +404,20 @@ fn generate_extractors(input: &str) -> Vec<Extractor> {
     let char_len = trimmed.chars().count();
     let compact = !trimmed.chars().any(char::is_whitespace);
     if compact {
+        let allow_single_slice = !trimmed.is_ascii() || multi_example;
+        if allow_single_slice && char_len >= 2 {
+            out.push(Extractor::SuffixChars(1));
+        }
         for n in 2..=char_len.min(8) {
             out.push(Extractor::PrefixChars(n as u8));
             out.push(Extractor::SuffixChars(n as u8));
         }
-        // Fixed slices only for compact structured codes (phone numbers, dates, IDs).
+        // Fixed slices only for compact structured codes or CJK words.
         if char_len <= 24 {
             for start in 1..char_len {
+                if allow_single_slice && start + 1 < char_len {
+                    out.push(Extractor::CharSlice(start as u8, 1));
+                }
                 for len in 2..=(char_len - start).min(6) {
                     out.push(Extractor::CharSlice(start as u8, len as u8));
                 }
@@ -376,6 +433,8 @@ pub(super) fn synthesize(examples: &[(Vec<String>, String)]) -> Option<FlashProg
     if first_output.is_empty() || first_output.chars().count() > MAX_SYNTH_OUTPUT_CHARS {
         return None;
     }
+    let has_varying_examples =
+        examples.len() >= 2 && examples.windows(2).any(|pair| pair[0].1 != pair[1].1);
     let out_chars: Vec<char> = first_output.chars().collect();
     let n = out_chars.len();
     let byte_offsets: Vec<usize> = first_output
@@ -389,7 +448,7 @@ pub(super) fn synthesize(examples: &[(Vec<String>, String)]) -> Option<FlashProg
     let mut best_for_span: HashMap<(usize, usize), Vec<(u32, SourceExpr)>> = HashMap::new();
 
     for (col, raw_input) in first_inputs.iter().enumerate() {
-        for extractor in generate_extractors(raw_input) {
+        for extractor in generate_extractors(raw_input, has_varying_examples) {
             let Some(extracted) = extractor.extract(raw_input) else {
                 continue;
             };
@@ -458,7 +517,7 @@ pub(super) fn synthesize(examples: &[(Vec<String>, String)]) -> Option<FlashProg
 
         if pos == n {
             let program = FlashProgram::from_edges(path);
-            if program.has_expr() {
+            if program.is_plausible(has_varying_examples) {
                 tested += 1;
                 if examples
                     .iter()
@@ -471,6 +530,12 @@ pub(super) fn synthesize(examples: &[(Vec<String>, String)]) -> Option<FlashProg
         }
 
         for &(end, edge_cost, expr) in &expr_edges[pos] {
+            if !has_varying_examples
+                && is_subtoken_single_char(expr)
+                && matches!(path.last(), Some(EdgeKind::Literal(prev)) if prev.is_alphanumeric())
+            {
+                continue;
+            }
             let mut next = path.clone();
             next.push(EdgeKind::Expr(expr));
             heap.push(Reverse((cost + edge_cost, end, next)));
@@ -479,11 +544,16 @@ pub(super) fn synthesize(examples: &[(Vec<String>, String)]) -> Option<FlashProg
         // Literal edge: punctuation/spaces are cheap; alnum chars cost more than semantic tokens.
         // Penalize splitting a literal word after a 1-char initial (e.g. "a"+"cme" in "@acme.com").
         let ch = out_chars[pos];
+        if !has_varying_examples
+            && ch.is_alphanumeric()
+            && matches!(path.last(), Some(EdgeKind::Expr(prev)) if is_subtoken_single_char(*prev))
+        {
+            continue;
+        }
         let split_initial_word = ch.is_lowercase()
             && matches!(
                 path.last(),
-                Some(EdgeKind::Expr(e))
-                    if matches!(e.extractor, Extractor::SpaceInitial(_) | Extractor::WordInitial(_))
+                Some(EdgeKind::Expr(e)) if is_subtoken_single_char(*e)
             );
         let lit_cost = if !ch.is_alphanumeric() {
             4

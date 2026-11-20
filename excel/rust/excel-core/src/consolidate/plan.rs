@@ -173,8 +173,20 @@ impl Workbook {
         if target.cell_count() > MAX_CONSOLIDATE_CELLS {
             return Err("The consolidated output exceeds the 100,000-cell limit.");
         }
-        self.ensure_range_editable(request.sheet, target)
-            .map_err(|_| crate::protection::PROTECTED_ERROR)?;
+        if request
+            .sources
+            .iter()
+            .any(|s| s.sheet == request.sheet && s.range.normalize().intersects(target))
+        {
+            return Err("Destination cannot overlap a source range on the same worksheet.");
+        }
+        if request.create_links || !outline_groups.is_empty() {
+            self.ensure_sheet_unprotected(request.sheet)
+                .map_err(|_| crate::protection::PROTECTED_ERROR)?;
+        } else {
+            self.ensure_range_editable(request.sheet, target)
+                .map_err(|_| crate::protection::PROTECTED_ERROR)?;
+        }
         if self.list_tables().into_iter().any(|table| {
             Some(table.sheet_name()) == self.name(request.sheet) && table.range().intersects(target)
         }) {

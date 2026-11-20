@@ -90,6 +90,12 @@ export function translateFeedback(i18n: I18n, message: string | null | undefined
     const detail = translateFeedback(i18n, message.slice(capture.length))
     return t(i18n)`Could not capture formatting: ${detail}`
   }
+  const autoFillRejected = 'auto-fill rejected: '
+  if (message.startsWith(autoFillRejected)) {
+    const detail = message.slice(autoFillRejected.length)
+    const translated = translateFeedback(i18n, detail)
+    if (translated !== detail || Object.hasOwn(feedbackMessages, detail)) return translated
+  }
   // 未知错误不能被吞掉或伪装成成功；保留诊断原文。
   return message
 }

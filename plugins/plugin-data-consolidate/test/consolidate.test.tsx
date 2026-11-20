@@ -104,6 +104,16 @@ test('consolidate dialog previews, gates overwrite confirmation, and commits', a
   fireEvent.click(confirm)
   expect(applyButton).not.toBeDisabled()
 
+  // Typing an un-added reference invalidates the previous preview so it cannot be silently dropped
+  fireEvent.change(refInput, { target: { value: 'Q1!C1:D3' } })
+  expect(applyButton).toBeDisabled()
+  fireEvent.change(refInput, { target: { value: '' } })
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Preview' }))
+  })
+  fireEvent.click(screen.getByRole('checkbox', { name: /Overwrite 2 existing cells/i }))
+  expect(applyButton).not.toBeDisabled()
+
   await act(async () => {
     fireEvent.click(applyButton)
   })

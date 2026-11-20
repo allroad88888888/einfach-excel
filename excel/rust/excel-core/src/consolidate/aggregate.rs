@@ -41,12 +41,6 @@ impl ConsolidateFunction {
         if values.is_empty() {
             return Value::Null;
         }
-        if let Some(err) = values.iter().find_map(|v| match v {
-            Value::Error(e) => Some(e.clone()),
-            _ => None,
-        }) {
-            return Value::Error(err);
-        }
         if matches!(self, Self::Count) {
             let count = values
                 .iter()
@@ -72,6 +66,12 @@ impl ConsolidateFunction {
             } else {
                 Value::Number(numbers.len() as f64)
             };
+        }
+        if let Some(err) = values.iter().find_map(|v| match v {
+            Value::Error(e) => Some(e.clone()),
+            _ => None,
+        }) {
+            return Value::Error(err);
         }
         if numbers.is_empty() {
             let any_non_null = values.iter().any(|v| !matches!(v, Value::Null));

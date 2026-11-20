@@ -3,7 +3,6 @@ use einfach_excel_core::consolidate::{
     ConsolidateFunction, ConsolidateOverwriteApproval, ConsolidateRequest, ConsolidateSource,
 };
 use einfach_excel_core::outline::OutlineAxis;
-use einfach_excel_core::protection::{ProtectionMode, SheetProtection};
 use einfach_excel_core::workbook_history::WorkbookHistory;
 use einfach_excel_core::{CellAddress, CellRange, MergeAction, Workbook};
 
@@ -234,10 +233,126 @@ fn consolidate_guards_overwrite_same_sheet_links_merges_and_protection() {
     assert!(book.preview_consolidate(&req).unwrap_err().contains("merged"));
     book.merge_cells(summary, range("A1", "A2"), MergeAction::Unmerge, true).unwrap();
 
-    // Protection guard
-    book.restore_protection(vec![(
-        summary,
-        SheetProtection { mode: ProtectionMode::Protected, unlocked_ranges: Vec::new() },
-    )]).unwrap();
+    // Protection guard: full sheet lock blocks preview
+    book.change_protection(summary, einfach_excel_core::protection::ProtectionChange::Protect)
+        .unwrap();
     assert!(book.preview_consolidate(&req).is_err());
+
+    // Unprotect, allow A1:D10, then re-protect: static consolidate AND undo/redo succeed, while create_links rejects
+    book.change_protection(summary, einfach_excel_core::protection::ProtectionChange::Unprotect)
+        .unwrap();
+    book.change_protection(
+        summary,
+        einfach_excel_core::protection::ProtectionChange::AllowRange {
+            range: range("A1", "D10").into(),
+        },
+    )
+    .unwrap();
+    book.change_protection(summary, einfach_excel_core::protection::ProtectionChange::Protect)
+        .unwrap();
+    let preview = book.preview_consolidate(&req).unwrap();
+    let approval = Some(ConsolidateOverwriteApproval {
+        target: preview.target,
+        count: preview.overwritten_cells,
+    });
+    history.consolidate(&mut book, &req, approval).unwrap();
+    assert_eq!(book.get_cell("Sheet1", "C3"), Value::Number(400.0));
+    assert!(history.undo(&mut book).unwrap());
+    assert_eq!(book.get_cell("Sheet1", "B2"), Value::Text("Occupied".into()));
+    assert!(history.redo(&mut book).unwrap());
+    assert_eq!(book.get_cell("Sheet1", "C3"), Value::Number(400.0));
+
+    let mut linked_on_protected = req.clone();
+    linked_on_protected.destination = addr("A12");
+    linked_on_protected.create_links = true;
+    assert!(book.preview_consolidate(&linked_on_protected).is_err());
+}
+
+#[test]
+fn linked_consolidate_preserves_blank_sources_and_matches_preview_and_error_counts() {
+    let mut book = Workbook::new();
+    let mut history = WorkbookHistory::default();
+    let q1 = book.add_sheet("Q1");
+    let q2 = book.add_sheet("Q2");
+    for s in [q1, q2] {
+        set_text(&mut book, s, "A1", "Item");
+        set_text(&mut book, s, "B1", "Units");
+        set_text(&mut book, s, "C1", "Revenue");
+        set_text(&mut book, s, "D1", "Notes");
+        set_text(&mut book, s, "A2", "Apples");
+    }
+    // Q1 has Units=10, Revenue=<blank>; Q2 has Units=20, Revenue=100; Notes=<blank> in both
+    book.set_cell(q1, "B2", Value::Number(10.0));
+    book.set_cell(q2, "B2", Value::Number(20.0));
+    book.set_cell(q2, "C2", Value::Number(100.0));
+
+    let req = ConsolidateRequest {
+        function: ConsolidateFunction::Average,
+        sources: vec![
+            ConsolidateSource { sheet: q1, range: range("A1", "D2") },
+            ConsolidateSource { sheet: q2, range: range("A1", "D2") },
+        ],
+        sheet: 0,
+        destination: addr("A1"),
+        top_row: true,
+        left_column: true,
+        create_links: true,
+        row_count: 50,
+        col_count: 10,
+    };
+    let preview = book.preview_consolidate(&req).unwrap();
+    // Row 0 header, Row 1 Q1 detail, Row 2 Q2 detail, Row 3 Apples summary
+    assert_eq!(preview.sample[3][1], "15");
+    assert_eq!(preview.sample[3][2], "100");
+    assert_eq!(preview.sample[3][3], "");
+
+    history.consolidate(&mut book, &req, None).unwrap();
+    // Q1 detail row (row 2) must leave Revenue (C2) empty rather than =Q1!C2 (0)
+    assert_eq!(book.sheet(0).unwrap().get_formula("C2"), None);
+    assert_eq!(book.get_cell("Sheet1", "B4"), Value::Number(15.0));
+    assert_eq!(book.get_cell("Sheet1", "C4"), Value::Number(100.0));
+    assert_eq!(book.get_cell("Sheet1", "D4"), Value::Null);
+
+    // Same-sheet source/target overlap guard
+    let overlap_req = ConsolidateRequest {
+        function: ConsolidateFunction::Sum,
+        sources: vec![ConsolidateSource { sheet: q2, range: range("A1", "C2") }],
+        sheet: q2,
+        destination: addr("B1"),
+        top_row: false,
+        left_column: false,
+        create_links: false,
+        row_count: 50,
+        col_count: 10,
+    };
+    assert!(book.preview_consolidate(&overlap_req).unwrap_err().contains("overlap"));
+
+    // Count (COUNTA) and CountNumbers (COUNT) over error cells match Excel
+    book.set_formula(q1, "B2", "=1/0");
+    for (func, expected) in [
+        (ConsolidateFunction::Count, 2.0),
+        (ConsolidateFunction::CountNumbers, 1.0),
+    ] {
+        let count_req = ConsolidateRequest {
+            function: func,
+            sources: vec![
+                ConsolidateSource { sheet: q1, range: range("B2", "B2") },
+                ConsolidateSource { sheet: q2, range: range("B2", "B2") },
+            ],
+            sheet: 0,
+            destination: addr("E1"),
+            top_row: false,
+            left_column: false,
+            create_links: false,
+            row_count: 50,
+            col_count: 10,
+        };
+        let prev = book.preview_consolidate(&count_req).unwrap();
+        let app = (prev.overwritten_cells > 0).then_some(ConsolidateOverwriteApproval {
+            target: prev.target,
+            count: prev.overwritten_cells,
+        });
+        history.consolidate(&mut book, &count_req, app).unwrap();
+        assert_eq!(book.get_cell("Sheet1", "E1"), Value::Number(expected));
+    }
 }

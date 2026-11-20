@@ -1529,10 +1529,6 @@ msgstr "粘贴数据验证前，请复制一个连续区域。"
 msgid "Copy rule {0}"
 msgstr "复制规则 {0}"
 
-#: src/workbook/chrome/ribbon/FillTools.tsx
-msgid "Copy the first selected row down or the first selected column right"
-msgstr "将选区首行向下复制，或将选区首列向右复制"
-
 #: src/i18n/feedback-messages.ts
 msgid "copy…"
 msgstr "正在复制…"
@@ -2652,6 +2648,10 @@ msgstr "向下填充"
 msgid "Fill down (Ctrl/⌘+D)"
 msgstr "向下填充（Ctrl/⌘+D）"
 
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill down, fill right, or flash fill"
+msgstr "向下填充、向右填充或快速填充"
+
 #: src/workbook/chrome/ribbon/AlternatingColorsTools.tsx
 msgid "Fill every other row. Other rows keep their original formatting. Select inside an existing band to change its whole range."
 msgstr "每隔一行填色，其他行保留原有格式。选中已有交替色区域内的单元格可修改整个区域。"
@@ -2928,6 +2928,10 @@ msgstr "请先完成当前操作，再编辑富文本。"
 msgid "Finish the current operation before navigating."
 msgstr "请先完成当前操作，再跳转。"
 
+#: src/i18n/feedback-messages.ts
+msgid "Finish the current worksheet operation first."
+msgstr "请先完成当前工作表操作。"
+
 #: src/i18n/next-version-feedback.ts
 msgid "Finish the wildcard escape with *, ? or ~."
 msgstr "请使用 *、? 或 ~ 补全通配符转义。"
@@ -2969,6 +2973,10 @@ msgstr "固定：{0}"
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Fixed: {value}"
 msgstr "固定：{value}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Flash Fill"
+msgstr "快速填充"
 
 #: src/workbook/chrome/ribbon/FillTools.tsx
 msgid "Flash fill (Ctrl/⌘+E)"
@@ -7279,6 +7287,10 @@ msgstr "唯一值"
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Unmerge cells"
 msgstr "取消合并单元格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unmerge cells before filling this range."
+msgstr "请先取消此区域内的合并单元格，再执行填充。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Unmerge cells before sorting this range."

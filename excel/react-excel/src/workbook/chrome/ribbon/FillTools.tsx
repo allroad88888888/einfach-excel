@@ -6,6 +6,7 @@ import {
   directionalFillFeedbackAtom,
   editingSessionAtom,
   fillSelectionAtom,
+  hostControlsAtom,
 } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 只收集填充方向；源区域、原生写入及结果发布由同一个 command 负责。 */
@@ -14,6 +15,7 @@ export function FillTools() {
   const fill = useSetAtom(fillSelectionAtom)
   const feedback = useAtomValue(directionalFillFeedbackAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
+  const host = useAtomValue(hostControlsAtom)
   return (
     <>
       <RibbonItem id="data.fill-selected-range">
@@ -21,9 +23,9 @@ export function FillTools() {
           data-ribbon-item="data.fill-selected-range"
           className="tool-select paste-options-select"
           aria-label={t`Fill selected range`}
-          title={t`Copy the first selected row down or the first selected column right`}
+          title={t`Fill down, fill right, or flash fill`}
           value=""
-          disabled={editing || feedback.busy}
+          disabled={editing || feedback.busy || host.readOnly || host.busy}
           onChange={(event) => {
             const direction = event.currentTarget.value
             if (direction === 'down' || direction === 'right' || direction === 'flash') {

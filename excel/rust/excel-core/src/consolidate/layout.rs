@@ -200,13 +200,15 @@ pub(super) fn build_layout(
                 }
                 for (dc, entry) in contrib.cells.iter().enumerate() {
                     if let Some((src_addr, val)) = entry {
-                        let col_offset = col_start + dc;
-                        let formula = link_formula(&contrib.sheet_name, *src_addr);
-                        push_sample(cur_row, col_offset, value_to_display(val));
-                        cells.push(CellSnapshot::formula(
-                            CellAddress::new(row_addr, origin.col + col_offset as u32),
-                            formula,
-                        ));
+                        if !matches!(val, Value::Null) {
+                            let col_offset = col_start + dc;
+                            let formula = link_formula(&contrib.sheet_name, *src_addr);
+                            push_sample(cur_row, col_offset, value_to_display(val));
+                            cells.push(CellSnapshot::formula(
+                                CellAddress::new(row_addr, origin.col + col_offset as u32),
+                                formula,
+                            ));
+                        }
                     }
                 }
                 cur_row += 1;
@@ -228,6 +230,9 @@ pub(super) fn build_layout(
                 ));
             }
             for (dc, vals) in bucket_values.iter().enumerate() {
+                if vals.iter().all(|v| matches!(v, Value::Null)) {
+                    continue;
+                }
                 let col_offset = col_start + dc;
                 let col_abs = origin.col + col_offset as u32;
                 let start_a1 = CellAddress::new(detail_start_row, col_abs);

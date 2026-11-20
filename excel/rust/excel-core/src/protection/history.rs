@@ -36,6 +36,13 @@ impl HistoryEntry {
             // Table definitions lock only their own sheet; structured references follow.
             HistoryChange::TableDefinition(_) | HistoryChange::TableCreate(_) =>
                 workbook.ensure_sheet_unprotected(self.sheet),
+            HistoryChange::Consolidate(change) => {
+                if change.changes_outline() {
+                    workbook.ensure_sheet_unprotected(self.sheet)
+                } else {
+                    workbook.ensure_range_editable(self.sheet, self.range)
+                }
+            }
             // Names and custom formulas are workbook metadata, as in Excel; recalculating locked
             // formulas is not an edit. Interfaces still refuse them from a protected active sheet.
             HistoryChange::NamedRange(_) | HistoryChange::CustomFormula(_) => Ok(()),

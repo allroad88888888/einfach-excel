@@ -3,8 +3,10 @@
 
 use serde::{Deserialize, Serialize};
 
+pub use crate::cell_rotation::CellRotation;
 pub use crate::native_features::*;
 pub use crate::native_rules::*;
+pub use crate::native_sheet_state::*;
 
 pub const FORMAT: &str = "einfach-workbook";
 pub const MAX_ROWS: u32 = 1_048_576;
@@ -63,12 +65,12 @@ pub struct Persistence {
     pub calculation_mode: Option<String>,
     #[serde(default, rename = "iterativeCalculation", skip_serializing_if = "Option::is_none")]
     pub iterative_calculation: Option<IterativeCalculation>,
-    #[serde(default, skip_serializing)]
-    pub protection: Vec<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub protection: Vec<SheetProtectionEntry>,
     #[serde(default, skip_serializing)]
     pub filters: Vec<serde_json::Value>,
-    #[serde(default, skip_serializing)]
-    pub outlines: Vec<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub outlines: Vec<SheetOutlineEntry>,
     #[serde(default, rename = "printConfigs", alias = "print_configs", skip_serializing)]
     pub print_configs: Vec<serde_json::Value>,
     #[serde(default, rename = "customFormulas", skip_serializing)]
@@ -95,9 +97,9 @@ pub struct SheetMeta {
     pub defaults: crate::sheet_defaults::SheetDefaults,
     pub idx: u32,
     pub name: String,
-    #[serde(default, skip_serializing)]
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub hidden: bool,
-    #[serde(default, rename = "tabColor", skip_serializing)]
+    #[serde(default, rename = "tabColor", skip_serializing_if = "Option::is_none")]
     pub tab_color: Option<String>,
     /// 视图选项与原生格式同名，只在隐藏时写出（对应 sheetView 的 showGridLines / showRowColHeaders）。
     #[serde(default, rename = "hideGridlines", skip_serializing_if = "std::ops::Not::not")]
@@ -209,8 +211,12 @@ pub struct CellFormat {
     pub shrink_to_fit: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub indent: Option<u8>,
-    #[serde(default, skip_serializing)]
-    pub rotation: Option<i32>,
+    #[serde(
+        default,
+        deserialize_with = "crate::cell_rotation::deserialize_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub rotation: Option<CellRotation>,
     #[serde(default, deserialize_with = "crate::native_diagonal_borders::deserialize",
         skip_serializing_if = "Option::is_none")]
     pub borders: Option<Borders>,

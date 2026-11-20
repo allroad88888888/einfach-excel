@@ -186,5 +186,8 @@ fn alignment_xml(format: &CellFormat) -> Option<String> {
     if let Some(indent) = format.indent.filter(|&n| n > 0) {
         attrs.push_str(&format!(r#" indent="{indent}""#));
     }
+    if let Some(rot) = format.rotation {
+        attrs.push_str(&format!(r#" textRotation="{}""#, rot.to_xlsx()));
+    }
     (!attrs.is_empty()).then(|| format!("<alignment{attrs}/>"))
 }

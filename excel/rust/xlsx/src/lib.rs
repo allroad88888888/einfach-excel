@@ -1,6 +1,7 @@
 //! XLSX 与 einfach 原生工作簿文件（`.einfach.json`）之间的双向转换。
 
 mod address;
+mod cell_rotation;
 mod color;
 mod date_serial;
 mod formula;
@@ -10,6 +11,7 @@ mod native_fill;
 mod native_diagonal_borders;
 mod native_rich_text;
 mod native_features;
+mod native_sheet_state;
 mod native_drawings;
 mod native_media;
 mod native_sparklines;

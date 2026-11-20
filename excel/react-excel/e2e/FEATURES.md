@@ -1261,6 +1261,8 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | XLSX-004 | 打开 .xlsx 保留超链接、隐藏行、命名范围和命名公式 | `xlsx/xlsx-file.spec.ts` | an xlsx file keeps hyperlinks, hidden rows and tables when opened |
 | XLSX-005 | 打开 1904 日期及含未支持部件的 .xlsx 时转换日期并提示跳过项 | `xlsx/xlsx-file.spec.ts` | opening a 1904 xlsx file with unsupported parts converts dates and reports skipped features |
 | XLSX-006 | 导出 .xlsx 时提示未导出的工作簿特性 | `xlsx/xlsx-file.spec.ts` | downloading a workbook with non-exported features as Excel reports what was omitted |
+| XLSX-007 | 图标集、线程批注与单元格文字旋转导入及 Excel 往返 | `xlsx/fidelity-roundtrip.spec.ts` | XLSX-007: icon sets, threaded comments and cell rotation import cleanly and survive Excel re-export |
+| XLSX-008 | 工作表保护与权限、行列分组大纲、隐藏表与标签颜色 Excel 往返 | `xlsx/fidelity-roundtrip.spec.ts` | XLSX-008: worksheet protection, row and column outlines, hidden sheet and tab color roundtrip through Excel |
 | CENTERACROSS-001 | 跨列居中应用 | `center-across/center-across.spec.ts` | center across selection centers the text across empty neighbours without merging |
 | CENTERACROSS-002 | 跨列居中被内容截断 | `center-across/center-across.spec.ts` | typing into the middle cell ends the center across span |
 | CENTERACROSS-003 | 跨列居中撤销重做 | `center-across/center-across.spec.ts` | center across is one undo step and redo restores the span |

@@ -117,8 +117,11 @@ fn reads_hidden_rows_columns_links_notes_names_and_tables() {
     // 隐藏行/列之外的尺寸照常保留（第 5 行 30pt = 40px，B 列 14 字符 = 103px）。
     assert_eq!(book["sizes"][0]["rowHeights"], serde_json::json!([{"rowIndex": 4, "heightPx": 40}]));
     assert_eq!(book["sizes"][0]["colWidths"], serde_json::json!([{"colIndex": 1, "widthPx": 103}]));
-    // 内部跳转（#Data!A1）没有原生对应物，只留外部链接。
-    assert_eq!(book["hyperlinks"], serde_json::json!([{"sheet": 0, "row": 9, "col": 0, "url": "https://example.com/a?b=1&c=2"}]));
+    // 外部链接与工作簿内部跳转（#Data!A1）一并保留。
+    assert_eq!(book["hyperlinks"], serde_json::json!([
+        {"sheet": 0, "row": 9, "col": 0, "url": "https://example.com/a?b=1&c=2"},
+        {"sheet": 0, "row": 10, "col": 0, "url": "#Data!A1"}
+    ]));
     assert_eq!(book["notes"], serde_json::json!([{"sheet": 0, "row": 9, "col": 1, "text": "Check this <value>\nsecond line"}]));
     // 公式型名字（Computed）与范围名字一并保留。
     assert_eq!(book["namedRanges"], serde_json::json!([
@@ -209,7 +212,10 @@ body</t></r><rPh><t>skip</t></rPh></text></comment><comment ref="C3" authorId="0
     assert_eq!(rules[0]["rule"]["formula"], "=MOD(ROW(),2)=0");
     assert_eq!(rules[0]["scope"]["additionalRanges"][0]["colStart"], 2);
     assert!(book["dataValidations"].is_null(), "range lists and inverted bounds are skipped");
-    assert_eq!(book["hyperlinks"], serde_json::json!([{"sheet": 0, "row": 0, "col": 0, "url": "https://example.org/x"}]));
+    assert_eq!(book["hyperlinks"], serde_json::json!([
+        {"sheet": 0, "row": 0, "col": 0, "url": "https://example.org/x"},
+        {"sheet": 0, "row": 2, "col": 0, "url": "#Sheet1!A1"}
+    ]));
     assert_eq!(book["notes"], serde_json::json!([{"sheet": 0, "row": 1, "col": 1, "text": "A:\nbody"}]));
     let names: Vec<_> = book["namedRanges"].as_array().unwrap().iter().map(|n| (n["name"].clone(), n["scope"].clone(), n["target"]["range"].clone())).collect();
     assert_eq!(names, [
@@ -220,7 +226,7 @@ body</t></r><rPh><t>skip</t></rPh></text></comment><comment ref="C3" authorId="0
 }
 
 #[test]
-fn reports_clean_import_on_basic_fixture_and_skipped_items_on_features_fixture() {
+fn reports_clean_import_on_basic_and_features_fixtures() {
     let (_, basic_report) = einfach_xlsx::xlsx_to_native_with_report(
         std::fs::read("tests/fixtures/basic.xlsx").unwrap(),
         "basic",
@@ -232,12 +238,8 @@ fn reports_clean_import_on_basic_fixture_and_skipped_items_on_features_fixture()
         std::fs::read("tests/fixtures/features.xlsx").unwrap(),
         "features",
     ).unwrap();
-    let kinds: Vec<_> = feat_report.items.iter().map(|i| (i.kind.as_str(), i.count)).collect();
-    assert_eq!(kinds, [("hyperlinks", 1)]);
-    assert_eq!(
-        feat_report.summary,
-        "Opened Excel workbook. Skipped: unsupported hyperlinks."
-    );
+    assert!(feat_report.items.is_empty(), "unexpected skipped items: {:?}", feat_report.items);
+    assert_eq!(feat_report.summary, "");
 }
 
 #[test]
@@ -256,18 +258,26 @@ fn converts_1904_dates_and_reports_dropped_parts_from_edge_cases_fixture() {
         file["workbook"]["namedRanges"],
         serde_json::json!([{"name": "FormulaName", "target": null, "formula": "=SUM(RichAndUnsupported!$B$2:$B$3)"}])
     );
+    assert_eq!(
+        file["workbook"]["comments"][0]["thread"]["entries"][0]["body"],
+        "Threaded reply"
+    );
+    assert_eq!(
+        file["workbook"]["conditionalFormats"][0]["rules"][0]["rule"]["iconSet"],
+        "three-arrows"
+    );
+    assert_eq!(
+        file["workbook"]["hyperlinks"],
+        serde_json::json!([{"sheet": 0, "row": 2, "col": 0, "url": "#RichAndUnsupported!A1"}])
+    );
+    assert_eq!(file["workbook"]["protection"][0]["protection"]["mode"], "protected");
+    assert_eq!(
+        file["workbook"]["outlines"][0]["outline"]["rows"],
+        serde_json::json!([{"start": 1, "end": 2, "collapsed": false}])
+    );
 
     let kinds: Vec<&str> = report.items.iter().map(|i| i.kind.as_str()).collect();
-    for expected in [
-        "date1904", "threadedComments", "conditionalFormats", "dataValidations",
-        "hyperlinks", "sheetProtection", "autoFilter",
-        "outline", "printSetup", "macros",
-    ] {
-        assert!(kinds.contains(&expected), "expected {expected} in {kinds:?}");
-    }
-    assert!(!kinds.contains(&"richText"), "supported runs must not be reported as skipped");
-    // 这张表里的簇状柱形图能转换，不再算「跳过」，而是进了浮动对象目录。
-    assert!(!kinds.contains(&"charts"), "convertible charts are not reported: {kinds:?}");
+    assert_eq!(kinds, ["date1904", "dataValidations", "autoFilter", "printSetup", "macros"]);
     assert_eq!(file["workbook"]["drawings"][0]["drawings"][0]["kind"], "chart");
     assert!(report.summary.starts_with("Opened Excel workbook. Skipped: 1904 date system, "));
 }

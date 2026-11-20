@@ -14,8 +14,10 @@ mod drawings;
 mod dxf;
 mod features;
 mod hyperlinks;
+mod outline;
 mod package;
 mod pictures;
+mod protection;
 mod sparklines;
 mod rels;
 mod styles;
@@ -48,7 +50,7 @@ fn has_meaningful_format(f: &CellFormat) -> bool {
         || f.align.as_deref().is_some_and(|a| a != "default")
         || f.vertical_align.as_deref().is_some_and(|a| a != "default")
         || f.indent.is_some_and(|i| i > 0)
-        || f.rotation.is_some_and(|r| r != 0)
+        || f.rotation.is_some()
         || f.borders.as_ref().is_some_and(|b| {
             [b.top.as_ref(), b.right.as_ref(), b.bottom.as_ref(), b.left.as_ref(),
                 b.diag_up.as_ref(), b.diag_down.as_ref()]
@@ -61,10 +63,8 @@ fn has_meaningful_format(f: &CellFormat) -> bool {
 pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError> {
     let workbook = &file.workbook;
     let mut report = ReportBuilder::default();
-    report.add("sheetProtection", workbook.protection.len());
     report.add("autoFilter", workbook.filters.len() +
         workbook.tables.iter().filter(|table| table.auto_filter.is_some()).count());
-    report.add("outline", workbook.outlines.len());
     let custom_print = workbook
         .print_configs
         .iter()
@@ -72,15 +72,32 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
         .count();
     report.add("printSetup", custom_print);
     report.add("customFormulas", workbook.custom_formulas.len());
-    let hidden_or_colored = workbook.sheets.iter().filter(|s| s.hidden || s.tab_color.is_some()).count();
-    report.add("sheetVisibilityOrColor", hidden_or_colored);
 
     let mut sheets: Vec<worksheet::SheetInput> = workbook.sheets.iter().map(|meta| worksheet::SheetInput {
         defaults: meta.defaults,
+        tab_color: meta.tab_color.clone(),
         hide_gridlines: meta.hide_gridlines,
         hide_headings: meta.hide_headings,
         ..Default::default()
     }).collect();
+    for entry in &workbook.protection {
+        if let Some(target) = sheets.get_mut(entry.sheet as usize) {
+            let (xml, losses) = protection::xml(Some(&entry.protection));
+            target.protection_xml = xml;
+            report.add("sheetProtection", losses);
+        } else {
+            report.add("sheetProtection", 1);
+        }
+    }
+    for entry in &workbook.outlines {
+        if let Some(target) = sheets.get_mut(entry.sheet) {
+            let plan = outline::plan(Some(&entry.outline));
+            report.add("outline", plan.losses);
+            target.outline = plan;
+        } else {
+            report.add("outline", 1);
+        }
+    }
     let mut styles = styles::StyleTable::new();
     for target in &mut sheets {
         if let Some(size) = target.defaults.font_size {
@@ -104,9 +121,6 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
         style_layers::write(range, target, &mut styles);
         let fill_layers = fill_layers::FillLayers::new(range, &mut report);
         for style in &range.cell_styles {
-            if style.format.rotation.is_some_and(|r| r != 0) {
-                report.add("cellRotation", 1);
-            }
             if let Some(coord) = parse_cell(&style.addr) {
                 let mut format = fill_layers.cell(&style.format, coord, &mut report);
                 gradient_fills::report(&format, &mut report);
@@ -176,7 +190,7 @@ pub fn write(file: &NativeFile) -> Result<(Vec<u8>, ConversionReport), XlsxError
     put(
         "xl/workbook.xml",
         package::workbook(
-            &names,
+            &workbook.sheets,
             &defined_names_xml,
             manual_calculation,
             workbook.iterative_calculation.as_ref(),

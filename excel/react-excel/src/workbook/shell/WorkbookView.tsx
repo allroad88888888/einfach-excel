@@ -1,3 +1,5 @@
+import '../../style.css'
+import './workbook.css'
 import { CellContextMenu } from '../shift-cells/CellContextMenu'
 import { DrawingContextMenu } from '../drawings/DrawingContextMenu'
 import { ShiftCellsDialog } from '../shift-cells/ShiftCellsDialog'
@@ -9,8 +11,6 @@ import { RichTextDialog } from '../rich-text/RichTextDialog'
 import { FormulaArgumentsDialog } from '../formula-arguments/FormulaArgumentsDialog'
 import { WorkbookRibbon } from '../chrome/ribbon/WorkbookRibbon'
 import { WorkbookGrid } from '../grid/viewport/WorkbookGrid'
-import './workbook.css'
-import '../../style.css'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runFindReplaceAtom, formatPainterAtom, runFormatPainterAtom,
   runGoToReferenceAtom, viewportShowFormulaBarAtom } from '@einfach-excel/spreadsheet-ui-core'
@@ -19,10 +19,10 @@ import { SelectSpecialStatus } from '../select-special/SelectSpecialStatus'
 import { useSelectSpecialKeys } from '../select-special/use-select-special-keys'
 import { LockedCellDialog } from '../protection/LockedCellDialog'
 import { PluginPanels } from '../../plugin/PluginMounts'
+import { useIsServerRender } from '../../page/use-is-server-render'
 import { useWorkbookUiOptions } from '../../page/workbook-ui-options'
 
-/** Composes the shared spreadsheet chrome around the active Rust workbook. */
-export function WorkbookView() {
+function WorkbookClientView() {
   const { i18n } = useLingui()
   const runFind = useSetAtom(runFindReplaceAtom)
   const runGoTo = useSetAtom(runGoToReferenceAtom)
@@ -83,4 +83,17 @@ export function WorkbookView() {
       <PluginPanels />
     </div>
   )
+}
+
+/** Composes the shared spreadsheet chrome around the active Rust workbook. */
+export function WorkbookView() {
+  const { i18n } = useLingui()
+  if (useIsServerRender()) {
+    return (
+      <div className="einfach-spreadsheet workbook" lang={i18n.locale} data-runtime-state="ssr">
+        <div role="status"><Trans>Loading Rust/WASM workbook…</Trans></div>
+      </div>
+    )
+  }
+  return <WorkbookClientView />
 }

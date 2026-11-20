@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, readdir, readFile, cp, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { spawnSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
@@ -68,27 +68,74 @@ await run('npm', ['exec', '--yes', '--package=pnpm@10.15.1', '--', 'pnpm', 'inst
   stage, 'release-lockfile')
 await run('npm', ['exec', '--yes', '--package=pnpm@10.15.1', '--', 'pnpm', 'install', '--frozen-lockfile', '--ignore-scripts'],
   stage, 'release-install')
-const packages = ['excel-wasm', 'spreadsheet-ui-core', 'spreadsheet-ui-styles', 'excel-core-ts', 'react-excel']
+
+const excelPackages = [
+  'excel-wasm', 'spreadsheet-ui-core', 'spreadsheet-ui-styles',
+  'excel-core-ts', 'react-excel', 'xlsx-wasm',
+].map(name => `excel/${name}`)
+const pluginEntries = (await readdir(path.join(root, 'plugins'), { withFileTypes: true }))
+  .filter(entry => entry.isDirectory())
+  .map(entry => entry.name)
+  .sort()
+const pluginPackages = []
+for (const name of pluginEntries) {
+  const manifest = await json(path.join(root, 'plugins', name, 'package.json'))
+  if (name === 'plugin-sample') {
+    if (manifest.private !== true) throw new Error('plugin-sample must remain private: true')
+    continue
+  }
+  if (manifest.private === false) pluginPackages.push(`plugins/${name}`)
+}
+if (pluginPackages.length !== 11) {
+  throw new Error(`Expected 11 public plugins, found ${pluginPackages.length}`)
+}
+
 const packed = {}
-for (const name of packages) {
-  const relative = `excel/${name}`
+for (const relative of [...excelPackages, ...pluginPackages]) {
+  const slug = relative.replaceAll('/', '-')
   const source = await json(path.join(root, relative, 'package.json'))
-  for (const entry of [...source.files, 'README.md', 'LICENSE', 'NOTICE']) {
+  for (const entry of [...(source.files ?? []), 'README.md', 'LICENSE', 'NOTICE']) {
     try { await copy(`${relative}/${entry}`) } catch (error) { if (error.code !== 'ENOENT') throw error }
   }
   await run('npm', ['exec', '--yes', '--package=pnpm@10.15.1', '--', 'pnpm', 'pack', '--pack-destination', tarballs],
-    path.join(stage, relative), `pack-${name}`)
+    path.join(stage, relative), `pack-${slug}`)
   const manifest = await json(path.join(stage, relative, 'package.json'))
   const filename = `${manifest.name.replace('@', '').replaceAll('/', '-')}-${manifest.version}.tgz`
   packed[manifest.name] = { version: manifest.version, file: path.join(tarballs, filename) }
 }
-// Reviewed pending plan: removing public UI Core exports requires 0.3.0;
-// Changesets raises the dependent React package to 1.0.0 with the matching peer.
+
+// 稳在 0.x 演进策略：fixed 核心组升至 0.3.0，react-excel 因 peer >=0.2.0 <1.0.0 保持 0.2.0，
+// 新公开的 xlsx 与 11 个业务插件保持 0.x（首发 0.1.0），不得误升至 1.0.0。
 const reactCandidate = await json(path.join(stage, 'excel/react-excel/package.json'))
 if (packed['@einfach-excel/spreadsheet-ui-core'].version !== '0.3.0' ||
-  packed['@einfach-excel/react-excel'].version !== '1.0.0' ||
-  reactCandidate.peerDependencies['@einfach-excel/spreadsheet-ui-core'] !== '^0.3.0')
-  throw new Error('Release plan changed; review the React minimum peer before accepting a new plan.')
+  packed['@einfach-excel/excel-wasm'].version !== '0.3.0' ||
+  packed['@einfach-excel/react-excel'].version !== '0.2.0' ||
+  reactCandidate.peerDependencies['@einfach-excel/spreadsheet-ui-core'] !== '>=0.2.0 <1.0.0') {
+  throw new Error(`Unexpected 0.x release plan: ui-core=${packed['@einfach-excel/spreadsheet-ui-core'].version}, react-excel=${packed['@einfach-excel/react-excel'].version}`)
+}
+if (!packed['@einfach-excel/xlsx'].version.startsWith('0.')) {
+  throw new Error(`@einfach-excel/xlsx left 0.x: ${packed['@einfach-excel/xlsx'].version}`)
+}
+for (const relative of pluginPackages) {
+  const manifest = await json(path.join(stage, relative, 'package.json'))
+  const entry = packed[manifest.name]
+  if (!entry?.version.startsWith('0.')) throw new Error(`${manifest.name} left 0.x: ${entry?.version}`)
+  const tarManifest = JSON.parse(execFileSync('tar', ['-xOf', entry.file, 'package/package.json'], { encoding: 'utf8' }))
+  if (tarManifest.exports?.['.']?.import !== './dist/index.js' ||
+    tarManifest.exports?.['./core']?.import !== './dist/core/index.js') {
+    throw new Error(`${manifest.name} tarball exports were not rewritten to dist/: ${JSON.stringify(tarManifest.exports)}`)
+  }
+}
+
+const consumerTarballPackages = [
+  '@einfach-excel/excel-wasm',
+  '@einfach-excel/spreadsheet-ui-core',
+  '@einfach-excel/react-excel',
+  '@einfach-excel/xlsx',
+  '@einfach-excel/plugin-chart',
+  '@einfach-excel/plugin-cell-appearance',
+  '@einfach-excel/plugin-date-picker',
+]
 const consumers = {}
 for (const bundler of ['vite', 'rspack']) {
   const directory = path.join(temporary, bundler)
@@ -97,19 +144,38 @@ for (const bundler of ['vite', 'rspack']) {
   await cp(path.join(root, `excel/react-excel/package-consumers/${bundler}`), directory, { recursive: true })
   const packageFile = path.join(directory, 'package.json')
   const manifest = await json(packageFile)
-  for (const name of ['@einfach-excel/excel-wasm', '@einfach-excel/spreadsheet-ui-core', '@einfach-excel/react-excel'])
-    manifest.dependencies[name] = `file:${packed[name].file}`
+  for (const name of consumerTarballPackages) manifest.dependencies[name] = `file:${packed[name].file}`
   await writeFile(packageFile, `${JSON.stringify(manifest, null, 2)}\n`)
   // 严格 peer 安装，无 workspace link、源码 alias 或 Rust/宏插件。
   await run('npm', ['install', '--ignore-scripts', '--strict-peer-deps', '--no-audit', '--no-fund'], directory, `install-${bundler}`)
   const tree = JSON.parse(await run('npm', ['ls', '--all', '--json'], directory, `dependency-tree-${bundler}`))
   const installed = new Set()
+  const versionsByName = new Map()
   const inspect = node => Object.entries(node.dependencies ?? {}).forEach(([name, dependency]) => {
-    installed.add(name); inspect(dependency)
+    installed.add(name)
+    if (dependency.version) {
+      if (!versionsByName.has(name)) versionsByName.set(name, new Set())
+      versionsByName.get(name).add(dependency.version)
+    }
+    inspect(dependency)
   })
   inspect(tree)
-  for (const name of ['@einfach-excel/excel-core-ts', '@einfach-excel/react-cells', '@einfach-excel/canvas-cells', '@einfach-excel/canvas'])
+  for (const singleton of [
+    'react', 'react-dom', '@einfach/core', '@einfach/react',
+    '@einfach-excel/spreadsheet-ui-core', '@einfach-excel/react-excel',
+    '@lingui/core', '@lingui/react',
+  ]) {
+    const versions = [...(versionsByName.get(singleton) ?? [])]
+    if (versions.length !== 1) {
+      throw new Error(`Duplicate or missing singleton ${singleton} in ${bundler}: ${versions.join(', ')}`)
+    }
+  }
+  for (const name of [
+    '@einfach-excel/excel-core-ts', '@einfach-excel/react-cells',
+    '@einfach-excel/canvas-cells', '@einfach-excel/canvas', '@einfach-excel/plugin-sample',
+  ]) {
     if (installed.has(name)) throw new Error(`Unexpected private/fallback dependency: ${name}`)
+  }
   await run('npm', ['run', 'typecheck'], directory, `typecheck-${bundler}`)
   await run('npm', ['run', 'build'], directory, `build-${bundler}`)
   consumers[bundler] = { directory, dist: path.join(directory, 'dist') }

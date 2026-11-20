@@ -1,10 +1,10 @@
+import './style.css'
 import type { CSSProperties, ReactNode } from 'react'
 import {
   WorkbookRuntimeProvider,
   type WorkbookRuntimeProviderProps,
 } from './page/WorkbookRuntimeProvider'
 import { WorkbookView } from './workbook/shell/WorkbookView'
-import './style.css'
 
 export interface SpreadsheetProps extends Omit<WorkbookRuntimeProviderProps, 'children'> {
   readonly className?: string

@@ -84,7 +84,7 @@ const artifact = {
   peerDependencies: manifest.peerDependencies,
   bundledImplementations: forbiddenDependencies,
   embeddedWasmAssets,
-  target: 'Browser ESM / React18',
+  target: 'Browser ESM / React 18 & 19',
 }
 await writeFile(path.join(dist, 'artifact-manifest.json'), `${JSON.stringify(artifact, null, 2)}\n`)
 process.stdout.write(`${JSON.stringify(artifact, null, 2)}\n`)

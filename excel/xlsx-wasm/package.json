@@ -1,7 +1,7 @@
 {
   "name": "@einfach-excel/xlsx",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "private": false,
   "description": "XLSX import/export for einfach workbooks, as an on-demand WASM converter",
   "type": "module",
   "main": "./dist/einfach_xlsx.js",
@@ -16,10 +16,27 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "NOTICE"
   ],
   "sideEffects": false,
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/allroad88888888/einfach-excel.git",
+    "directory": "excel/xlsx-wasm"
+  },
+  "homepage": "https://github.com/allroad88888888/einfach-excel/tree/main/excel/xlsx-wasm",
+  "bugs": {
+    "url": "https://github.com/allroad88888888/einfach-excel/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "build:wasm": "wasm-pack build --target web --out-dir ../../xlsx-wasm/dist ../rust/xlsx && node ../../scripts/strip-wasm-names.mjs dist/einfach_xlsx_bg.wasm && rm -f dist/.gitignore"
   }

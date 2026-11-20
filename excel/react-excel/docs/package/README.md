@@ -1,16 +1,17 @@
 # 嵌入 React 工作簿
 
-此包的目标是浏览器 ESM、React 18.3、`@einfach/core` / `@einfach/react` 0.4。
-宿主与工作簿必须解析到同一份 Einfach Store、React 绑定和 UI Core；旧 Store 版本或
-React 19 不在兼容范围内，需要先对齐版本。预期发行是 React 0.1.0 与 Core/WASM 0.2.0；
-工作区保留 pending changesets，尚未应用版本或发布 npm。React 的 UI Core peer 最低为
-`^0.2.0`，旧 0.1.0 没有本轮宿主接口。
+此包的目标是浏览器 ESM、React 18.3 / 19（`^18.3.1 || ^19.0.0`）、`@einfach/core` / `@einfach/react` `^0.4.0`。
+宿主与工作簿必须解析到同一份 Einfach Store、React 绑定和 UI Core（peer 范围为 `>=0.2.0 <1.0.0`）；
+旧 Store 版本不在兼容范围内，需要先对齐版本。模拟发行版本为 React `0.2.0`、Core/WASM `0.3.0`，
+以及可选公开包 `@einfach-excel/xlsx` 与 11 个 `@einfach-excel/plugin-*`（首发 `0.1.0`）；
+工作区保留 pending changesets，尚未应用版本或发布 npm。支持无 `window`/`Worker` 的 SSR
+首次渲染（`renderToString` 输出加载占位壳，客户端水合后再启动 Worker）。
 
 发布后安装：
 
 ```sh
-npm install @einfach-excel/react-excel@^0.1.0 @einfach-excel/spreadsheet-ui-core@^0.2.0 \
-  @einfach/core@^0.4.0 @einfach/react@^0.4.0 react@^18.3.1 react-dom@^18.3.1
+npm install @einfach-excel/react-excel@^0.2.0 @einfach-excel/spreadsheet-ui-core@^0.3.0 \
+  @einfach/core@^0.4.0 @einfach/react@^0.4.0 react@^19.0.0 react-dom@^19.0.0
 ```
 
 未发布候选用仓库根 `pnpm prepare:package-consumers`：在系统 mktemp 副本运行既有

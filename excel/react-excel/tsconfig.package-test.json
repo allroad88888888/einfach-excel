@@ -3,7 +3,7 @@
   "compilerOptions": {
     "noEmit": true,
     "emitDeclarationOnly": false,
-    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom/vitest"]
+    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom/vitest"]
   },
   "include": [
     "src/i18n/catalogs.d.ts",

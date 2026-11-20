@@ -60,6 +60,7 @@ jobs:
       # 测试型检查 —— 那是 ci.yml 的门禁职责，不是发布物的组成部分。
       - run: npm run build:publish
       - run: pnpm --filter @einfach-excel/react-excel verify:package-artifact
+      - run: node plugins/verify-plugins.mjs
       - name: Create Release PR or Publish
         if: ${{ inputs.mode != 'first-publish' }}
         uses: changesets/action@v1

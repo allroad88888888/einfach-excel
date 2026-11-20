@@ -24,6 +24,9 @@ export interface PackageHost {
   sheets(): readonly WorkbookDocumentSheet[]
   export(): Promise<{ readonly text: string; readonly filename: string }>
   replace(text: string | null): Promise<boolean>
+  xlsxRoundTrip(): Promise<{ readonly byteLength: number; readonly sheetCount: number }>
+  insertChart(): Promise<{ readonly status: string; readonly count: number }>
+  pluginCoreState(): { readonly patternOpen: boolean; readonly datePickerVisible: boolean }
 }
 
 declare global {

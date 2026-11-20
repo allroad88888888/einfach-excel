@@ -1,0 +1,6 @@
+Einfach XLSX Converter
+Copyright (c) dol. Licensed under the MIT license in LICENSE.
+
+The precompiled WASM converter bundles third-party Rust crates for ZIP/XML
+processing. Their license texts and attributions are included in
+dist/THIRD_PARTY_NOTICES.txt.

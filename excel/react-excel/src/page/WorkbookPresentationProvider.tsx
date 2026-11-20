@@ -1,7 +1,7 @@
 import type { I18n } from '@lingui/core'
 import type { CanvasCellPaintHooks } from '@einfach-excel/spreadsheet-ui-core'
 import { I18nProvider } from '@lingui/react'
-import { createContext, useLayoutEffect, useMemo, type ReactNode } from 'react'
+import { createContext, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { createWorkbookI18n, type UiLocale } from '../i18n/runtime'
 import type { XlsxConverterLoader } from '../workbook/xlsx/xlsx-converter'
 import { assertUniquePluginIds, SpreadsheetPluginsContext } from '../plugin/plugin-context'
@@ -37,8 +37,9 @@ export function WorkbookPresentationProvider({
   children, locale, i18n, renderer = 'dom', cellPaintHooks, xlsx, plugins = NO_PLUGINS, ui = DEFAULT_UI,
 }:
   WorkbookPresentationProps & { readonly children: ReactNode }): ReactNode {
-  const ownedI18n = useMemo(() => createWorkbookI18n(), [])
-  const instance = i18n ?? ownedI18n
+  const ownedRef = useRef<I18n | null>(null)
+  if (ownedRef.current === null) ownedRef.current = createWorkbookI18n(locale)
+  const instance = i18n ?? ownedRef.current
   // 插件目录在子树首次渲染前并入同一实例；load 按 id 合并，重复执行无副作用。
   useMemo(() => {
     assertUniquePluginIds(plugins)
@@ -46,7 +47,7 @@ export function WorkbookPresentationProvider({
       for (const [code, messages] of Object.entries(plugin.messages ?? {}))
         if (messages) instance.load(code, messages)
   }, [instance, plugins])
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (locale !== undefined && instance.locale !== locale) instance.activate(locale)
   }, [instance, locale])
   const presentation = useMemo(() => ({ controlledLocale: locale !== undefined,

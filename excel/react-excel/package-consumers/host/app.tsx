@@ -1,6 +1,7 @@
 import { createStore } from '@einfach/core'
 import { createRoot } from 'react-dom/client'
 import {
+  createWorkbookApi,
   readWorkbookRangesAtom,
   writeWorkbookCellsAtom,
   workbookChangeAtom,
@@ -14,6 +15,9 @@ import {
   type HostControls,
   type WorkbookChangeEvent,
 } from '@einfach-excel/spreadsheet-ui-core'
+import { createChartApi } from '@einfach-excel/plugin-chart/core'
+import { patternFillPanelAtom } from '@einfach-excel/plugin-cell-appearance/core'
+import { datePickerStateAtom } from '@einfach-excel/plugin-date-picker/core'
 import { definition } from './definition'
 import type { PackageHost } from './bridge'
 import { mountFacadeControls } from './facade'
@@ -50,10 +54,24 @@ window.Worker = class extends OriginalWorker {
     super.terminate()
   }
 }
-// 先采集宿主样式，再加载已安装库及显式 CSS；没有源码入口或 alias。
+// 先采集宿主样式，再加载已安装库、公开插件及显式 CSS；没有源码入口或 alias。
 const { Spreadsheet } = await import('@einfach-excel/react-excel')
+const { chartPlugin } = await import('@einfach-excel/plugin-chart')
+const { cellAppearancePlugin } = await import('@einfach-excel/plugin-cell-appearance')
+const { datePickerPlugin } = await import('@einfach-excel/plugin-date-picker')
 await import('@einfach-excel/react-excel/style.css')
+await import('@einfach-excel/plugin-chart/style.css')
+await import('@einfach-excel/plugin-cell-appearance/style.css')
+await import('@einfach-excel/plugin-date-picker/style.css')
+
+const loadXlsx = async () => {
+  const xlsx = await import('@einfach-excel/xlsx')
+  await xlsx.default()
+  return xlsx
+}
+const installedPlugins = [chartPlugin, cellAppearancePlugin, datePickerPlugin] as const
 const stores = { first: createStore(), second: createStore() }
+const chartApi = createChartApi(createWorkbookApi(stores.first))
 mountFacadeControls(stores.first)
 const events: Record<keyof typeof stores, WorkbookChangeEvent[]> = { first: [], second: [] }
 for (const key of ['first', 'second'] as const)
@@ -85,6 +103,8 @@ const renderFirst = (factory?: typeof workerFactory, invalid = false) =>
       store={stores.first}
       workerFactory={factory}
       locale="en"
+      xlsx={loadXlsx}
+      plugins={installedPlugins}
     />,
   )
 renderFirst()
@@ -130,5 +150,31 @@ export const packageHost: PackageHost = {
       .getter(rustWorkbookConnectionAtom)!
       .request('workbook.exportFile', { title: 'Saved' }),
   replace: (text: string | null) => stores.first.setter(replaceRustWorkbookRuntimeAtom, text),
+  xlsxRoundTrip: async () => {
+    const xlsx = await loadXlsx()
+    const saved = await stores.first
+      .getter(rustWorkbookConnectionAtom)!
+      .request('workbook.exportFile', { title: 'Saved' })
+    const bytes = xlsx.nativeToXlsx(saved.text)
+    const roundTripped = JSON.parse(xlsx.xlsxToNative(bytes, 'RoundTrip')) as {
+      workbook: { sheets: unknown[] }
+    }
+    return { byteLength: bytes.byteLength, sheetCount: roundTripped.workbook.sheets.length }
+  },
+  insertChart: async () => {
+    const sheetId = stores.first.getter(workbookDocumentAtom).sheets[0].id
+    const res = await chartApi.insert({
+      sheetId,
+      data: 'A1:A5',
+      type: 'column',
+      spec: { title: 'Installed Chart' },
+    })
+    const listed = await chartApi.list(sheetId)
+    return { status: res.status, count: listed.status === 'ok' ? listed.charts.length : 0 }
+  },
+  pluginCoreState: () => ({
+    patternOpen: stores.first.getter(patternFillPanelAtom).open,
+    datePickerVisible: stores.first.getter(datePickerStateAtom).visible,
+  }),
 }
 window.packageHost = packageHost

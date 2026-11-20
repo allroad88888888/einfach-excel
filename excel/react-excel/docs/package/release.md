@@ -1,14 +1,14 @@
 # 兼容与发行检查
 
-首版支持现代浏览器、React/react-dom 18.3、Einfach core/react `^0.4.0`、UI Core `^0.2.0`，
-提供 ESM 与公开声明。构建工具要求 Node 22.19+。本轮以 Vite 8.3.4 与 Rspack 2.2.9 验证。
-不承诺 SSR、CJS、React 19、旧 Einfach Store、任意 CSP/CDN 或旧浏览器兼容。
+支持现代浏览器、React/react-dom `^18.3.1 || ^19.0.0`、Einfach core/react `^0.4.0`、UI Core `>=0.2.0 <1.0.0`，
+提供 ESM 与公开声明。构建工具要求 Node 22.19+（已构建包消费者基线为 Node `>=22.12.0`）。本轮以 Vite 8.3.4 与 Rspack 2.2.9 验证。
+支持无 `window`/`Worker` 的 SSR 首次占位渲染（`renderToString`），不承诺 CJS、旧 Einfach Store、任意 CSP/CDN 或旧浏览器兼容。
 一个 Store 同时只属于一个工作簿；不同组件用不同 Store，避免重复 core/UI Core 模块身份。
 样式限定组件根，不是 Shadow DOM，不承诺抵御宿主对内部选择器的高优先级覆盖。
 
-已知非阻断限制：当前 Rspack 消费构建中的工具栏、语言控件字号大于 Vite，状态区可能多行。
-两者的实际包场景没有发现入口缺失、文案裁断或功能阻断，但首版不承诺跨打包器像素一致。
-此差异已登记为样式一致性 Minor，后续单独收敛；本轮不为它修改冻结中的产品或降低测试断言。
+跨打包器样式一致性：此前 Rspack/LightningCSS 因合并根规则丢弃子孙 `box-sizing: border-box` 并把 `:is(...)` 降级为
+`(0,1,0)` 特异性的 `:-webkit-any(...)` 导致工具栏、语言控件字号偏大与公式栏/状态区增高的问题已修复，
+Vite 与 Rspack 消费构建现保持相同的控件字号与盒模型高度。
 
 React 18当前候选的包级44项及同候选最终完整浏览器门禁均已通过。2026-10-23唯一最终序列
 自然退出0：370文件2679/2679、同JSON主绑定1026/1026，零失败、跳过、重试或flaky；
@@ -31,12 +31,13 @@ pnpm --filter @einfach-excel/react-excel exec playwright test --config playwrigh
 pnpm --filter @einfach-excel/react-excel e2e # 准备仓外消费者，再运行 demo + embedding + package-host 全部用例
 ```
 
-pack 准备脚本在 mktemp 副本运行现有 Changesets version + lockfile 流程，pnpm pack 五个发行包。
-源码仍为原版本。当前待消费的 UI Core 公共导出清理 Changeset 使 fixed 组
-Core/styles/TS core/WASM 的模拟版本为 0.3.0；Changesets 将 React 候选升为 1.0.0，
-其 UI Core peer 同步为 `^0.3.0`。包准备脚本核对这组候选与 peer，版本应用和发布仍单独授权。
+pack 准备脚本在 mktemp 副本运行现有 Changesets version + lockfile 流程，pnpm pack 核心组、`react-excel`、
+`@einfach-excel/xlsx` 与全部 11 个公开业务插件（共 17 个发行包，`plugin-sample` 保持私有不打包）。
+源码仍为原版本。当前待消费的 Changeset 使 fixed 组 Core/styles/TS core/WASM 的模拟版本为 `0.3.0`；
+得益于 `onlyUpdatePeerDependentsWhenOutOfRange` 与 `>=0.2.0 <1.0.0` peer 范围，`react-excel` 模拟版本升为 `0.2.0`（稳在 `0.x`），
+`@einfach-excel/xlsx` 与 11 个插件保持 `0.1.0`。包准备脚本核对这组候选与 peer，版本应用和发布仍单独授权。
 Vite/Rspack 安装的是 tarball 与 registry 包；无源码 alias、workspace link、宏插件或消费者 Rust。
-消费者只安装 React、UI Core、WASM 三份 tarball；另外两包仅验证关联发行计划，不进入 React 依赖树。
+消费者严格（`--strict-peer-deps`）安装 React、UI Core、WASM、XLSX 及代表性插件（含 `./core` 与 `plugin-chart`）tarball。
 依赖树、构建/声明日志、tarball SHA 和临时路径在 `.codex-artifacts/react-excel-package-004/`。
 `consumers.json` 可续跑静态 server 和包 E2E，测试使用生产构建后的页面。
 默认完整 Playwright 配置包含这两个 server，包测试不会只被采集却无法实际执行。

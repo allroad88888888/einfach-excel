@@ -12,6 +12,7 @@ import type { WorkerLike } from '@einfach-excel/spreadsheet-ui-core/rust-worker'
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { WorkbookPresentationProvider, type WorkbookPresentationProps } from './WorkbookPresentationProvider'
+import { useIsServerRender } from './use-is-server-render'
 import { translateFeedback } from '../i18n/translate-feedback'
 import { createDefaultWorkbookWorker } from '../worker/create-workbook-worker'
 
@@ -72,6 +73,13 @@ function WorkbookRuntimeMount({
   return children
 }
 
+function WorkbookRuntimeGate(props: Omit<WorkbookRuntimeProviderProps, 'store'>): ReactNode {
+  if (useIsServerRender()) {
+    return <div role="status"><Trans>Loading Rust/WASM workbook…</Trans></div>
+  }
+  return <WorkbookRuntimeMount {...props} />
+}
+
 /** Mounts one UI-core-owned Rust workbook runtime in an isolated store. */
 export function WorkbookRuntimeProvider({
   children,
@@ -86,10 +94,10 @@ export function WorkbookRuntimeProvider({
 
   return (
     <WorkbookPresentationProvider {...presentation}><AtomProvider store={runtimeStore}>
-      <WorkbookRuntimeMount definition={definition} initialSnapshot={initialSnapshot}
+      <WorkbookRuntimeGate definition={definition} initialSnapshot={initialSnapshot}
         workerFactory={workerFactory} defaults={defaults}>
         {children}
-      </WorkbookRuntimeMount>
+      </WorkbookRuntimeGate>
     </AtomProvider></WorkbookPresentationProvider>
   )
 }

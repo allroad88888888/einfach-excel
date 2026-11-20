@@ -13,12 +13,12 @@ test('DOM glyphs and exported PNG preserve baseline ordering and nominal font si
   await expect(cell(page, '0:2')).toHaveText('Hg')
   await select(page, 'A5', '4:0')
   const name = page.getByRole('textbox', { name: 'Name box' })
-  for (const col of [0, 1, 2]) await expect(cell(page, `0:${col}`)).toHaveCSS('font-size', '20px')
+  for (const col of [0, 1, 2]) await expect(cell(page, `0:${col}`)).toHaveCSS('font-size', '32px')
   const first = (await cell(page, '0:0').boundingBox())!
   const last = (await cell(page, '0:2').boundingBox())!
   const dom = await page.screenshot({ path: info.outputPath('baseline-dom-pixels.png'),
     clip: { x: first.x, y: first.y, width: last.x + last.width - first.x, height: first.height } })
-  const domPixels = await glyphPixels(page, dom, true)
+  const domPixels = await glyphPixels(page, dom)
   expectBaselinePixels(domPixels)
   await name.fill('A1:C1'); await name.press('Enter')
   await showRibbonControl(page, 'Export selection as image')
@@ -28,7 +28,7 @@ test('DOM glyphs and exported PNG preserve baseline ordering and nominal font si
   await button(page, 'Download PNG').click()
   const png = await readFile((await (await pending).path())!)
   await info.attach('baseline-export.png', { body: png, contentType: 'image/png' })
-  const pngPixels = await glyphPixels(page, png, true)
+  const pngPixels = await glyphPixels(page, png)
   expectBaselinePixels(pngPixels)
   await info.attach('baseline-pixels.json', { body: JSON.stringify({ domPixels, pngPixels }, null, 2), contentType: 'application/json' })
   const panel = page.getByRole('dialog', { name: 'Export selection as image' })
@@ -46,10 +46,10 @@ test('actual Canvas renderer paints smaller raised and lowered glyphs inside unc
   await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
   const png = async () => Buffer.from(await canvas.evaluate(element =>
     (element as HTMLCanvasElement).toDataURL('image/png').split(',')[1]!), 'base64')
-  await expect.poll(async () => (await glyphPixels(page, await png(), true)).every(box => box.count > 10)).toBe(true)
+  await expect.poll(async () => (await glyphPixels(page, await png())).every(box => box.count > 10)).toBe(true)
   const bytes = await png()
   await info.attach('baseline-canvas-pixels.png', { body: bytes, contentType: 'image/png' })
-  const pixels = await glyphPixels(page, bytes, true)
+  const pixels = await glyphPixels(page, bytes)
   expectBaselinePixels(pixels)
   await info.attach('baseline-canvas-pixels.json', { body: JSON.stringify(pixels, null, 2), contentType: 'application/json' })
   await expect(page.locator('td[data-cell]')).toHaveCount(0)
@@ -66,7 +66,7 @@ test('auto-fit measures the scaled baseline glyphs without changing their nomina
     await handle.dblclick()
     await expect(handle).not.toHaveAttribute('aria-valuenow', '120')
     widths.push(Number(await handle.getAttribute('aria-valuenow')))
-    await expect(cell(page, `0:${index}`)).toHaveCSS('font-size', '20px')
+    await expect(cell(page, `0:${index}`)).toHaveCSS('font-size', '32px')
     expect(await cell(page, `0:${index}`).locator('.cell-content').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true)
   }
   expect(widths[1]).toBeLessThan(widths[0]!)

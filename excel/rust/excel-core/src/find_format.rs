@@ -115,6 +115,8 @@ pub struct FindFormatFilter {
     pub wrap_text: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub number_format: Option<FindNumberFormatKind>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_format_code: Option<String>,
 }
 
 fn normalize_color_spec(raw: &str) -> Result<Option<String>, &'static str> {
@@ -223,11 +225,18 @@ impl FindFormatFilter {
                 }
             }
         }
-        if self
-            .number_format
-            .is_some_and(|kind| !kind.matches(&format.number_format))
-        {
-            return false;
+        if let Some(kind) = self.number_format {
+            if !kind.matches(&format.number_format) {
+                return false;
+            }
+            if kind == FindNumberFormatKind::Custom {
+                if let Some(code) = &self.custom_format_code {
+                    if !matches!(&format.number_format, NumberFormat::Custom(have) if have == code)
+                    {
+                        return false;
+                    }
+                }
+            }
         }
         true
     }
@@ -255,7 +264,18 @@ impl FindFormatFilter {
             patch.fill = Some(None);
         }
         if let Some(kind) = self.number_format {
-            patch.number_format = Some(kind.default_number_format());
+            if kind == FindNumberFormatKind::Custom {
+                if let Some(code) = self
+                    .custom_format_code
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|s| !s.is_empty())
+                {
+                    patch.number_format = Some(NumberFormat::Custom(code.to_owned()));
+                }
+            } else {
+                patch.number_format = Some(kind.default_number_format());
+            }
         }
         Ok(patch)
     }

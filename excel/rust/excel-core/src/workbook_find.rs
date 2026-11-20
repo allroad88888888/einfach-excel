@@ -130,6 +130,12 @@ impl Workbook {
                     if error.is_some() || !ranges.iter().any(|range| range.contains(address)) {
                         return;
                     }
+                    if source
+                        .merged_range_at(address)
+                        .is_some_and(|merged| merged.start != address)
+                    {
+                        return;
+                    }
                     if let Some(filter) = format_filter {
                         if !filter.matches(&source.base_format_at(address)) {
                             return;
@@ -156,7 +162,7 @@ impl Workbook {
                 });
             } else if let Some(filter) = format_filter {
                 // Format-only search: visit populated cells AND explicitly styled empty cells
-                // in deterministic (row, col) order without materializing empty row/col styles.
+                // in deterministic (row, col) order without materializing unbounded sheet grids.
                 let mut candidates = BTreeMap::<(u32, u32), Value>::new();
                 self.for_each_sparse_range_cell(sheet, bounds, |address, value| {
                     if ranges.iter().any(|range| range.contains(address)) {
@@ -168,8 +174,46 @@ impl Workbook {
                         candidates.entry((address.row, address.col)).or_insert(Value::Null);
                     }
                 }
+                for &row in source.row_styles.keys() {
+                    if row >= bounds.start.row && row <= bounds.end.row {
+                        for &col in source.column_styles.keys() {
+                            let addr = CellAddress::new(row, col);
+                            if bounds.contains(addr) && ranges.iter().any(|r| r.contains(addr)) {
+                                candidates.entry((row, col)).or_insert(Value::Null);
+                            }
+                        }
+                    }
+                }
+                if bounds.cell_count() <= 100_000 {
+                    for &row in source.row_styles.keys() {
+                        if row >= bounds.start.row && row <= bounds.end.row {
+                            for col in bounds.start.col..=bounds.end.col {
+                                let addr = CellAddress::new(row, col);
+                                if ranges.iter().any(|r| r.contains(addr)) {
+                                    candidates.entry((row, col)).or_insert(Value::Null);
+                                }
+                            }
+                        }
+                    }
+                    for &col in source.column_styles.keys() {
+                        if col >= bounds.start.col && col <= bounds.end.col {
+                            for row in bounds.start.row..=bounds.end.row {
+                                let addr = CellAddress::new(row, col);
+                                if ranges.iter().any(|r| r.contains(addr)) {
+                                    candidates.entry((row, col)).or_insert(Value::Null);
+                                }
+                            }
+                        }
+                    }
+                }
                 for ((row, col), value) in candidates {
                     let address = CellAddress::new(row, col);
+                    if source
+                        .merged_range_at(address)
+                        .is_some_and(|merged| merged.start != address)
+                    {
+                        continue;
+                    }
                     if !filter.matches(&source.base_format_at(address)) {
                         continue;
                     }

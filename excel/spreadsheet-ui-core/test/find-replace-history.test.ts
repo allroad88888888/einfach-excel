@@ -40,6 +40,19 @@ test('current replacement requires a found position and protected targets cannot
   expect(await r.run('replace-all')).toBe(false)
   expect(r.state().error).toContain('Unprotect')
   expect(r.replace).not.toHaveBeenCalled()
+
+  r.store.setter(setSheetProtectionAtom, {
+    sheetId: 's',
+    state: {
+      mode: 'protected',
+      unlockedRanges: [{ rowStart: 5, colStart: 1, rowEnd: 6, colEnd: 2 }],
+    },
+  })
+  await r.run('next')
+  expect(await r.run('replace-current')).toBe(true)
+  expect(r.replace).toHaveBeenCalledTimes(1)
+  expect(await r.run('replace-all')).toBe(true)
+  expect(r.replace).toHaveBeenCalledTimes(2)
 })
 
 test('native rejection clears the stale cursor and allows an explicit corrected attempt', async () => {

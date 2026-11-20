@@ -29,12 +29,19 @@ describe('cell styles and workbook themes', () => {
 
     const softAccent = resolveCellStylePreset('accent-1-soft', office)
     expect(softAccent.format.bgColor).toBe(tintHexColor('#4472c4', 0.78))
-    expect(softAccent.clearFormatFields).toEqual(['fill'])
+    expect(softAccent.clearFormatFields).toContain('fill')
+    expect(softAccent.clearFormatFields).toContain('borders')
 
     const normal = resolveCellStylePreset('normal', office)
+    expect(normal.format).toEqual({
+      bold: false,
+      italic: false,
+      underline: false,
+      strikethrough: false,
+    })
     expect(normal.clearFormatFields).toContain('bgColor')
     expect(normal.clearFormatFields).toContain('borders')
-    expect(normal.clearFormatFields).toContain('bold')
+    expect(tintHexColor('nothex', Number.NaN)).toBe('nothex')
   })
 
   test('runCellStylesAtom switches themes, applies presets atomically, and respects protection', async () => {

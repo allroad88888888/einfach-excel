@@ -55,6 +55,13 @@ test('CELLSTYLE-001: built-in cell style presets apply fill, font, and borders a
   await expect(c3).toHaveCSS('font-weight', '700')
   await expect(c3).toHaveCSS('border-bottom-color', 'rgb(68, 114, 196)')
 
+  // Applying Normal on C3 clears bold AND borders over WASM in one step
+  const resetTotalDialog = await openStyles(page)
+  await resetTotalDialog.locator('[data-style-preset="normal"]').click()
+  await expect(resetTotalDialog).toHaveCount(0)
+  await expect(c3).toHaveCSS('font-weight', originalWeight)
+  await expect(c3).toHaveCSS('border-bottom-color', originalBorderBottom)
+
   // Applying Normal resets Good styling in one step
   await select(page, 'B3', '2:1')
   const resetDialog = await openStyles(page)

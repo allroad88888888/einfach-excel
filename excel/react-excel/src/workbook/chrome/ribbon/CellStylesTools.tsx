@@ -164,7 +164,19 @@ export function CellStylesTools() {
           onKeyDown={cycleDialogFocus}
           onCancel={(event) => {
             event.preventDefault()
-            void run('close')
+            if (!panel.busy) void run('close')
+          }}
+          onClick={(event) => {
+            if (event.target !== event.currentTarget || panel.busy) return
+            const rect = event.currentTarget.getBoundingClientRect()
+            if (
+              event.clientX < rect.left ||
+              event.clientX > rect.right ||
+              event.clientY < rect.top ||
+              event.clientY > rect.bottom
+            ) {
+              void run('close')
+            }
           }}
         >
           <div className="cell-styles-header">
@@ -198,9 +210,9 @@ export function CellStylesTools() {
                   onClick={() => void run({ type: 'theme', themeId: candidate.id })}
                 >
                   <span className="theme-dots" aria-hidden="true">
-                    {candidate.accents.slice(0, 4).map((hex) => (
+                    {candidate.accents.slice(0, 4).map((hex, index) => (
                       <span
-                        key={hex}
+                        key={`${index}-${hex}`}
                         className="theme-dot"
                         style={{ backgroundColor: hex }}
                       />

@@ -16,7 +16,6 @@ export { DEFAULT_WORKBOOK_THEME_ID, workbookThemeIdAtom, type WorkbookThemeId }
 export interface WorkbookThemeDefinition {
   readonly id: WorkbookThemeId
   readonly headingFont: string
-  readonly bodyFont: string
   readonly headingColor: string
   readonly accents: readonly [string, string, string, string, string, string]
 }
@@ -25,35 +24,30 @@ export const WORKBOOK_THEMES: readonly WorkbookThemeDefinition[] = Object.freeze
   Object.freeze({
     id: 'office',
     headingFont: 'Calibri',
-    bodyFont: 'Calibri',
     headingColor: '#1f4e79',
     accents: ['#4472c4', '#ed7d31', '#a5a5a5', '#ffc000', '#5b9bd5', '#70ad47'] as const,
   }),
   Object.freeze({
     id: 'facet',
     headingFont: 'Trebuchet MS',
-    bodyFont: 'Trebuchet MS',
     headingColor: '#2c3c43',
     accents: ['#90c226', '#54a021', '#e6b91e', '#e76618', '#c42f1a', '#918655'] as const,
   }),
   Object.freeze({
     id: 'integral',
     headingFont: 'Segoe UI',
-    bodyFont: 'Segoe UI',
     headingColor: '#104862',
     accents: ['#1cade4', '#2683c6', '#27ced7', '#42ba97', '#3e8853', '#62a39f'] as const,
   }),
   Object.freeze({
     id: 'slate',
     headingFont: 'Georgia',
-    bodyFont: 'Arial',
     headingColor: '#1e293b',
     accents: ['#475569', '#0f766e', '#b45309', '#4f46e5', '#be123c', '#0369a1'] as const,
   }),
   Object.freeze({
     id: 'warm',
     headingFont: 'Cambria',
-    bodyFont: 'Calibri',
     headingColor: '#431407',
     accents: ['#c2410c', '#b45309', '#15803d', '#0f766e', '#7c2d12', '#a16207'] as const,
   }),
@@ -66,7 +60,7 @@ export function getWorkbookTheme(id: WorkbookThemeId): WorkbookThemeDefinition {
 /** Blends a #RRGGBB hex color toward white by `amount` in [0, 1] for soft theme tints. */
 export function tintHexColor(hex: string, amount: number): string {
   const clean = hex.replace('#', '')
-  if (clean.length !== 6) return hex.toLowerCase()
+  if (!/^[\da-f]{6}$/i.test(clean) || !Number.isFinite(amount)) return hex.toLowerCase()
   const factor = Math.max(0, Math.min(1, amount))
   const mix = (offset: number) => {
     const channel = Number.parseInt(clean.slice(offset, offset + 2), 16)
@@ -123,10 +117,6 @@ export interface CellStylePatch {
 }
 
 const NORMAL_CLEAR_FIELDS: readonly (keyof SpreadsheetCellFormat)[] = [
-  'bold',
-  'italic',
-  'underline',
-  'strikethrough',
   'bgColor',
   'fill',
   'fgColor',
@@ -135,7 +125,46 @@ const NORMAL_CLEAR_FIELDS: readonly (keyof SpreadsheetCellFormat)[] = [
   'borders',
 ]
 
-const SOLID_FILL_CLEAR: readonly (keyof SpreadsheetCellFormat)[] = ['fill']
+const SOLID_BORDERLESS_CLEAR: readonly (keyof SpreadsheetCellFormat)[] = [
+  'fill',
+  'fontFamily',
+  'fontSize',
+  'borders',
+]
+
+const SOLID_BOXED_CLEAR: readonly (keyof SpreadsheetCellFormat)[] = [
+  'fill',
+  'fontFamily',
+  'fontSize',
+]
+
+const UNSHADED_BORDERLESS_CLEAR: readonly (keyof SpreadsheetCellFormat)[] = [
+  'bgColor',
+  'fill',
+  'fontFamily',
+  'fontSize',
+  'borders',
+]
+
+const HEADING_BORDERED_CLEAR: readonly (keyof SpreadsheetCellFormat)[] = ['bgColor', 'fill']
+
+const HEADING_PLAIN_CLEAR: readonly (keyof SpreadsheetCellFormat)[] = [
+  'bgColor',
+  'fill',
+  'borders',
+]
+
+const TOTAL_CLEAR: readonly (keyof SpreadsheetCellFormat)[] = [
+  'bgColor',
+  'fill',
+  'fontFamily',
+  'fontSize',
+]
+
+const PLAIN_DECORATION = {
+  underline: false,
+  strikethrough: false,
+} as const
 
 /** Resolves a built-in cell style preset against the active workbook theme. */
 export function resolveCellStylePreset(
@@ -145,21 +174,42 @@ export function resolveCellStylePreset(
   const accent0 = theme.accents[0]
   switch (presetId) {
     case 'normal':
-      return { format: {}, clearFormatFields: NORMAL_CLEAR_FIELDS }
+      return {
+        format: { bold: false, italic: false, ...PLAIN_DECORATION },
+        clearFormatFields: NORMAL_CLEAR_FIELDS,
+      }
     case 'good':
       return {
-        format: { bgColor: '#c6efce', fgColor: '#006100', bold: false, italic: false },
-        clearFormatFields: SOLID_FILL_CLEAR,
+        format: {
+          bgColor: '#c6efce',
+          fgColor: '#006100',
+          bold: false,
+          italic: false,
+          ...PLAIN_DECORATION,
+        },
+        clearFormatFields: SOLID_BORDERLESS_CLEAR,
       }
     case 'bad':
       return {
-        format: { bgColor: '#ffc7ce', fgColor: '#9c0006', bold: false, italic: false },
-        clearFormatFields: SOLID_FILL_CLEAR,
+        format: {
+          bgColor: '#ffc7ce',
+          fgColor: '#9c0006',
+          bold: false,
+          italic: false,
+          ...PLAIN_DECORATION,
+        },
+        clearFormatFields: SOLID_BORDERLESS_CLEAR,
       }
     case 'neutral':
       return {
-        format: { bgColor: '#ffeb9c', fgColor: '#9c6500', bold: false, italic: false },
-        clearFormatFields: SOLID_FILL_CLEAR,
+        format: {
+          bgColor: '#ffeb9c',
+          fgColor: '#9c6500',
+          bold: false,
+          italic: false,
+          ...PLAIN_DECORATION,
+        },
+        clearFormatFields: SOLID_BORDERLESS_CLEAR,
       }
     case 'input':
       return {
@@ -167,6 +217,8 @@ export function resolveCellStylePreset(
           bgColor: '#ffcc99',
           fgColor: '#3f3f76',
           bold: false,
+          italic: false,
+          ...PLAIN_DECORATION,
           borders: {
             top: { style: 'thin', color: '#7f7f7f' },
             right: { style: 'thin', color: '#7f7f7f' },
@@ -174,7 +226,7 @@ export function resolveCellStylePreset(
             left: { style: 'thin', color: '#7f7f7f' },
           },
         },
-        clearFormatFields: SOLID_FILL_CLEAR,
+        clearFormatFields: SOLID_BOXED_CLEAR,
       }
     case 'output':
       return {
@@ -182,6 +234,8 @@ export function resolveCellStylePreset(
           bgColor: '#f2f2f2',
           fgColor: '#3f3f3f',
           bold: true,
+          italic: false,
+          ...PLAIN_DECORATION,
           borders: {
             top: { style: 'thin', color: '#3f3f3f' },
             right: { style: 'thin', color: '#3f3f3f' },
@@ -189,7 +243,7 @@ export function resolveCellStylePreset(
             left: { style: 'thin', color: '#3f3f3f' },
           },
         },
-        clearFormatFields: SOLID_FILL_CLEAR,
+        clearFormatFields: SOLID_BOXED_CLEAR,
       }
     case 'calculation':
       return {
@@ -197,6 +251,8 @@ export function resolveCellStylePreset(
           bgColor: '#f2f2f2',
           fgColor: '#fa7d00',
           bold: true,
+          italic: false,
+          ...PLAIN_DECORATION,
           borders: {
             top: { style: 'thin', color: '#7f7f7f' },
             right: { style: 'thin', color: '#7f7f7f' },
@@ -204,13 +260,16 @@ export function resolveCellStylePreset(
             left: { style: 'thin', color: '#7f7f7f' },
           },
         },
-        clearFormatFields: SOLID_FILL_CLEAR,
+        clearFormatFields: SOLID_BOXED_CLEAR,
       }
     case 'note':
       return {
         format: {
           bgColor: '#ffffcc',
           fgColor: '#1f2937',
+          bold: false,
+          italic: false,
+          ...PLAIN_DECORATION,
           borders: {
             top: { style: 'thin', color: '#b2b2b2' },
             right: { style: 'thin', color: '#b2b2b2' },
@@ -218,20 +277,29 @@ export function resolveCellStylePreset(
             left: { style: 'thin', color: '#b2b2b2' },
           },
         },
-        clearFormatFields: SOLID_FILL_CLEAR,
+        clearFormatFields: SOLID_BOXED_CLEAR,
       }
     case 'warning':
-      return { format: { fgColor: '#c00000', bold: true, italic: false } }
+      return {
+        format: { fgColor: '#c00000', bold: true, italic: false, ...PLAIN_DECORATION },
+        clearFormatFields: UNSHADED_BORDERLESS_CLEAR,
+      }
     case 'explanatory':
-      return { format: { fgColor: '#7f7f7f', italic: true, bold: false } }
+      return {
+        format: { fgColor: '#7f7f7f', italic: true, bold: false, ...PLAIN_DECORATION },
+        clearFormatFields: UNSHADED_BORDERLESS_CLEAR,
+      }
     case 'title':
       return {
         format: {
           fontFamily: theme.headingFont,
           fontSize: 18,
           bold: true,
+          italic: false,
+          ...PLAIN_DECORATION,
           fgColor: theme.headingColor,
         },
+        clearFormatFields: HEADING_PLAIN_CLEAR,
       }
     case 'heading-1':
       return {
@@ -239,9 +307,12 @@ export function resolveCellStylePreset(
           fontFamily: theme.headingFont,
           fontSize: 15,
           bold: true,
+          italic: false,
+          ...PLAIN_DECORATION,
           fgColor: theme.headingColor,
           borders: { bottom: { style: 'thick', color: accent0 } },
         },
+        clearFormatFields: HEADING_BORDERED_CLEAR,
       }
     case 'heading-2':
       return {
@@ -249,9 +320,12 @@ export function resolveCellStylePreset(
           fontFamily: theme.headingFont,
           fontSize: 13,
           bold: true,
+          italic: false,
+          ...PLAIN_DECORATION,
           fgColor: theme.headingColor,
           borders: { bottom: { style: 'medium', color: tintHexColor(accent0, 0.35) } },
         },
+        clearFormatFields: HEADING_BORDERED_CLEAR,
       }
     case 'heading-3':
       return {
@@ -259,9 +333,12 @@ export function resolveCellStylePreset(
           fontFamily: theme.headingFont,
           fontSize: 11,
           bold: true,
+          italic: false,
+          ...PLAIN_DECORATION,
           fgColor: theme.headingColor,
           borders: { bottom: { style: 'thin', color: tintHexColor(accent0, 0.5) } },
         },
+        clearFormatFields: HEADING_BORDERED_CLEAR,
       }
     case 'heading-4':
       return {
@@ -269,19 +346,25 @@ export function resolveCellStylePreset(
           fontFamily: theme.headingFont,
           fontSize: 11,
           bold: true,
+          italic: false,
+          ...PLAIN_DECORATION,
           fgColor: theme.headingColor,
         },
+        clearFormatFields: HEADING_PLAIN_CLEAR,
       }
     case 'total':
       return {
         format: {
           bold: true,
+          italic: false,
+          ...PLAIN_DECORATION,
           fgColor: '#000000',
           borders: {
             top: { style: 'thin', color: accent0 },
             bottom: { style: 'double', color: accent0 },
           },
         },
+        clearFormatFields: TOTAL_CLEAR,
       }
     default: {
       const soft = presetId.endsWith('-soft')
@@ -289,13 +372,25 @@ export function resolveCellStylePreset(
       const accent = theme.accents[idx] ?? accent0
       if (soft) {
         return {
-          format: { bgColor: tintHexColor(accent, 0.78), fgColor: '#1f2937', bold: false },
-          clearFormatFields: SOLID_FILL_CLEAR,
+          format: {
+            bgColor: tintHexColor(accent, 0.78),
+            fgColor: '#1f2937',
+            bold: false,
+            italic: false,
+            ...PLAIN_DECORATION,
+          },
+          clearFormatFields: SOLID_BORDERLESS_CLEAR,
         }
       }
       return {
-        format: { bgColor: accent, fgColor: '#ffffff', bold: false },
-        clearFormatFields: SOLID_FILL_CLEAR,
+        format: {
+          bgColor: accent,
+          fgColor: '#ffffff',
+          bold: false,
+          italic: false,
+          ...PLAIN_DECORATION,
+        },
+        clearFormatFields: SOLID_BORDERLESS_CLEAR,
       }
     }
   }
@@ -338,6 +433,7 @@ export type CellStylesAction =
 export const runCellStylesAtom = atom(
   null,
   async (get, set, action: CellStylesAction): Promise<boolean> => {
+    if (get(panelBackingAtom).busy) return false
     if (action === 'close') {
       set(panelBackingAtom, CLOSED_PANEL)
       return true
@@ -357,9 +453,14 @@ export const runCellStylesAtom = atom(
     if (get(editingSessionAtom).source !== null) return false
     const theme = get(workbookThemeAtom)
     const patch = resolveCellStylePreset(action.presetId, theme)
-    set(panelBackingAtom, { connection, open: true, busy: true, error: null })
+    const pending: CellStylesPanelBacking = { connection, open: true, busy: true, error: null }
+    set(panelBackingAtom, pending)
+    await Promise.resolve()
+    if (get(panelBackingAtom) === pending) set(panelBackingAtom, pending)
     const outcome = await set(runSelectionMutationAtom, { kind: 'format', ...patch })
-    if (get(rustWorkbookConnectionAtom) !== connection) return false
+    if (get(rustWorkbookConnectionAtom) !== connection || get(panelBackingAtom) !== pending) {
+      return false
+    }
     if (outcome === 'completed') {
       set(panelBackingAtom, CLOSED_PANEL)
       return true

@@ -13,7 +13,7 @@ const NON_PERSISTENT = new Set([
   'customFormula.read', 'notes.read', 'drawings.read', 'media.read', 'media.put', 'comments.read', 'protection.read', 'formula.inspectSpill',
   'workbook.exportFile', 'validation.read', 'validation.listInvalid', 'formula.suggest', 'duplicates.preview',
   'textColumns.preview', 'subtotal.inspect', 'consolidate.preview', 'advancedFilter.previewCopy', 'format.preview', 'sheet.filterValues', 'selection.aggregate',
-  'workbook.locate', 'workbook.find', 'selection.visibleBlocks', 'selection.currentRegion', 'clipboard.export', 'clipboard.capture',
+  'workbook.locate', 'workbook.find', 'workbook.sampleBaseFormat', 'selection.visibleBlocks', 'selection.currentRegion', 'clipboard.export', 'clipboard.capture',
   'clipboard.finishCapture', 'projection.readVisible',
   'formulaAuditing.trace', 'formulaAuditing.evaluate', 'formulaAuditing.watch',
 ])

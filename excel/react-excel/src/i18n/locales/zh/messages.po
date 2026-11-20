@@ -3131,6 +3131,7 @@ msgstr "公式和数字格式"
 msgid "Formulas only"
 msgstr "仅公式"
 
+#: src/workbook/chrome/ribbon/FindFormatSection.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Fraction"
 msgstr "分数"
@@ -4731,6 +4732,10 @@ msgstr "已粘贴单元格。"
 msgid "Pasting…"
 msgstr "正在粘贴…"
 
+#: src/i18n/feedback-messages.ts
+msgid "Pattern and gradient fills cannot be sampled for Find by Format."
+msgstr "图案与渐变填充暂不支持用于按格式查找提取。"
+
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 #: src/workbook/chrome/ribbon/FindFormatSection.tsx
 msgid "Percent"
@@ -5381,12 +5386,12 @@ msgid "Rich text"
 msgstr "富文本"
 
 #: src/i18n/rich-text-feedback.ts
-msgid "Rich text colors must use #RRGGBB."
-msgstr "富文本颜色须使用 #RRGGBB 格式。"
+msgid "Rich text cannot be applied to a formula cell."
+msgstr "无法对公式单元格应用富文本格式。"
 
 #: src/i18n/rich-text-feedback.ts
-msgid "Rich text editing is unavailable inside a table."
-msgstr "暂不支持编辑表格内的富文本。"
+msgid "Rich text colors must use #RRGGBB."
+msgstr "富文本颜色须使用 #RRGGBB 格式。"
 
 #: src/i18n/rich-text-feedback.ts
 msgid "Rich text exceeds the cell size limit."
@@ -5654,6 +5659,7 @@ msgstr "正在保存工作表保护…"
 msgid "Scale colors"
 msgstr "色阶颜色"
 
+#: src/workbook/chrome/ribbon/FindFormatSection.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Scientific"
 msgstr "科学记数"
@@ -6200,6 +6206,7 @@ msgstr "空格"
 msgid "sparklines"
 msgstr "迷你图"
 
+#: src/workbook/chrome/ribbon/FindFormatSection.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Special"
 msgstr "特殊"
@@ -6953,6 +6960,10 @@ msgstr "剪贴板中没有工作簿格式，请先复制此工作簿中的单元
 #: src/i18n/feedback-messages.ts
 msgid "This clipboard range is too large. Select a smaller range."
 msgstr "剪贴板区域过大，请选择更小的区域。"
+
+#: src/i18n/rich-text-feedback.ts
+msgid "This column rename cannot rewrite one of its formula references."
+msgstr "重命名此列时无法改写其中一处公式引用。"
 
 #: src/i18n/select-special-feedback.ts
 msgid "This command cannot be used on multiple selections. Select areas with the same rows or columns."

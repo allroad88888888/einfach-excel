@@ -157,10 +157,16 @@ impl WorkbookHistory {
         if writes.is_empty() {
             return Ok(report);
         }
-        // 只保存实际改变的格子；不复制匹配范围内的大量未修改内容。
+        // 只保存实际改变的格子；合并格锚点扩展到完整合并范围以保持子格样式一致。
         let history_targets: Vec<_> = writes
             .iter()
-            .map(|(sheet, addr, _)| (*sheet, CellRange::single(*addr), true))
+            .map(|(sheet, addr, _)| {
+                let target_range = workbook
+                    .sheet(*sheet)
+                    .and_then(|s| s.merged_range_at(*addr))
+                    .unwrap_or_else(|| CellRange::single(*addr));
+                (*sheet, target_range, true)
+            })
             .collect();
         // Check the entire frozen plan before any replacement can reach the input writer.
         for &(sheet, range, _) in &history_targets {
@@ -177,8 +183,12 @@ impl WorkbookHistory {
                 }
                 if let Some(patch) = &format_patch {
                     if let Some(target_sheet) = workbook.sheet_mut(*sheet) {
+                        let target_range = target_sheet
+                            .merged_range_at(*addr)
+                            .unwrap_or_else(|| CellRange::single(*addr));
+                        target_sheet.clear_inline_font_overrides(target_range, patch);
                         target_sheet.patch_format_range(
-                            CellRange::single(*addr),
+                            target_range,
                             StyleScope::Cell,
                             patch.clone(),
                         );

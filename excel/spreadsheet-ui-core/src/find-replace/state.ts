@@ -93,6 +93,8 @@ export function extractFormatFromCell(
 ): RustFindFormatFilter | undefined {
   if (!format) return undefined
   const numKind = mapNumberFormatKind(format.numberFormat)
+  const customCode =
+    format.numberFormat?.kind === 'custom' ? format.numberFormat.pattern : undefined
   return cleanFindFormat({
     ...(format.bold ? { bold: true } : {}),
     ...(format.italic ? { italic: true } : {}),
@@ -105,6 +107,7 @@ export function extractFormatFromCell(
     ...(mapAlign(format.align) ? { align: mapAlign(format.align) } : {}),
     ...(format.wrap ? { wrapText: true } : {}),
     ...(numKind && numKind !== 'general' ? { numberFormat: numKind } : {}),
+    ...(customCode ? { customFormatCode: customCode } : {}),
   })
 }
 
@@ -126,6 +129,7 @@ export const findReplaceStateAtom = atom<FindReplacePanel>({
     scope: 'sheet',
   },
 })
+findReplaceStateAtom.debugLabel = 'spreadsheet.findReplace.state'
 
 /** 视图只读面板投影；写入全部经过同一个语义 command。 */
 export const findReplacePanelAtom = atom((get) => get(findReplaceStateAtom))

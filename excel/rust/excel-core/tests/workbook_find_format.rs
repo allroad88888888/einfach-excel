@@ -212,3 +212,126 @@ fn replace_combined_text_and_format_atomically() {
     assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Text("DRAFT".into()));
     assert!(wb.sheet(0).unwrap().get_format("A1").italic);
 }
+
+#[test]
+fn find_and_replace_format_handles_merges_row_styles_rich_text_and_custom_codes() {
+    use einfach_excel_core::rich_text::{RichTextFormat, RichTextRun};
+    use einfach_excel_core::MergeAction;
+
+    let mut wb = Workbook::new();
+    let mut history = WorkbookHistory::default();
+
+    // 1. Merged A1:B2 styled yellow matches ONCE at anchor A1 and replaces across A1:B2
+    wb.merge_cells(
+        0,
+        CellRange::new(CellAddress::new(0, 0), CellAddress::new(1, 1)),
+        MergeAction::Merge,
+        true,
+    )
+    .unwrap();
+    wb.sheet_mut(0).unwrap().patch_format_range(
+        CellRange::new(CellAddress::new(0, 0), CellAddress::new(1, 1)),
+        StyleScope::Cell,
+        CellStyle {
+            background: Some(Some("#fff2cc".into())),
+            ..Default::default()
+        },
+    );
+    let yellow_find = format_query(
+        "",
+        FindFormatFilter {
+            bg_color: Some("#fff2cc".into()),
+            ..Default::default()
+        },
+    );
+    let page = wb.find_cells(&[(0, all())], &yellow_find, 0, 20).unwrap();
+    assert_eq!(page.total, 1);
+    assert_eq!(page.matches[0].address, CellAddress::new(0, 0));
+
+    // 2. Row-styled empty cells in bounded selection A5:C5 match
+    wb.sheet_mut(0).unwrap().patch_format_range(
+        CellRange::new(CellAddress::new(4, 0), CellAddress::new(4, 0)),
+        StyleScope::Row,
+        CellStyle {
+            background: Some(Some("#dcfce7".into())),
+            ..Default::default()
+        },
+    );
+    let row_selection = CellRange::new(CellAddress::new(4, 0), CellAddress::new(4, 2));
+    let green_page = wb
+        .find_cells(
+            &[(0, row_selection)],
+            &format_query(
+                "",
+                FindFormatFilter {
+                    bg_color: Some("#dcfce7".into()),
+                    ..Default::default()
+                },
+            ),
+            0,
+            20,
+        )
+        .unwrap();
+    assert_eq!(green_page.total, 3);
+
+    // 3. Replace format clears inline rich-text font overrides and preserves custom_format_code
+    wb.set_cell(0, "D1", Value::Text("Styled".into()));
+    wb.sheet_mut(0)
+        .unwrap()
+        .set_rich_text(
+            CellAddress::new(0, 3),
+            vec![RichTextRun {
+                text: "Styled".into(),
+                format: RichTextFormat {
+                    bold: Some(true),
+                    color: Some("#C00000".into()),
+                    ..Default::default()
+                },
+            }],
+        )
+        .unwrap();
+    wb.sheet_mut(0).unwrap().patch_format_range(
+        CellRange::single(CellAddress::new(0, 3)),
+        StyleScope::Cell,
+        CellStyle {
+            background: Some(Some("#fff2cc".into())),
+            ..Default::default()
+        },
+    );
+
+    let replace_fmt = FindFormatFilter {
+        bold: Some(false),
+        text_color: Some("#166534".into()),
+        bg_color: Some("#e0f2fe".into()),
+        number_format: Some(FindNumberFormatKind::Custom),
+        custom_format_code: Some("000-000".into()),
+        ..Default::default()
+    };
+    let report = history
+        .replace_by_query_with_format(
+            &mut wb,
+            &[(0, all())],
+            &yellow_find,
+            "",
+            Some(&replace_fmt),
+            None,
+        )
+        .unwrap();
+    assert_eq!(report.cells, 2); // Merged anchor A1 + rich-text D1
+    let d1_runs = wb.sheet(0).unwrap().rich_text(CellAddress::new(0, 3)).unwrap();
+    assert_eq!(d1_runs[0].format.bold, None);
+    assert_eq!(d1_runs[0].format.color, None);
+    assert_eq!(
+        wb.sheet(0).unwrap().get_format("D1").number_format,
+        NumberFormat::Custom("000-000".into())
+    );
+    assert_eq!(
+        wb.sheet(0).unwrap().get_format("B2").background.as_deref(),
+        Some("#e0f2fe")
+    );
+
+    assert!(history.undo(&mut wb).unwrap());
+    let restored_runs = wb.sheet(0).unwrap().rich_text(CellAddress::new(0, 3)).unwrap();
+    assert_eq!(restored_runs[0].format.bold, Some(true));
+    assert_eq!(restored_runs[0].format.color.as_deref(), Some("#C00000"));
+}

@@ -1,10 +1,11 @@
 import { atom } from '@einfach/core'
+import type { SpreadsheetCellFormat } from '../contracts'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'
 import { selectionSnapshotAtom, selectionRegionsAtom } from '../selection'
-import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import {
+  activeCellFormatAtom,
   applyVisibleProjectionAtom,
   createVisibleProjectionRequest,
   issueProjectionRequestIdAtom,
@@ -12,6 +13,10 @@ import {
 } from '../projection'
 import { validateProjectionResult } from '../projection/contracts'
 import { applyProjectionSizes } from '../projection/projection-sizes'
+import { isCoordUnlocked } from '../protection/range-coverage'
+import { rangesIntersect } from '../protection/range-guards'
+import { getSheetProtection } from '../protection/sheet-state'
+import { sheetProtectionAtom } from '../protection/source-atoms'
 import {
   cleanFindFormat,
   extractFormatFromCell,
@@ -81,30 +86,40 @@ export const runFindReplaceAtom = atom(
     if (!state.open || !state.origin) return false
     if (action === 'sample-find-format' || action === 'sample-replace-format') {
       const activeCell = get(selectionSnapshotAtom).activeCell
-      const projected = get(projectionSnapshotAtom).result
-      const cell =
-        projected?.sheetId === active.id
-          ? projected.cells.find(
-              (entry) => entry.row === activeCell.row && entry.col === activeCell.col,
-            )
-          : undefined
-      const sampled = extractFormatFromCell(cell?.format)
+      let rawFormat: SpreadsheetCellFormat | undefined
+      try {
+        const res = await connection.request('workbook.sampleBaseFormat', {
+          sheetId: active.id,
+          row: activeCell.row,
+          col: activeCell.col,
+        })
+        if (get(rustWorkbookConnectionAtom) !== connection) return false
+        rawFormat = res && 'format' in res ? (res.format ?? undefined) : get(activeCellFormatAtom)
+      } catch {
+        if (get(rustWorkbookConnectionAtom) !== connection) return false
+        rawFormat = get(activeCellFormatAtom)
+      }
+      const latest = get(findReplaceStateAtom)
+      if (!latest.open) return false
+      const sampled = extractFormatFromCell(rawFormat)
       if (!sampled) {
         set(findReplaceStateAtom, {
-          ...state,
+          ...latest,
           error: null,
-          notice: 'The active cell has no explicit format to sample.',
+          notice: rawFormat?.fill
+            ? 'Pattern and gradient fills cannot be sampled for Find by Format.'
+            : 'The active cell has no explicit format to sample.',
         })
         return false
       }
       const isFind = action === 'sample-find-format'
       set(findReplaceStateAtom, {
-        ...state,
+        ...latest,
         form: isFind
-          ? { ...state.form, format: sampled }
-          : { ...state.form, replaceFormat: sampled },
+          ? { ...latest.form, format: sampled }
+          : { ...latest.form, replaceFormat: sampled },
         busy: null,
-        result: isFind ? null : state.result,
+        result: isFind ? null : latest.result,
         error: null,
         notice: null,
       })
@@ -189,15 +204,28 @@ export const runFindReplaceAtom = atom(
     if (writing && !needle.length && !hasFindFormatCriteria(replaceFormat)) {
       return fail('Choose a replacement format or enter text to find.')
     }
-    if (
-      writing &&
-      sheets.some(
-        (sheet) => getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected',
-      )
-    )
-      return fail('Unprotect the target worksheets before replacing.')
     if (action === 'replace-current' && !state.result?.current)
       return fail('Find a match before replacing it.')
+    if (writing) {
+      const protection = get(sheetProtectionAtom)
+      if (action === 'replace-current') {
+        const cur = state.result!.current!
+        if (!isCoordUnlocked(protection, cur.sheetId, { row: cur.row, col: cur.col })) {
+          return fail('This worksheet is protected. Unprotect it before changing locked cells.')
+        }
+      } else {
+        const anyEditableTarget = targets.some((target) => {
+          const sp = getSheetProtection(protection, target.sheetId)
+          return (
+            sp.mode === 'open' ||
+            sp.unlockedRanges.some((range) => rangesIntersect(range, target.range))
+          )
+        })
+        if (!anyEditableTarget) {
+          return fail('This worksheet is protected. Unprotect it before changing locked cells.')
+        }
+      }
+    }
     const pending = {
       ...state,
       busy: writing ? ('replace' as const) : ('find' as const),

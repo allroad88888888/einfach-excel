@@ -170,9 +170,15 @@
   justify-content: space-between;
   gap: 6px;
 }
-:where(.einfach-spreadsheet) .find-format-header legend {
+:where(.einfach-spreadsheet) .find-format-header legend,
+:where(.einfach-spreadsheet) .find-format-heading {
   padding: 0;
   font-weight: 600;
+}
+:where(.einfach-spreadsheet) .find-format-extras {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
 }
 :where(.einfach-spreadsheet) .find-format-buttons {
   display: flex;

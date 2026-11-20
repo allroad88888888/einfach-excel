@@ -144,9 +144,9 @@ export function ColorTools({ kind }: { readonly kind: ToolbarPaletteKind }) {
             <Trans>Theme colors</Trans>
           </p>
           <div className="color-swatches" role="group" aria-label={t`Theme colors`}>
-            {themeColors.map((color) => (
+            {themeColors.map((color, index) => (
               <button
-                key={`theme-${color}`}
+                key={`theme-${index}-${color}`}
                 type="button"
                 title={color}
                 aria-label={t`Theme color ${color}`}

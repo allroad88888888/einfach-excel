@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui, Trans } from '@lingui/react/macro'
 import {
@@ -16,6 +17,19 @@ function parseTri(value: string): boolean | undefined {
   return value === 'true' ? true : value === 'false' ? false : undefined
 }
 
+function extraCriteriaSummary(current: RustFindFormatFilter): string[] {
+  const parts: string[] = []
+  if (current.fontFamily) parts.push(current.fontFamily)
+  if (current.fontSize) parts.push(`${current.fontSize}px`)
+  if (current.strikethrough !== undefined) {
+    parts.push(current.strikethrough ? 'strikethrough' : 'no strikethrough')
+  }
+  if (current.align) parts.push(current.align)
+  if (current.wrapText !== undefined) parts.push(current.wrapText ? 'wrap' : 'no wrap')
+  if (current.customFormatCode) parts.push(current.customFormatCode)
+  return parts
+}
+
 function FormatFields({
   kind,
   value,
@@ -32,18 +46,23 @@ function FormatFields({
   readonly onClear: () => void
 }) {
   const { t } = useLingui()
+  const headingId = useId()
   const current = value ?? {}
   const active = hasFindFormatCriteria(value)
   const heading = kind === 'find' ? t`Find format` : t`Replace format`
+  const extras = extraCriteriaSummary(current)
+  const allowCustomOption =
+    kind === 'find' || (current.numberFormat === 'custom' && Boolean(current.customFormatCode))
 
   return (
     <fieldset
       className="find-format-group"
       disabled={disabled}
+      aria-labelledby={headingId}
       data-find-format-group={kind}
     >
       <div className="find-format-header">
-        <legend>{heading}</legend>
+        <span id={headingId} className="find-format-heading">{heading}</span>
         <div className="find-format-buttons">
           <button type="button" onClick={onSample}>
             <Trans>From active cell</Trans>
@@ -124,6 +143,7 @@ function FormatFields({
                 numberFormat: (event.currentTarget.value || undefined) as
                   | FindNumberFormatKind
                   | undefined,
+                customFormatCode: undefined,
               })
             }
           >
@@ -135,30 +155,41 @@ function FormatFields({
             <option value="percent"><Trans>Percent</Trans></option>
             <option value="date"><Trans>Date</Trans></option>
             <option value="time"><Trans>Time</Trans></option>
+            <option value="scientific"><Trans>Scientific</Trans></option>
+            <option value="fraction"><Trans>Fraction</Trans></option>
+            <option value="special"><Trans>Special</Trans></option>
             <option value="text"><Trans>Text</Trans></option>
-            <option value="custom"><Trans>Custom</Trans></option>
+            {allowCustomOption && <option value="custom"><Trans>Custom</Trans></option>}
           </select>
         </label>
       </div>
+      {extras.length > 0 && (
+        <p className="find-format-extras">{extras.join(' · ')}</p>
+      )}
     </fieldset>
   )
 }
 
 export function FindFormatSection() {
+  const detailsRef = useRef<HTMLDetailsElement>(null)
   const state = useAtomValue(findReplacePanelAtom)
   const run = useSetAtom(runFindReplaceAtom)
   const busy = state.busy !== null
   const hasFind = hasFindFormatCriteria(state.form.format)
   const hasReplace = hasFindFormatCriteria(state.form.replaceFormat)
+  const badgeActive = state.tab === 'replace' ? hasFind || hasReplace : hasFind
+
+  useEffect(() => {
+    if (badgeActive && detailsRef.current) {
+      detailsRef.current.open = true
+    }
+  }, [badgeActive])
 
   return (
-    <details
-      className="find-format-details"
-      open={hasFind || hasReplace ? true : undefined}
-    >
+    <details ref={detailsRef} className="find-format-details">
       <summary>
         <Trans>Format criteria</Trans>
-        {(hasFind || hasReplace) && <span className="find-format-badge">●</span>}
+        {badgeActive && <span className="find-format-badge">●</span>}
       </summary>
       <div className="find-format-body">
         <FormatFields

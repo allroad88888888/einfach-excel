@@ -3131,6 +3131,7 @@ msgstr "Formulas and number formats"
 msgid "Formulas only"
 msgstr "Formulas only"
 
+#: src/workbook/chrome/ribbon/FindFormatSection.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Fraction"
 msgstr "Fraction"
@@ -4731,6 +4732,10 @@ msgstr "Pasted cells."
 msgid "Pasting…"
 msgstr "Pasting…"
 
+#: src/i18n/feedback-messages.ts
+msgid "Pattern and gradient fills cannot be sampled for Find by Format."
+msgstr "Pattern and gradient fills cannot be sampled for Find by Format."
+
 #: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 #: src/workbook/chrome/ribbon/FindFormatSection.tsx
 msgid "Percent"
@@ -5381,12 +5386,12 @@ msgid "Rich text"
 msgstr "Rich text"
 
 #: src/i18n/rich-text-feedback.ts
-msgid "Rich text colors must use #RRGGBB."
-msgstr "Rich text colors must use #RRGGBB."
+msgid "Rich text cannot be applied to a formula cell."
+msgstr "Rich text cannot be applied to a formula cell."
 
 #: src/i18n/rich-text-feedback.ts
-msgid "Rich text editing is unavailable inside a table."
-msgstr "Rich text editing is unavailable inside a table."
+msgid "Rich text colors must use #RRGGBB."
+msgstr "Rich text colors must use #RRGGBB."
 
 #: src/i18n/rich-text-feedback.ts
 msgid "Rich text exceeds the cell size limit."
@@ -5654,6 +5659,7 @@ msgstr "Saving worksheet protection…"
 msgid "Scale colors"
 msgstr "Scale colors"
 
+#: src/workbook/chrome/ribbon/FindFormatSection.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Scientific"
 msgstr "Scientific"
@@ -6200,6 +6206,7 @@ msgstr "Space"
 msgid "sparklines"
 msgstr "sparklines"
 
+#: src/workbook/chrome/ribbon/FindFormatSection.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Special"
 msgstr "Special"
@@ -6953,6 +6960,10 @@ msgstr "This clipboard has no workbook formatting. Copy cells in this workbook f
 #: src/i18n/feedback-messages.ts
 msgid "This clipboard range is too large. Select a smaller range."
 msgstr "This clipboard range is too large. Select a smaller range."
+
+#: src/i18n/rich-text-feedback.ts
+msgid "This column rename cannot rewrite one of its formula references."
+msgstr "This column rename cannot rewrite one of its formula references."
 
 #: src/i18n/select-special-feedback.ts
 msgid "This command cannot be used on multiple selections. Select areas with the same rows or columns."

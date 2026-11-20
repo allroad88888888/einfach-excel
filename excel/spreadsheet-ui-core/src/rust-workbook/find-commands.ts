@@ -1,4 +1,5 @@
 import type {
+  SpreadsheetCellFormat,
   VisibleProjectionRequest,
   VisibleProjectionResult,
   ViewportRowHeight,
@@ -35,6 +36,7 @@ export interface RustFindFormatFilter {
   readonly align?: FindAlign
   readonly wrapText?: boolean
   readonly numberFormat?: FindNumberFormatKind
+  readonly customFormatCode?: string
 }
 
 export interface RustFindQuery {
@@ -50,7 +52,7 @@ export interface RustFindMatch {
   readonly sheetId: string
   readonly row: number
   readonly col: number
-  /** 原生返回的非空 UTF-16 半开区间。 */
+  /** UTF-16 半开区间；仅按格式命中空白格时为 0..0。 */
   readonly start: number
   readonly end: number
 }
@@ -83,6 +85,10 @@ export interface RustFindCommands {
       readonly matches: readonly RustFindMatch[]
       readonly revision: number
     }
+  >
+  readonly 'workbook.sampleBaseFormat': WorkerCommand<
+    { readonly sheetId: string; readonly row: number; readonly col: number },
+    { readonly format: SpreadsheetCellFormat | null }
   >
   readonly 'workbook.replace': WorkerCommand<
     RustReplaceRequest,

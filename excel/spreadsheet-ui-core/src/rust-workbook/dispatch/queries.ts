@@ -6,6 +6,7 @@ import {
 } from '../quick-formula-commands'
 import { selectSpecialQuery } from '../select-special-io'
 import { findWorkbook } from '../find-io'
+import { readExplicitBaseFormat } from '../format-projection'
 import { readVisibleProjection } from '../visible-projection'
 import type { WorkbookHandlers } from './context'
 
@@ -65,6 +66,14 @@ export const queryHandlers: WorkbookHandlers = {
   },
   'workbook.find': (context, current, input) =>
     findWorkbook(current, context.sheetsById, input, context.revision),
+  'workbook.sampleBaseFormat': (context, current, input) => ({
+    format: readExplicitBaseFormat(
+      current,
+      context.sheetIndex(input.sheetId),
+      input.row,
+      input.col,
+    ),
+  }),
   'projection.readVisible': (context, current, { request }) => readVisibleProjection(
     current,
     context.sheetIndex(request.sheetId),

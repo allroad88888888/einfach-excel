@@ -17,6 +17,22 @@ export function readDisplayFormats(
   return fontSize === undefined ? snapshot : { ...snapshot, defaultFontSize: fontSize }
 }
 
+/** Reads explicit cell/row/column base format at `(row, col)` without sheet defaults, CF, or Table styles. */
+export function readExplicitBaseFormat(
+  workbook: WasmWorkbook,
+  sheet: number,
+  row: number,
+  col: number,
+): SpreadsheetCellFormat | null {
+  if (!workbook.snapshot_format_range) return null
+  const snapshot = workbook.snapshot_format_range(sheet, row, col, row, col)
+  const cellStyles = new Map(snapshot.cellStyles.map((entry) => [entry.addr, entry.format]))
+  const rowStyles = new Map(snapshot.rowStyles.map((entry) => [entry.index, entry.format]))
+  const columnStyles = new Map(snapshot.columnStyles.map((entry) => [entry.index, entry.format]))
+  const format = formatAt(cellStyles, rowStyles, columnStyles, row, col)
+  return isDefaultFormat(format) ? null : format
+}
+
 function applyStyle(
   target: SpreadsheetCellFormat,
   style: RustSparseCellStyle | undefined,

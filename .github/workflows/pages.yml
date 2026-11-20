@@ -1,0 +1,73 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-registry-v2-${{ hashFiles('excel/rust/**/Cargo.lock', 'excel/rust/**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-v2-
+
+      - name: Install wasm-pack
+        run: |
+          if ! command -v wasm-pack >/dev/null; then
+            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+          fi
+          wasm-pack --version
+
+      - run: pnpm install --frozen-lockfile
+      - run: npm run ensureWasm
+
+      - name: Build React Excel demo for GitHub Pages
+        env:
+          VITE_DEMO_BASE: /${{ github.event.repository.name }}/
+        run: pnpm --filter @einfach-excel/react-excel build:demo
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: excel/react-excel/dist-demo
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

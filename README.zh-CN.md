@@ -5,7 +5,7 @@
 
 **以 Rust/WASM 为工作簿事实源、以 Einfach atoms 为无头 UI 核心的 React 电子表格基础设施。**
 
-[五分钟安装](./docs/QUICKSTART.md) · [架构说明](./docs/ARCHITECTURE.md) · [React 产品说明](./excel/react-excel/README.md) · [功能进度](./excel/react-excel/FEATURE_PROGRESS.md) · [发布流程](./docs/RELEASING.md) · [参与贡献](./CONTRIBUTING.md)
+[在线演示](https://allroad88888888.github.io/einfach-excel/?plugins=all&locale=zh) · [五分钟安装](./docs/QUICKSTART.md) · [集成配方](./docs/INTEGRATION_RECIPES.md) · [架构说明](./docs/ARCHITECTURE.md) · [React 产品说明](./excel/react-excel/README.md) · [功能进度](./excel/react-excel/FEATURE_PROGRESS.md) · [发布流程](./docs/RELEASING.md) · [参与贡献](./CONTRIBUTING.md)
 
 ## 为什么选择 Einfach Excel？
 
@@ -19,7 +19,7 @@ Einfach Excel 是面向产品团队的开源电子表格栈。工作簿值、公
 ## 快速安装（React 主线）
 
 ```bash
-pnpm add @einfach-excel/react-excel @einfach/core @einfach/react react react-dom
+pnpm add @einfach-excel/react-excel @einfach-excel/spreadsheet-ui-core @einfach/core @einfach/react react react-dom
 ```
 
 跟着[五分钟上手](./docs/QUICKSTART.md)挂载 `<Spreadsheet definition={definition} />`，并在真实单元格中验证 `=1+2`。需要 `.xlsx` 导入导出时，按需额外安装 `@einfach-excel/xlsx` 并注入 `xlsx` prop。

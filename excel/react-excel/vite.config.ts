@@ -8,6 +8,7 @@ const dirName = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(dirName, '../..')
 
 export default defineConfig({
+  base: process.env.VITE_DEMO_BASE ?? '/',
   plugins: [react(), lingui({ cwd: dirName, macroTransform: true, failOnMissing: 'catalog', failOnCompileError: true })],
   resolve: {
     alias: {

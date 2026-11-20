@@ -3871,6 +3871,7 @@ msgid "Loading preview…"
 msgstr "正在加载预览…"
 
 #: src/page/WorkbookRuntimeProvider.tsx
+#: src/workbook/shell/WorkbookView.tsx
 msgid "Loading Rust/WASM workbook…"
 msgstr "正在加载 Rust/WASM 工作簿…"
 

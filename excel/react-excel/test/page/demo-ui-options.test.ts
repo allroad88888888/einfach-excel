@@ -1,4 +1,4 @@
-import { demoUiOptions } from '../../src/page/demo/demo-presentation'
+import { demoPlugins, demoUiOptions } from '../../src/page/demo/demo-presentation'
 
 describe('demo ui options', () => {
   it('maps hidden areas and context menu items from the query', () => {
@@ -9,5 +9,13 @@ describe('demo ui options', () => {
     expect(demoUiOptions('')).toEqual({})
     expect(demoUiOptions('?hide=ribbon:format.bold&rowHeaderWidth=80&columnHeaderHeight=40'))
       .toEqual({ ribbon: { hidden: ['format.bold'] }, rowHeaderWidth: 80, columnHeaderHeight: 40 })
+  })
+
+  it('expands ?plugins=all to the 11 public business plugins without sample or duplicates', () => {
+    expect(demoPlugins('')).toEqual([])
+    const all = demoPlugins('?plugins=all,chart')
+    expect(all).toHaveLength(11)
+    expect(all.some((plugin) => plugin.id === 'sample')).toBe(false)
+    expect(new Set(all.map((plugin) => plugin.id)).size).toBe(11)
   })
 })

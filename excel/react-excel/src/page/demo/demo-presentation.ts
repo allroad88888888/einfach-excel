@@ -70,9 +70,15 @@ const DEMO_PLUGINS: Readonly<Record<string, SpreadsheetPlugin>> = {
   'data-consolidate': dataConsolidatePlugin,
 }
 
-function demoPlugins(query: string): readonly SpreadsheetPlugin[] {
-  const ids = new URLSearchParams(query).get('plugins')?.split(',') ?? []
-  return ids.flatMap(id => DEMO_PLUGINS[id] ? [DEMO_PLUGINS[id]] : [])
+const PUBLIC_PLUGIN_IDS = [
+  'date-picker', 'image-export', 'chart', 'image', 'sparkline', 'text-format',
+  'cell-appearance', 'data-sort', 'data-filter', 'data-subtotal', 'data-consolidate',
+] as const
+
+export function demoPlugins(query: string): readonly SpreadsheetPlugin[] {
+  const raw = new URLSearchParams(query).get('plugins')?.split(',').filter(Boolean) ?? []
+  const ids = raw.flatMap(id => id === 'all' ? PUBLIC_PLUGIN_IDS : [id])
+  return [...new Set(ids)].flatMap(id => DEMO_PLUGINS[id] ? [DEMO_PLUGINS[id]] : [])
 }
 
 const plugins = typeof window === 'undefined' ? [] : demoPlugins(window.location.search)

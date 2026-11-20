@@ -87,7 +87,9 @@ pnpm check:docs
 
 ## 文档
 
+- [在线演示（GitHub Pages）](https://allroad88888888.github.io/einfach-excel/?plugins=all&locale=zh)
 - [五分钟上手](./docs/QUICKSTART.md)
+- [宿主框架集成配方](./docs/INTEGRATION_RECIPES.md)
 - [架构与单元格编辑链](./docs/ARCHITECTURE.md)
 - [React 产品说明](./excel/react-excel/README.md)
 - [React 功能进度与路线图](./excel/react-excel/FEATURE_PROGRESS.md)

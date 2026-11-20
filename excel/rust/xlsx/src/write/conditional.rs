@@ -41,10 +41,12 @@ fn cfvo(threshold: &Value, fallback: &str) -> Option<String> {
         match threshold["type"].as_str()? {
             "min" => ("min", String::new()),
             "max" => ("max", String::new()),
-            "number" => ("num", value),
-            "percent" => ("percent", value),
-            "percentile" => ("percentile", value),
-            "formula" => ("formula", formula::to_xlsx(&value).trim_start_matches('=').to_string()),
+            "number" if !value.trim().is_empty() => ("num", value),
+            "percent" if !value.trim().is_empty() => ("percent", value),
+            "percentile" if !value.trim().is_empty() => ("percentile", value),
+            "formula" if !value.trim().is_empty() => {
+                ("formula", formula::to_xlsx(&value).trim_start_matches('=').to_string())
+            }
             _ => return None,
         }
     };
@@ -74,6 +76,30 @@ fn data_bar(rule: &Value) -> Option<String> {
     let argb = rule["maxColor"].as_str().and_then(to_argb).unwrap_or_else(|| "FF638EC6".into());
     Some(format!(r#"<dataBar>{}{}<color rgb="{argb}"/></dataBar>"#,
         cfvo(&rule["minThreshold"], "min")?, cfvo(&rule["maxThreshold"], "max")?))
+}
+
+fn icon_set(rule: &Value) -> Option<String> {
+    let set = match rule["iconSet"].as_str()? {
+        "three-arrows" => "3Arrows",
+        "three-traffic-lights" => "3TrafficLights1",
+        "three-flags" => "3Flags",
+        _ => return None,
+    };
+    let lower = if rule["lowerThreshold"].is_null() {
+        String::from(r#"<cfvo type="percent" val="33"/>"#)
+    } else {
+        cfvo(&rule["lowerThreshold"], "percent")?
+    };
+    let upper = if rule["upperThreshold"].is_null() {
+        String::from(r#"<cfvo type="percent" val="67"/>"#)
+    } else {
+        cfvo(&rule["upperThreshold"], "percent")?
+    };
+    let show = if rule["showValue"].as_bool() == Some(false) { r#" showValue="0""# } else { "" };
+    let rev = if rule["reverse"].as_bool() == Some(true) { r#" reverse="1""# } else { "" };
+    Some(format!(
+        r#"<iconSet iconSet="{set}"{show}{rev}><cfvo type="percent" val="0"/>{lower}{upper}</iconSet>"#
+    ))
 }
 
 /// 文本规则没有直接的 XLSX 通配类型，通配匹配用 COUNTIF 表达；其余用 Excel 自己写的判断公式。
@@ -140,6 +166,7 @@ fn rule_xml(entry: &ConditionalEntry, priority: usize, styles: &mut StyleTable) 
         }
         "color-scale" => Some(format!("{}>{}</cfRule>", head("colorScale"), color_scale(rule)?)),
         "data-bar" => Some(format!("{}>{}</cfRule>", head("dataBar"), data_bar(rule)?)),
+        "icon-set" => Some(format!("{}>{}</cfRule>", head("iconSet"), icon_set(rule)?)),
         "cell-value" => {
             let operator = comparison(rule["operator"].as_str()?)?;
             let mut formulas = format!("<formula>{}</formula>", escape(&text_of(&rule["value"])?));

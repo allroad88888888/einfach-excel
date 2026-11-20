@@ -117,16 +117,19 @@ fn exports_native_snapshots_written_by_the_engine() {
 fn reports_dropped_and_downgraded_features_on_export() {
     let native = serde_json::json!({
         "format": "einfach-workbook", "version": 1, "title": "ExportReport",
-        "canvases": [{"rowCount": 1048576, "colCount": 16384}],
+        "canvases": [{"rowCount": 1048576, "colCount": 16384}, {"rowCount": 1048576, "colCount": 16384}],
         "workbook": {
             "version": 1,
-            "sheets": [{"idx": 0, "name": "S", "hidden": true, "tabColor": "#ff0000"}],
+            "sheets": [
+                {"idx": 0, "name": "S", "tabColor": "#FF0000"},
+                {"idx": 1, "name": "Hidden", "hidden": true}
+            ],
             "cells": [],
             "comments": [{"sheet": 0, "row": 0, "col": 0, "thread": {"resolved": false, "entries": [
                 {"kind": "message", "author": "Ann", "body": "hi", "createdAt": 1}]}}],
             "conditionalFormats": [{"sheet": 0, "revision": 1, "rules": [
                 {"id": "1", "scope": {"range": {"rowStart": 0, "rowEnd": 1, "colStart": 0, "colEnd": 0}}, "priority": 0,
-                 "rule": {"kind": "icon-set", "iconSet": "3-arrows"}}]}],
+                 "rule": {"kind": "icon-set", "iconSet": "unsupported-four-arrows"}}]}],
             "dataValidations": [{"sheet": 0, "regions": [
                 {"range": [0, 0, 1, 0], "rule": {"kind": "list", "items": ["a,b"], "ignoreBlank": true}}]}],
             "namedRanges": [{"name": "Broken", "target": null}],
@@ -135,9 +138,15 @@ fn reports_dropped_and_downgraded_features_on_export() {
                 "cellStyles": [{"addr": "A1", "format": {"rotation": 45}}],
                 "rowStyles": [{"index": 0, "format": {"bold": true}}],
                 "columnStyles": []}],
-            "protection": [{"sheet": 0}],
+            "protection": [
+                {"sheet": 0, "protection": {"mode": "protected", "unlockedRanges": []}},
+                {"sheet": 99, "protection": {"mode": "protected", "unlockedRanges": []}}
+            ],
             "filters": [{"sheet": 0}],
-            "outlines": [{"sheet": 0}],
+            "outlines": [
+                {"sheet": 0, "outline": {"rows": [{"start": 1, "end": 2, "collapsed": false}], "columns": []}},
+                {"sheet": 99, "outline": {"rows": [{"start": 1, "end": 2, "collapsed": false}], "columns": []}}
+            ],
             "printConfigs": [{"sheet": 0}],
             "customFormulas": [{"name": "DOUBLE"}],
         }
@@ -151,13 +160,11 @@ fn reports_dropped_and_downgraded_features_on_export() {
         ("definedNames", 1),
         ("tables", 1),
         ("rowColumnStyles", 1),
-        ("cellRotation", 1),
         ("sheetProtection", 1),
         ("autoFilter", 1),
         ("outline", 1),
         ("printSetup", 1),
         ("customFormulas", 1),
-        ("sheetVisibilityOrColor", 1),
     ]);
     assert!(report.summary.starts_with("Download requested. Not exported to Excel: threaded comments exported as notes, "));
 }

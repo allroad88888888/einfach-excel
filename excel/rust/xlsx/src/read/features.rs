@@ -1,18 +1,32 @@
-//! 单张工作表上"挂着"的功能：超链接、批注、数据验证、条件格式、Table。
+//! 单张工作表上"挂着"的功能：超链接、备注与线程批注、保护、大纲、数据验证、条件格式、Table。
 //! 单元格、样式、尺寸由 `worksheet` 的流式解析负责；这里在去掉 `sheetData` 的小树上读其余部分。
+
+use std::collections::HashSet;
 
 use serde_json::Value;
 
 use super::archive::Archive;
 use super::drawings::{self, RawChart};
-use super::{conditional, dom, hyperlinks, notes, rels, tables, validation};
-use crate::native::{ConditionalEntry, Hyperlink, Note, Table, ValidationRegion};
+use super::worksheet::SheetData;
+use super::{
+    conditional, dom, dxf, hyperlinks, notes, outline, protection, rels, tables,
+    threaded_comments, validation,
+};
+use crate::native::{
+    CommentThread, ConditionalEntry, Hyperlink, Note, SheetOutline, SheetProtection, Table,
+    ValidationRegion,
+};
 use crate::report::ReportBuilder;
 
 #[derive(Default)]
 pub struct SheetFeatures {
+    pub tab_color: Option<String>,
     pub hyperlinks: Vec<Hyperlink>,
+    pub hyperlink_displays: Vec<(u32, u32, String)>,
     pub notes: Vec<Note>,
+    pub comments: Vec<CommentThread>,
+    pub protection: Option<SheetProtection>,
+    pub outline: Option<SheetOutline>,
     pub validations: Vec<ValidationRegion>,
     pub conditional: Vec<ConditionalEntry>,
     pub tables: Vec<Table>,
@@ -27,33 +41,57 @@ pub struct SheetFeatures {
 pub struct Shared<'a> {
     pub dxfs: &'a [Option<Value>],
     pub theme: &'a [String],
+    pub xf_locks: &'a [protection::XfLock],
+    pub persons: &'a [(String, String)],
+    pub raw_sheets: &'a [String],
+    pub final_sheets: &'a [String],
     pub date1904: bool,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn read_sheet(
     archive: &mut Archive,
     part: &str,
     xml: &str,
+    data: &mut SheetData,
     index: usize,
     sheet_name: &str,
     raw_name: &str,
     shared: &Shared,
     report: &mut ReportBuilder,
 ) -> SheetFeatures {
-    let Some(extras) = dom::parse(xml, &["sheetData"]) else { return SheetFeatures::default() };
+    let Some(extras) = dom::parse(xml, &["sheetData"]) else {
+        let (outline, outline_losses) = outline::extract(data, None);
+        report.add("outline", outline_losses);
+        return SheetFeatures { outline, ..Default::default() };
+    };
     let rels_xml = archive.read(&rels::rels_path(part)).ok().flatten().unwrap_or_default();
     let relationships = rels::parse(&rels_xml, rels::dir_of(part));
 
-    let (hyperlinks, skipped_links) = hyperlinks::parse(&extras, &relationships, index);
+    let tab_color = extras
+        .child("sheetPr")
+        .and_then(|pr| pr.child("tabColor"))
+        .and_then(|c| dxf::color_of(c, shared.theme))
+        .map(|c| c.to_ascii_uppercase());
+
+    let parsed_links = hyperlinks::parse(
+        &extras,
+        &relationships,
+        index,
+        shared.raw_sheets,
+        shared.final_sheets,
+    );
     let (validations, skipped_validations) = validation::parse(&extras, shared.date1904);
     let (conditional, skipped_conditional) = conditional::parse(&extras, shared.dxfs, shared.theme);
-    report.add("hyperlinks", skipped_links);
+    let (protection, protection_losses) = protection::parse(&extras, data, shared.xf_locks);
+    let (outline, outline_losses) = outline::extract(data, Some(&extras));
+
+    report.add("hyperlinks", parsed_links.skipped);
     report.add("dataValidations", skipped_validations);
     report.add("conditionalFormats", skipped_conditional);
+    report.add("sheetProtection", protection_losses);
+    report.add("outline", outline_losses);
 
-    if extras.child("sheetProtection").is_some() || extras.child("protectedRanges").is_some() {
-        report.add("sheetProtection", 1);
-    }
     if extras.child("autoFilter").is_some() {
         report.add("autoFilter", 1);
     }
@@ -68,34 +106,69 @@ pub fn read_sheet(
 
     let (sparklines, skipped_sparklines) = super::sparklines::parse(&extras, raw_name);
     report.add("sparklines", skipped_sparklines);
-    let objects = drawings::read_sheet(archive, &relationships, raw_name, extras.each("drawing").next().is_some());
+    let objects = drawings::read_sheet(
+        archive,
+        &relationships,
+        raw_name,
+        extras.each("drawing").next().is_some(),
+    );
     report.add("charts", objects.skipped_charts);
     report.add("drawings", objects.others);
 
-    let pivots = relationships.iter().filter(|rel| !rel.external && rel.kind.ends_with("/pivotTable")).count();
+    let pivots = relationships
+        .iter()
+        .filter(|rel| !rel.external && rel.kind.ends_with("/pivotTable"))
+        .count();
     report.add("pivotTables", pivots);
 
-    let mut threaded = 0usize;
-    for rel in relationships.iter().filter(|rel| !rel.external && rel.kind.ends_with("/threadedComment")) {
+    let mut seen_comment_cells = HashSet::new();
+    let mut comments = Vec::new();
+    let mut missing_threaded = 0usize;
+    let mut has_threaded_part = false;
+    for rel in relationships
+        .iter()
+        .filter(|rel| !rel.external && rel.kind.ends_with("/threadedComment"))
+    {
         if let Ok(Some(text)) = archive.read(&rel.target) {
-            threaded += dom::parse(&text, &[])
-                .map_or(1, |root| root.each("threadedComment").count().max(1));
+            has_threaded_part = true;
+            comments.extend(threaded_comments::parse_sheet(
+                &text,
+                shared.persons,
+                index,
+                &mut seen_comment_cells,
+            ));
         } else {
-            threaded += 1;
+            missing_threaded += 1;
         }
     }
 
-    let mut features = SheetFeatures { hyperlinks, validations, conditional, charts: objects.charts, pictures: objects.pictures, sparklines, ..Default::default() };
-    if let Some(comments) = relationships.iter().find(|rel| !rel.external && rel.kind.ends_with("/comments")) {
-        if let Ok(Some(text)) = archive.read(&comments.target) {
+    let mut features = SheetFeatures {
+        tab_color,
+        hyperlinks: parsed_links.links,
+        hyperlink_displays: parsed_links.display_fallbacks,
+        comments,
+        protection,
+        outline,
+        validations,
+        conditional,
+        charts: objects.charts,
+        pictures: objects.pictures,
+        sparklines,
+        ..Default::default()
+    };
+    if let Some(legacy) = relationships
+        .iter()
+        .find(|rel| !rel.external && rel.kind.ends_with("/comments"))
+    {
+        if let Ok(Some(text)) = archive.read(&legacy.target) {
             let (notes, placeholders) = notes::parse(&text, index);
             features.notes = notes;
-            if threaded == 0 {
-                threaded = placeholders;
+            if !has_threaded_part && missing_threaded == 0 {
+                missing_threaded = placeholders;
             }
         }
     }
-    report.add("threadedComments", threaded);
+    report.add("threadedComments", missing_threaded);
 
     if let Some(parts) = extras.child("tableParts") {
         for id in parts.each("tablePart").filter_map(|p| p.attr("id")) {

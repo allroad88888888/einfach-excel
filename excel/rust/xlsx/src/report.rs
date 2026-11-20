@@ -62,7 +62,6 @@ const EXPORT_ORDER: &[(&str, &str)] = &[
     ("definedNames", "broken defined names"),
     ("tables", "unsupported tables"),
     ("rowColumnStyles", "row or column styles"),
-    ("cellRotation", "text rotation"),
     ("fillInheritance", "independent pattern/background inheritance"),
     ("gradientBackground", "independent gradient fallback backgrounds"),
     ("incompleteGradients", "gradients with no color stops"),
@@ -71,7 +70,6 @@ const EXPORT_ORDER: &[(&str, &str)] = &[
     ("outline", "outline grouping"),
     ("printSetup", "print settings"),
     ("customFormulas", "custom formulas"),
-    ("sheetVisibilityOrColor", "sheet visibility or tab colors"),
 ];
 
 impl ReportBuilder {

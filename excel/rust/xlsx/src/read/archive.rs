@@ -20,6 +20,7 @@ pub struct Archive {
 pub struct SheetPart {
     pub name: String,
     pub path: String,
+    pub hidden: bool,
 }
 
 pub struct WorkbookParts {
@@ -27,6 +28,7 @@ pub struct WorkbookParts {
     pub shared_strings: Option<String>,
     pub styles: Option<String>,
     pub theme: Option<String>,
+    pub persons: Option<String>,
     pub date1904: bool,
     pub manual_calculation: bool,
     pub iterative_calculation: Option<crate::native::IterativeCalculation>,
@@ -95,8 +97,12 @@ impl Archive {
                 Ok(Event::Start(e) | Event::Empty(e)) => match local_name(&e).as_slice() {
                     b"sheet" => {
                         let name = attr(&e, "name").unwrap_or_default();
+                        let hidden = matches!(
+                            attr(&e, "state").as_deref(),
+                            Some("hidden" | "veryHidden")
+                        );
                         if let Some(path) = attr(&e, "id").and_then(|id| target(&id)) {
-                            sheets.push(SheetPart { name, path });
+                            sheets.push(SheetPart { name, path, hidden });
                         }
                     }
                     b"workbookPr" => date1904 = attr(&e, "date1904").is_some_and(|v| v == "1" || v == "true"),
@@ -128,11 +134,14 @@ impl Archive {
         if sheets.is_empty() {
             return Err(XlsxError::new("The workbook has no worksheets."));
         }
+        let persons = by_type("/person")
+            .or_else(|| self.has_part("xl/persons/person.xml").then(|| "xl/persons/person.xml".into()));
         Ok(WorkbookParts {
             sheets,
             shared_strings: by_type("/sharedStrings"),
             styles: by_type("/styles"),
             theme: by_type("/theme"),
+            persons,
             date1904,
             manual_calculation,
             iterative_calculation,

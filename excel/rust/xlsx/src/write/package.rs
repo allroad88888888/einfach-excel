@@ -59,13 +59,28 @@ pub fn root_rels() -> String {
 }
 
 pub fn workbook(
-    names: &[String],
+    sheets_meta: &[crate::native::SheetMeta],
     defined_names: &str,
     manual_calculation: bool,
     iterative: Option<&crate::native::IterativeCalculation>,
 ) -> String {
-    let sheets: String = names.iter().enumerate()
-        .map(|(index, name)| format!(r#"<sheet name="{}" sheetId="{}" r:id="rId{}"/>"#, escape(name), index + 1, index + 1))
+    let all_hidden = sheets_meta.iter().all(|s| s.hidden);
+    let sheets: String = sheets_meta
+        .iter()
+        .enumerate()
+        .map(|(index, meta)| {
+            let state = if meta.hidden && !all_hidden {
+                r#" state="hidden""#
+            } else {
+                ""
+            };
+            format!(
+                r#"<sheet name="{}" sheetId="{}"{state} r:id="rId{}"/>"#,
+                escape(&meta.name),
+                index + 1,
+                index + 1
+            )
+        })
         .collect();
     let iter_attrs = match iterative {
         Some(iter)

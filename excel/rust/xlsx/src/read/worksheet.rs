@@ -38,7 +38,8 @@ pub struct SheetData {
     pub hidden_rows: Vec<u32>,
     pub hidden_cols: Vec<u32>,
     pub rich_text: usize,
-    pub outline: usize,
+    pub row_outlines: Vec<super::outline::OutlineSpan>,
+    pub col_outlines: Vec<super::outline::OutlineSpan>,
 }
 
 #[derive(Default)]
@@ -104,8 +105,15 @@ fn column_entries(e: &BytesStart, data: &mut SheetData) {
         return;
     }
     if let Some(style) = attr_u32(e, "style") { data.column_styles.push((min, max, style)); }
-    if attr_u32(e, "outlineLevel").is_some_and(|l| l > 0) || attr_bool(e, "collapsed", false) {
-        data.outline += 1;
+    let level = attr_u32(e, "outlineLevel").unwrap_or(0);
+    let collapsed = attr_bool(e, "collapsed", false);
+    if level > 0 || collapsed {
+        let clamped_max = max.min(crate::native::MAX_COLS);
+        if min <= clamped_max {
+            data.col_outlines.push(super::outline::OutlineSpan {
+                start: min - 1, end: clamped_max - 1, level, collapsed,
+            });
+        }
     }
     if attr_bool(e, "hidden", false) {
         data.hidden_cols.extend((min - 1)..max.min(crate::native::MAX_COLS));
@@ -142,8 +150,12 @@ pub fn parse(xml: &str, strings: &[String]) -> Result<SheetData, XlsxError> {
                     if attr_bool(&e, "customFormat", false) {
                         if let Some(style) = attr_u32(&e, "s") { data.row_styles.push((row, style)); }
                     }
-                    if attr_u32(&e, "outlineLevel").is_some_and(|l| l > 0) || attr_bool(&e, "collapsed", false) {
-                        data.outline += 1;
+                    let level = attr_u32(&e, "outlineLevel").unwrap_or(0);
+                    let collapsed = attr_bool(&e, "collapsed", false);
+                    if (level > 0 || collapsed) && row < crate::native::MAX_ROWS {
+                        data.row_outlines.push(super::outline::OutlineSpan {
+                            start: row, end: row, level, collapsed,
+                        });
                     }
                     if attr_bool(&e, "hidden", false) {
                         data.hidden_rows.push(row);

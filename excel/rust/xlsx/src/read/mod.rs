@@ -9,6 +9,7 @@ pub(crate) mod charts;
 mod chartex;
 mod conditional;
 mod conditional_average;
+mod conditional_icon_set;
 mod defined_names;
 mod dom;
 mod drawings;
@@ -16,8 +17,10 @@ mod dxf;
 mod features;
 mod hyperlinks;
 mod notes;
+mod outline;
 mod pictures;
 mod placement;
+mod protection;
 mod sparklines;
 mod rels;
 mod shared_strings;
@@ -25,6 +28,7 @@ mod rich_text;
 mod styles;
 mod tables;
 mod theme;
+mod threaded_comments;
 mod validation;
 mod worksheet;
 mod xml;
@@ -95,13 +99,22 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         + style_fills::unsupported_dxf_count(styles_xml.as_deref()));
     report.add("incompleteGradients", parsed_styles.incomplete_gradients);
     let xfs = parsed_styles.formats;
+    let xf_locks = parsed_styles.xf_locks;
     let font_sizes = styles::font_sizes(styles_xml.as_deref());
     let dxfs = dxf::parse(styles_xml.as_deref(), &theme.colors);
-    let shared = features::Shared { dxfs: &dxfs, theme: &theme.colors, date1904: parts.date1904 };
+    let persons_xml = match &parts.persons { Some(path) => archive.read(path)?, None => None };
+    let persons = threaded_comments::parse_persons(persons_xml.as_deref());
+    let raw_names: Vec<String> = parts.sheets.iter().map(|part| part.name.clone()).collect();
+    let mut used = Vec::new();
+    let final_names: Vec<String> = parts.sheets.iter().enumerate()
+        .map(|(i, part)| sheet_name(&part.name, i, &mut used)).collect();
+    let shared = features::Shared {
+        dxfs: &dxfs, theme: &theme.colors, xf_locks: &xf_locks, persons: &persons,
+        raw_sheets: &raw_names, final_sheets: &final_names, date1904: parts.date1904,
+    };
 
     let mut workbook = Persistence { version: 1, ..Default::default() };
     let mut canvases = Vec::new();
-    let mut used = Vec::new();
     let mut pending_charts = Vec::new();
     for (index, part) in parts.sheets.iter().enumerate() {
         let xml = archive.read(&part.path)?
@@ -119,19 +132,21 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
                 .copied().flatten();
         }
         let mut rich_cells = rich_text::cells(&xml, &rich_strings, &theme.colors);
-        report.add("outline", data.outline);
-        let name = sheet_name(&part.name, index, &mut used);
-        let extras = features::read_sheet(&mut archive, &part.path, &xml, index, &name, &part.name, &shared, &mut report);
+        let name = final_names[index].clone();
+        let extras = features::read_sheet(
+            &mut archive, &part.path, &xml, &mut data, index, &name, &part.name, &shared, &mut report,
+        );
         let (hide_gridlines, hide_headings) = data.view.unwrap_or_default();
         workbook.sheets.push(SheetMeta {
-            idx: index as u32, name, hidden: false, tab_color: None, hide_gridlines, hide_headings,
-            defaults: data.defaults,
+            idx: index as u32, name, hidden: part.hidden, tab_color: extras.tab_color,
+            hide_gridlines, hide_headings, defaults: data.defaults,
         });
         canvases.push(Canvas { row_count: MAX_ROWS, col_count: MAX_COLS });
 
         let (row_styles, column_styles, unsupported_styles) = style_layers::read(&data, &xfs);
         report.add("rowColumnStyles", unsupported_styles);
         let mut cell_styles = Vec::new();
+        let mut populated_coords = std::collections::HashSet::new();
         for cell in data.cells {
             let addr = cell_name(cell.row, cell.col);
             let style = xfs.get(cell.style as usize);
@@ -146,6 +161,7 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
                 cell_styles.push(CellStyle { addr: addr.clone(), format });
             }
             if let Some((kind, mut value)) = cell.content {
+                populated_coords.insert((cell.row, cell.col));
                 if kind == "text" {
                     if let Some(runs) = rich_cells.remove(&(cell.row, cell.col)) {
                         // Only preserve runs whose concatenation matches the imported literal.
@@ -162,6 +178,14 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
                 }
                 workbook.cells.push(SparseCell {
                     sheet: index, addr, row: cell.row, col: cell.col, kind: kind.into(), value: Some(value),
+                });
+            }
+        }
+        for (row, col, display) in extras.hyperlink_displays {
+            if row < MAX_ROWS && col < MAX_COLS && populated_coords.insert((row, col)) {
+                workbook.cells.push(SparseCell {
+                    sheet: index, addr: cell_name(row, col), row, col,
+                    kind: "text".into(), value: Some(CellValue::Text(display)),
                 });
             }
         }
@@ -194,6 +218,13 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
         }
         workbook.hyperlinks.extend(extras.hyperlinks);
         workbook.notes.extend(extras.notes);
+        workbook.comments.extend(extras.comments);
+        if let Some(protection) = extras.protection {
+            workbook.protection.push(SheetProtectionEntry { sheet: index as u32, protection });
+        }
+        if let Some(outline) = extras.outline {
+            workbook.outlines.push(SheetOutlineEntry { sheet: index, outline, subtotal_regions: Vec::new() });
+        }
         workbook.tables.extend(extras.tables);
         if !extras.charts.is_empty() || !extras.pictures.is_empty() || !extras.sparklines.is_empty() {
             pending_charts.push((index, placement::SheetObjects {
@@ -209,16 +240,19 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<(NativeFile, ConversionReport
             });
         }
     }
+    if workbook.sheets.iter().all(|s| s.hidden) {
+        if let Some(first) = workbook.sheets.first_mut() {
+            first.hidden = false;
+        }
+    }
     // 图表的锚点和区域依赖行高列宽与最终表名，所以等所有表读完再放。
-    let raw_names: Vec<String> = parts.sheets.iter().map(|part| part.name.clone()).collect();
     placement::place_all(&mut workbook, pending_charts, &raw_names, &mut report);
     if parts.pivot_caches > 0 && !report.has("pivotTables") {
         report.add("pivotTables", parts.pivot_caches);
     }
     report.add("tables", keep_valid_tables(&mut workbook.tables));
-    let sheet_names: Vec<String> = parts.sheets.iter().map(|part| part.name.clone()).collect();
     if let Some(root) = archive.read("xl/workbook.xml")?.and_then(|xml| dom::parse(&xml, &[])) {
-        let (names, skipped_names) = defined_names::parse(&root, &sheet_names);
+        let (names, skipped_names) = defined_names::parse(&root, &raw_names);
         report.add("definedNames", skipped_names);
         workbook.named_ranges = names;
         let before = workbook.named_ranges.len();

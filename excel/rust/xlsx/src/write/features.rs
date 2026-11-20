@@ -43,7 +43,7 @@ pub fn sheet(
     let (mut tail, skipped_cf) = conditional::xml(&conditional_formats, styles);
     let (val_xml, skipped_val) = validation::xml(&validations);
     tail.push_str(&val_xml);
-    tail.push_str(&hyperlinks::xml(&links, &mut rels));
+    tail.push_str(&hyperlinks::xml(&links, &book.cells, index, &mut rels));
     report.add("conditionalFormats", skipped_cf);
     report.add("dataValidations", skipped_val);
 

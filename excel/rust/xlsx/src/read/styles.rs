@@ -31,6 +31,8 @@ struct Parsed {
     fills: Vec<super::style_fills::Fill>,
     borders: Vec<Borders>,
     xfs: Vec<CellFormat>,
+    xf_locks: Vec<super::protection::XfLock>,
+    xf_apply_protection: bool,
 }
 
 enum Section { None, Font, Border(Option<&'static str>), CellXfs, Other }
@@ -134,10 +136,12 @@ fn alignment(e: &BytesStart, format: &mut CellFormat) {
     // Explicit false must override a row/column's shrink setting after import.
     format.shrink_to_fit = attr(e, "shrinkToFit").map(|_| attr_bool(e, "shrinkToFit", false));
     format.indent = attr_u32(e, "indent").filter(|&n| n > 0).map(|n| n.min(15) as u8);
+    format.rotation = attr_u32(e, "textRotation").and_then(crate::cell_rotation::CellRotation::from_xlsx);
 }
 
 pub struct ParsedStyles {
     pub formats: Vec<CellFormat>,
+    pub xf_locks: Vec<super::protection::XfLock>,
     pub diagonal_losses: usize,
     pub fill_losses: usize,
     pub incomplete_gradients: usize,
@@ -145,7 +149,7 @@ pub struct ParsedStyles {
 
 pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<ParsedStyles, XlsxError> {
     let Some(xml) = xml else {
-        return Ok(ParsedStyles { formats: Vec::new(), diagonal_losses: 0,
+        return Ok(ParsedStyles { formats: Vec::new(), xf_locks: Vec::new(), diagonal_losses: 0,
             fill_losses: 0, incomplete_gradients: 0 });
     };
     let (diagonals, unsupported) = super::diagonal_borders::parse(xml, theme);
@@ -195,9 +199,22 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<ParsedStyles, XlsxEr
                 section = if empty { Section::None } else { Section::Border(None) };
             }
             (b"cellXfs", _) => section = Section::CellXfs,
-            (b"xf", Section::CellXfs) => parsed.xfs.push(xf_format(&e, &parsed)),
+            (b"xf", Section::CellXfs) => {
+                parsed.xfs.push(xf_format(&e, &parsed));
+                parsed.xf_locks.push(super::protection::XfLock::Default);
+                parsed.xf_apply_protection = attr_bool(&e, "applyProtection", true);
+            }
             (b"alignment", Section::CellXfs) => {
                 if let Some(format) = parsed.xfs.last_mut() { alignment(&e, format) }
+            }
+            (b"protection", Section::CellXfs) if parsed.xf_apply_protection => {
+                if let Some(lock) = parsed.xf_locks.last_mut() {
+                    *lock = if attr_bool(&e, "locked", true) {
+                        super::protection::XfLock::Locked
+                    } else {
+                        super::protection::XfLock::Unlocked
+                    };
+                }
             }
             (tag, Section::Font) => {
                 let font = parsed.fonts.last_mut().expect("font pushed");
@@ -234,7 +251,13 @@ pub fn parse(xml: Option<&str>, theme: &[String]) -> Result<ParsedStyles, XlsxEr
             _ => {}
         }
     }
-    Ok(ParsedStyles { formats: parsed.xfs, diagonal_losses: unsupported, fill_losses, incomplete_gradients })
+    Ok(ParsedStyles {
+        formats: parsed.xfs,
+        xf_locks: parsed.xf_locks,
+        diagonal_losses: unsupported,
+        fill_losses,
+        incomplete_gradients,
+    })
 }
 
 /// Actual font size for each XF, including a font equal to the workbook's default font.

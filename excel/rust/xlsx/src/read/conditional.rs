@@ -144,6 +144,7 @@ fn rule_of(node: &Node, dxfs: &[Option<Value>], theme: &[String]) -> Option<Valu
     match node.attr("type")? {
         "colorScale" => color_scale(node.child("colorScale")?, theme),
         "dataBar" => data_bar(node.child("dataBar")?, theme),
+        "iconSet" => super::conditional_icon_set::parse(node),
         _ => {
             let format = dxfs.get(node.attr_u32("dxfId")? as usize)?.clone()?;
             let formulas: Vec<String> = node.each("formula").map(|f| f.text.trim().to_string()).collect();

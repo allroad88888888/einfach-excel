@@ -5,6 +5,15 @@
   background: var(--surface);
 }
 
+:where(.einfach-spreadsheet) .plugin-chart[data-dark] {
+  background: #1c1b27;
+  color: #e6e5f0;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart[data-dark] .plugin-chart-message:not([role='alert']) {
+  color: #a19eb4;
+}
+
 :where(.einfach-spreadsheet) .plugin-chart-message {
   position: absolute;
   inset: 0;
@@ -111,6 +120,19 @@
 }
 
 :where(.einfach-spreadsheet) .plugin-chart-settings h2 { margin: 0; font-size: 15px; }
+
+:where(.einfach-spreadsheet) .plugin-chart-section {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+:where(.einfach-spreadsheet) .plugin-chart-section[data-section-active] {
+  padding: 6px;
+  margin: -6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--primary, #4472c4) 8%, transparent);
+}
 
 :where(.einfach-spreadsheet) .plugin-chart-field { display: grid; gap: 4px; min-width: 0; }
 

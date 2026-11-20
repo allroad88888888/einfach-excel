@@ -7,6 +7,7 @@ type Label = { id: string; message: string }
 export const designLabels = {
   quickLayout: { id: 'plugin.chart.quickLayout', message: 'Quick layout' },
   palette: { id: 'plugin.chart.palette', message: 'Change colors' },
+  darkMode: { id: 'plugin.chart.darkMode', message: 'Dark surface' },
   axisTitle: { id: 'plugin.chart.axisTitle', message: 'Axis title' },
   trendlines: { id: 'plugin.chart.trendlines', message: 'Trendlines' },
   trendline: { id: 'plugin.chart.trendline', message: 'Trendline' },
@@ -76,6 +77,7 @@ export const layoutLabels: Record<QuickLayout, Label> = {
 
 export const designZh: Record<string, string> = {
   [designLabels.quickLayout.id]: '快速布局', [designLabels.palette.id]: '更改颜色',
+  [designLabels.darkMode.id]: '深色卡片外观',
   [designLabels.axisTitle.id]: '坐标轴标题', [designLabels.trendlines.id]: '趋势线',
   [designLabels.trendline.id]: '趋势线', [designLabels.order.id]: '阶数',
   [designLabels.period.id]: '周期', [designLabels.showEquation.id]: '显示公式',

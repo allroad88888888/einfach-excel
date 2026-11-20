@@ -11,7 +11,9 @@ import { labels, wordLabels } from './messages'
 export function useChartOption(drawing: SheetDrawing) {
   const { i18n } = useLingui()
   const entry = useAtomValue(chartGridsAtom)[drawing.id]
-  const spec = useMemo(() => parseChartSpec(drawing.payload), [drawing.payload])
+  const payloadKey = JSON.stringify(drawing.payload ?? null)
+  // drawings.list 每次返回反序列化后的新 payload 引用；按序列化键记忆，避免无关对象刷新触发重绘。
+  const spec = useMemo(() => parseChartSpec(JSON.parse(payloadKey) as unknown), [payloadKey])
   const seriesWord = i18n._(labels.series)
   const data = useMemo(() => entry?.grid
     ? layoutChartData(visibleChartGrid(entry.grid, entry.hidden, spec), spec,
@@ -27,7 +29,7 @@ export function useChartOption(drawing: SheetDrawing) {
     movingAverage: i18n._(trendWordLabels.movingAverage),
   }), [i18n])
   const option = useMemo(() => data
-    ? toEChartsOption({ spec, data, theme: chartTheme(false), words }) : null,
+    ? toEChartsOption({ spec, data, theme: chartTheme(spec.dark), words }) : null,
   [data, spec, words])
   // 数据形状不满足类型约定（如股价图的系列数）时给出错误，不画图。
   const issue = data ? chartIssue(spec, data) : null

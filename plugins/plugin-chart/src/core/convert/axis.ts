@@ -19,6 +19,7 @@ function title(name: string, horizontal: boolean) {
 export function categoryAxis({ spec, data, theme }: ConvertInput, horizontal: boolean) {
   return {
     type: 'category' as const,
+    triggerEvent: true,
     data: [...data.categories],
     boundaryGap: spec.type === 'column' || spec.type === 'bar',
     splitLine: { show: false },
@@ -33,6 +34,7 @@ export function valueAxis({ spec, theme }: ConvertInput, horizontal: boolean, bo
   const style = axisStyle(theme, spec.fontSize ?? 12)
   return {
     type: 'value' as const,
+    triggerEvent: true,
     min: percent ? 0 : bounded ? spec.yMin ?? undefined : undefined,
     max: percent ? 100 : bounded ? spec.yMax ?? undefined : undefined,
     scale: spec.type === 'scatter',

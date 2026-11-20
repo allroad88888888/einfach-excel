@@ -1406,6 +1406,9 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CHART-021 | 设置栏「下载 SVG」在浏览器内离屏重画并下载矢量图，文字保持为文本 | `charts/analysis.spec.ts` | the chart downloads as an SVG drawn in the browser |
 | CHART-022 | 由表格选区插入的图表引用表名，表格下方输入新行后图表跟着扩；设置栏可填表格列范围或名称，不存在时报错 | `charts/data-source.spec.ts` | a chart made from a table follows the table as it grows and accepts names |
 | CHART-023 | 选中图表时按系列名 / 类别 / 数值标出数据源，点击柱子标出它的单元格，取消选中后撤掉 | `charts/data-source.spec.ts` | selecting a chart outlines its data and clicking a bar marks its cell |
+| CHART-024 | 双击图表标题、图例、坐标轴或数据系列直达对应设置分组并聚焦控件 | `plugins/chart-enhancements.spec.ts` | CHART-024: double-clicking chart title, legend, axis, or series opens settings and focuses the matching section |
+| CHART-025 | 图表深色卡片外观预设联动画布与导出 SVG/PNG，支持单步撤销重做及保存重开 | `plugins/chart-enhancements.spec.ts` | CHART-025: dark surface theme restyles canvas and SVG export, supports undo, and survives workbook save and reopen |
+| CHART-026 | 图表刷新命中过滤跳过无关格式/浮动对象变更重绘，同时实时刷新公式下游序列 | `plugins/chart-enhancements.spec.ts` | CHART-026: chart refresh skips disjoint formatting or object moves while updating formula-driven series immediately |
 
 ## Optional rank filter conditions
 
@@ -1562,3 +1565,11 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CELLSTYLE-001 | 内置单元格样式库原子应用填充、字体与边框，支持单步撤销及常规重置 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-001: built-in cell style presets apply fill, font, and borders atomically with single undo and Normal reset` |
 | CELLSTYLE-002 | 切换工作簿主题实时联动主题样式预览、单元格着色及颜色面板主题色行 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-002: switching workbook theme updates themed cell styles and Fill color palette theme row` |
 | CELLSTYLE-003 | 单元格样式遵循工作表保护并在原生工作簿下载重开后完整保留 | `format/cell-styles-themes.spec.ts` | `CELLSTYLE-003: cell styles respect worksheet protection and survive native workbook roundtrip` |
+
+### 分列本地文件导入
+
+| ID | 功能 | 用例文件 | 用例标题 |
+| --- | --- | --- | --- |
+| TEXTFILE-001 | 分列向导从本地 `.csv` 文件导入并智能预选逗号分隔符，确认覆盖后原子写入目标矩形且支持单步撤销/重做 | `editing/text-columns-file-import.spec.ts` | `TEXTFILE-001: importing a local CSV file preselects Comma, previews, writes atomically from active cell, and undoes in one step` |
+| TEXTFILE-002 | 分列向导从本地 `.tsv` / `.txt` 文件导入智能预选制表符，支持切换固定宽度、列格式与切回所选单元格 | `editing/text-columns-file-import.spec.ts` | `TEXTFILE-002: importing TSV and TXT files preselects Tab, supports fixed-width and column types, and switches back to selected cells` |
+| TEXTFILE-003 | 分列本地文件导入校验空文件并拒绝合并/越界/受保护目标格且不污染撤销历史 | `editing/text-columns-file-import.spec.ts` | `TEXTFILE-003: empty file and protected or merged destination are rejected without mutating cells or history` |

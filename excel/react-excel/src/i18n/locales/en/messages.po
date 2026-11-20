@@ -35,7 +35,7 @@ msgstr " duplicate records (one undo restores them)"
 msgid " Every condition must match. After editing values, use Reapply filter."
 msgstr " Every condition must match. After editing values, use Reapply filter."
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid " occupied destination cells"
 msgstr " occupied destination cells"
 
@@ -49,7 +49,7 @@ msgstr "(Blanks)"
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "(Empty)"
 msgstr "(Empty)"
 
@@ -559,7 +559,7 @@ msgstr "Applying layout…"
 msgid "Applying number format…"
 msgstr "Applying number format…"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Applying split…"
 msgstr "Applying split…"
 
@@ -3433,6 +3433,10 @@ msgstr "images or drawings"
 msgid "Implementation limits"
 msgstr "Implementation limits"
 
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Import file…"
+msgstr "Import file…"
+
 #: src/workbook/chrome/header/WorkbookHeader.tsx
 msgid "In memory"
 msgstr "In memory"
@@ -3830,7 +3834,7 @@ msgstr "Loading note…"
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Loading preview…"
 msgstr "Loading preview…"
 
@@ -4582,7 +4586,7 @@ msgstr "Output"
 
 #. placeholder {0}: toA1(preview.target.rowStart, preview.target.colStart)
 #. placeholder {1}: toA1(preview.target.rowEnd, preview.target.colEnd)
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Output: {0}:{1}"
 msgstr "Output: {0}:{1}"
 
@@ -4590,7 +4594,7 @@ msgstr "Output: {0}:{1}"
 msgid "Outside borders"
 msgstr "Outside borders"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Overwrite "
 msgstr "Overwrite "
 
@@ -4812,7 +4816,7 @@ msgstr "Preview"
 msgid "Preview · {0}"
 msgstr "Preview · {0}"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Preview cells"
 msgstr "Preview cells"
 
@@ -5427,7 +5431,7 @@ msgid "row"
 msgstr "row"
 
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Row"
 msgstr "Row"
 
@@ -5562,7 +5566,7 @@ msgstr "Rust worksheet protection is unavailable."
 msgid "Rust/WASM ready"
 msgstr "Rust/WASM ready"
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Sample shortened: up to 20 rows, 12 columns and 120 characters per field. Apply processes all source rows."
 msgstr "Sample shortened: up to 20 rows, 12 columns and 120 characters per field. Apply processes all source rows."
 
@@ -6188,6 +6192,10 @@ msgstr "Sorting…"
 msgid "Source field number"
 msgstr "Source field number"
 
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Source file: {fileName} ({fileRowCount} rows)"
+msgstr "Source file: {fileName} ({fileRowCount} rows)"
+
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 msgid "Source sample count"
 msgstr "Source sample count"
@@ -6249,10 +6257,10 @@ msgid "Split mode"
 msgstr "Split mode"
 
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
-msgid "Split one source column. Fields keep text unless you select a different type. Empty fields clear destination cells. Hidden rows are included."
-msgstr "Split one source column. Fields keep text unless you select a different type. Empty fields clear destination cells. Hidden rows are included."
+msgid "Split one source column or import a local text file. Fields keep text unless you select a different type. Empty fields clear destination cells. Hidden rows are included."
+msgstr "Split one source column or import a local text file. Fields keep text unless you select a different type. Empty fields clear destination cells. Hidden rows are included."
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Split preview"
 msgstr "Split preview"
 
@@ -7454,7 +7462,7 @@ msgstr "Update the preview before applying."
 msgid "Update the preview before removing records."
 msgstr "Update the preview before removing records."
 
-#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsPreview.tsx
 msgid "Update the preview to apply your changes."
 msgstr "Update the preview to apply your changes."
 
@@ -7553,6 +7561,10 @@ msgstr "Use only declared parameters and local LET or LAMBDA names in custom for
 #: src/workbook/chrome/ribbon/number-format-code-errors.ts
 msgid "Use only one decimal point in each section."
 msgstr "Use only one decimal point in each section."
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Use selected cells"
+msgstr "Use selected cells"
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Use thousands separator"

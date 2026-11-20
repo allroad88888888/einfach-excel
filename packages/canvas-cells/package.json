@@ -1,6 +1,6 @@
 {
   "name": "@einfach-excel/canvas-cells",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "description": "Canvas spreadsheet cells with owned atom subscriptions",

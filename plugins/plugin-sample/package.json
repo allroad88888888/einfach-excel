@@ -1,6 +1,6 @@
 {
   "name": "@einfach-excel/plugin-sample",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "In-repo plugin that exercises every react-excel contribution point; not published",

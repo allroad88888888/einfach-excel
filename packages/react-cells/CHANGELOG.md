@@ -1,5 +1,13 @@
 # @einfach-excel/react-cells
 
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies [88501e1]
+- Updated dependencies [c316273]
+  - @einfach-excel/spreadsheet-ui-core@0.3.0
+
 ## 1.0.0
 
 ### Patch Changes

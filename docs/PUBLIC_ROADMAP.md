@@ -17,28 +17,25 @@ excel/react-excel (@einfach-excel/react-excel)
   → einfach-excel-core
 ```
 
-- **React 主线产品与独立组件包已发布**：`@einfach-excel/react-excel`（`0.1.0`）与 `@einfach-excel/canvas`（`0.1.0`）连同基础同步版本组（`@einfach-excel/spreadsheet-ui-core`、`@einfach-excel/spreadsheet-ui-styles`、`@einfach-excel/excel-core-ts`、`@einfach-excel/excel-wasm` `0.2.0`）已发布，支持 DOM 与 Canvas 2D 两种网格渲染表面，并通过 Vite 与 Next.js 真实 tarball 安装的 E2E 消费门禁验证。
+- **React 主线产品与全部 17 个公开包已纳入 `0.x` 发行与消费门禁**：除已首发的 `@einfach-excel/react-excel`、`@einfach-excel/canvas` 及基础同步版本组（`@einfach-excel/spreadsheet-ui-core`、`@einfach-excel/spreadsheet-ui-styles`、`@einfach-excel/excel-core-ts`、`@einfach-excel/excel-wasm`）外，按需注入的 `@einfach-excel/xlsx` 与 11 个业务插件包（`@einfach-excel/plugin-*`）均已完成独立公开包产物化，支持 React 18.3 与 React 19、SSR 安全首次渲染及 Vite / Rspack 真实 tarball 严格安装 E2E 门禁。
 - **单向 Rust/WASM 引擎架构已收敛**：工作簿值、公式求值、依赖图、筛选排序、条件格式、数据验证、结构化表与历史栈统一收敛到 Rust/WASM Worker；历史上的双后端 `SpreadsheetBackend` 抽象已废弃。
 - **旧 Solid 线已暂停**：`@einfach-excel/solid-excel` 与 `@einfach-excel/excel-site` 已暂停并退出默认构建、测试、CI 与发布；`@einfach-excel/vue-excel` 作为独立视图实验保留在仓内，不阻塞 React 主线。
 
 ## 当前已覆盖的主线能力范围
 
-当前 `@einfach-excel/react-excel` + `@einfach-excel/spreadsheet-ui-core` + `einfach-excel-core` 已交付并纳入门禁的桌面电子表格核心能力包括：
+当前 `@einfach-excel/react-excel` + `@einfach-excel/spreadsheet-ui-core` + `einfach-excel-core` + `plugins/*` 已交付并纳入门禁的桌面电子表格能力包括：
 
-- **公式与按需求值引擎**：内置公式函数目录与参数填写表单、自定义 LAMBDA 公式、异步扩展公式（`FETCHJSON`）、动态数组溢出、结构化表引用（`Table1[Col]`）、工作簿级定义名称、跨表引用与视口驱动按需求值。
-- **网格渲染与视口交互**：虚拟滚动、缩放、行列尺寸拖拽与双击自适应、隐藏/取消隐藏、合并与跨列居中、冻结窗格、手动非连续多选区、DOM 与 Canvas 2D 渲染表面切换、单元格表面插件体系。
-- **编辑与批量操作**：单元格内联与公式栏联动编辑、拖动移动/复制选区、插入/删除单元格四向平移、下拉自动填充、剪贴板（含跨表剪切与选择性粘贴）、撤销重做与重复上一步（`F4`/`Ctrl+Y`）。
-- **数据治理与分析工作台**：多列排序、普通区域与 Table 筛选（含 AND/OR 高级条件组）、分列、删除重复项、查找替换、仅选可见单元格与当前区域、数据验证、条件格式（含通配符、色阶、数据条、图标集）、结构化 Table、名称管理器、纯文本备注（Note）与本地批注线程（Comment）、行列分组大纲、工作表保护（含允许编辑区域）。
-- **文件导入导出与本地恢复**：CSV/TSV 导入导出、`initialSnapshot` + `exportWorkbookSnapshotAtom` 宿主快照恢复，以及通过按需注入 `@einfach-excel/xlsx` 的 `.xlsx` 导入导出（覆盖值、公式、格式、合并、冻结、尺寸、隐藏行列、外部超链接、备注、工作簿级名称、数据验证、常见条件格式与 Table）。
+- **公式、重算与审核引擎**：内置公式函数目录与参数填写表单、自定义 LAMBDA 公式、异步扩展公式（`FETCHJSON`）、动态数组溢出、结构化表引用（`Table1[Col]`）、工作簿级与工作表级定义名称及命名公式、三维跨表引用、公式引用同色高亮、自动/手动计算模式与迭代计算、追踪引用/从属箭头、公式分步求值与监视窗口。
+- **网格渲染、窗口与格式系统**：虚拟滚动、缩放、冻结窗格与四向独立拆分窗口、工作表分组/复制/隐藏与标签色、DOM 与 Canvas 2D 渲染表面切换、12 类数字格式（含会计专用、特殊预设与自定义格式代码）、整格与富文本分段样式（含上下标与 Table 内富文本）、缩小字体填充、斜线边框、17 种图案填充与线性/矩形渐变填充、28 项单元格样式库与工作簿主题。
+- **编辑、填充与批量操作**：内联与公式栏联动编辑、时间/亚秒输入与宿主地区日期顺序解析、外部与工作簿内部跳转超链接（含工作表改名随动）、拖动移动/复制选区、插入/删除单元格四向平移、等比/工作日/按年/自定义序列填充与原生 PBE Flash Fill、剪贴板（跨表剪切、选择性粘贴、Copy As HTML/Markdown/TSV 合并与筛选隐藏保真）、撤销重做与重复上一步（`F4`/`Ctrl+Y`）。
+- **数据治理、图表与浮动对象**：多列排序（含按颜色、条件图标、自定义序列、横向按行排序）、普通区域与 Table 筛选（含 Top-N、相对日期期间、按颜色、工作表条件区域高级筛选与复制输出）、分列（含本地 `.csv`/`.tsv`/`.txt` 文件导入）、分类汇总、合并计算、删除重复项、按值/公式/格式查找替换、18 项 `Go To Special` 定位条件、数据验证与圈释无效数据、条件格式、行列分组大纲、工作表保护（含按项放行排序与行列插删），以及可选插件提供的 ECharts 图表（含深色外观预设与双击元素定位设置）、浮动图片与单元格迷你图。
+- **文件导入导出与本地恢复**：`initialSnapshot` + `exportWorkbookSnapshotAtom` 宿主快照恢复，以及 `@einfach-excel/xlsx` 的 `.xlsx` 高保真双向转换（覆盖值、公式、格式、文字旋转、合并、冻结、尺寸、隐藏行列、分组大纲、工作表隐藏与标签色、保护配置、外部与内部跳转超链接、备注与线程批注读入、工作簿/表级名称、计算设置、数据验证、条件格式含常见图标集、Table、常见图表/chartEx、图片与迷你图，并对不支持项输出结构化报告）。
 
 ## 下一阶段迭代方向
 
-按 [`excel/react-excel/FEATURE_PROGRESS.md`](../excel/react-excel/FEATURE_PROGRESS.md) 的细项缺口优先级，后续公开迭代聚焦于：
-
-1. **P1 编辑与公式深水区**：工作表分组；编辑公式时的引用着色；手动/迭代计算模式；追踪引用与从属单元格、公式分步求值与监视窗口；工作表级名称与命名公式产品入口；三维引用。
-2. **P2 格式、整理与填充细项**：上下标、缩小字体填充、斜线边框、图案填充、单元格样式与主题、会计专用/特殊/自定义数字格式入口；按颜色/图标/自定义序列/横向排序、日期/颜色/前十项筛选与分类汇总/合并计算；等比/工作日/自定义序列填充、Flash Fill、窗口拆分与单元格富文本。
-3. **`.xlsx` 剩余高阶对象与独立发布**：在现有两轮 `.xlsx` 能力基础上补齐图标集、内部跳转链接、线程批注读入，并推进 `@einfach-excel/xlsx` 独立包发布。
-4. **明确不纳入当前范围的事项**：多人实时协作、身份/通知、更改记录、版本历史、个人视图、自动保存与服务端持久化、VBA/加载项/Power Query/Copilot 不作为当前产品目标；图表、数据透视表与打印随原计划延后。
+1. **首轮全量公开包版本发布与在线体验建设**：经授权触发 Changesets Version PR 与 CI 发布流水线，将 `0.x` 新一轮主线包、`@einfach-excel/xlsx` 及 11 个 `@einfach-excel/plugin-*` 推向 npm，并补齐公开在线演示站与宿主框架集成配方（Vite / Next.js / Rspack）。
+2. **跨浏览器实机走查与大规模性能压测**：补齐 Safari / Firefox 与系统级中日文输入法候选窗实机走查，持续跟踪高密度工作簿下的长时操作与内存基线。
+3. **明确不纳入当前范围的事项**：多人实时协作、身份/通知、更改记录、版本历史、个人视图、自动保存与服务端持久化、VBA/加载项/Power Query/Copilot 不作为当前产品目标；数据透视表、外部数据连接、打印与宿主自定义富值契约保持延后。
 
 ## 依据
 
